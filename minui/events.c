@@ -29,6 +29,14 @@
 
 #define MAX_DEVICES 16
 
+#define VIBRATOR_TIMEOUT_FILE	"/sys/class/timed_output/vibrator/enable"
+#define VIBRATOR_TIME_MS	50
+
+#define ABS_MT_POSITION_X 0x35
+#define ABS_MT_POSITION_Y 0x36
+#define ABS_MT_TOUCH_MAJOR 0x30
+#define SYN_MT_REPORT 2
+
 enum {
     DOWN_NOT,
     DOWN_SENT,
@@ -63,6 +71,26 @@ static unsigned ev_count = 0;
 
 static inline int ABS(int x) {
     return x<0?-x:x;
+}
+
+int vibrate(int timeout_ms)
+{
+    char str[20];
+    int fd;
+    int ret;
+
+    fd = open(VIBRATOR_TIMEOUT_FILE, O_WRONLY);
+    if (fd < 0)
+        return -1;
+
+    ret = snprintf(str, sizeof(str), "%d", timeout_ms);
+    ret = write(fd, str, ret);
+    close(fd);
+
+    if (ret < 0)
+       return -1;
+
+    return 0;
 }
 
 /* Returns empty tokens */
@@ -300,6 +328,8 @@ static int vk_modify(struct ev *e, struct input_event *ev)
             ev->type = EV_KEY;
             ev->code = e->vks[i].scancode;
             ev->value = 1;
+
+            vibrate(VIBRATOR_TIME_MS);
             return 0;
         }
     }
