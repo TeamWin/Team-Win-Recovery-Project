@@ -19,14 +19,15 @@
 #include "recovery_ui.h"
 #include "common.h"
 
-char* MENU_HEADERS[] = { "Android system recovery utility",
+char* MENU_HEADERS[] = { "TeamWin Android Recovery Utility",
                          "",
                          NULL };
 
-char* MENU_ITEMS[] = { "reboot system now",
-                       "apply update from sdcard",
-                       "wipe data/factory reset",
-                       "wipe cache partition",
+char* MENU_ITEMS[] = { "Install zip",
+                       "Apply update from sdcard",
+                       "Wipe data/factory reset",
+                       "Wipe cache partition",
+                       "Reboot system now",
                        NULL };
 
 int device_recovery_start() {
