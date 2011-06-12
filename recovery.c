@@ -474,6 +474,7 @@ get_menu_selection(char** headers, char** items, int menu_only,
                     ++selected;
                     selected = ui_menu_select(selected);
                     break;
+                case KEY_POWER:
                 case SELECT_ITEM:
                     chosen_item = selected;
                     break;
