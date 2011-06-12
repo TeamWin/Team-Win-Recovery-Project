@@ -19,7 +19,7 @@
 #include "recovery_ui.h"
 #include "common.h"
 
-char* MENU_HEADERS[] = { "Android system recovery utility",
+char* MENU_HEADERS[] = { "TeamWin Android Recovery Utility",
                          "",
                          NULL };
 
