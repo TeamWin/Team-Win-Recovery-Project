@@ -65,10 +65,12 @@ int device_wipe_data();
 #define HIGHLIGHT_DOWN      -3
 #define SELECT_ITEM         -4
 
-#define ITEM_REBOOT          0
+//need to recode first apply_sdcard to actual install zip method
+#define ITEM_APPLY_SDCARD    0
 #define ITEM_APPLY_SDCARD    1
 #define ITEM_WIPE_DATA       2
 #define ITEM_WIPE_CACHE      3
+#define ITEM_REBOOT          4
 
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];
