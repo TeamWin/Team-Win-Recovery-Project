@@ -66,11 +66,16 @@ int device_wipe_data();
 #define SELECT_ITEM         -4
 
 //need to recode first apply_sdcard to actual install zip method
-#define ITEM_APPLY_SDCARD    0
-#define ITEM_APPLY_SDCARD    1
-#define ITEM_WIPE_DATA       2
-#define ITEM_WIPE_CACHE      3
-#define ITEM_REBOOT          4
+#define ITEM_INSTALL_ZIP         0
+#define ITEM_WIPE_DALVIK         1
+#define ITEM_WIPE_CACHE          2
+#define ITEM_NANDROID_BACKUP     3
+#define ITEM_NANDROID_RESTORE    4
+#define ITEM_PARTITIONS          5
+#define ITEM_ADVANCED_MENU       6
+#define ITEM_WIPE_DATA           7
+#define ITEM_APPLY_SDCARD        8
+#define ITEM_REBOOT              9
 
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];

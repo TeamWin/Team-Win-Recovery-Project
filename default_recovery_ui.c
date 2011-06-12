@@ -23,10 +23,15 @@ char* MENU_HEADERS[] = { "TeamWin Android Recovery Utility",
                          "",
                          NULL };
 
-char* MENU_ITEMS[] = { "Install zip",
-                       "Apply update from sdcard",
+char* MENU_ITEMS[] = { "Install Zip",
+                       "Wipe Dalvik-Cache",
+                       "Wipe Cache Partition",
+                       "Nandroid Backup",
+                       "Nandroid Restore",
+                       "Partitions Menu",
+                       "Advanced Menu",
                        "Wipe data/factory reset",
-                       "Wipe cache partition",
+                       "Apply update from sdcard",
                        "Reboot system now",
                        NULL };
 
