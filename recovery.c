@@ -439,9 +439,11 @@ copy_sideloaded_package(const char* original_path) {
 
 static char**
 prepend_title(const char** headers) {
-    char* title[] = { "Android system recovery <"
-                          EXPAND(RECOVERY_API_VERSION) "e>",
-                          "", //
+    char* title[] = { "TeamWin Android Recovery Utility",
+                      "Based on Android system recovery <"
+                      EXPAND(RECOVERY_API_VERSION) "e>",
+                      "", //
+                      "Current Device Detected: ",
                       dpType, // Added output to show MTD/EMMC Type
                       "", //
                       NULL };

@@ -19,8 +19,7 @@
 #include "recovery_ui.h"
 #include "common.h"
 
-char* MENU_HEADERS[] = { "TeamWin Android Recovery Utility",
-                         "",
+char* MENU_HEADERS[] = { "Please select an option from below:",
                          NULL };
 
 char* MENU_ITEMS[] = { "Install Zip",
