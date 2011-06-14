@@ -28,6 +28,18 @@ static int set_bootloader_message_mtd(const struct bootloader_message *in, const
 static int get_bootloader_message_block(struct bootloader_message *out, const Volume* v);
 static int set_bootloader_message_block(const struct bootloader_message *in, const Volume* v);
 
+//Attempting to determine mtd or emmc with a global method
+char *get_fstype() {
+    Volume* v = volume_for_path("/misc");
+    if (strcmp(v->fs_type, "mtd") == 0) {
+        return "MTD";
+    } else if (strcmp(v->fs_type, "emmc") == 0) {
+        return "EMMC";
+    }
+    LOGE("unknown misc partition fs_type \"%s\"\n", v->fs_type);
+    return "Unknown"; //probably need to handle this better
+}
+
 int get_bootloader_message(struct bootloader_message *out) {
     Volume* v = volume_for_path("/misc");
     if (strcmp(v->fs_type, "mtd") == 0) {
