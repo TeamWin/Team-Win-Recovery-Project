@@ -58,6 +58,10 @@ static const char *SDCARD_ROOT = "/sdcard";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
 
+static const char *MTD_FILE = "/proc/mtd"; // MTD proc should exist in MTD Devices
+static const char *EMMC_FILE = "/proc/emmc"; // EMMC proc should exist in EMMC Devices
+static char *dpType;
+
 /*
  * The recovery tool communicates with the main system through /cache files.
  *   /cache/recovery/command - INPUT - command line for tool, one arg per line
@@ -174,6 +178,15 @@ get_args(int *argc, char ***argv) {
     struct bootloader_message boot;
     memset(&boot, 0, sizeof(boot));
 
+    /* Check for MTD or EMMC */
+    if (access(MTD_FILE, F_OK) != -1) {
+    	dpType = "MTD"; // TODO - Found /proc/mtd
+    } else if (access(EMMC_FILE, F_OK) != -1) {
+    	dpType = "EMMC"; // TODO -Found /proc/emmc
+    } else {
+    	dpType = "UNKNOWN"; // TODO - Just in case it's neither
+    }
+    
     if(!strcmp(mtd, "1"))
     {
     get_bootloader_message(&boot);  // this may fail, leaving a zeroed structure
@@ -428,7 +441,9 @@ static char**
 prepend_title(const char** headers) {
     char* title[] = { "Android system recovery <"
                           EXPAND(RECOVERY_API_VERSION) "e>",
-                      "",
+                          "", //
+                      dpType, // Added output to show MTD/EMMC Type
+                      "", //
                       NULL };
 
     // count the number of lines in our title, plus the
