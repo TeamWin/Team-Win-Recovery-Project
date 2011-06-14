@@ -169,15 +169,9 @@ check_and_fclose(FILE *fp, const char *name) {
 //   - the contents of COMMAND_FILE (one per line)
 static void
 get_args(int *argc, char ***argv) {
-    char mtd[64];
-    property_get("ro.mtd", mtd, "");
     struct bootloader_message boot;
     memset(&boot, 0, sizeof(boot));
-
-    if(!strcmp(mtd, "1"))
-    {
     get_bootloader_message(&boot);  // this may fail, leaving a zeroed structure
-    }
 
     if (boot.command[0] != 0 && boot.command[0] != 255) {
         LOGI("Boot command: %.*s\n", sizeof(boot.command), boot.command);
@@ -232,11 +226,7 @@ get_args(int *argc, char ***argv) {
         strlcat(boot.recovery, (*argv)[i], sizeof(boot.recovery));
         strlcat(boot.recovery, "\n", sizeof(boot.recovery));
     }
-
-    if(!strcmp(mtd, "1"))
-    {
     set_bootloader_message(&boot);
-    }
 }
 
 static void
@@ -282,9 +272,6 @@ copy_log_file(const char* destination, int append) {
 // this function is idempotent: call it as many times as you like.
 static void
 finish_recovery(const char *send_intent) {
-
-    char mtd[64];
-    property_get("ro.mtd", mtd, "");
     // By this point, we're ready to return to the main system...
     if (send_intent != NULL) {
         FILE *fp = fopen_path(INTENT_FILE, "w");
@@ -301,13 +288,10 @@ finish_recovery(const char *send_intent) {
     copy_log_file(LAST_LOG_FILE, false);
     chmod(LAST_LOG_FILE, 0640);
 
-    if(!strcmp(mtd, "1"))
-    {
     // Reset to mormal system boot so recovery won't cycle indefinitely.
     struct bootloader_message boot;
     memset(&boot, 0, sizeof(boot));
     set_bootloader_message(&boot);
-    }
 
     // Remove the command file, so recovery won't repeat indefinitely.
     if (ensure_path_mounted(COMMAND_FILE) != 0 ||
