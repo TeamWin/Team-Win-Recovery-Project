@@ -40,10 +40,33 @@ LOCAL_STATIC_LIBRARIES += libminzip libunz libmtdutils libmincrypt
 LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libcutils
 LOCAL_STATIC_LIBRARIES += libstdc++ libc
 
+LOCAL_STATIC_LIBRARIES += libedify libbusybox libclearsilverregex libmkyaffs2image libunyaffs
+
 LOCAL_C_INCLUDES += system/extras/ext4_utils
 
 include $(BUILD_EXECUTABLE)
 
+RECOVERY_LINKS := edify busybox mkyaffs2image unyaffs 
+RECOVERY_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(RECOVERY_LINKS))
+$(RECOVERY_SYMLINKS): RECOVERY_BINARY := $(LOCAL_MODULE)
+$(RECOVERY_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
+	@echo "Symlink: $@ -> $(RECOVERY_BINARY)"
+	@mkdir -p $(dir $@)
+	@rm -rf $@
+	$(hide) ln -sf $(RECOVERY_BINARY) $@
+
+ALL_DEFAULT_INSTALLED_MODULES += $(RECOVERY_SYMLINKS)
+
+BUSYBOX_LINKS := $(shell cat external/busybox/busybox-minimal.links)
+RECOVERY_BUSYBOX_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(filter-out $(exclude),$(notdir $(BUSYBOX_LINKS))))
+$(RECOVERY_BUSYBOX_SYMLINKS): BUSYBOX_BINARY := busybox
+$(RECOVERY_BUSYBOX_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
+	@echo "Symlink: $@ -> $(BUSYBOX_BINARY)"
+	@mkdir -p $(dir $@)
+	@rm -rf $@
+	$(hide) ln -sf $(BUSYBOX_BINARY) $@
+
+ALL_DEFAULT_INSTALLED_MODULES += $(RECOVERY_BUSYBOX_SYMLINKS)
 
 include $(CLEAR_VARS)
 
@@ -58,7 +81,6 @@ LOCAL_MODULE_TAGS := tests
 LOCAL_STATIC_LIBRARIES := libmincrypt libcutils libstdc++ libc
 
 include $(BUILD_EXECUTABLE)
-
 
 include $(commands_recovery_local_path)/minui/Android.mk
 include $(commands_recovery_local_path)/minzip/Android.mk
