@@ -329,7 +329,17 @@ static int vk_modify(struct ev *e, struct input_event *ev)
             ev->code = e->vks[i].scancode;
             ev->value = 1;
 
-            vibrate(VIBRATOR_TIME_MS);
+            // preliminary virtual key presses (capacitative buttons)
+            if (ev->code == e->vks[0].scancode) {
+                vibrate(200); // Home Key
+            } else if (ev->code == e->vks[1].scancode) {
+                vibrate(400); // Menu Key
+            } else if (ev->code == e->vks[2].scancode) {
+                vibrate(600); // Back Key
+            } else if (ev->code == e->vks[3].scancode) {
+                vibrate(800); // Search Key
+            }
+            
             return 0;
         }
     }
