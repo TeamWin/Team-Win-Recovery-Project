@@ -42,6 +42,9 @@ LOCAL_STATIC_LIBRARIES += libstdc++ libc
 
 LOCAL_STATIC_LIBRARIES += libedify libbusybox libclearsilverregex libmkyaffs2image libunyaffs
 
+#custom local libs
+LOCAL_STATIC_LIBRARIES += libc-unistd
+
 LOCAL_C_INCLUDES += system/extras/ext4_utils
 
 include $(BUILD_EXECUTABLE)
@@ -82,6 +85,7 @@ LOCAL_STATIC_LIBRARIES := libmincrypt libcutils libstdc++ libc
 
 include $(BUILD_EXECUTABLE)
 
+include $(commands_recovery_local_path)/libc-unistd/Android.mk
 include $(commands_recovery_local_path)/minui/Android.mk
 include $(commands_recovery_local_path)/minzip/Android.mk
 include $(commands_recovery_local_path)/mtdutils/Android.mk
