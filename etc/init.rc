@@ -37,10 +37,6 @@ service recovery /sbin/recovery
 service adbd /sbin/adbd recovery
     disabled
 
-# install busybox
-service busybox /sbin/busybox --install -s /bin/
-oneshot
-
 on property:persist.service.adb.enable=1
     start adbd
 
