@@ -39,7 +39,8 @@ int device_recovery_start() {
 }
 
 int device_toggle_display(volatile char* key_pressed, int key_code) {
-    return key_code == KEY_HOME;
+    //return key_code == KEY_HOME; // Disabled the hide/unhide
+    return key_code == KEY_RESERVED;
 }
 
 int device_reboot_now(volatile char* key_pressed, int key_code) {
@@ -60,6 +61,16 @@ int device_handle_key(int key_code, int visible) {
             case KEY_POWER:
             case KEY_ENTER:
                 return SELECT_ITEM;
+                
+                /* CAPACITATIVE BUTTONS */
+            case KEY_HOME:
+            	return SELECT_ITEM; // temp command
+            case KEY_MENU:
+            	return SELECT_ITEM; // temp command
+            case KEY_BACK:
+            	return SELECT_ITEM; // temp command
+            case KEY_SEARCH:
+            	return SELECT_ITEM; // temp command
         }
     }
 
