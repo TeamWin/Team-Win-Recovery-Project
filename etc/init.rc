@@ -8,6 +8,9 @@ on init
     export EXTERNAL_STORAGE /sdcard
 
     symlink /system/etc /etc
+    symlink /sbin/busybox /sbin/sh
+
+    chmod 0755 /sbin/busybox
 
     mkdir /sdcard
     mkdir /system
@@ -26,10 +29,17 @@ on boot
 service ueventd /sbin/ueventd
     critical
 
+service dmesg /sbin/busybox dmesg -n 1
+	oneshot
+
 service recovery /sbin/recovery
 
 service adbd /sbin/adbd recovery
     disabled
+
+# install busybox
+service busybox /sbin/busybox --install -s /bin/
+oneshot
 
 on property:persist.service.adb.enable=1
     start adbd
