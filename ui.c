@@ -476,11 +476,11 @@ int ui_menu_select(int sel) {
         if (menu_sel >= menu_items) menu_sel = menu_sel - menu_items;
 
         if (menu_sel < menu_show_start && menu_show_start > 0) {
-            menu_show_start--;
+            menu_show_start = menu_sel;
         }
 
         if (menu_sel - menu_show_start + menu_top >= text_rows) {
-            menu_show_start++;
+            menu_show_start = menu_sel + menu_top - text_rows + 1;
         }
 
         sel = menu_sel;
