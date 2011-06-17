@@ -33,7 +33,7 @@
 #define MAX_ROWS 32
 
 #define MENU_MAX_COLS 64
-#define MENU_MAX_ROWS 250
+#define MENU_MAX_ROWS 251
 
 #define CHAR_WIDTH 10
 #define CHAR_HEIGHT 18
@@ -82,10 +82,10 @@ static int text_cols = 0, text_rows = 0;
 static int text_col = 0, text_row = 0, text_top = 0;
 static int show_text = 1;
 
-static char menu[MENU_MAX_ROWS][MENU_MAX_COLS];
+static char menu[MENU_MAX_ROWS][MENU_MAX_COLS]; //allows menu to hold more than stock default 32 rows
 static int show_menu = 0;
 static int menu_top = 0, menu_items = 0, menu_sel = 0;
-static int menu_show_start = 0;
+static int menu_show_start = 0; ////line count of where the menu starts to be drawn
 
 // Key event input queue
 static pthread_mutex_t key_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -152,6 +152,13 @@ static void draw_text_line(int row, const char* t) {
   }
 }
 
+//setup up all our fancy colors in one convenient location
+#define HEADER_TEXT_COLOR 64, 255, 255, 255 //aqua - blue-greenish
+#define MENU_ITEM_COLOR 64, 96, 255, 255 //dark blue color
+#define MENU_ITEM_HIGHLIGHT_COLOR 64, 255, 255, 255 //aqua - blue-greenish
+#define MENU_ITEM_WHEN_HIGHLIGHTED_COLOR 0, 0, 0, 0 //black
+#define MENU_HORIZONTAL_END_BAR_COLOR 64, 255, 255, 255 //aqua - blue-greenish
+
 // Redraw everything on the screen.  Does not flip pages.
 // Should only be called with gUpdateMutex locked.
 static void draw_screen_locked(void)
@@ -163,44 +170,47 @@ static void draw_screen_locked(void)
         gr_color(0, 0, 0, 160);
         gr_fill(0, 0, gr_fb_width(), gr_fb_height());
 
-        int i = 0;
-        int j = 0;
-        int row = 0; //current row that we are drawing on
+        int i = 0, j = 0;
+        int k = menu_top; //counter for bottom horizontal text line location
         if (show_menu) {
-            gr_color(64, 96, 255, 255);
+
+            //menu line item selection highlight draws
+            gr_color(MENU_ITEM_HIGHLIGHT_COLOR);
             gr_fill(0, (menu_top + menu_sel - menu_show_start) * CHAR_HEIGHT,
                     gr_fb_width(), (menu_top + menu_sel - menu_show_start + 1)*CHAR_HEIGHT+1);
 
+            //draw semi-static headers
             for (i = 0; i < menu_top; ++i) {
+                gr_color(HEADER_TEXT_COLOR);
                 draw_text_line(i, menu[i]);
-                row++;
             }
 
-            if (menu_items - menu_show_start + menu_top >= MAX_ROWS)
-                j = MAX_ROWS - menu_top;
+            //adjust counter for current position of selection and menu display starting point
+            if (menu_items - menu_show_start + menu_top >= text_rows)
+                j = text_rows - menu_top;
             else
                 j = menu_items - menu_show_start;
 
-            gr_color(255, 255, 255, 255);
-
+            //draw menu items dynamically based on current menu starting position, menu selection point and headers
              for (i = menu_show_start + menu_top; i < (menu_show_start + menu_top + j); ++i) {
                 if (i == menu_top + menu_sel) {
-                    gr_color(255, 255, 255, 255);
+                    gr_color(MENU_ITEM_WHEN_HIGHLIGHTED_COLOR);
                     draw_text_line(i - menu_show_start, menu[i]);
-                    gr_color(64, 96, 255, 255);
                 } else {
+                    gr_color(MENU_ITEM_COLOR);
                     draw_text_line(i - menu_show_start, menu[i]);
                 }
-                row++;
+                k++;
             }
-            gr_fill(0, row*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
-                    gr_fb_width(), row*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
+            gr_color(MENU_HORIZONTAL_END_BAR_COLOR);
+            //draws horizontal line at bottom of the menu
+            gr_fill(0, k*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
+                    gr_fb_width(), k*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
         }
 
         gr_color(255, 255, 0, 255);
-
-        for (; row < text_rows; ++row) {
-            draw_text_line(row, text[(row+text_top) % text_rows]);
+        for (; i < text_rows; ++i) {
+            draw_text_line(i, text[(i+text_top) % text_rows]);
         }
     }
 }
@@ -449,18 +459,18 @@ void ui_start_menu(char** headers, char** items, int initial_selection) {
     if (text_rows > 0 && text_cols > 0) {
         for (i = 0; i < text_rows; ++i) {
             if (headers[i] == NULL) break;
-            strncpy(menu[i], headers[i], text_cols-1);
+            strncpy(menu[i], headers[i], text_cols-1); //copy in all headers[i] to menu[i]
             menu[i][text_cols-1] = '\0';
         }
-        menu_top = i;
+        menu_top = i; // from this value of i and previous are headers - this item and greater will be menu items[i]
         for (; i < MENU_MAX_ROWS; ++i) {
             if (items[i-menu_top] == NULL) break;
             strncpy(menu[i], items[i-menu_top], text_cols-1);
             menu[i][text_cols-1] = '\0';
         }
-        menu_items = i - menu_top;
-        show_menu = 1;
-        menu_sel = menu_show_start = initial_selection;
+        menu_items = i - menu_top; //grand count of how many values are actual menu items to exclude header items
+        show_menu = 1; //display the menu
+        menu_sel = menu_show_start = initial_selection; //initialize menu show start location at first line selection
         update_screen_locked();
     }
     pthread_mutex_unlock(&gUpdateMutex);
@@ -475,13 +485,11 @@ int ui_menu_select(int sel) {
         if (menu_sel < 0) menu_sel = menu_items + menu_sel;
         if (menu_sel >= menu_items) menu_sel = menu_sel - menu_items;
 
-        if (menu_sel < menu_show_start && menu_show_start > 0) {
-            menu_show_start = menu_sel;
-        }
+        //move the display starting point up the screen as the selection moves up
+        if (menu_show_start > 0 && menu_sel < menu_show_start) menu_show_start = menu_sel;
 
-        if (menu_sel - menu_show_start + menu_top >= text_rows) {
-            menu_show_start = menu_sel + menu_top - text_rows + 1;
-        }
+        //move display starting point down one past the end of the current screen as the selection moves back end of screen
+        if (menu_sel - menu_show_start + menu_top >= text_rows) menu_show_start = menu_sel + menu_top - text_rows + 1;
 
         sel = menu_sel;
         if (menu_sel != old_sel) update_screen_locked();
