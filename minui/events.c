@@ -329,6 +329,7 @@ static int vk_modify(struct ev *e, struct input_event *ev)
             ev->code = e->vks[i].scancode;
             ev->value = 1;
             
+            vibrate(VIBRATOR_TIME_MS);
             return 0;
         }
     }
