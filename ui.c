@@ -454,14 +454,8 @@ int ui_menu_select(int sel) {
     if (show_menu > 0) {
         old_sel = menu_sel;
         menu_sel = sel;
-     /* original menu scroll 
         if (menu_sel < 0) menu_sel = 0;
         if (menu_sel >= menu_items) menu_sel = menu_items-1;
-     */
-        //allow selection to scroll past top and bottom of the menu
-        if (menu_sel < 0) menu_sel = menu_items + menu_sel;
-        if (menu_sel >= menu_items) menu_sel = menu_sel - menu_items;
-
         sel = menu_sel;
         if (menu_sel != old_sel) update_screen_locked();
     }
