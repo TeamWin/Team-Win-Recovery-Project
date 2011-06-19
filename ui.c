@@ -208,7 +208,7 @@ static void draw_screen_locked(void)
                     gr_fb_width(), k*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
         }
 
-        gr_color(255, 255, 0, 255);
+        gr_color(MENU_ITEM_COLOR); //called by at least ui_print
         for (; i < text_rows; ++i) {
             draw_text_line(i, text[(i+text_top) % text_rows]);
         }
