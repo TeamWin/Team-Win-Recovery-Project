@@ -660,21 +660,6 @@ prompt_and_wait() {
         chosen_item = device_perform_action(chosen_item);
 
         switch (chosen_item) {
-            case ITEM_REBOOT:
-                return;
-
-            case ITEM_WIPE_DATA:
-                wipe_data(ui_text_visible());
-                if (!ui_text_visible()) return;
-                break;
-
-            case ITEM_WIPE_CACHE:
-                ui_print("\n-- Wiping cache...\n");
-                erase_volume("/cache");
-                ui_print("Cache wipe complete.\n");
-                if (!ui_text_visible()) return;
-                break;
-
             case ITEM_APPLY_SDCARD:
                 ;
                 int status = sdcard_directory(SDCARD_ROOT);
@@ -689,9 +674,25 @@ prompt_and_wait() {
                     }
                 }
                 break;
+
+            case ITEM_WIPE_DATA:
+                wipe_data(ui_text_visible());
+                if (!ui_text_visible()) return;
+                break;
+
+            case ITEM_WIPE_CACHE:
+                ui_print("\n-- Wiping cache...\n");
+                erase_volume("/cache");
+                ui_print("Cache wipe complete.\n");
+                if (!ui_text_visible()) return;
+                break;
+
              case ITEM_USBTOGGLE:
                   usb_storage_toggle();	
                 break;
+
+            case ITEM_REBOOT:
+                return;
         }
     }
 }
