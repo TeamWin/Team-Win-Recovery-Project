@@ -94,7 +94,7 @@ void usb_storage_toggle()
                                           if (key == KEY_POWER) {
                                           ui_print("\nDisabling USB storage device\n");
 
-                                          if ((fd = open(CUSTOM_LUN_FILE, O_WRONLY)) < 0) {
+                                          if ((fd = open(CUSTOM_LUN_FILE"0/file", O_WRONLY)) < 0) {
                                           LOGE("Unable to open ums lunfile (%s)", strerror(errno));
                                           return -1;
                                       }

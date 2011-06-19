@@ -153,11 +153,11 @@ static void draw_text_line(int row, const char* t) {
 }
 
 //setup up all our fancy colors in one convenient location
-#define HEADER_TEXT_COLOR 64, 255, 255, 255 //aqua - blue-greenish
-#define MENU_ITEM_COLOR 64, 96, 255, 255 //dark blue color
-#define MENU_ITEM_HIGHLIGHT_COLOR 64, 255, 255, 255 //aqua - blue-greenish
+#define HEADER_TEXT_COLOR 255, 255, 255, 255 //white
+#define MENU_ITEM_COLOR 0, 255, 0, 255 //teamwin green
+#define MENU_ITEM_HIGHLIGHT_COLOR 0, 255, 0, 255 //teamwin green
 #define MENU_ITEM_WHEN_HIGHLIGHTED_COLOR 0, 0, 0, 0 //black
-#define MENU_HORIZONTAL_END_BAR_COLOR 64, 255, 255, 255 //aqua - blue-greenish
+#define MENU_HORIZONTAL_END_BAR_COLOR 0, 255, 0, 255 //teamwin green
 
 // Redraw everything on the screen.  Does not flip pages.
 // Should only be called with gUpdateMutex locked.
