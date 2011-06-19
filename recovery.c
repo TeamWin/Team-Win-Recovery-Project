@@ -437,7 +437,7 @@ prepend_title(const char** headers) {
     return new_headers;
 }
 
-static int
+int 
 get_menu_selection(char** headers, char** items, int menu_only,
                    int initial_selection) {
     // throw away keys pressed previously, so user doesn't
@@ -484,7 +484,7 @@ static int compare_string(const void* a, const void* b) {
     return strcmp(*(const char**)a, *(const char**)b);
 }
 
-static int
+int
 sdcard_directory(const char* path) {
     ensure_path_mounted(SDCARD_ROOT);
 
@@ -644,7 +644,7 @@ wipe_data(int confirm) {
     ui_print("Data wipe complete.\n");
 }
 
-static void
+void
 prompt_and_wait() {
     char** headers = prepend_title((const char**)MENU_HEADERS);
 
@@ -661,18 +661,7 @@ prompt_and_wait() {
 
         switch (chosen_item) {
             case ITEM_APPLY_SDCARD:
-                ;
-                int status = sdcard_directory(SDCARD_ROOT);
-                if (status >= 0) {
-                    if (status != INSTALL_SUCCESS) {
-                        ui_set_background(BACKGROUND_ICON_ERROR);
-                        ui_print("Installation aborted.\n");
-                    } else if (!ui_text_visible()) {
-                        return;  // reboot if logs aren't visible
-                    } else {
-                        ui_print("\nInstall from sdcard complete.\n");
-                    }
-                }
+                install_zip_menu();
                 break;
 
             case ITEM_WIPE_DATA:

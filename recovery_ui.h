@@ -83,4 +83,8 @@ extern char* MENU_HEADERS[];
 // Text of menu items.
 extern char* MENU_ITEMS[];
 
+int sdcard_directory(const char* path);
+int get_menu_selection(char** headers, char** items, int menu_only, int initial_selection);
+void prompt_and_wait();
+
 #endif
