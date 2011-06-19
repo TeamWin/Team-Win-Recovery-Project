@@ -40,6 +40,8 @@
 #include "recovery_ui.h"
 #include "encryptedfs_provisioning.h"
 
+#include "extra-functions.h"
+
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
   { "update_package", required_argument, NULL, 'u' },
@@ -686,6 +688,9 @@ prompt_and_wait() {
                         ui_print("\nInstall from sdcard complete.\n");
                     }
                 }
+                break;
+             case ITEM_USBTOGGLE:
+                  usb_storage_toggle();	
                 break;
         }
     }

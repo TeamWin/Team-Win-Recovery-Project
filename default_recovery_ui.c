@@ -31,6 +31,7 @@ char* MENU_ITEMS[] = { "Install Zip",
                        "Advanced Menu",
                        "Wipe data/factory reset",
                        "Apply update from sdcard",
+                       "USB-MS toggle",
                        "Reboot system now",
                        NULL };
 
