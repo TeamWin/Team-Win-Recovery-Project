@@ -58,13 +58,14 @@ TODO: Currently only one mount is supported, defaulting
 
 void usb_storage_toggle()
 {
-//maybe make this a header instead?
+/*maybe make this a header instead?
     static char* headers[] = {  "Mounting USB as storage device",
                                 "",
                                 NULL
     };
+*/
+    ui_print("\nMounting USB as storage device!\n");
 
-    int chosen_item = get_menu_selection(headers, 0, 0, 0);
     int fd;
     Volume *vol = volume_for_path("/sdcard"); 
     if ((fd = open(CUSTOM_LUN_FILE"0/file", O_WRONLY)) < 0) {
