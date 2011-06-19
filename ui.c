@@ -208,9 +208,10 @@ static void draw_screen_locked(void)
                     gr_fb_width(), k*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
         }
 
+        k++; //keep ui_print items below menu items
         gr_color(MENU_ITEM_COLOR); //called by at least ui_print
-        for (; i < text_rows; ++i) {
-            draw_text_line(i, text[(i+text_top) % text_rows]);
+        for (; k < text_rows; ++k) {
+            draw_text_line(k, text[(k+text_top) % text_rows]);
         }
     }
 }
