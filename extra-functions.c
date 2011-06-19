@@ -109,6 +109,15 @@ void usb_storage_toggle()
                     }
 }
 
+// toggle signature check
+int signature_check_enabled = 1;
+
+void
+toggle_signature_check()
+{
+    signature_check_enabled = !signature_check_enabled;
+    ui_print("Signature Check: %s\n", signature_check_enabled ? "Enabled" : "Disabled");
+}
 
 // INSTALL ZIP MENU
 static const char *SDCARD_ROOT = "/sdcard";
@@ -148,7 +157,7 @@ void install_zip_menu()
                 }
                 break;
             case ITEM_TOGGLE_SIG:
-//signature check
+                toggle_signature_check();
                 break;
             case ITEM_BACK_MAIN:
                  prompt_and_wait();
