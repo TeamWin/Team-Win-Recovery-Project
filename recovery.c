@@ -676,7 +676,7 @@ prompt_and_wait() {
                 if (!ui_text_visible()) return;
                 break;
 
-             case ITEM_USBTOGGLE:
+             case ITEM_USB_TOGGLE:
                   usb_storage_toggle();	
                 break;
 
