@@ -718,6 +718,9 @@ main(int argc, char **argv) {
     load_volume_table();
     get_args(&argc, &argv);
 
+    // Read Settings
+    read_s_file();
+    
     int previous_runs = 0;
     const char *send_intent = NULL;
     const char *update_package = NULL;

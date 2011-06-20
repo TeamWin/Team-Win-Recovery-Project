@@ -48,6 +48,52 @@
 #include "recovery_ui.h"
 #include "roots.h"
 
+// Settings Constants 
+static const char *TW_SETTINGS_FILE = "/sdcard/nandroid/.twrs"; // Actual File
+static const int TW_MAX_SETTINGS_CHARS = 255; // Max Character Length Per Line
+static const int TW_MAX_NUM_SETTINGS = 4; // Total Number of Settings (Change this as we add more settings)
+static const int TW_SIGNED_ZIP = 0; // Zip Signed Toggle (Constant number corresponds to line number in file .twrs)
+static const int TW_NAN_SYSTEM = 1; // system is backed up during nandroid (Constant number corresponds to line number in file .twrs)
+static const int TW_NAN_DATA = 2; // data is backed up during nandroid (Constant number corresponds to line number in file .twrs)
+static const int TW_ZIP_LOCATION = 3; // Last location zip flashed from (remembers last folder) (Constant number corresponds to line number in file .twrs)
+
+static char *tw_signed_zip_val = "0"; // Variable that holds value, default is defined
+static char *tw_nan_system_val = "1"; //
+static char *tw_nan_data_val = "1"; //
+static char *tw_zip_location_val = "/sdcard"; //
+
+// Read from Settings file Function
+void
+read_s_file() {
+	FILE *fp; // define file
+	ensure_path_mounted(TW_SETTINGS_FILE); // Check if path is mounted, if not, mount it
+	fp = fopen(TW_SETTINGS_FILE, "r"); // Open file for read
+	if (fp == NULL) {
+		LOGI("Can not open settings file\n"); // Can't open file, default settings should be unchanged.
+	} else {
+		char s_line[TW_MAX_SETTINGS_CHARS+2]; // Set max characters + 2 (because of terminating and carriage return)
+		int i = 0;
+		while(i < TW_MAX_NUM_SETTINGS) {
+			fgets(s_line, TW_MAX_SETTINGS_CHARS+2, fp); // Read a line from file
+			if (i == TW_SIGNED_ZIP) {
+				tw_signed_zip_val = s_line; // i = 0
+				LOGI("--> TW_SIGNED_ZIP (%d) = %s", i, tw_signed_zip_val); // log in /tmp/recovery.log
+			} else if (i == TW_NAN_SYSTEM) {
+				tw_nan_system_val = s_line; // i = 1
+				LOGI("--> TW_NAN_SYSTEM (%d) = %s", i, tw_nan_system_val);
+			} else if (i == TW_NAN_DATA) {
+				tw_nan_data_val = s_line; //  i = 2
+				LOGI("--> TW_NAN_DATA (%d) = %s", i, tw_nan_data_val);
+			} else if (i == TW_ZIP_LOCATION) {
+				tw_zip_location_val = s_line; // i = 3
+				LOGI("--> TW_ZIP_LOCATION (%d) = %s", i, tw_zip_location_val);
+			}
+			i++; // increment loop
+		}
+		fclose(fp); // close file
+	}
+}
+
 /*partial kangbang from system/vold
 TODO: Currently only one mount is supported, defaulting
 /mnt/sdcard to lun0 and anything else gets no love. Fix this.
