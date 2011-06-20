@@ -131,25 +131,26 @@ void usb_storage_toggle()
         ui_print("\nPress Power to disable,");
         ui_print("\nand return to menu\n");
 
-    for (;;) {
-        int key = ui_wait_key();
-        if (key == KEY_POWER) {
-            ui_print("\nDisabling USB as storage device...");
+        for (;;) {
+        	int key = ui_wait_key();
+        	if (key == KEY_POWER) {
+        		ui_print("\nDisabling USB as storage device...");
 
-            if ((fd = open(CUSTOM_LUN_FILE"0/file", O_WRONLY)) < 0) {
-                LOGE("Unable to open ums lunfile: (%s)", strerror(errno));
-                return -1;
-            }
+        		if ((fd = open(CUSTOM_LUN_FILE"0/file", O_WRONLY)) < 0) {
+        			LOGE("Unable to open ums lunfile: (%s)", strerror(errno));
+        			return -1;
+        		}
 
-            char ch = 0;
-            if (write(fd, &ch, 1) < 0) {
-                LOGE("Unable to write to ums lunfile: (%s)", strerror(errno));
-                close(fd);
-                return -1;
-            }
-            ui_print("\nUSB as storage device unmounted!\n");
+        		char ch = 0;
+        		if (write(fd, &ch, 1) < 0) {
+        			LOGE("Unable to write to ums lunfile: (%s)", strerror(errno));
+        			close(fd);
+        			return -1;
+        		}
+        		ui_print("\nUSB as storage device unmounted!\n");
+        		break;
+        	}
         }
-        break; }
     }
 }
 
