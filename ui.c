@@ -155,12 +155,14 @@ static void draw_text_line(int row, const char* t) {
 //setup up all our fancy colors in one convenient location
 #define HEADER_TEXT_COLOR 255, 255, 255, 255 //white
 #define MENU_ITEM_COLOR 0, 255, 0, 255 //teamwin green
+#define UI_PRINT_COLOR 0, 255, 0, 255 //teamwin green
 #define MENU_ITEM_HIGHLIGHT_COLOR 0, 255, 0, 255 //teamwin green
 #define MENU_ITEM_WHEN_HIGHLIGHTED_COLOR 0, 0, 0, 0 //black
 #define MENU_HORIZONTAL_END_BAR_COLOR 0, 255, 0, 255 //teamwin green
 
 // Redraw everything on the screen.  Does not flip pages.
 // Should only be called with gUpdateMutex locked.
+// joeykrim-all the LOGI help me keep my sanity
 static void draw_screen_locked(void)
 {
     draw_background_locked(gCurrentIcon);
@@ -171,37 +173,56 @@ static void draw_screen_locked(void)
         gr_fill(0, 0, gr_fb_width(), gr_fb_height());
 
         int i = 0, j = 0;
-        int k = menu_top; //counter for bottom horizontal text line location
+        int k = menu_top + 1; //counter for bottom horizontal text line location
         if (show_menu) {
 
+        //LOGI("text_rows: %i\n", text_rows);
+        //LOGI("menu_items: %i\n", menu_items);
+        //LOGI("menu_top: %i\n", menu_top);
+        //LOGI("menu_show_start: %i\n", menu_show_start);
             //menu line item selection highlight draws
             gr_color(MENU_ITEM_HIGHLIGHT_COLOR);
-            gr_fill(0, (menu_top + menu_sel - menu_show_start) * CHAR_HEIGHT,
-                    gr_fb_width(), (menu_top + menu_sel - menu_show_start + 1)*CHAR_HEIGHT+1);
+            gr_fill(0, (menu_top + menu_sel - menu_show_start+1) * CHAR_HEIGHT,
+                    gr_fb_width(), (menu_top + menu_sel - menu_show_start + 2)*CHAR_HEIGHT+1);
 
             //draw semi-static headers
             for (i = 0; i < menu_top; ++i) {
                 gr_color(HEADER_TEXT_COLOR);
                 draw_text_line(i, menu[i]);
+                //LOGI("Semi-static headers internal counter i: %i\n", i);
             }
+
+            //LOGI("Drawing horizontal start bar at k and k = %i\n", k);
+            gr_color(MENU_HORIZONTAL_END_BAR_COLOR);
+            //draws horizontal line at bottom of the menu
+            gr_fill(0, (k-1)*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
+                    gr_fb_width(), (k-1)*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
 
             //adjust counter for current position of selection and menu display starting point
-            if (menu_items - menu_show_start + menu_top >= text_rows)
+            if (menu_items - menu_show_start + menu_top >= text_rows){
                 j = text_rows - menu_top;
-            else
+                //LOGI("j = text_rows - mneu_top and j = %i\n", j);
+           } else {
                 j = menu_items - menu_show_start;
-
+                //LOGI("j = mneu_items - menu_show_start and j = %i\n", j);
+           }
+            //LOGI("outside draw menu items for loop and i goes until limit. limit-menu_show_start + menu_top + j = %i\n", menu_show_start + menu_top + j);
             //draw menu items dynamically based on current menu starting position, menu selection point and headers
              for (i = menu_show_start + menu_top; i < (menu_show_start + menu_top + j); ++i) {
+                //LOGI("inside draw menu items for loop and i = %i\n", i);
                 if (i == menu_top + menu_sel) {
                     gr_color(MENU_ITEM_WHEN_HIGHLIGHTED_COLOR);
-                    draw_text_line(i - menu_show_start, menu[i]);
+                    //LOGI("draw_text_line -menu_item_when_highlighted_color- at i + 1= %i\n", i+1);
+                    draw_text_line(i - menu_show_start +1, menu[i]);
                 } else {
                     gr_color(MENU_ITEM_COLOR);
-                    draw_text_line(i - menu_show_start, menu[i]);
+                    //LOGI("draw_text_line -menu_item_color- at i + 1= %i\n", i+1);
+                    draw_text_line(i - menu_show_start +1, menu[i]);
                 }
+                //LOGI("inside draw menu items for loop and k = %i\n", k);
                 k++;
             }
+            //LOGI("drawing horizontal end bar at k and k = %i\n", k);
             gr_color(MENU_HORIZONTAL_END_BAR_COLOR);
             //draws horizontal line at bottom of the menu
             gr_fill(0, k*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
@@ -209,7 +230,7 @@ static void draw_screen_locked(void)
         }
 
         k++; //keep ui_print below menu items display
-        gr_color(MENU_ITEM_COLOR); //called by at least ui_print
+        gr_color(UI_PRINT_COLOR); //called by at least ui_print
         for (; k < text_rows; ++k) {
             draw_text_line(k, text[(k+text_top) % text_rows]);
         }
