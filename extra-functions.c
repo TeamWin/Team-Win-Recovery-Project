@@ -26,35 +26,27 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "common.h"
 #include "cutils/misc.h"
 #include "cutils/properties.h"
-#include "minzip/DirUtil.h"
-#include "minzip/Zip.h"
-#include "roots.h"
-
-#include "extra-functions.h"
 #include <signal.h>
-
 #include <ctype.h>
-
 #include <getopt.h>
-
 #include <linux/input.h>
-
 #include <dirent.h>
-
 #include <sys/reboot.h>
-
 #include <time.h>
-
 #include <termios.h>
+#include <sys/limits.h>
 
 #include "bootloader.h"
 #include "install.h"
 #include "minui/minui.h"
-
-#include <sys/limits.h>
+#include "minzip/DirUtil.h"
+#include "minzip/Zip.h"
+#include "roots.h"
+#include "common.h"
+#include "recovery_ui.h"
+#include "extra-functions.h"
 
 /*partial kangbang from system/vold
 TODO: Currently only one mount is supported, defaulting
@@ -66,8 +58,13 @@ TODO: Currently only one mount is supported, defaulting
 
 void usb_storage_toggle()
 {
-//maybe make this a header instead?
-    ui_print("\nMounting USB as storage device\n");
+/*maybe make this a header instead?
+    static char* headers[] = {  "Mounting USB as storage device",
+                                "",
+                                NULL
+    };
+*/
+    ui_print("\nMounting USB as storage device!\n");
 
     int fd;
     Volume *vol = volume_for_path("/sdcard"); 
@@ -111,3 +108,63 @@ void usb_storage_toggle()
                                       }
                     }
 }
+
+// toggle signature check
+int signature_check_enabled = 1;
+
+void
+toggle_signature_check()
+{
+    signature_check_enabled = !signature_check_enabled;
+    ui_print("Signature Check: %s\n", signature_check_enabled ? "Enabled" : "Disabled");
+}
+
+// INSTALL ZIP MENU
+static const char *SDCARD_ROOT = "/sdcard";
+
+char* MENU_INSTALL_ZIP[] = {  "Choose zip To Flash",
+                               "Toggle Signature Verification",
+                               "-Back",
+
+                                NULL };
+#define ITEM_CHOOSE_ZIP       0
+#define ITEM_TOGGLE_SIG       1
+#define ITEM_BACK_MAIN        2
+
+void install_zip_menu()
+{
+    static char* MENU_FLASH_HEADERS[] = {  "Flash zip From SD card",
+                                "",
+                                NULL
+    };
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(MENU_FLASH_HEADERS, MENU_INSTALL_ZIP, 0, 0);
+        switch (chosen_item)
+        {
+            case ITEM_CHOOSE_ZIP:
+                ;
+                int status = sdcard_directory(SDCARD_ROOT);
+                if (status >= 0) {
+                    if (status != INSTALL_SUCCESS) {
+                        ui_set_background(BACKGROUND_ICON_ERROR);
+                        ui_print("Installation aborted.\n");
+                    } else if (!ui_text_visible()) {
+                        return;  // reboot if logs aren't visible
+                    } else {
+                        ui_print("\nInstall from sdcard complete.\n");
+                    }
+                }
+                break;
+            case ITEM_TOGGLE_SIG:
+                toggle_signature_check();
+                break;
+            case ITEM_BACK_MAIN:
+                 prompt_and_wait();
+                break;
+            default:
+                return;
+        }
+    }
+}
+

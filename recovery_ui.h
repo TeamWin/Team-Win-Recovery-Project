@@ -74,7 +74,7 @@ int device_wipe_data();
 #define ITEM_PARTITIONS          5
 #define ITEM_ADVANCED_MENU       6
 #define ITEM_WIPE_DATA           7
-#define ITEM_USBTOGGLE           8
+#define ITEM_USB_TOGGLE           8
 #define ITEM_REBOOT              9
 
 // Header text to display above the main menu.
@@ -82,5 +82,9 @@ extern char* MENU_HEADERS[];
 
 // Text of menu items.
 extern char* MENU_ITEMS[];
+
+int sdcard_directory(const char* path);
+int get_menu_selection(char** headers, char** items, int menu_only, int initial_selection);
+void prompt_and_wait();
 
 #endif
