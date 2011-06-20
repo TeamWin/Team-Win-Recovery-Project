@@ -641,7 +641,7 @@ wipe_data(int confirm) {
     device_wipe_data();
     erase_volume("/data");
     erase_volume("/cache");
-    ui_print("Data wipe complete.\n");
+    ui_print("-- Data wipe complete.\n");
 }
 
 void
@@ -666,14 +666,23 @@ prompt_and_wait() {
 
             case ITEM_WIPE_DALVIK:
                 ensure_path_mounted("/data");
-                ensure_path_mounted("/sd-ext");
                 ensure_path_mounted("/cache");
                 ui_print("\n-- Wiping Dalvik Cache...\n");
                 system("rm -r /data/dalvik-cache");
+                ui_print("Cleaned: /data/dalvik-cache...\n");
                 system("rm -r /cache/dalvik-cache");
-                system("rm -r /sd-ext/dalvik-cache");
+                ui_print("Cleaned: /cache/dalvik-cache...\n");
+		struct stat st;
+        	if (0 != stat("/dev/block/mmcblk0p2", &st))
+		{
+                ui_print("sd-ext not present, skipping\n");
+		} else {
+                ensure_path_mounted("/sd-ext");
+	        system("rm -r /sd-ext/dalvik-cache");
+                ui_print("Cleaned: /sd-ext/dalvik-cache...\n");
+		}
                 ensure_path_unmounted("/data");
-                ui_print("Dalvik Cache Wipe Complete.\n");
+                ui_print("-- Dalvik Cache Wipe Complete!\n");
                 if (!ui_text_visible()) return;
                 break;
 
@@ -685,7 +694,7 @@ prompt_and_wait() {
             case ITEM_WIPE_CACHE:
                 ui_print("\n-- Wiping Cache...\n");
                 erase_volume("/cache");
-                ui_print("Cache Wipe Complete.\n");
+                ui_print("-- Cache Wipe Complete.\n");
                 if (!ui_text_visible()) return;
                 break;
 
