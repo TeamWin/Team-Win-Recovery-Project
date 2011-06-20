@@ -437,7 +437,7 @@ prepend_title(const char** headers) {
     return new_headers;
 }
 
-static int
+int 
 get_menu_selection(char** headers, char** items, int menu_only,
                    int initial_selection) {
     // throw away keys pressed previously, so user doesn't
@@ -484,7 +484,7 @@ static int compare_string(const void* a, const void* b) {
     return strcmp(*(const char**)a, *(const char**)b);
 }
 
-static int
+int
 sdcard_directory(const char* path) {
     ensure_path_mounted(SDCARD_ROOT);
 
@@ -644,7 +644,7 @@ wipe_data(int confirm) {
     ui_print("Data wipe complete.\n");
 }
 
-static void
+void
 prompt_and_wait() {
     char** headers = prepend_title((const char**)MENU_HEADERS);
 
@@ -661,18 +661,20 @@ prompt_and_wait() {
 
         switch (chosen_item) {
             case ITEM_APPLY_SDCARD:
-                ;
-                int status = sdcard_directory(SDCARD_ROOT);
-                if (status >= 0) {
-                    if (status != INSTALL_SUCCESS) {
-                        ui_set_background(BACKGROUND_ICON_ERROR);
-                        ui_print("Installation aborted.\n");
-                    } else if (!ui_text_visible()) {
-                        return;  // reboot if logs aren't visible
-                    } else {
-                        ui_print("\nInstall from sdcard complete.\n");
-                    }
-                }
+                install_zip_menu();
+                break;
+
+            case ITEM_WIPE_DALVIK:
+                ensure_path_mounted("/data");
+                ensure_path_mounted("/sd-ext");
+                ensure_path_mounted("/cache");
+                ui_print("\n-- Wiping Dalvik Cache...\n");
+                system("rm -r /data/dalvik-cache");
+                system("rm -r /cache/dalvik-cache");
+                system("rm -r /sd-ext/dalvik-cache");
+                ensure_path_unmounted("/data");
+                ui_print("Dalvik Cache Wipe Complete.\n");
+                if (!ui_text_visible()) return;
                 break;
 
             case ITEM_WIPE_DATA:
@@ -681,13 +683,13 @@ prompt_and_wait() {
                 break;
 
             case ITEM_WIPE_CACHE:
-                ui_print("\n-- Wiping cache...\n");
+                ui_print("\n-- Wiping Cache...\n");
                 erase_volume("/cache");
-                ui_print("Cache wipe complete.\n");
+                ui_print("Cache Wipe Complete.\n");
                 if (!ui_text_visible()) return;
                 break;
 
-             case ITEM_USBTOGGLE:
+             case ITEM_USB_TOGGLE:
                   usb_storage_toggle();	
                 break;
 
@@ -716,6 +718,9 @@ main(int argc, char **argv) {
     load_volume_table();
     get_args(&argc, &argv);
 
+    // Read Settings
+    read_s_file();
+    
     int previous_runs = 0;
     const char *send_intent = NULL;
     const char *update_package = NULL;
@@ -818,6 +823,7 @@ main(int argc, char **argv) {
         if (status != INSTALL_SUCCESS) ui_print("Cache wipe failed.\n");
     } else {
         status = INSTALL_ERROR;  // No command specified
+        signature_check_enabled = 0;
     }
 
     if (status != INSTALL_SUCCESS) ui_set_background(BACKGROUND_ICON_ERROR);
