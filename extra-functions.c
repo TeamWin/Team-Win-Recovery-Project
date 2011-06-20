@@ -120,17 +120,17 @@ toggle_signature_check()
 // INSTALL ZIP MENU
 static const char *SDCARD_ROOT = "/sdcard";
 
-char* MENU_INSTALL_ZIP[] = {  "<-Back To Main Menu",
-                               "Choose zip To Flash",
+char* MENU_INSTALL_ZIP[] = {  "Choose zip To Flash",
                                "Toggle Signature Verification",
+                               "<-Back To Main Menu",
                                 NULL };
-#define ITEM_CHOOSE_ZIP      1
-#define ITEM_TOGGLE_SIG      2
+#define ITEM_CHOOSE_ZIP      0
+#define ITEM_TOGGLE_SIG      1
 
 void install_zip_menu()
 {
     int result;
-    int chosen_item = 0;
+    int chosen_item = 2;
 
     static char* MENU_FLASH_HEADERS[] = {  "Flash zip From SD card",
                                 "",
@@ -141,8 +141,8 @@ void install_zip_menu()
         int chosen_item = get_menu_selection(MENU_FLASH_HEADERS, MENU_INSTALL_ZIP, 0, 0);
         switch (chosen_item)
         {
-        // force item 0 always to go "back"
-        if (chosen_item == 0) {
+        // force item 2 always to go "back"
+        if (chosen_item == 2) {
             result = -1;
             break;
             }
