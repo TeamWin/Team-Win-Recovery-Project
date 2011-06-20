@@ -664,15 +664,28 @@ prompt_and_wait() {
                 install_zip_menu();
                 break;
 
+            case ITEM_WIPE_DALVIK:
+                ensure_path_mounted("/data");
+                ensure_path_mounted("/sd-ext");
+                ensure_path_mounted("/cache");
+                ui_print("\n-- Wiping Dalvik Cache...\n");
+                system("rm -r /data/dalvik-cache");
+                system("rm -r /cache/dalvik-cache");
+                system("rm -r /sd-ext/dalvik-cache");
+                ensure_path_unmounted("/data");
+                ui_print("Dalvik Cache Wipe Complete.\n");
+                if (!ui_text_visible()) return;
+                break;
+
             case ITEM_WIPE_DATA:
                 wipe_data(ui_text_visible());
                 if (!ui_text_visible()) return;
                 break;
 
             case ITEM_WIPE_CACHE:
-                ui_print("\n-- Wiping cache...\n");
+                ui_print("\n-- Wiping Cache...\n");
                 erase_volume("/cache");
-                ui_print("Cache wipe complete.\n");
+                ui_print("Cache Wipe Complete.\n");
                 if (!ui_text_visible()) return;
                 break;
 
