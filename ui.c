@@ -484,7 +484,7 @@ void ui_start_menu(char** headers, char** items, int initial_selection) {
             strncpy(menu[i], headers[i], text_cols-1); //copy in all headers[i] to menu[i]
             menu[i][text_cols-1] = '\0';
         }
-        menu_top = i; // from this value of i and previous are headers - this item and greater will be menu items[i]
+        menu_top = i; // from this value and previous of i are headers - this item and greater will be menu items[i]
         for (; i < MENU_MAX_ROWS; ++i) {
             if (items[i-menu_top] == NULL) break;
             strncpy(menu[i], items[i-menu_top], text_cols-1);
@@ -494,15 +494,15 @@ void ui_start_menu(char** headers, char** items, int initial_selection) {
         show_menu = 1; //display the menu
         menu_sel = initial_selection; // set menu_sel to initial_selection for proper display
         if (menu_items <= (text_rows - menu_top)) { // this block of if statements sets menu_show_start to display the right section of the menu based on what item was selected - primarily needed when going back up a level in the menus 
-        	menu_show_start = 0;
+            menu_show_start = 0;
         } else {
-			menu_show_start = initial_selection - ((text_rows - menu_top) / 2); // this should place the selected item around the middle of the menu selection area
-			if (menu_show_start > (menu_items - (text_rows - menu_top))) {
-				menu_show_start = (menu_items - (text_rows - menu_top)); // makes sure that we are displaying as many menu items as possible in case the selected item is at the bottom of a large list of menu items
-			}
-			if (menu_show_start < 0) {
-				menu_show_start = 0; // prevents menu_show_start from being <0 in case we're close to the top of the menu
-			}
+            menu_show_start = initial_selection - ((text_rows - menu_top) / 2); // this should place the selected item around the middle of the menu selection area
+            if (menu_show_start > (menu_items - (text_rows - menu_top))) {
+                menu_show_start = (menu_items - (text_rows - menu_top)); // makes sure that we are displaying as many menu items as possible in case the selected item is at the bottom of a large list of menu items
+            }
+            if (menu_show_start < 0) {
+                menu_show_start = 0; // prevents menu_show_start from being <0 in case we're close to the top of the menu
+            }
         }
         update_screen_locked();
     }
