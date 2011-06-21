@@ -159,13 +159,14 @@ read_s_file() {
 				if (s_line[len-1] == '\n') { // if last char is carriage return
 					s_line[len-1] = 0; // remove it by setting it to 0
 				}
-				if (i == TW_SIGNED_ZIP) {
-					tw_signed_zip_val = s_line; // i = 0
-					LOGI("--> TW_SIGNED_ZIP (%d) = %s\n", i, tw_signed_zip_val); // log in /tmp/recovery.log
-				} else if (i == TW_NAN_SYSTEM) {
-					tw_nan_system_val = s_line; // i = 1
-					LOGI("--> TW_NAN_SYSTEM (%d) = %s\n", i, tw_nan_system_val);
-				} else if (i == TW_NAN_DATA) {
+			    if (i == TW_SIGNED_ZIP) {
+				    tw_signed_zip_val = s_line; // i = 0
+				    signature_check_enabled = strcmp(tw_signed_zip_val, "0");
+				    LOGI("--> TW_SIGNED_ZIP (%d) = %s\n", i, tw_signed_zip_val); // log in /tmp/recovery.log
+			    } else if (i == TW_NAN_SYSTEM) {
+				    tw_nan_system_val = s_line; // i = 1
+				    LOGI("--> TW_NAN_SYSTEM (%d) = %s\n", i, tw_nan_system_val);
+                } else if (i == TW_NAN_DATA) {
 					tw_nan_data_val = s_line; //  i = 2
 					LOGI("--> TW_NAN_DATA (%d) = %s\n", i, tw_nan_data_val);
 				} else if (i == TW_ZIP_LOCATION) {
@@ -247,14 +248,15 @@ toggle_signature_check()
 {
     signature_check_enabled = !signature_check_enabled;
     ui_print("Signature Check: %s\n", signature_check_enabled ? "Enabled" : "Disabled");
+    if (signature_check_enabled) {
+        tw_signed_zip_val = "1";
+    } else {
+        tw_signed_zip_val = "0";
+    }
+    write_s_file();
 }
 
 // INSTALL ZIP MENU
-
-char* MENU_INSTALL_ZIP[] = {  "Choose zip To Flash",
-                               "Toggle Signature Verification",
-                               "<-Back To Main Menu",
-                                NULL };
 #define ITEM_CHOOSE_ZIP      0
 #define ITEM_TOGGLE_SIG      1
 
@@ -262,7 +264,12 @@ void install_zip_menu()
 {
     int result;
     int chosen_item = 2;
-
+    char* toggle_menu_option = "Toggle Signature Verification - Currently ";
+    strcat(toggle_menu_option, signature_check_enabled ? "Enabled" : "Disabled");
+    char* MENU_INSTALL_ZIP[] = {  "Choose zip To Flash",
+    		                      toggle_menu_option,
+                                   "<-Back To Main Menu",
+                                    NULL };
     static char* MENU_FLASH_HEADERS[] = {  "Flash zip From SD card",
                                 "",
                                 NULL
@@ -294,6 +301,7 @@ void install_zip_menu()
                 break;
             case ITEM_TOGGLE_SIG:
                 toggle_signature_check();
+                // TO DO: need to add code to update the menu to display the toggle change
                 break;
             default:
                 return;
