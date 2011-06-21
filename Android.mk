@@ -41,9 +41,6 @@ LOCAL_STATIC_LIBRARIES += libminzip libunz libmtdutils libmincrypt
 LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libcutils
 LOCAL_STATIC_LIBRARIES += libstdc++ libc
 
-#custom local libs
-LOCAL_STATIC_LIBRARIES += libc-unistd
-
 LOCAL_C_INCLUDES += system/extras/ext4_utils
 
 include $(BUILD_EXECUTABLE)
@@ -70,7 +67,6 @@ include $(commands_recovery_local_path)/edify/Android.mk
 include $(commands_recovery_local_path)/prebuilt/Android.mk
 include $(commands_recovery_local_path)/updater/Android.mk
 include $(commands_recovery_local_path)/applypatch/Android.mk
-include $(commands_recovery_local_path)/libc-unistd/Android.mk
 commands_recovery_local_path :=
 
 endif   # TARGET_ARCH == arm
