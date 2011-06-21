@@ -1,4 +1,5 @@
 // Read Settings Function
+void write_s_file();
 void read_s_file();
 
 void usb_storage_toggle();

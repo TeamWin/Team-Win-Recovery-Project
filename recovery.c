@@ -647,7 +647,7 @@ wipe_data(int confirm) {
 void
 prompt_and_wait() {
     char** headers = prepend_title((const char**)MENU_HEADERS);
-
+    
     for (;;) {
         finish_recovery(NULL);
         ui_reset_progress();
@@ -708,9 +708,6 @@ main(int argc, char **argv) {
     ui_set_background(BACKGROUND_ICON_INSTALLING);
     load_volume_table();
     get_args(&argc, &argv);
-
-    // Read Settings
-    read_s_file();
     
     int previous_runs = 0;
     const char *send_intent = NULL;
@@ -819,6 +816,8 @@ main(int argc, char **argv) {
 
     if (status != INSTALL_SUCCESS) ui_set_background(BACKGROUND_ICON_ERROR);
     if (status != INSTALL_SUCCESS || ui_text_visible()) {
+        // Read Settings
+        read_s_file();
         //assume we want to be here and its not an error - give us the pretty icon!
         ui_set_background(BACKGROUND_ICON_INSTALLING);
         prompt_and_wait();
