@@ -259,3 +259,27 @@ void install_zip_menu()
         }
     }
 }
+
+void wipe_dalvik_cache()
+{
+       ensure_path_mounted("/data");
+       ensure_path_mounted("/cache");
+       ui_print("\n-- Wiping Dalvik Cache...\n");
+       __system("rm -rf /data/dalvik-cache");
+       ui_print("Cleaned: /data/dalvik-cache...\n");
+       __system("rm -rf /cache/dalvik-cache");
+       ui_print("Cleaned: /cache/dalvik-cache...\n");
+
+       struct stat st;
+       if (0 != stat("/dev/block/mmcblk0p2", &st))
+       {
+       ui_print("sd-ext not present, skipping\n");
+       } else {
+           ensure_path_mounted("/sd-ext");
+           __system("rm -rf /sd-ext/dalvik-cache");
+           ui_print("Cleaned: /sd-ext/dalvik-cache...\n");
+       }
+       ensure_path_unmounted("/data");
+       ui_print("-- Dalvik Cache Wipe Complete!\n");
+       if (!ui_text_visible()) return;
+}
