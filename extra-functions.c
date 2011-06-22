@@ -243,7 +243,7 @@ void install_zip_menu()
             case ITEM_CHOOSE_ZIP:
             	;
                 int status = sdcard_directory(SDCARD_ROOT);
-                if (status >= 0) {
+                    ui_reset_progress();  // reset status bar so it doesnt run off the screen 
                     if (status != INSTALL_SUCCESS) {
                         ui_set_background(BACKGROUND_ICON_ERROR);
                         ui_print("Installation aborted.\n");
@@ -251,7 +251,6 @@ void install_zip_menu()
                         return;  // reboot if logs aren't visible
                     } else {
                         ui_print("\nInstall from sdcard complete.\n");
-                    }
                 }
                 break;
             case ITEM_TOGGLE_SIG:
