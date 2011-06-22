@@ -66,7 +66,7 @@ int device_handle_key(int key_code, int visible) {
             case KEY_HOME:
             	return SELECT_ITEM; // temp command
             case KEY_MENU:
-            	return SELECT_ITEM; // temp command
+            	return advanced_menu(); // temp command
             case KEY_BACK:
             	return SELECT_ITEM; // temp command
             case KEY_SEARCH:

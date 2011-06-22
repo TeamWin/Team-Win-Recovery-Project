@@ -272,7 +272,7 @@ copy_log_file(const char* destination, int append) {
 // copy our log file to cache as well (for the system to read), and
 // record any intent we were asked to communicate back to the system.
 // this function is idempotent: call it as many times as you like.
-static void
+void
 finish_recovery(const char *send_intent) {
     // By this point, we're ready to return to the main system...
     if (send_intent != NULL) {
@@ -678,6 +678,10 @@ prompt_and_wait() {
                 erase_volume("/cache");
                 ui_print("-- Cache Wipe Complete.\n");
                 if (!ui_text_visible()) return;
+                break;
+
+             case ITEM_ADVANCED_MENU:
+                  advanced_menu();	
                 break;
 
              case ITEM_USB_TOGGLE:

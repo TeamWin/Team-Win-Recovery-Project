@@ -290,3 +290,92 @@ void wipe_dalvik_cache()
        ui_print("-- Dalvik Cache Wipe Complete!\n");
        if (!ui_text_visible()) return;
 }
+
+// REBOOT MENU
+char* MENU_REBOOT[] = {  "Reboot To System",
+                         "Reboot To Recovery",
+                         "Reboot To Bootloader",
+                         "Power Off",
+                         "<-Back To Main Menu",
+                                NULL };
+#define ITEM_REBOOT      0
+#define ITEM_RECOVERY    1
+#define ITEM_BOOTLOADER  2
+#define ITEM_POWEROFF    3
+void reboot_menu()
+{
+    int result;
+    int chosen_item = 4;
+    finish_recovery(NULL);
+
+    static char* MENU_REBOOT_HEADERS[] = {  "Reboot Menu",
+                                "",
+                                NULL
+    };
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(MENU_REBOOT_HEADERS, MENU_REBOOT, 0, 0);
+        switch (chosen_item)
+        {
+        // force item 4 always to go "back"
+        if (chosen_item == 4) {
+            result = -1;
+            break;
+            }
+
+            case ITEM_RECOVERY:
+                __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
+                break;
+
+            case ITEM_BOOTLOADER:
+                __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "bootloader");
+                break;
+
+            case ITEM_POWEROFF:
+                __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
+                break;
+
+            case ITEM_REBOOT:
+                reboot(RB_AUTOBOOT);
+                break;
+
+            default:
+                return;
+        }
+    }
+}
+
+// ADVANCED MENU
+char* MENU_ADVANCED[] = {  "Reboot Menu",
+                           "<-Back To Main Menu",
+                                NULL };
+#define ITEM_REBOOT_MENU 0
+
+void advanced_menu()
+{
+    int result;
+    int chosen_item = 1;
+
+    static char* MENU_ADVANCED_HEADERS[] = {  "Advanced Options",
+                                "",
+                                NULL
+    };
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(MENU_ADVANCED_HEADERS, MENU_ADVANCED, 0, 0);
+        switch (chosen_item)
+        {
+        // force item 1 always to go "back"
+        if (chosen_item == 1) {
+            result = -1;
+            break;
+            }
+
+            case ITEM_REBOOT_MENU:
+                reboot_menu();
+                break;
+            default:
+                return;
+        }
+    }
+}
