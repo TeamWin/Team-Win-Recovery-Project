@@ -240,7 +240,7 @@ void usb_storage_toggle()
     }
 }
 
-// toggle signature check
+// TOGGLE SIGNATURE CHECK
 int signature_check_enabled = 1;
 
 void
@@ -343,7 +343,7 @@ char* MENU_REBOOT[] = {  "Reboot To System",
                          "Power Off",
                          "<-Back To Main Menu",
                                 NULL };
-#define ITEM_REBOOT      0
+#define ITEM_SYSTEM      0
 #define ITEM_RECOVERY    1
 #define ITEM_BOOTLOADER  2
 #define ITEM_POWEROFF    3
@@ -380,7 +380,7 @@ void reboot_menu()
                 __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
                 break;
 
-            case ITEM_REBOOT:
+            case ITEM_SYSTEM:
                 reboot(RB_AUTOBOOT);
                 break;
 
@@ -390,16 +390,35 @@ void reboot_menu()
     }
 }
 
+// BATTERY STATS
+void wipe_battery_stats()
+{
+    ensure_path_mounted("/data");
+    struct stat st;
+    if (0 != stat("/data/system/batterystats.bin", &st))
+    {
+    ui_print("No Battery Stats Found, No Need To Wipe.\n");
+    } else {
+    remove("/data/system/batterystats.bin");
+    ui_print("Cleared: Battery Stats...\n");
+    ensure_path_unmounted("/data");
+    }
+}  
+
 // ADVANCED MENU
 char* MENU_ADVANCED[] = {  "Reboot Menu",
+                           "Wipe Battery Stats",
+                           "Wipe Rotation Data",
                            "<-Back To Main Menu",
                                 NULL };
-#define ITEM_REBOOT_MENU 0
+#define ITEM_REBOOT_MENU       0
+#define ITEM_BATTERY_STATS     1
+#define ITEM_ROTATE_DATA       2
 
 void advanced_menu()
 {
     int result;
-    int chosen_item = 1;
+    int chosen_item = 3;
 
     static char* MENU_ADVANCED_HEADERS[] = {  "Advanced Options",
                                 "",
@@ -410,14 +429,18 @@ void advanced_menu()
         int chosen_item = get_menu_selection(MENU_ADVANCED_HEADERS, MENU_ADVANCED, 0, 0);
         switch (chosen_item)
         {
-        // force item 1 always to go "back"
-        if (chosen_item == 1) {
+        // force item 3 always to go "back"
+        if (chosen_item == 3) {
             result = -1;
             break;
             }
 
             case ITEM_REBOOT_MENU:
                 reboot_menu();
+                break;
+
+            case ITEM_BATTERY_STATS:
+                wipe_battery_stats();
                 break;
             default:
                 return;
