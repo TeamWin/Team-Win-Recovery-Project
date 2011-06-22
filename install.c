@@ -252,7 +252,7 @@ install_package(const char *path)
 
     ui_print("Opening update package...\n");
 
-    if (signature_check_enabled) {
+    if (tw_signed_zip_val) {
         int numKeys;
         RSAPublicKey* loadedKeys = load_keys(PUBLIC_KEYS_FILE, &numKeys);
         if (loadedKeys == NULL) {
