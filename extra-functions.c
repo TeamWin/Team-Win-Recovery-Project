@@ -403,7 +403,17 @@ void wipe_battery_stats()
     ui_print("Cleared: Battery Stats...\n");
     ensure_path_unmounted("/data");
     }
-}  
+}
+
+// ROTATION SETTINGS
+void wipe_rotate_data()
+{
+    ensure_path_mounted("/data");
+    __system("rm -r /data/misc/akmd*");
+    __system("rm -r /data/misc/rild*");
+    ui_print("Cleared: Rotate Data...\n");
+    ensure_path_unmounted("/data");
+}   
 
 // ADVANCED MENU
 char* MENU_ADVANCED[] = {  "Reboot Menu",
@@ -441,6 +451,10 @@ void advanced_menu()
 
             case ITEM_BATTERY_STATS:
                 wipe_battery_stats();
+                break;
+
+            case ITEM_ROTATE_DATA:
+                wipe_rotate_data();
                 break;
             default:
                 return;
