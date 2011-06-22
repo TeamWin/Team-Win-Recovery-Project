@@ -93,40 +93,76 @@ __system(const char *command)
 	return (pid == -1 ? -1 : pstat);
 }
 
+// Default Settings
+void
+tw_set_defaults() {
+	tw_signed_zip_val = "1";
+	tw_nan_system_val = "0";
+	tw_nan_data_val = "0";
+	tw_zip_location_val = "/sdcard";
+}
+
+void
+tw_set_show() {
+	LOGI("--> TW_SIGNED_ZIP: %s\n", tw_signed_zip_val); // log
+	LOGI("--> TW_NAN_SYSTEM: %s\n", tw_nan_system_val); // log
+	LOGI("--> TW_NAN_DATA: %s\n", tw_nan_data_val); // log
+	LOGI("--> TW_ZIP_LOCATION: %s\n", tw_zip_location_val); // log
+}
+
 // Write Settings to file Function
 void
 write_s_file() {
-	FILE *fp; // define file
-	fp = fopen(TW_SETTINGS_FILE, "w"); // open file, create if not exist, if exist, overwrite contents
-	if (fp == NULL) {
-		LOGI("--> Can not open settings file to write.\n"); // Can't open/create file, default settings still loaded into memory.
+	int nan_dir_status;
+	if (ensure_path_mounted(SDCARD_ROOT) != 0) {
+		LOGI("--> Can not mount /sdcard, running on default settings\n"); // Can't mount sdcard, default settings should be unchanged.
 	} else {
-		int i = 0;
-		while(i < TW_MAX_NUM_SETTINGS) {
-			if (i == TW_SIGNED_ZIP) {
-				fputs((char*)((int)(tw_signed_zip_val)+i), fp); // write int tw_signed_zip_val cast to char* to fp
-			} else if (i == TW_NAN_SYSTEM) {
-				fputs((char*)((int)(tw_nan_system_val)+i), fp); //
-			} else if (i == TW_NAN_DATA) {
-				fputs((char*)((int)(tw_nan_data_val)+i), fp); //
-			} else if (i == TW_ZIP_LOCATION) {
-				fputs(tw_zip_location_val, fp); // already char* so no need to cast
+		struct stat st;
+		if(stat("/sdcard/nandroid",&st) != 0) {
+			LOGI("--> /sdcard/nandroid directory not present!\n");
+			if(mkdir("/sdcard/nandroid",0777) == -1) { // create directory
+				nan_dir_status = 1;
+				LOGI("--> Can not create directory: /sdcard/nandroid\n");
+			} else {
+				nan_dir_status = 0;
+				LOGI("--> Created directory: /sdcard/nandroid\n");
 			}
-			fputs("\n", fp); // add a carriage return to finish line
-			i++; // increment loop
 		}
-		fclose(fp); // close file
-		LOGI("--> Wrote configuration file to: %s\n\n", TW_SETTINGS_FILE); // log
+		if (nan_dir_status == 0) {
+			FILE *fp; // define file
+			fp = fopen(TW_SETTINGS_FILE, "w"); // open file, create if not exist, if exist, overwrite contents
+			if (fp == NULL) {
+				LOGI("--> Can not open settings file to write.\n"); // Can't open/create file, default settings still loaded into memory.
+			} else {
+				int i = 0;
+				while(i < TW_MAX_NUM_SETTINGS) {
+					if (i == TW_SIGNED_ZIP) {
+						fputs(tw_signed_zip_val, fp);
+					} else if (i == TW_NAN_SYSTEM) {
+						fputs(tw_nan_system_val, fp);
+					} else if (i == TW_NAN_DATA) {
+						fputs(tw_nan_data_val, fp);
+					} else if (i == TW_ZIP_LOCATION) {
+						fputs(tw_zip_location_val, fp);
+					}
+					fputs("\n", fp); // add a carriage return to finish line
+					i++; // increment loop
+				}
+				fclose(fp); // close file
+				tw_set_show();
+				LOGI("--> Wrote configuration file to: %s\n\n", TW_SETTINGS_FILE); // log
+			}
+		}
 	}
 }
 
 // Read from Settings file Function
 void
 read_s_file() {
-	FILE *fp; // define file
 	if (ensure_path_mounted(SDCARD_ROOT) != 0) {
 		LOGI("--> Can not mount /sdcard, running on default settings\n"); // Can't mount sdcard, default settings should be unchanged.
 	} else {
+		FILE *fp; // define file
 		fp = fopen(TW_SETTINGS_FILE, "r"); // Open file for read
 		if (fp == NULL) {
 			LOGI("--> Can not open settings file, will try to create file.\n"); // Can't open file, default settings should be unchanged.
@@ -142,17 +178,18 @@ read_s_file() {
 					s_line[len-1] = 0; // remove it by setting it to 0
 				}
 			    if (i == TW_SIGNED_ZIP) {
-				    tw_signed_zip_val = atoi(s_line); // i = 0  (have to cast from char to int)
+				    tw_signed_zip_val = s_line;
 			    } else if (i == TW_NAN_SYSTEM) {
-				    tw_nan_system_val = atoi(s_line); // i = 1 (have to cast from char to int)
+				    tw_nan_system_val = s_line;
                 } else if (i == TW_NAN_DATA) {
-					tw_nan_data_val = atoi(s_line); //  i = 2 (have to cast from char to int)
+					tw_nan_data_val = s_line;
 				} else if (i == TW_ZIP_LOCATION) {
-					tw_zip_location_val = s_line; // i = 3 (already char)
+					tw_zip_location_val = s_line;
 				}
 				i++; // increment loop
 			}
 			fclose(fp); // close file
+			tw_set_show();
 		}
 	}
 }
@@ -226,14 +263,18 @@ char* MENU_INSTALL_ZIP[] = {  "Choose Zip To Flash",
 #define ITEM_TOGGLE_SIG      1
 #define ITEM_ZIP_BACK		 2
 
+int is_true(char* tw_setting) {
+	return strcmp(tw_setting,"0");
+}
+
 void install_zip_menu()
 {
     static char* MENU_FLASH_HEADERS[] = {  "Flash zip From SD card",
                                 "",
                                 NULL
     };
-    
-    ui_print("Signature Check Currently: %s\n", tw_signed_zip_val ? "Enabled" : "Disabled");
+
+    ui_print("Signature Check Currently: %s\n", is_true(tw_signed_zip_val) ? "Disabled" : "Enabled");
     
     for (;;)
     {
@@ -254,8 +295,12 @@ void install_zip_menu()
                 }
                 break;
             case ITEM_TOGGLE_SIG:
-            	tw_signed_zip_val = !tw_signed_zip_val;
-            	ui_print("Signature Check Changed to: %s\n", tw_signed_zip_val ? "Enabled" : "Disabled");
+            	if (is_true(tw_signed_zip_val) == 0) {
+            		tw_signed_zip_val = "1";
+            	} else {
+            		tw_signed_zip_val = "0";
+            	}
+            	ui_print("Signature Check Changed to: %s\n", is_true(tw_signed_zip_val) ? "Disabled" : "Enabled");
                 write_s_file();
                 break;
             case ITEM_ZIP_BACK:

@@ -664,8 +664,10 @@ prompt_and_wait() {
         // read settings file once and only once after the user makes a menu selection
         if (need_to_read_settings_file) {
         	need_to_read_settings_file = 0;
+        	tw_set_defaults();
             read_s_file();
         }
+        
         switch (chosen_item) {
             case ITEM_APPLY_SDCARD:
                 install_zip_menu();

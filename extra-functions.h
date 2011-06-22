@@ -7,12 +7,15 @@ static const int TW_NAN_SYSTEM = 1; // system is backed up during nandroid (Cons
 static const int TW_NAN_DATA = 2; // data is backed up during nandroid (Constant number corresponds to line number in file .twrs)
 static const int TW_ZIP_LOCATION = 3; // Last location zip flashed from (remembers last folder) (Constant number corresponds to line number in file .twrs)
 
-static int tw_signed_zip_val = 1; // Variable that holds value, default is defined
-static int tw_nan_system_val = 1; //
-static int tw_nan_data_val = 1; //
-static char* tw_zip_location_val = "/sdcard"; //
+static char* tw_signed_zip_val; // Variable that holds value, default is defined
+static char* tw_nan_system_val; //
+static char* tw_nan_data_val; //
+static char* tw_zip_location_val; //
 
 // Read Settings Function
+int is_true(char* tw_setting);
+void tw_set_defaults();
+void tw_set_show();
 void write_s_file();
 void read_s_file();
 
