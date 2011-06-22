@@ -97,65 +97,27 @@ __system(const char *command)
 void
 write_s_file() {
 	FILE *fp; // define file
-    struct stat st;
-    if(stat("/sdcard/nandroid",&st) == 0)
-    {
-        LOGI("--> /sdcard/nandroid is present!\n");
-        fp = fopen(TW_SETTINGS_FILE, "w"); // open file, create if not exist, if exist, overwrite contents
-	    if (fp == NULL) {
-	    	LOGI("--> Can not open settings file to write.\n"); // Can't open/create file, default settings still loaded into memory.
-    	} else {
-	    	int i = 0;
-	    	while(i < TW_MAX_NUM_SETTINGS) {
-	    		if (i == TW_SIGNED_ZIP) {
-	    			fputs((char*)((int)(tw_signed_zip_val)+i), fp); // write int tw_signed_zip_val cast to char* to fp
-	    		} else if (i == TW_NAN_SYSTEM) {
-	    			fputs((char*)((int)(tw_nan_system_val)+i), fp); //
-	    		} else if (i == TW_NAN_DATA) {
-	    			fputs((char*)((int)(tw_nan_data_val)+i), fp); //
-	    		} else if (i == TW_ZIP_LOCATION) {
-	    			fputs(tw_zip_location_val, fp); // already char* so no need to cast
-	    		}
-	    		fputs("\n", fp); // add a carriage return to finish line
-	    		i++; // increment loop
-	    	}
-	    	fclose(fp); // close file
-	    	LOGI("--> Wrote configuration file to: %s\n\n", TW_SETTINGS_FILE); // log
-	    }
-    }
-    else
-    {
-        LOGI("--> /scard/nandroid not present!\n");
-        if(mkdir("/sdcard/nandroid",0777) == -1)//creating a directory
-        {
-            LOGI("--> Can not create directory, /sdcard/nandroid\n");// Can't mkdir /sdcard/nandroid, won't be able to save settings file
-        }
-        else
-        {
-            LOGI("--> /sdcard/nandroid has been created!\n");
-	        fp = fopen(TW_SETTINGS_FILE, "w"); // open file, create if not exist, if exist, overwrite contents
-	        if (fp == NULL) {
-	    	    LOGI("--> Can not open settings file to write.\n"); // Can't open/create file, default settings still loaded into memory.
-    	    } else {
-	    	    int i = 0;
-    	    	while(i < TW_MAX_NUM_SETTINGS) {
-	        		if (i == TW_SIGNED_ZIP) {
-	        			fputs((char*)((int)(tw_signed_zip_val)+i), fp); // write int tw_signed_zip_val cast to char* to fp
-	        		} else if (i == TW_NAN_SYSTEM) {
-	        			fputs((char*)((int)(tw_nan_system_val)+i), fp); //
-	        		} else if (i == TW_NAN_DATA) {
-	        			fputs((char*)((int)(tw_nan_data_val)+i), fp); //
-	        		} else if (i == TW_ZIP_LOCATION) {
-	        			fputs(tw_zip_location_val, fp); // already char* so no need to cast
-	        		}
-	        		fputs("\n", fp); // add a carriage return to finish line
-	        		i++; // increment loop
-	        	}
-	        	fclose(fp); // close file
-	        	LOGI("--> Wrote configuration file to: %s\n\n", TW_SETTINGS_FILE); // log
-	        }
-        }
-    }
+	fp = fopen(TW_SETTINGS_FILE, "w"); // open file, create if not exist, if exist, overwrite contents
+	if (fp == NULL) {
+		LOGI("--> Can not open settings file to write.\n"); // Can't open/create file, default settings still loaded into memory.
+	} else {
+		int i = 0;
+		while(i < TW_MAX_NUM_SETTINGS) {
+			if (i == TW_SIGNED_ZIP) {
+				fputs((char*)((int)(tw_signed_zip_val)+i), fp); // write int tw_signed_zip_val cast to char* to fp
+			} else if (i == TW_NAN_SYSTEM) {
+				fputs((char*)((int)(tw_nan_system_val)+i), fp); //
+			} else if (i == TW_NAN_DATA) {
+				fputs((char*)((int)(tw_nan_data_val)+i), fp); //
+			} else if (i == TW_ZIP_LOCATION) {
+				fputs(tw_zip_location_val, fp); // already char* so no need to cast
+			}
+			fputs("\n", fp); // add a carriage return to finish line
+			i++; // increment loop
+		}
+		fclose(fp); // close file
+		LOGI("--> Wrote configuration file to: %s\n\n", TW_SETTINGS_FILE); // log
+	}
 }
 
 // Read from Settings file Function
