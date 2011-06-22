@@ -140,6 +140,7 @@ static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
 
 static const int MAX_ARG_LENGTH = 4096;
 static const int MAX_ARGS = 100;
+static int need_to_read_settings_file = 1;
 
 // open a given path, mounting partitions as necessary
 static FILE*
@@ -647,7 +648,7 @@ wipe_data(int confirm) {
 void
 prompt_and_wait() {
     char** headers = prepend_title((const char**)MENU_HEADERS);
-
+    
     for (;;) {
         finish_recovery(NULL);
         ui_reset_progress();
@@ -658,7 +659,13 @@ prompt_and_wait() {
         // return one of the core actions handled in the switch
         // statement below.
         chosen_item = device_perform_action(chosen_item);
-
+        
+        // delay reading settings during boot due to timings issues with sdcard not being available
+        // read settings file once and only once after the user makes a menu selection
+        if (need_to_read_settings_file) {
+        	need_to_read_settings_file = 0;
+            read_s_file();
+        }
         switch (chosen_item) {
             case ITEM_APPLY_SDCARD:
                 install_zip_menu();
@@ -712,9 +719,6 @@ main(int argc, char **argv) {
     ui_set_background(BACKGROUND_ICON_INSTALLING);
     load_volume_table();
     get_args(&argc, &argv);
-
-    // Read Settings
-    read_s_file();
     
     int previous_runs = 0;
     const char *send_intent = NULL;

@@ -94,7 +94,7 @@ __system(const char *command)
 }
 
 // Settings Constants 
-static const char *TW_SETTINGS_FILE = "/sdcard/nandroid/.twrs"; // Actual File
+static const char* TW_SETTINGS_FILE = "/sdcard/nandroid/.twrs"; // Actual File
 static const int TW_MAX_SETTINGS_CHARS = 255; // Max Character Length Per Line
 static const int TW_MAX_NUM_SETTINGS = 4; // Total Number of Settings (Change this as we add more settings)
 static const int TW_SIGNED_ZIP = 0; // Zip Signed Toggle (Constant number corresponds to line number in file .twrs)
@@ -102,38 +102,76 @@ static const int TW_NAN_SYSTEM = 1; // system is backed up during nandroid (Cons
 static const int TW_NAN_DATA = 2; // data is backed up during nandroid (Constant number corresponds to line number in file .twrs)
 static const int TW_ZIP_LOCATION = 3; // Last location zip flashed from (remembers last folder) (Constant number corresponds to line number in file .twrs)
 
-static char *tw_signed_zip_val = "0"; // Variable that holds value, default is defined
-static char *tw_nan_system_val = "1"; //
-static char *tw_nan_data_val = "1"; //
-static char *tw_zip_location_val = "/sdcard"; //
+static char* tw_signed_zip_val = "0"; // Variable that holds value, default is defined
+static char* tw_nan_system_val = "1"; //
+static char* tw_nan_data_val = "1"; //
+static char* tw_zip_location_val = "/sdcard"; //
+
+// Write Settings to file Function
+void
+write_s_file() {
+	FILE *fp; // define file
+	fp = fopen(TW_SETTINGS_FILE, "w"); // open file, create if not exist, if exist, overwrite contents
+	if (fp == NULL) {
+		LOGI("--> Can not open settings file to write.\n"); // Can't open/create file, default settings still loaded into memory.
+	} else {
+		int i = 0;
+		while(i < TW_MAX_NUM_SETTINGS) {
+			if (i == TW_SIGNED_ZIP) {
+				fputs(tw_signed_zip_val, fp); // write tw_signed_zip_val to fp
+				LOGI("--> TW_SIGNED_ZIP (%d) = %s\n", i, tw_signed_zip_val);
+			} else if (i == TW_NAN_SYSTEM) {
+				fputs(tw_nan_system_val, fp); //
+				LOGI("--> TW_NAN_SYSTEM (%d) = %s\n", i, tw_nan_system_val);
+			} else if (i == TW_NAN_DATA) {
+				fputs(tw_nan_data_val, fp); //
+				LOGI("--> TW_NAN_DATA (%d) = %s\n", i, tw_nan_data_val);
+			} else if (i == TW_ZIP_LOCATION) {
+				fputs(tw_zip_location_val, fp); //
+				LOGI("--> TW_ZIP_LOCATION (%d) = %s\n", i, tw_zip_location_val);
+			}
+			fputs("\n", fp); // add a carriage return to finish line
+			i++; // increment loop
+		}
+		fclose(fp); // close file
+		LOGI("--> Wrote configuration file to: %s\n\n", TW_SETTINGS_FILE); // log
+	}
+}
 
 // Read from Settings file Function
 void
 read_s_file() {
 	FILE *fp; // define file
 	if (ensure_path_mounted(SDCARD_ROOT) != 0) {
-		LOGI("Can not mount /sdcard, running on default settings\n"); // Can't mount sdcard, default settings should be unchanged.
+		LOGI("--> Can not mount /sdcard, running on default settings\n"); // Can't mount sdcard, default settings should be unchanged.
 	} else {
 		fp = fopen(TW_SETTINGS_FILE, "r"); // Open file for read
 		if (fp == NULL) {
-			LOGI("Can not open settings file\n"); // Can't open file, default settings should be unchanged.
+			LOGI("--> Can not open settings file, will try to create file.\n"); // Can't open file, default settings should be unchanged.
+			write_s_file(); // call save settings function if settings file doesn't exist
 		} else {
-			char s_line[TW_MAX_SETTINGS_CHARS+2]; // Set max characters + 2 (because of terminating and carriage return)
 			int i = 0;
+			int len;
+			char s_line[TW_MAX_SETTINGS_CHARS+2]; // Set max characters + 2 (because of terminating and carriage return)
 			while(i < TW_MAX_NUM_SETTINGS) {
 				fgets(s_line, TW_MAX_SETTINGS_CHARS+2, fp); // Read a line from file
-				if (i == TW_SIGNED_ZIP) {
-					tw_signed_zip_val = s_line; // i = 0
-					LOGI("--> TW_SIGNED_ZIP (%d) = %s", i, tw_signed_zip_val); // log in /tmp/recovery.log
-				} else if (i == TW_NAN_SYSTEM) {
-					tw_nan_system_val = s_line; // i = 1
-					LOGI("--> TW_NAN_SYSTEM (%d) = %s", i, tw_nan_system_val);
-				} else if (i == TW_NAN_DATA) {
+				len = strlen(s_line); // get length of line
+				if (s_line[len-1] == '\n') { // if last char is carriage return
+					s_line[len-1] = 0; // remove it by setting it to 0
+				}
+			    if (i == TW_SIGNED_ZIP) {
+				    tw_signed_zip_val = s_line; // i = 0
+				    signature_check_enabled = strcmp(tw_signed_zip_val, "0");
+				    LOGI("--> TW_SIGNED_ZIP (%d) = %s\n", i, tw_signed_zip_val); // log in /tmp/recovery.log
+			    } else if (i == TW_NAN_SYSTEM) {
+				    tw_nan_system_val = s_line; // i = 1
+				    LOGI("--> TW_NAN_SYSTEM (%d) = %s\n", i, tw_nan_system_val);
+                } else if (i == TW_NAN_DATA) {
 					tw_nan_data_val = s_line; //  i = 2
-					LOGI("--> TW_NAN_DATA (%d) = %s", i, tw_nan_data_val);
+					LOGI("--> TW_NAN_DATA (%d) = %s\n", i, tw_nan_data_val);
 				} else if (i == TW_ZIP_LOCATION) {
 					tw_zip_location_val = s_line; // i = 3
-					LOGI("--> TW_ZIP_LOCATION (%d) = %s", i, tw_zip_location_val);
+					LOGI("--> TW_ZIP_LOCATION (%d) = %s\n\n", i, tw_zip_location_val);
 				}
 				i++; // increment loop
 			}
@@ -210,14 +248,15 @@ toggle_signature_check()
 {
     signature_check_enabled = !signature_check_enabled;
     ui_print("Signature Check: %s\n", signature_check_enabled ? "Enabled" : "Disabled");
+    if (signature_check_enabled) {
+        tw_signed_zip_val = "1";
+    } else {
+        tw_signed_zip_val = "0";
+    }
+    write_s_file();
 }
 
 // INSTALL ZIP MENU
-
-char* MENU_INSTALL_ZIP[] = {  "Choose zip To Flash",
-                               "Toggle Signature Verification",
-                               "<-Back To Main Menu",
-                                NULL };
 #define ITEM_CHOOSE_ZIP      0
 #define ITEM_TOGGLE_SIG      1
 
@@ -225,7 +264,12 @@ void install_zip_menu()
 {
     int result;
     int chosen_item = 2;
-
+    char* toggle_menu_option = "Toggle Signature Verification - Currently ";
+    strcat(toggle_menu_option, signature_check_enabled ? "Enabled" : "Disabled");
+    char* MENU_INSTALL_ZIP[] = {  "Choose zip To Flash",
+    		                      toggle_menu_option,
+                                   "<-Back To Main Menu",
+                                    NULL };
     static char* MENU_FLASH_HEADERS[] = {  "Flash zip From SD card",
                                 "",
                                 NULL
@@ -257,6 +301,7 @@ void install_zip_menu()
                 break;
             case ITEM_TOGGLE_SIG:
                 toggle_signature_check();
+                // TO DO: need to add code to update the menu to display the toggle change
                 break;
             default:
                 return;
