@@ -273,7 +273,7 @@ void install_zip_menu()
                                 "",
                                 NULL
     };
-
+    save_up_a_level_menu_location(ITEM_ZIP_BACK);
     ui_print("Signature Check Currently: %s\n", is_true(tw_signed_zip_val) ? "Disabled" : "Enabled");
     
     for (;;)
@@ -359,6 +359,7 @@ void reboot_menu()
                                 "",
                                 NULL
     };
+    save_up_a_level_menu_location(4);
     for (;;)
     {
         int chosen_item = get_menu_selection(MENU_REBOOT_HEADERS, MENU_REBOOT, 0, 0);
@@ -436,6 +437,7 @@ void advanced_menu()
                                 "",
                                 NULL
     };
+    save_up_a_level_menu_location(3);
     for (;;)
     {
         int chosen_item = get_menu_selection(MENU_ADVANCED_HEADERS, MENU_ADVANCED, 0, 0);

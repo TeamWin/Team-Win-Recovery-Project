@@ -142,6 +142,10 @@ static const int MAX_ARG_LENGTH = 4096;
 static const int MAX_ARGS = 100;
 static int need_to_read_settings_file = 1;
 
+static const int MAX_UP_A_LEVEL_ARRAY_SIZE = 100;
+static int up_a_level_array[100]; // my C is kind of fail so someone may have to fix my variable declarations
+static int up_a_level_position = 0;
+
 // open a given path, mounting partitions as necessary
 static FILE*
 fopen_path(const char *path, const char *mode) {
@@ -468,7 +472,21 @@ get_menu_selection(char** headers, char** items, int menu_only,
                 case KEY_POWER:
                 case SELECT_ITEM:
                     chosen_item = selected;
+                    if (chosen_item == up_a_level_array[up_a_level_position] && up_a_level_position != 0) { // if the user manually chooses the back option in the menu we need to decrement the array index
+                        up_a_level_position--;
+                        //LOGI("user manually selected the back menu item.\n");
+                    }
                     break;
+                case UP_A_LEVEL:
+                    if (up_a_level_position != 0) {
+                        //LOGI("--up_a_level_array[%i]: %i\n", up_a_level_position, up_a_level_array[up_a_level_position]);
+                        chosen_item = up_a_level_array[up_a_level_position];
+                        up_a_level_position--;
+                    }
+                    break;
+                case HOME_MENU:
+                    //up_a_level_position = 0; // need to re-zero the array index
+                    //device_recovery_start(); // launch main menu??? not sure how to do that
                 case NO_ACTION:
                     break;
             }
@@ -479,6 +497,17 @@ get_menu_selection(char** headers, char** items, int menu_only,
 
     ui_end_menu();
     return chosen_item;
+}
+
+// used to store the location of the back or "up a level" option in each menu so that the user can press the back button to go back
+void save_up_a_level_menu_location(int up_location) {
+    up_a_level_position++;
+    if (up_a_level_position > MAX_UP_A_LEVEL_ARRAY_SIZE - 1) { // hopefully this never happens!
+        LOGE("reached max array size of up_a_level_array");
+        return;
+    }
+    up_a_level_array[up_a_level_position] = up_location;
+    //LOGI("up_a_level_array[%i]: %i\n", up_a_level_position, up_a_level_array[up_a_level_position]);
 }
 
 static int compare_string(const void* a, const void* b) {
@@ -511,7 +540,7 @@ sdcard_directory(const char* path) {
     int z_alloc = 10;
     char** zips = malloc(z_alloc * sizeof(char*));
     zips[0] = strdup("../");
-
+    save_up_a_level_menu_location(0);
     while ((de = readdir(d)) != NULL) {
         int name_len = strlen(de->d_name);
 

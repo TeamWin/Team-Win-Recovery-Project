@@ -64,6 +64,8 @@ int device_wipe_data();
 #define HIGHLIGHT_UP        -2
 #define HIGHLIGHT_DOWN      -3
 #define SELECT_ITEM         -4
+#define UP_A_LEVEL          -5
+#define HOME_MENU           -6
 
 //need to recode first apply_sdcard to actual install zip method
 #define ITEM_APPLY_SDCARD        0
