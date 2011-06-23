@@ -255,13 +255,12 @@ void usb_storage_toggle()
 }
 
 char* MENU_INSTALL_ZIP[] = {  "Choose Zip To Flash",
-							  "Toggle Signature Verification",
+			      "Toggle Signature Verification",
                               "<- Back To Main Menu",
                               NULL };
 // INSTALL ZIP MENU
 #define ITEM_CHOOSE_ZIP      0
 #define ITEM_TOGGLE_SIG      1
-#define ITEM_ZIP_BACK		 2
 
 int is_true(char* tw_setting) {
 	return strcmp(tw_setting,"0");
@@ -269,6 +268,9 @@ int is_true(char* tw_setting) {
 
 void install_zip_menu()
 {
+    int result;
+    int chosen_item = 2;
+
     static char* MENU_FLASH_HEADERS[] = {  "Flash zip From SD card",
                                 "",
                                 NULL
@@ -281,6 +283,11 @@ void install_zip_menu()
         int chosen_item = get_menu_selection(MENU_FLASH_HEADERS, MENU_INSTALL_ZIP, 0, 0);
         switch (chosen_item)
         {
+        // force item 2 always to go "back"
+        if (chosen_item == 2) {
+            result = -1;
+            break;
+            }
             case ITEM_CHOOSE_ZIP:
             	;
                 int status = sdcard_directory(SDCARD_ROOT);
@@ -303,8 +310,7 @@ void install_zip_menu()
             	ui_print("Signature Check Changed to: %s\n", is_true(tw_signed_zip_val) ? "Disabled" : "Enabled");
                 write_s_file();
                 break;
-            case ITEM_ZIP_BACK:
-                return;
+             return;
         }
     }
 }
