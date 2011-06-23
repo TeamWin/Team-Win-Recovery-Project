@@ -638,17 +638,17 @@ wipe_data(int confirm) {
         }
     }
 
-    ui_print("\n-- Wiping data...\n");
+    ui_print("\n-- Wiping Data and Cache Partitions...\n");
     device_wipe_data();
     erase_volume("/data");
     erase_volume("/cache");
-    ui_print("-- Data wipe complete.\n");
+    ui_print("-- Data and Cache Partitions Wipe Complete!\n");
 }
 
 void
 prompt_and_wait() {
     char** headers = prepend_title((const char**)MENU_HEADERS);
-    
+
     for (;;) {
         finish_recovery(NULL);
         ui_reset_progress();
@@ -659,7 +659,7 @@ prompt_and_wait() {
         // return one of the core actions handled in the switch
         // statement below.
         chosen_item = device_perform_action(chosen_item);
-        
+
         // delay reading settings during boot due to timings issues with sdcard not being available
         // read settings file once and only once after the user makes a menu selection
         if (need_to_read_settings_file) {
@@ -667,7 +667,7 @@ prompt_and_wait() {
         	tw_set_defaults();
             read_s_file();
         }
-        
+
         switch (chosen_item) {
             case ITEM_APPLY_SDCARD:
                 install_zip_menu();
@@ -683,18 +683,18 @@ prompt_and_wait() {
                 break;
 
             case ITEM_WIPE_CACHE:
-                ui_print("\n-- Wiping Cache...\n");
+                ui_print("\n-- Wiping Cache Partition...\n");
                 erase_volume("/cache");
-                ui_print("-- Cache Wipe Complete.\n");
+                ui_print("-- Cache Partition Wipe Complete!\n");
                 if (!ui_text_visible()) return;
                 break;
 
              case ITEM_ADVANCED_MENU:
-                  advanced_menu();	
+                  advanced_menu();
                 break;
 
              case ITEM_USB_TOGGLE:
-                  usb_storage_toggle();	
+                  usb_storage_toggle();
                 break;
 
             case ITEM_REBOOT:
@@ -721,7 +721,7 @@ main(int argc, char **argv) {
     ui_set_background(BACKGROUND_ICON_INSTALLING);
     load_volume_table();
     get_args(&argc, &argv);
-    
+
     int previous_runs = 0;
     const char *send_intent = NULL;
     const char *update_package = NULL;

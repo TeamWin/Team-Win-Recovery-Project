@@ -313,11 +313,13 @@ void wipe_dalvik_cache()
 {
        ensure_path_mounted("/data");
        ensure_path_mounted("/cache");
-       ui_print("\n-- Wiping Dalvik Cache...\n");
+       ui_print("\n-- Wiping Dalvik Cache Directories...\n");
        __system("rm -rf /data/dalvik-cache");
        ui_print("Cleaned: /data/dalvik-cache...\n");
        __system("rm -rf /cache/dalvik-cache");
        ui_print("Cleaned: /cache/dalvik-cache...\n");
+       __system("rm -rf /cache/dc");
+       ui_print("Cleaned: /cache/dc\n");
 
        struct stat st;
        if (0 != stat("/dev/block/mmcblk0p2", &st))
@@ -332,7 +334,7 @@ void wipe_dalvik_cache()
            }
        }
        ensure_path_unmounted("/data");
-       ui_print("-- Dalvik Cache Wipe Complete!\n");
+       ui_print("-- Dalvik Cache Directories Wipe Complete!\n");
        if (!ui_text_visible()) return;
 }
 
