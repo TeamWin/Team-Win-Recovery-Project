@@ -421,10 +421,10 @@ void wipe_rotate_data()
 }   
 
 // ADVANCED MENU
-char* MENU_ADVANCED[] = {  "Reboot Menu",
-                           "Wipe Battery Stats",
-                           "Wipe Rotation Data",
-                           "<-Back To Main Menu",
+char* MENU_ADVANCED[] = {   "Reboot Menu",
+                            "Wipe Battery Stats",
+                            "Wipe Rotation Data",
+                            "<-Back To Main Menu",
                             NULL };
 
 #define ITEM_REBOOT_MENU       0
