@@ -339,11 +339,11 @@ void wipe_dalvik_cache()
 }
 
 // REBOOT MENU
-char* MENU_REBOOT[] = {  "Reboot To System",
-                         "Reboot To Recovery",
-                         "Reboot To Bootloader",
-                         "Power Off",
-                         "<-Back To Main Menu",
+char* MENU_REBOOT[] = { "Reboot To System",
+                        "Reboot To Recovery",
+                        "Reboot To Bootloader",
+                        "Power Off",
+                        "<-Back To Main Menu",
                         NULL };
 
 #define ITEM_SYSTEM      0
@@ -358,8 +358,8 @@ void reboot_menu()
     finish_recovery(NULL);
 
     static char* MENU_REBOOT_HEADERS[] = {  "Reboot Menu",
-                                "",
-                                NULL
+                                            "",
+                                            NULL
     };
     save_up_a_level_menu_location(4);
     for (;;)
@@ -402,7 +402,7 @@ void wipe_battery_stats()
     struct stat st;
     if (0 != stat("/data/system/batterystats.bin", &st))
     {
-        ui_print("No Battery Stats Found, No Need To Wipe.\n");
+        ui_print("No Battery Stats Found. No Need To Wipe.\n");
     } else {
         remove("/data/system/batterystats.bin");
         ui_print("Cleared: Battery Stats...\n");
@@ -416,7 +416,7 @@ void wipe_rotate_data()
     ensure_path_mounted("/data");
     __system("rm -r /data/misc/akmd*");
     __system("rm -r /data/misc/rild*");
-    ui_print("Cleared: Rotate Data...\n");
+    ui_print("Cleared: Rotatation Data...\n");
     ensure_path_unmounted("/data");
 }   
 
