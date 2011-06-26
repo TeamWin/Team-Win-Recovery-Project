@@ -269,9 +269,9 @@ int is_true(char* tw_setting) {
 
 void install_zip_menu()
 {
-    static char* MENU_FLASH_HEADERS[] = {  "Flash zip From SD card",
-                                "",
-                                NULL
+    static char* MENU_FLASH_HEADERS[] = {   "Flash zip From SD card",
+                                            "",
+                                            NULL
     };
     save_up_a_level_menu_location(ITEM_ZIP_BACK);
     ui_print("Signature Check Currently: %s\n", is_true(tw_signed_zip_val) ? "Disabled" : "Enabled");
@@ -311,31 +311,31 @@ void install_zip_menu()
 
 void wipe_dalvik_cache()
 {
-       ensure_path_mounted("/data");
-       ensure_path_mounted("/cache");
-       ui_print("\n-- Wiping Dalvik Cache Directories...\n");
-       __system("rm -rf /data/dalvik-cache");
-       ui_print("Cleaned: /data/dalvik-cache...\n");
-       __system("rm -rf /cache/dalvik-cache");
-       ui_print("Cleaned: /cache/dalvik-cache...\n");
-       __system("rm -rf /cache/dc");
-       ui_print("Cleaned: /cache/dc\n");
+        ensure_path_mounted("/data");
+        ensure_path_mounted("/cache");
+        ui_print("\n-- Wiping Dalvik Cache Directories...\n");
+        __system("rm -rf /data/dalvik-cache");
+        ui_print("Cleaned: /data/dalvik-cache...\n");
+        __system("rm -rf /cache/dalvik-cache");
+        ui_print("Cleaned: /cache/dalvik-cache...\n");
+        __system("rm -rf /cache/dc");
+        ui_print("Cleaned: /cache/dc\n");
 
-       struct stat st;
-       if (0 != stat("/dev/block/mmcblk0p2", &st))
-       {
-       ui_print("sd-ext not present, skipping\n");
-       } else {
-           if (ensure_path_mounted("/sd-ext") == 0) {
-        	   __system("rm -rf /sd-ext/dalvik-cache");
-        	   ui_print("Cleaned: /sd-ext/dalvik-cache...\n");
-           } else {
-               ui_print("/dev/block/mmcblk0p2 exists but sd-ext not present, skipping\n");
-           }
-       }
-       ensure_path_unmounted("/data");
-       ui_print("-- Dalvik Cache Directories Wipe Complete!\n");
-       if (!ui_text_visible()) return;
+        struct stat st;
+        if (0 != stat("/dev/block/mmcblk0p2", &st))
+        {
+            ui_print("sd-ext not present, skipping\n");
+        } else {
+            if (ensure_path_mounted("/sd-ext") == 0) {
+                __system("rm -rf /sd-ext/dalvik-cache");
+        	    ui_print("Cleaned: /sd-ext/dalvik-cache...\n");
+            } else {
+                ui_print("/dev/block/mmcblk0p2 exists but sd-ext not present, skipping\n");
+            }
+        }
+        ensure_path_unmounted("/data");
+        ui_print("-- Dalvik Cache Directories Wipe Complete!\n");
+        if (!ui_text_visible()) return;
 }
 
 // REBOOT MENU
@@ -344,11 +344,13 @@ char* MENU_REBOOT[] = {  "Reboot To System",
                          "Reboot To Bootloader",
                          "Power Off",
                          "<-Back To Main Menu",
-                                NULL };
+                        NULL };
+
 #define ITEM_SYSTEM      0
 #define ITEM_RECOVERY    1
 #define ITEM_BOOTLOADER  2
 #define ITEM_POWEROFF    3
+
 void reboot_menu()
 {
     int result;
@@ -400,11 +402,11 @@ void wipe_battery_stats()
     struct stat st;
     if (0 != stat("/data/system/batterystats.bin", &st))
     {
-    ui_print("No Battery Stats Found, No Need To Wipe.\n");
+        ui_print("No Battery Stats Found, No Need To Wipe.\n");
     } else {
-    remove("/data/system/batterystats.bin");
-    ui_print("Cleared: Battery Stats...\n");
-    ensure_path_unmounted("/data");
+        remove("/data/system/batterystats.bin");
+        ui_print("Cleared: Battery Stats...\n");
+        ensure_path_unmounted("/data");
     }
 }
 
@@ -423,7 +425,8 @@ char* MENU_ADVANCED[] = {  "Reboot Menu",
                            "Wipe Battery Stats",
                            "Wipe Rotation Data",
                            "<-Back To Main Menu",
-                                NULL };
+                            NULL };
+
 #define ITEM_REBOOT_MENU       0
 #define ITEM_BATTERY_STATS     1
 #define ITEM_ROTATE_DATA       2
@@ -433,9 +436,9 @@ void advanced_menu()
     int result;
     int chosen_item = 3;
 
-    static char* MENU_ADVANCED_HEADERS[] = {  "Advanced Options",
-                                "",
-                                NULL
+    static char* MENU_ADVANCED_HEADERS[] = {    "Advanced Options",
+                                                "",
+                                                NULL
     };
     save_up_a_level_menu_location(3);
     for (;;)
@@ -460,6 +463,7 @@ void advanced_menu()
             case ITEM_ROTATE_DATA:
                 wipe_rotate_data();
                 break;
+
             default:
                 return;
         }
