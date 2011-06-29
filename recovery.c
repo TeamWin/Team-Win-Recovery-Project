@@ -858,7 +858,7 @@ main(int argc, char **argv) {
     if (status != INSTALL_SUCCESS) ui_set_background(BACKGROUND_ICON_ERROR);
     if (status != INSTALL_SUCCESS || ui_text_visible()) {
         //assume we want to be here and its not an error - give us the pretty icon!
-        ui_set_background(BACKGROUND_ICON_INSTALLING);
+        ui_set_background(BACKGROUND_ICON_MAIN);
         prompt_and_wait();
     }
 

@@ -48,6 +48,9 @@ void ui_end_menu();
 // Set the icon (normally the only thing visible besides the progress bar).
 enum {
   BACKGROUND_ICON_NONE,
+  BACKGROUND_ICON_MAIN,
+  BACKGROUND_ICON_WIPE,
+  BACKGROUND_ICON_FLASH_ZIP,
   BACKGROUND_ICON_INSTALLING,
   BACKGROUND_ICON_ERROR,
   NUM_BACKGROUND_ICONS

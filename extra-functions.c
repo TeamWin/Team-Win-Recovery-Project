@@ -269,6 +269,7 @@ int is_true(char* tw_setting) {
 
 void install_zip_menu()
 {
+    ui_set_background(BACKGROUND_ICON_FLASH_ZIP);
     static char* MENU_FLASH_HEADERS[] = {   "Flash zip From SD card",
                                             "",
                                             NULL
@@ -284,7 +285,7 @@ void install_zip_menu()
             case ITEM_CHOOSE_ZIP:
             	;
                 int status = sdcard_directory(SDCARD_ROOT);
-                    ui_reset_progress();  // reset status bar so it doesnt run off the screen 
+                ui_reset_progress();  // reset status bar so it doesnt run off the screen 
                 if (status != INSTALL_SUCCESS) {
                     //ui_set_background(BACKGROUND_ICON_ERROR);
                     //ui_print("Installation aborted.\n");
@@ -304,6 +305,7 @@ void install_zip_menu()
                 write_s_file();
                 break;
             case ITEM_ZIP_BACK:
+                ui_set_background(BACKGROUND_ICON_MAIN);
                 return;
         }
     }
@@ -311,6 +313,7 @@ void install_zip_menu()
 
 void wipe_dalvik_cache()
 {
+        ui_set_background(BACKGROUND_ICON_WIPE);
         ensure_path_mounted("/data");
         ensure_path_mounted("/cache");
         ui_print("\n-- Wiping Dalvik Cache Directories...\n");
@@ -335,6 +338,7 @@ void wipe_dalvik_cache()
         }
         ensure_path_unmounted("/data");
         ui_print("-- Dalvik Cache Directories Wipe Complete!\n");
+        ui_set_background(BACKGROUND_ICON_MAIN);
         if (!ui_text_visible()) return;
 }
 
