@@ -78,6 +78,7 @@ int device_wipe_data();
 #define ITEM_WIPE_DATA           7
 #define ITEM_USB_TOGGLE          8
 #define ITEM_REBOOT              9
+#define ITEM_SHOW_BATT          10
 
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];

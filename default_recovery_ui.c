@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 The Android Open Source Project
- *
+ *:wq
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,6 +32,7 @@ char* MENU_ITEMS[] = { "Install Zip",
                        "Wipe data/factory reset",
                        "USB Storage Toggle",
                        "Reboot system now",
+                       "Check Battery Level",
                        NULL };
 
 int device_recovery_start() {

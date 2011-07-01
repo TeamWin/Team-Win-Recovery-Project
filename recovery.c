@@ -636,6 +636,17 @@ sdcard_directory(const char* path) {
 }
 
 static void
+print_batt_cap()  {
+    char cap_s[3];
+    
+    FILE * cap = fopen("/sys/class/power_supply/battery/capacity","r");
+    fgets(cap_s, 3, cap);
+    fclose(cap);
+
+    ui_print("\nBattery Level: %s%%\n", cap_s);
+}
+
+static void
 wipe_data(int confirm) {
     if (confirm) {
         static char** title_headers = NULL;
@@ -728,6 +739,10 @@ prompt_and_wait() {
 
             case ITEM_REBOOT:
                 return;
+
+            case ITEM_SHOW_BATT:
+                print_batt_cap();
+                break;
         }
     }
 }
