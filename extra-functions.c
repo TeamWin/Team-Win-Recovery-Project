@@ -507,14 +507,14 @@ nandroid_menu()
 	#define ITEM_MENU_BACK         2
 	
 	char* nan_headers[] = { "Nandroid Menu",
-								   "Choose Backup or Restore: ",
-								   "",
-								   NULL	};
+							"Choose Backup or Restore: ",
+							"",
+							NULL };
 	
 	char* nan_items[] = { "Backup Menu",
-								 "Restore Menu",
-								 "<- Back To Main Menu",
-								 NULL };
+						  "Restore Menu",
+						  "<- Back To Main Menu",
+						  NULL };
 	
 	save_up_a_level_menu_location(3);
 	for (;;)
@@ -523,10 +523,10 @@ nandroid_menu()
 		switch (chosen_item)
 		{
 			case ITEM_BACKUP_MENU:
-				nan_backstore_menu(ITEM_BACKUP_MENU);
+				nan_backup_menu();
 				break;
 			case ITEM_RESTORE_MENU:
-				nan_backstore_menu(ITEM_RESTORE_MENU);
+				nan_restore_menu();
 				break;
 			case ITEM_MENU_BACK:
 				return;
@@ -534,7 +534,7 @@ nandroid_menu()
 	}
 }
 
-#define ITEM_NAN_BACKSTORE	0
+#define ITEM_NAN_BACKUP		0
 #define ITEM_NAN_SYSTEM		1
 #define ITEM_NAN_DATA      	2
 #define ITEM_NAN_CACHE		3
@@ -546,61 +546,141 @@ nandroid_menu()
 #define ITEM_NAN_BACK       9
 
 void
-nan_backstore_menu(int br)
+nan_backup_menu()
 {
-	char* nan_br_headers[] = { br ? "Nandroid Restore" : "Nandroid Backup" ,
-								   "Choose Nandroid Options: ",
-								   "",
-								   NULL	};
+	char* nan_b_headers[] = { "Nandroid Backup",
+							   "Choose Nandroid Options: ",
+							   "",
+							   NULL	};
 	
-	char* nan_br_items[] = { br ? "-> Restore Naowz!" : "-> Backup Naowz!",
-								 nan_img_set(ITEM_NAN_SYSTEM),
-								 nan_img_set(ITEM_NAN_DATA),
-								 nan_img_set(ITEM_NAN_CACHE),
-								 nan_img_set(ITEM_NAN_BOOT),
-								 nan_img_set(ITEM_NAN_WIMAX),
-								 nan_img_set(ITEM_NAN_RECOVERY),
-								 nan_img_set(ITEM_NAN_SDEXT),
-								 nan_img_set(ITEM_NAN_ANDSEC),
-								 "<- Back To Main Menu",
-								 NULL };
+	char* nan_b_items[] = { "-> Backup Naowz!",
+							 nan_img_set(ITEM_NAN_SYSTEM),
+							 nan_img_set(ITEM_NAN_DATA),
+							 nan_img_set(ITEM_NAN_CACHE),
+							 nan_img_set(ITEM_NAN_BOOT),
+							 nan_img_set(ITEM_NAN_WIMAX),
+							 nan_img_set(ITEM_NAN_RECOVERY),
+							 nan_img_set(ITEM_NAN_SDEXT),
+							 nan_img_set(ITEM_NAN_ANDSEC),
+							 "<- Back To Main Menu",
+							 NULL };
 	
 	save_up_a_level_menu_location(4);
 	for (;;)
 	{
-		int chosen_item = get_menu_selection(nan_br_headers, nan_br_items, 0, 0);
+		int chosen_item = get_menu_selection(nan_b_headers, nan_b_items, 0, 0);
 		switch (chosen_item)
 		{
-			case ITEM_NAN_BACKSTORE:
+			case ITEM_NAN_BACKUP:
 				break;
 			case ITEM_NAN_SYSTEM:
-				break;
+            	if (is_true(tw_nan_system_val)) {
+            		strcpy(tw_nan_system_val, "0");
+            	} else {
+            		strcpy(tw_nan_system_val, "1");
+            	}
+                write_s_file();
+                break;
 			case ITEM_NAN_DATA:
+            	if (is_true(tw_nan_data_val)) {
+            		strcpy(tw_nan_data_val, "0");
+            	} else {
+            		strcpy(tw_nan_data_val, "1");
+            	}
+                write_s_file();
 				break;
 			case ITEM_NAN_CACHE:
+            	if (is_true(tw_nan_cache_val)) {
+            		strcpy(tw_nan_cache_val, "0");
+            	} else {
+            		strcpy(tw_nan_cache_val, "1");
+            	}
+                write_s_file();
 				break;
 			case ITEM_NAN_BOOT:
+            	if (is_true(tw_nan_boot_val)) {
+            		strcpy(tw_nan_boot_val, "0");
+            	} else {
+            		strcpy(tw_nan_boot_val, "1");
+            	}
+                write_s_file();
 				break;
 			case ITEM_NAN_WIMAX:
+            	if (is_true(tw_nan_wimax_val)) {
+            		strcpy(tw_nan_wimax_val, "0");
+            	} else {
+            		strcpy(tw_nan_wimax_val, "1");
+            	}
+                write_s_file();
 				break;
 			case ITEM_NAN_RECOVERY:
+            	if (is_true(tw_nan_recovery_val)) {
+            		strcpy(tw_nan_recovery_val, "0");
+            	} else {
+            		strcpy(tw_nan_recovery_val, "1");
+            	}
+                write_s_file();
 				break;
 			case ITEM_NAN_SDEXT:
+            	if (is_true(tw_nan_sdext_val)) {
+            		strcpy(tw_nan_sdext_val, "0");
+            	} else {
+            		strcpy(tw_nan_sdext_val, "1");
+            	}
+                write_s_file();
 				break;
 			case ITEM_NAN_ANDSEC:
+            	if (is_true(tw_nan_andsec_val)) {
+            		strcpy(tw_nan_andsec_val, "0");
+            	} else {
+            		strcpy(tw_nan_andsec_val, "1");
+            	}
+                write_s_file();
 				break;
 			case ITEM_NAN_BACK:
+				return;
+		}
+		break;
+	}
+	ui_end_menu();
+	nan_backup_menu();
+}
+
+void
+nan_restore_menu()
+{
+	#define ITEM_NAN_RESTORE 	0
+	#define ITEM_NAN_RESBACK 	1
+	
+	char* nan_r_headers[] = { "Nandroid Restore",
+							  "Choose Nandroid Options: ",
+							  "",
+							  NULL	};
+	
+	char* nan_r_items[] = { "-> Backup Naowz!",
+							"<- Back To Main Menu",
+							 NULL };
+	
+	save_up_a_level_menu_location(4);
+	for (;;)
+	{
+		int chosen_item = get_menu_selection(nan_r_headers, nan_r_items, 0, 0);
+		switch (chosen_item)
+		{
+			case ITEM_NAN_RESTORE:
+				break;
+			case ITEM_NAN_RESBACK:
 				return;
 		}
 	}
 }
 
 char* 
-nan_img_set(int br)
+nan_img_set(int tw_setting)
 {
 	int isTrue = 0;
 	char* tmp_set = (char*)malloc(25);
-	switch (br)
+	switch (tw_setting)
 	{
 		case ITEM_NAN_SYSTEM:
 			strcpy(tmp_set, "[ ] system");
@@ -635,8 +715,14 @@ nan_img_set(int br)
 			isTrue = is_true(tw_nan_andsec_val);
 			break;
 	}
-	tmp_set++;
-	*tmp_set = isTrue ? 'x' : ' ';
-	tmp_set--;
+	if (isTrue) {
+		tmp_set[1] = 'x';
+	}
 	return tmp_set;
+}
+
+void
+nandroid_string()
+{
+	
 }

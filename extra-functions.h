@@ -43,5 +43,7 @@ void save_up_a_level_menu_location(int up_location);
 
 // Nandroid Menu Stuff
 void nandroid_menu();
-void nan_backstore_menu(int br);
-char* nan_img_set(int br);
+void nan_backup_menu();
+void nan_restore_menu();
+char* nan_img_set(int tw_setting);
+void nandroid_string();
