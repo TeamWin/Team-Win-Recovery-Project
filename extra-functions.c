@@ -96,24 +96,30 @@ __system(const char *command)
 // Default Settings
 void
 tw_set_defaults() {
-	tw_signed_zip_val = "1";
-	tw_nan_system_val = "0";
-	tw_nan_data_val = "0";
-	tw_zip_location_val = "/sdcard";
+	strcpy(tw_signed_zip_val, "0");
+	strcpy(tw_nan_system_val, "1");
+	strcpy(tw_nan_data_val, "1");
+	strcpy(tw_nan_cache_val, "1");
+	strcpy(tw_nan_boot_val, "1");
+	strcpy(tw_nan_wimax_val, "1");
+	strcpy(tw_nan_recovery_val, "0");
+	strcpy(tw_nan_sdext_val, "0");
+	strcpy(tw_nan_andsec_val, "0");
+	strcpy(tw_zip_location_val, "/sdcard");
 }
 
-void
-tw_set_show() {
-	LOGI("--> TW_SIGNED_ZIP: %s\n", tw_signed_zip_val); // log
-	LOGI("--> TW_NAN_SYSTEM: %s\n", tw_nan_system_val); // log
-	LOGI("--> TW_NAN_DATA: %s\n", tw_nan_data_val); // log
-	LOGI("--> TW_ZIP_LOCATION: %s\n", tw_zip_location_val); // log
+int is_true(char* tw_setting) {
+	if (strcmp(tw_setting,"1") == 0) {
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 // Write Settings to file Function
 void
 write_s_file() {
-	int nan_dir_status;
+	int nan_dir_status = 1;
 	if (ensure_path_mounted(SDCARD_ROOT) != 0) {
 		LOGI("--> Can not mount /sdcard, running on default settings\n"); // Can't mount sdcard, default settings should be unchanged.
 	} else {
@@ -121,14 +127,14 @@ write_s_file() {
 		if(stat("/sdcard/nandroid",&st) != 0) {
 			LOGI("--> /sdcard/nandroid directory not present!\n");
 			if(mkdir("/sdcard/nandroid",0777) == -1) { // create directory
-				nan_dir_status = 1;
+				nan_dir_status = 0;
 				LOGI("--> Can not create directory: /sdcard/nandroid\n");
 			} else {
-				nan_dir_status = 0;
+				nan_dir_status = 1;
 				LOGI("--> Created directory: /sdcard/nandroid\n");
 			}
 		}
-		if (nan_dir_status == 0) {
+		if (nan_dir_status == 1) {
 			FILE *fp; // define file
 			fp = fopen(TW_SETTINGS_FILE, "w"); // open file, create if not exist, if exist, overwrite contents
 			if (fp == NULL) {
@@ -142,6 +148,18 @@ write_s_file() {
 						fputs(tw_nan_system_val, fp);
 					} else if (i == TW_NAN_DATA) {
 						fputs(tw_nan_data_val, fp);
+					} else if (i == TW_NAN_CACHE) {
+						fputs(tw_nan_cache_val, fp);
+					} else if (i == TW_NAN_BOOT) {
+						fputs(tw_nan_boot_val, fp);
+					} else if (i == TW_NAN_WIMAX) {
+						fputs(tw_nan_wimax_val, fp);
+					} else if (i == TW_NAN_RECOVERY) {
+						fputs(tw_nan_recovery_val, fp);
+					} else if (i == TW_NAN_SDEXT) {
+						fputs(tw_nan_sdext_val, fp);
+					} else if (i == TW_NAN_ANDSEC) {
+						fputs(tw_nan_andsec_val, fp);
 					} else if (i == TW_ZIP_LOCATION) {
 						fputs(tw_zip_location_val, fp);
 					}
@@ -149,7 +167,6 @@ write_s_file() {
 					i++; // increment loop
 				}
 				fclose(fp); // close file
-				tw_set_show();
 				LOGI("--> Wrote configuration file to: %s\n\n", TW_SETTINGS_FILE); // log
 			}
 		}
@@ -178,18 +195,29 @@ read_s_file() {
 					s_line[len-1] = 0; // remove it by setting it to 0
 				}
 			    if (i == TW_SIGNED_ZIP) {
-				    tw_signed_zip_val = s_line;
+			    	strcpy(tw_signed_zip_val, s_line);
 			    } else if (i == TW_NAN_SYSTEM) {
-				    tw_nan_system_val = s_line;
+			    	strcpy(tw_nan_system_val, s_line);
                 } else if (i == TW_NAN_DATA) {
-					tw_nan_data_val = s_line;
+			    	strcpy(tw_nan_data_val, s_line);
+				} else if (i == TW_NAN_CACHE) {
+			    	strcpy(tw_nan_cache_val, s_line);
+				} else if (i == TW_NAN_BOOT) {
+			    	strcpy(tw_nan_boot_val, s_line);
+				} else if (i == TW_NAN_WIMAX) {
+			    	strcpy(tw_nan_wimax_val, s_line);
+				} else if (i == TW_NAN_RECOVERY) {
+			    	strcpy(tw_nan_recovery_val, s_line);
+				} else if (i == TW_NAN_SDEXT) {
+			    	strcpy(tw_nan_sdext_val, s_line);
+				} else if (i == TW_NAN_ANDSEC) {
+			    	strcpy(tw_nan_andsec_val, s_line);
 				} else if (i == TW_ZIP_LOCATION) {
-					tw_zip_location_val = s_line;
+			    	strcpy(tw_zip_location_val, s_line);
 				}
 				i++; // increment loop
 			}
 			fclose(fp); // close file
-			tw_set_show();
 		}
 	}
 }
@@ -216,14 +244,14 @@ void usb_storage_toggle()
     Volume *vol = volume_for_path("/sdcard"); 
     if ((fd = open(CUSTOM_LUN_FILE"0/file", O_WRONLY)) < 0) {
         LOGE("Unable to open ums lunfile: (%s)", strerror(errno));
-        return -1;
+        return;
     }
 
     if ((write(fd, vol->device, strlen(vol->device)) < 0) &&
         (!vol->device2 || (write(fd, vol->device, strlen(vol->device2)) < 0))) {
         LOGE("Unable to write to ums lunfile: (%s)", strerror(errno));
         close(fd);
-        return -1;
+        return;
 
     } else {
         ui_clear_key_queue();
@@ -238,14 +266,14 @@ void usb_storage_toggle()
 
         		if ((fd = open(CUSTOM_LUN_FILE"0/file", O_WRONLY)) < 0) {
         			LOGE("Unable to open ums lunfile: (%s)", strerror(errno));
-        			return -1;
+        			return;
         		}
 
         		char ch = 0;
         		if (write(fd, &ch, 1) < 0) {
         			LOGE("Unable to write to ums lunfile: (%s)", strerror(errno));
         			close(fd);
-        			return -1;
+        			return;
         		}
         		ui_print("\nUSB as storage device unmounted!\n");
         		break;
@@ -263,10 +291,6 @@ char* MENU_INSTALL_ZIP[] = {  "Choose Zip To Flash",
 #define ITEM_TOGGLE_SIG      1
 #define ITEM_ZIP_BACK		 2
 
-int is_true(char* tw_setting) {
-	return strcmp(tw_setting,"0");
-}
-
 void install_zip_menu()
 {
     ui_set_background(BACKGROUND_ICON_FLASH_ZIP);
@@ -275,7 +299,7 @@ void install_zip_menu()
                                             NULL
     };
     save_up_a_level_menu_location(ITEM_ZIP_BACK);
-    ui_print("Signature Check Currently: %s\n", is_true(tw_signed_zip_val) ? "Disabled" : "Enabled");
+    ui_print("Signature Check Currently: %s\n", is_true(tw_signed_zip_val) ? "Enabled" : "Disabled");
     
     for (;;)
     {
@@ -296,12 +320,12 @@ void install_zip_menu()
                 }
                 break;
             case ITEM_TOGGLE_SIG:
-            	if (is_true(tw_signed_zip_val) == 0) {
-            		tw_signed_zip_val = "1";
+            	if (is_true(tw_signed_zip_val)) {
+            		strcpy(tw_signed_zip_val, "0");
             	} else {
-            		tw_signed_zip_val = "0";
+            		strcpy(tw_signed_zip_val, "1");
             	}
-            	ui_print("Signature Check Changed to: %s\n", is_true(tw_signed_zip_val) ? "Disabled" : "Enabled");
+            	ui_print("Signature Check Changed to: %s\n", is_true(tw_signed_zip_val) ? "Enabled" : "Disabled");
                 write_s_file();
                 break;
             case ITEM_ZIP_BACK:
@@ -472,4 +496,147 @@ void advanced_menu()
                 return;
         }
     }
+}
+
+// NANDROID MENU
+void
+nandroid_menu()
+{
+	#define ITEM_BACKUP_MENU       0
+	#define ITEM_RESTORE_MENU      1
+	#define ITEM_MENU_BACK         2
+	
+	char* nan_headers[] = { "Nandroid Menu",
+								   "Choose Backup or Restore: ",
+								   "",
+								   NULL	};
+	
+	char* nan_items[] = { "Backup Menu",
+								 "Restore Menu",
+								 "<- Back To Main Menu",
+								 NULL };
+	
+	save_up_a_level_menu_location(3);
+	for (;;)
+	{
+		int chosen_item = get_menu_selection(nan_headers, nan_items, 0, 0);
+		switch (chosen_item)
+		{
+			case ITEM_BACKUP_MENU:
+				nan_backstore_menu(ITEM_BACKUP_MENU);
+				break;
+			case ITEM_RESTORE_MENU:
+				nan_backstore_menu(ITEM_RESTORE_MENU);
+				break;
+			case ITEM_MENU_BACK:
+				return;
+		}
+	}
+}
+
+#define ITEM_NAN_BACKSTORE	0
+#define ITEM_NAN_SYSTEM		1
+#define ITEM_NAN_DATA      	2
+#define ITEM_NAN_CACHE		3
+#define ITEM_NAN_BOOT       4
+#define ITEM_NAN_WIMAX      5
+#define ITEM_NAN_RECOVERY   6
+#define ITEM_NAN_SDEXT      7
+#define ITEM_NAN_ANDSEC     8
+#define ITEM_NAN_BACK       9
+
+void
+nan_backstore_menu(int br)
+{
+	char* nan_br_headers[] = { br ? "Nandroid Restore" : "Nandroid Backup" ,
+								   "Choose Nandroid Options: ",
+								   "",
+								   NULL	};
+	
+	char* nan_br_items[] = { br ? "-> Restore Naowz!" : "-> Backup Naowz!",
+								 nan_img_set(ITEM_NAN_SYSTEM),
+								 nan_img_set(ITEM_NAN_DATA),
+								 nan_img_set(ITEM_NAN_CACHE),
+								 nan_img_set(ITEM_NAN_BOOT),
+								 nan_img_set(ITEM_NAN_WIMAX),
+								 nan_img_set(ITEM_NAN_RECOVERY),
+								 nan_img_set(ITEM_NAN_SDEXT),
+								 nan_img_set(ITEM_NAN_ANDSEC),
+								 "<- Back To Main Menu",
+								 NULL };
+	
+	save_up_a_level_menu_location(4);
+	for (;;)
+	{
+		int chosen_item = get_menu_selection(nan_br_headers, nan_br_items, 0, 0);
+		switch (chosen_item)
+		{
+			case ITEM_NAN_BACKSTORE:
+				break;
+			case ITEM_NAN_SYSTEM:
+				break;
+			case ITEM_NAN_DATA:
+				break;
+			case ITEM_NAN_CACHE:
+				break;
+			case ITEM_NAN_BOOT:
+				break;
+			case ITEM_NAN_WIMAX:
+				break;
+			case ITEM_NAN_RECOVERY:
+				break;
+			case ITEM_NAN_SDEXT:
+				break;
+			case ITEM_NAN_ANDSEC:
+				break;
+			case ITEM_NAN_BACK:
+				return;
+		}
+	}
+}
+
+char* 
+nan_img_set(int br)
+{
+	int isTrue = 0;
+	char* tmp_set = (char*)malloc(25);
+	switch (br)
+	{
+		case ITEM_NAN_SYSTEM:
+			strcpy(tmp_set, "[ ] system");
+			isTrue = is_true(tw_nan_system_val);
+			break;
+		case ITEM_NAN_DATA:
+			strcpy(tmp_set, "[ ] data");
+			isTrue = is_true(tw_nan_data_val);
+			break;
+		case ITEM_NAN_CACHE:
+			strcpy(tmp_set, "[ ] cache");
+			isTrue = is_true(tw_nan_cache_val);
+			break;
+		case ITEM_NAN_BOOT:
+			strcpy(tmp_set, "[ ] boot");
+			isTrue = is_true(tw_nan_boot_val);
+			break;
+		case ITEM_NAN_WIMAX:
+			strcpy(tmp_set, "[ ] wimax");
+			isTrue = is_true(tw_nan_wimax_val);
+			break;
+		case ITEM_NAN_RECOVERY:
+			strcpy(tmp_set, "[ ] recovery");
+			isTrue = is_true(tw_nan_recovery_val);
+			break;
+		case ITEM_NAN_SDEXT:
+			strcpy(tmp_set, "[ ] sd-ext");
+			isTrue = is_true(tw_nan_sdext_val);
+			break;
+		case ITEM_NAN_ANDSEC:
+			strcpy(tmp_set, "[ ] .android-secure");
+			isTrue = is_true(tw_nan_andsec_val);
+			break;
+	}
+	tmp_set++;
+	*tmp_set = isTrue ? 'x' : ' ';
+	tmp_set--;
+	return tmp_set;
 }

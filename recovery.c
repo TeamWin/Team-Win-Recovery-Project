@@ -729,12 +729,16 @@ prompt_and_wait() {
                 if (!ui_text_visible()) return;
                 break;
 
-             case ITEM_ADVANCED_MENU:
-                  advanced_menu();
+            case ITEM_NANDROID_MENU:
+            	nandroid_menu();
+            	break;
+            	
+            case ITEM_ADVANCED_MENU:
+            	advanced_menu();
                 break;
-
-             case ITEM_USB_TOGGLE:
-                  usb_storage_toggle();
+                
+            case ITEM_USB_TOGGLE:
+            	usb_storage_toggle();
                 break;
 
             case ITEM_REBOOT:
