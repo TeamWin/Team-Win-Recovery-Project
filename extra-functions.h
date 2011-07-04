@@ -1,20 +1,22 @@
 // Settings Constants 
 #define TW_MIN_SETTINGS_CHARS 1 // Max Character Length Per Line
 #define TW_MAX_SETTINGS_CHARS 255 // Max Character Length Per Line
-#define TW_MAX_NUM_SETTINGS 10 // Total Number of Settings (Change this as we add more settings)
+#define TW_MAX_NUM_SETTINGS 11 // Total Number of Settings (Change this as we add more settings)
 
 static const char* TW_SETTINGS_FILE = "/sdcard/nandroid/.twrs"; // Actual File
-static const int TW_SIGNED_ZIP = 0; // Zip Signed Toggle (Constant number corresponds to line number in file .twrs)
-static const int TW_NAN_SYSTEM = 1; // system is backed up during nandroid (Constant number corresponds to line number in file .twrs)
-static const int TW_NAN_DATA = 2; // data is backed up during nandroid (Constant number corresponds to line number in file .twrs)
-static const int TW_NAN_CACHE = 3;
-static const int TW_NAN_BOOT = 4;
-static const int TW_NAN_WIMAX = 5;
-static const int TW_NAN_RECOVERY = 6;
-static const int TW_NAN_SDEXT = 7;
-static const int TW_NAN_ANDSEC = 8;
-static const int TW_ZIP_LOCATION = 9; // Last location zip flashed from (remembers last folder) (Constant number corresponds to line number in file .twrs)
+static const int TW_VERSION = 0; // Used to make sure of settings compatability
+static const int TW_SIGNED_ZIP = 1; // Zip Signed Toggle (Constant number corresponds to line number in file .twrs)
+static const int TW_NAN_SYSTEM = 2; // system is backed up during nandroid (Constant number corresponds to line number in file .twrs)
+static const int TW_NAN_DATA = 3; // data is backed up during nandroid (Constant number corresponds to line number in file .twrs)
+static const int TW_NAN_CACHE = 4;
+static const int TW_NAN_BOOT = 5;
+static const int TW_NAN_WIMAX = 6;
+static const int TW_NAN_RECOVERY = 7;
+static const int TW_NAN_SDEXT = 8;
+static const int TW_NAN_ANDSEC = 9;
+static const int TW_ZIP_LOCATION = 10; // Last location zip flashed from (remembers last folder) (Constant number corresponds to line number in file .twrs)
 
+static const char tw_version_val[] = "1.0.0"; // Variable Holding Version
 static char tw_signed_zip_val[TW_MIN_SETTINGS_CHARS]; // Variable that holds value, default is defined
 static char tw_nan_system_val[TW_MIN_SETTINGS_CHARS]; //
 static char tw_nan_data_val[TW_MIN_SETTINGS_CHARS]; //

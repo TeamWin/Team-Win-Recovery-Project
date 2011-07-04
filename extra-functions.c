@@ -142,7 +142,9 @@ write_s_file() {
 			} else {
 				int i = 0;
 				while(i < TW_MAX_NUM_SETTINGS) {
-					if (i == TW_SIGNED_ZIP) {
+					if (i == TW_VERSION) {
+						fputs(tw_version_val, fp);
+					} else if (i == TW_SIGNED_ZIP) {
 						fputs(tw_signed_zip_val, fp);
 					} else if (i == TW_NAN_SYSTEM) {
 						fputs(tw_nan_system_val, fp);
@@ -167,7 +169,7 @@ write_s_file() {
 					i++; // increment loop
 				}
 				fclose(fp); // close file
-				LOGI("--> Wrote configuration file to: %s\n\n", TW_SETTINGS_FILE); // log
+				LOGI("--> Wrote to configuration file: %s\n", TW_SETTINGS_FILE); // log
 			}
 		}
 	}
@@ -194,7 +196,14 @@ read_s_file() {
 				if (s_line[len-1] == '\n') { // if last char is carriage return
 					s_line[len-1] = 0; // remove it by setting it to 0
 				}
-			    if (i == TW_SIGNED_ZIP) {
+				if (i == TW_VERSION) {
+					if (strcmp(s_line,tw_version_val) != 0) {
+						LOGI("--> Wrong recoverywin version detected, default settings applied.\n"); //
+						tw_set_defaults();
+						write_s_file();
+						break;
+					}
+				} else if (i == TW_SIGNED_ZIP) {
 			    	strcpy(tw_signed_zip_val, s_line);
 			    } else if (i == TW_NAN_SYSTEM) {
 			    	strcpy(tw_nan_system_val, s_line);
@@ -516,7 +525,6 @@ nandroid_menu()
 						  "<- Back To Main Menu",
 						  NULL };
 	
-	save_up_a_level_menu_location(3);
 	for (;;)
 	{
 		int chosen_item = get_menu_selection(nan_headers, nan_items, 0, 0);
@@ -565,7 +573,6 @@ nan_backup_menu()
 							 "<- Back To Main Menu",
 							 NULL };
 	
-	save_up_a_level_menu_location(4);
 	for (;;)
 	{
 		int chosen_item = get_menu_selection(nan_b_headers, nan_b_items, 0, 0);
@@ -573,7 +580,7 @@ nan_backup_menu()
 		{
 			case ITEM_NAN_BACKUP:
 				nandroid_string();
-				ui_print("\nNandroid String : %s\n", tw_nandroid_string);
+				ui_print("\nNandroid String : %s\n\n", tw_nandroid_string);
 				break;
 			case ITEM_NAN_SYSTEM:
             	if (is_true(tw_nan_system_val)) {
@@ -659,11 +666,10 @@ nan_restore_menu()
 							  "",
 							  NULL	};
 	
-	char* nan_r_items[] = { "-> Backup Naowz!",
+	char* nan_r_items[] = { "-> Restore Naowz!",
 							"<- Back To Main Menu",
 							 NULL };
 	
-	save_up_a_level_menu_location(4);
 	for (;;)
 	{
 		int chosen_item = get_menu_selection(nan_r_headers, nan_r_items, 0, 0);
