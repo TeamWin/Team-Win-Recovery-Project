@@ -198,7 +198,7 @@ read_s_file() {
 				}
 				if (i == TW_VERSION) {
 					if (strcmp(s_line,tw_version_val) != 0) {
-						LOGI("--> Wrong recoverywin version detected, default settings applied.\n"); //
+						ui_print("\n--> Wrong recoverywin version detected, default settings applied.\n\n"); //
 						tw_set_defaults();
 						write_s_file();
 						break;
