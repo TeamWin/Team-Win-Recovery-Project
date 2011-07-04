@@ -642,7 +642,11 @@ print_batt_cap()  {
     FILE * cap = fopen("/sys/class/power_supply/battery/capacity","r");
     fgets(cap_s, 4, cap);
     fclose(cap);
-
+	
+    int len = strlen(cap_s);
+	if (cap_s[len-1] == '\n') {
+		cap_s[len-1] = 0;
+	}
     ui_print("\nBattery Level: %s%%\n", cap_s);
 }
 

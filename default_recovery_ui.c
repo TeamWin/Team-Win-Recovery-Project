@@ -64,7 +64,7 @@ int device_handle_key(int key_code, int visible) {
                 
                 /* CAPACITATIVE BUTTONS */
             case KEY_HOME:
-            	return HOME_MENU; // temp command
+            	return wipe_dalvik_cache(); // temp command
             case KEY_MENU:
             	return advanced_menu(); // temp command
             case KEY_BACK:
