@@ -618,10 +618,10 @@ sdcard_directory(const char* path) {
 
 static void
 print_batt_cap()  {
-    char cap_s[3];
+    char cap_s[4];
     
     FILE * cap = fopen("/sys/class/power_supply/battery/capacity","r");
-    fgets(cap_s, 3, cap);
+    fgets(cap_s, 4, cap);
     fclose(cap);
 
     ui_print("\nBattery Level: %s%%\n", cap_s);
