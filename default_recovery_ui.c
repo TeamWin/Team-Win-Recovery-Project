@@ -27,10 +27,9 @@ char* MENU_ITEMS[] = { "Install Zip",
                        "Wipe Cache Partition",
                        "Nandroid Menu",
                        "Advanced Menu",
-                       "Wipe data/factory reset",
                        "USB Storage Toggle",
-                       "Reboot system now",
                        "Check Battery Level",
+                       "Reboot system now",
                        NULL };
 
 int device_recovery_start() {

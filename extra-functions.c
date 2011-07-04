@@ -786,20 +786,19 @@ erase_volume(const char *volume) {
 void
 format_menu()
 {
-	#define ITEM_FORMAT_BOOT        0
-	#define ITEM_FORMAT_CACHE       1
-	#define ITEM_FORMAT_DATA        2
-	#define ITEM_FORMAT_SDCARD      3
-	#define ITEM_FORMAT_SYSTEM      4
-	#define ITEM_FORMAT_BACK        5
+	#define ITEM_FORMAT_CACHE       0
+	#define ITEM_FORMAT_DATA        1
+	#define ITEM_FORMAT_SDCARD      2
+	#define ITEM_FORMAT_SYSTEM      3
+	#define ITEM_FORMAT_BACK        4
 	
 	char* part_headers[] = {    "Format Menu",
+                                "",
                                 "Choose Partition to Format: ",
     							"",
                                 NULL };
 	
-    char* part_items[] = {  "Format Boot (Kernel)",
-                            "Format Cache (/cache)",
+    char* part_items[] = {  "Format Cache (/cache)",
                             "Format Data (/data)",
                             "Format Sdcard (/sdcard)",
                             "Format System (/system)",
@@ -812,53 +811,45 @@ format_menu()
 		int chosen_item = get_menu_selection(part_headers, part_items, 0, 0);
 		switch (chosen_item)
 		{
-			case ITEM_FORMAT_BOOT:
-                ui_print("\n-- Wiping Boot Partition...\n");
-                if (erase_volume("/boot") == 0){
-                    ui_print("-- Boot Partition Wipe Complete!\n");
-                }
-                else {
-                    ui_print("-- Boot Partition Wipe Failed!\n");
-                }
-				break;
 			case ITEM_FORMAT_CACHE:
-                ui_print("\n-- Wiping Cache Partition...\n");
-                if (erase_volume("/cache") == 0){
-                    ui_print("-- Cache Partition Wipe Complete!\n");
-                }
-                else {
-                    ui_print("-- Cache Partition Wipe Failed!\n");
-                }
-				break;
+                confirm_format("Cache", "/cache");
+                break;
 			case ITEM_FORMAT_DATA:
-                ui_print("\n-- Wiping Data Partition...\n");
-                if (erase_volume("/data") == 0){
-                    ui_print("-- Data Partition Wipe Complete!\n");
-                }
-                else {
-                    ui_print("-- Data Partition Wipe Failed!\n");
-                }
-				break;
+                confirm_format("Data", "/data");
+                break;
 			case ITEM_FORMAT_SDCARD:
-                ui_print("\n-- Wiping Sdcard Partition...\n");
-                if (erase_volume("/sdcard") == 0){
-                    ui_print("-- Sdcard Partition Wipe Complete!\n");
-                }
-                else {
-                    ui_print("-- Sdcard Partition Wipe Failed!\n");
-                }
-				break;
+                confirm_format("Sdcard", "/sdcard");
+                break;
 			case ITEM_FORMAT_SYSTEM:
-                ui_print("\n-- Wiping System Partition...\n");
-                if (erase_volume("/system") == 0){
-                    ui_print("-- System Partition Wipe Complete!\n");
-                }
-                else {
-                    ui_print("-- System Partition Wipe Failed!\n");
-                }
-				break;
+                confirm_format("System", "/system");
+                break;
 			case ITEM_FORMAT_BACK:
 				return;
 		}
 	}
+}
+
+void
+confirm_format(char* volume_name, char* volume_path) {
+
+    char* headers[] = { "Confirm Format of Partition: ",
+                        volume_name,
+                        "",
+                        "  THIS CAN NOT BE UNDONE!",
+                        "",
+                        NULL };
+
+    char* items[] = {   "No",
+                        "Yes -- Permanently Format",
+                        NULL };
+
+    int chosen_item = get_menu_selection(headers, items, 1, 0);
+    if (chosen_item != 1) {
+        return;
+    }
+    else {
+        ui_print("\n-- Wiping %s Partition...\n", volume_name);
+        erase_volume(volume_path);
+        ui_print("-- %s Partition Wipe Complete!\n", volume_name);
+    }
 }

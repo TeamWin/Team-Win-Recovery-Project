@@ -631,45 +631,6 @@ print_batt_cap()  {
     ui_print("\nBattery Level: %s%%\n", cap_s);
 }
 
-static void
-wipe_data(int confirm) {
-    if (confirm) {
-        static char** title_headers = NULL;
-
-        if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of all user data?",
-                                "  THIS CAN NOT BE UNDONE.",
-                                "",
-                                NULL };
-            title_headers = prepend_title((const char**)headers);
-        }
-
-        char* items[] = { " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " Yes -- delete all user data",   // [7]
-                          " No",
-                          " No",
-                          " No",
-                          NULL };
-
-        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 7) {
-            return;
-        }
-    }
-
-    ui_print("\n-- Wiping Data and Cache Partitions...\n");
-    device_wipe_data();
-    erase_volume("/data");
-    erase_volume("/cache");
-    ui_print("-- Data and Cache Partitions Wipe Complete!\n");
-}
-
 void
 prompt_and_wait() {
     char** headers = prepend_title((const char**)MENU_HEADERS);
@@ -700,11 +661,6 @@ prompt_and_wait() {
 
             case ITEM_WIPE_DALVIK:
                 wipe_dalvik_cache();
-                break;
-
-            case ITEM_WIPE_DATA:
-                wipe_data(ui_text_visible());
-                if (!ui_text_visible()) return;
                 break;
 
             case ITEM_WIPE_CACHE:
