@@ -26,6 +26,8 @@ static char tw_nan_sdext_val[TW_MIN_SETTINGS_CHARS];
 static char tw_nan_andsec_val[TW_MIN_SETTINGS_CHARS];
 static char tw_zip_location_val[TW_MAX_SETTINGS_CHARS]; //
 
+static char tw_nandroid_string[1024];
+
 // Read Settings Function
 int is_true(char* tw_setting);
 void tw_set_defaults();

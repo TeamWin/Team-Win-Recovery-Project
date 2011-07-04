@@ -572,6 +572,8 @@ nan_backup_menu()
 		switch (chosen_item)
 		{
 			case ITEM_NAN_BACKUP:
+				nandroid_string();
+				ui_print("\nNandroid String : %s\n", tw_nandroid_string);
 				break;
 			case ITEM_NAN_SYSTEM:
             	if (is_true(tw_nan_system_val)) {
@@ -724,5 +726,29 @@ nan_img_set(int tw_setting)
 void
 nandroid_string()
 {
-	
+	strcpy(tw_nandroid_string, "/sbin/nandroid-mobile.sh -b --nomisc --nosplash1 --nosplash2 --defaultinput");
+	if (is_true(tw_nan_system_val) == 0) {
+		strcat(tw_nandroid_string, " --nosystem");
+	}
+	if (is_true(tw_nan_data_val) == 0) {
+		strcat(tw_nandroid_string, " --nodata");
+	}
+	if (is_true(tw_nan_cache_val) == 0) {
+		strcat(tw_nandroid_string, " --nocache");
+	}
+	if (is_true(tw_nan_boot_val) == 0) {
+		strcat(tw_nandroid_string, " --noboot");
+	}
+	if (is_true(tw_nan_wimax_val) == 0) {
+		strcat(tw_nandroid_string, " --nowimax");
+	}
+	if (is_true(tw_nan_recovery_val) == 0) {
+		strcat(tw_nandroid_string, " --norecovery");
+	}
+	if (is_true(tw_nan_sdext_val) == 1) {
+		strcat(tw_nandroid_string, " -e");
+	}
+	if (is_true(tw_nan_andsec_val) == 1) {
+		strcat(tw_nandroid_string, " -a");
+	}
 }
