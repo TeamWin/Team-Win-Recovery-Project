@@ -842,7 +842,7 @@ confirm_format(char* volume_name, char* volume_path) {
     char* items[] = {   "No",
                         "Yes -- Permanently Format",
                         NULL };
-    save_up_a_level_menu_location(0);
+    //save_up_a_level_menu_location(0); either menu option results in the same menu return, but if they choose yes then the back button gets out of sync
     int chosen_item = get_menu_selection(headers, items, 1, 0);
     if (chosen_item != 1) {
         return;
