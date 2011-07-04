@@ -578,7 +578,7 @@ nan_backup_menu()
 							 nan_img_set(ITEM_NAN_ANDSEC),
 							 "<- Back To Main Menu",
 							 NULL };
-	
+	save_up_a_level_menu_location(ITEM_NAN_BACK);
 	for (;;)
 	{
 		int chosen_item = get_menu_selection(nan_b_headers, nan_b_items, 0, 0);
@@ -675,7 +675,7 @@ nan_restore_menu()
 	char* nan_r_items[] = { "-> Restore Naowz!",
 							"<- Back To Main Menu",
 							 NULL };
-	
+	save_up_a_level_menu_location(ITEM_NAN_RESBACK);
 	for (;;)
 	{
 		int chosen_item = get_menu_selection(nan_r_headers, nan_r_items, 0, 0);
@@ -805,7 +805,7 @@ format_menu()
 						    "<- Back To Main Menu",
 						    NULL };
 	
-	save_up_a_level_menu_location(3);
+	save_up_a_level_menu_location(ITEM_FORMAT_BACK);
 	for (;;)
 	{
 		int chosen_item = get_menu_selection(part_headers, part_items, 0, 0);
@@ -842,7 +842,7 @@ confirm_format(char* volume_name, char* volume_path) {
     char* items[] = {   "No",
                         "Yes -- Permanently Format",
                         NULL };
-
+    save_up_a_level_menu_location(0);
     int chosen_item = get_menu_selection(headers, items, 1, 0);
     if (chosen_item != 1) {
         return;
