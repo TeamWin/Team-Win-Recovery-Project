@@ -450,19 +450,21 @@ void wipe_rotate_data()
 
 // ADVANCED MENU
 char* MENU_ADVANCED[] = {   "Reboot Menu",
+                            "Format Menu",
                             "Wipe Battery Stats",
                             "Wipe Rotation Data",
                             "<-Back To Main Menu",
                             NULL };
 
 #define ITEM_REBOOT_MENU       0
-#define ITEM_BATTERY_STATS     1
-#define ITEM_ROTATE_DATA       2
+#define ITEM_FORMAT_MENU       1
+#define ITEM_BATTERY_STATS     2
+#define ITEM_ROTATE_DATA       3
 
 void advanced_menu()
 {
     int result;
-    int chosen_item = 3;
+    int chosen_item = 4;
 
     static char* MENU_ADVANCED_HEADERS[] = {    "Advanced Options",
                                                 "",
@@ -474,14 +476,18 @@ void advanced_menu()
         int chosen_item = get_menu_selection(MENU_ADVANCED_HEADERS, MENU_ADVANCED, 0, 0);
         switch (chosen_item)
         {
-        // force item 3 always to go "back"
-        if (chosen_item == 3) {
+        // force item 4 always to go "back"
+        if (chosen_item == 4) {
             result = -1;
             break;
             }
 
             case ITEM_REBOOT_MENU:
                 reboot_menu();
+                break;
+
+            case ITEM_FORMAT_MENU:
+                format_menu();
                 break;
 
             case ITEM_BATTERY_STATS:
@@ -750,5 +756,103 @@ nandroid_string()
 	}
 	if (is_true(tw_nan_andsec_val) == 1) {
 		strcat(tw_nandroid_string, " -a");
+	}
+}
+
+// kang'd this from recovery.c cuz there wasnt a recovery.h!
+int
+erase_volume(const char *volume) {
+    ui_set_background(BACKGROUND_ICON_INSTALLING);
+    ui_show_indeterminate_progress();
+    ui_print("Formatting %s...\n", volume);
+
+    if (strcmp(volume, "/cache") == 0) {
+        // Any part of the log we'd copied to cache is now gone.
+        // Reset the pointer so we copy from the beginning of the temp
+        // log.
+        tmplog_offset = 0;
+    }
+
+    return format_volume(volume);
+}
+
+// FORMAT MENU
+void
+format_menu()
+{
+	#define ITEM_FORMAT_BOOT        0
+	#define ITEM_FORMAT_CACHE       1
+	#define ITEM_FORMAT_DATA        2
+	#define ITEM_FORMAT_SDCARD      3
+	#define ITEM_FORMAT_SYSTEM      4
+	#define ITEM_FORMAT_BACK        5
+	
+	char* part_headers[] = {    "Format Menu",
+                                "Choose Partition to Format: ",
+    							"",
+                                NULL };
+	
+    char* part_items[] = {  "Format Boot (Kernel)",
+                            "Format Cache (/cache)",
+                            "Format Data (/data)",
+                            "Format Sdcard (/sdcard)",
+                            "Format System (/system)",
+						    "<- Back To Main Menu",
+						    NULL };
+	
+	save_up_a_level_menu_location(3);
+	for (;;)
+	{
+		int chosen_item = get_menu_selection(part_headers, part_items, 0, 0);
+		switch (chosen_item)
+		{
+			case ITEM_FORMAT_BOOT:
+                ui_print("\n-- Wiping Boot Partition...\n");
+                if (erase_volume("/boot") == 0){
+                    ui_print("-- Boot Partition Wipe Complete!\n");
+                }
+                else {
+                    ui_print("-- Boot Partition Wipe Failed!\n");
+                }
+				break;
+			case ITEM_FORMAT_CACHE:
+                ui_print("\n-- Wiping Cache Partition...\n");
+                if (erase_volume("/cache") == 0){
+                    ui_print("-- Cache Partition Wipe Complete!\n");
+                }
+                else {
+                    ui_print("-- Cache Partition Wipe Failed!\n");
+                }
+				break;
+			case ITEM_FORMAT_DATA:
+                ui_print("\n-- Wiping Data Partition...\n");
+                if (erase_volume("/data") == 0){
+                    ui_print("-- Data Partition Wipe Complete!\n");
+                }
+                else {
+                    ui_print("-- Data Partition Wipe Failed!\n");
+                }
+				break;
+			case ITEM_FORMAT_SDCARD:
+                ui_print("\n-- Wiping Sdcard Partition...\n");
+                if (erase_volume("/sdcard") == 0){
+                    ui_print("-- Sdcard Partition Wipe Complete!\n");
+                }
+                else {
+                    ui_print("-- Sdcard Partition Wipe Failed!\n");
+                }
+				break;
+			case ITEM_FORMAT_SYSTEM:
+                ui_print("\n-- Wiping System Partition...\n");
+                if (erase_volume("/system") == 0){
+                    ui_print("-- System Partition Wipe Complete!\n");
+                }
+                else {
+                    ui_print("-- System Partition Wipe Failed!\n");
+                }
+				break;
+			case ITEM_FORMAT_BACK:
+				return;
+		}
 	}
 }

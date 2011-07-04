@@ -49,3 +49,7 @@ void nan_backup_menu();
 void nan_restore_menu();
 char* nan_img_set(int tw_setting);
 void nandroid_string();
+
+// Format Menu Stuff
+int erase_volume(const char *volume);
+static long tmplog_offset = 0;
