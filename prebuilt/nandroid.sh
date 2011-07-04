@@ -150,7 +150,7 @@ echo2log()
 }
 
 
-if [ "`echo $0 | grep /sbin/nandroid-mobile.sh`" == "" ]; then
+if [ "`echo $0 | grep /sbin/nandroid.sh`" == "" ]; then
     cp $0 /sbin
     chmod 755 /sbin/`basename $0`
     exec /sbin/`basename $0` $@
