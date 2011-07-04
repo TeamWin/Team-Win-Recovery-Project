@@ -245,9 +245,6 @@ set_sdcard_update_bootloader_message() {
     set_bootloader_message(&boot);
 }
 
-// How much of the temp log we have copied to the copy in cache.
-static long tmplog_offset = 0;
-
 static void
 copy_log_file(const char* destination, int append) {
     FILE *log = fopen_path(destination, append ? "a" : "w");
@@ -307,22 +304,6 @@ finish_recovery(const char *send_intent) {
     }
 
     sync();  // For good measure.
-}
-
-static int
-erase_volume(const char *volume) {
-    ui_set_background(BACKGROUND_ICON_INSTALLING);
-    ui_show_indeterminate_progress();
-    ui_print("Formatting %s...\n", volume);
-
-    if (strcmp(volume, "/cache") == 0) {
-        // Any part of the log we'd copied to cache is now gone.
-        // Reset the pointer so we copy from the beginning of the temp
-        // log.
-        tmplog_offset = 0;
-    }
-
-    return format_volume(volume);
 }
 
 static char*
