@@ -616,20 +616,15 @@ sdcard_directory(const char* path) {
     return result;
 }
 
-static void
-print_batt_cap()  {
-    char cap_s[4];
-    
-    FILE * cap = fopen("/sys/class/power_supply/battery/capacity","r");
-    fgets(cap_s, 4, cap);
-    fclose(cap);
-	
-    int len = strlen(cap_s);
-	if (cap_s[len-1] == '\n') {
-		cap_s[len-1] = 0;
-	}
-    ui_print("\nBattery Level: %s%%\n", cap_s);
-}
+// Main Menu
+#define ITEM_SHOW_BATT           0
+#define ITEM_APPLY_SDCARD        1
+#define ITEM_WIPE_DALVIK         2
+#define ITEM_WIPE_CACHE          3
+#define ITEM_NANDROID_MENU     	 4
+#define ITEM_ADVANCED_MENU       5
+#define ITEM_USB_TOGGLE          6
+#define ITEM_REBOOT              7
 
 void
 prompt_and_wait() {
@@ -638,6 +633,16 @@ prompt_and_wait() {
     for (;;) {
         finish_recovery(NULL);
         ui_reset_progress();
+
+        char* MENU_ITEMS[] = {  print_batt_cap(),
+                                "Install Zip",
+                                "Wipe Dalvik-Cache",
+                                "Wipe Cache Partition",
+                                "Nandroid Menu",
+                                "Advanced Menu",
+                                "USB Storage Toggle",
+                                "Reboot system now",
+                                NULL };
 
         int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
 

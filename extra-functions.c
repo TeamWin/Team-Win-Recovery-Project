@@ -853,3 +853,34 @@ confirm_format(char* volume_name, char* volume_path) {
         ui_print("-- %s Partition Wipe Complete!\n", volume_name);
     }
 }
+
+char* 
+print_batt_cap()  {
+    char cap_s[4];
+    
+    FILE * cap = fopen("/sys/class/power_supply/battery/capacity","r");
+    fgets(cap_s, 4, cap);
+    fclose(cap);
+	
+    int len = strlen(cap_s);
+	if (cap_s[len-1] == '\n') {
+		cap_s[len-1] = 0;
+	}
+    
+    // Get a usable time
+    time_t now;
+    now = time(0);
+    struct tm *current;
+    current = localtime(&now);
+    
+    // HACK: Not sure if this could be a possible memory leak
+    char* full_cap_s = (char*)malloc(30);
+    char full_cap_a[30];
+    sprintf(full_cap_a, "Battery Level: %s%% @ %i:%i", cap_s, current->tm_hour, current->tm_min);
+
+    strcpy(full_cap_s, full_cap_a);
+
+    ui_print("\n%s\n", full_cap_s);
+    
+    return full_cap_s;
+}

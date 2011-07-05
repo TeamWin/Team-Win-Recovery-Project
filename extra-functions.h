@@ -55,3 +55,7 @@ void nandroid_string();
 // Format Menu Stuff
 int erase_volume(const char *volume);
 static long tmplog_offset = 0;
+
+// Battery level
+char* print_batt_cap();
+

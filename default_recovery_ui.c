@@ -21,16 +21,7 @@
 
 char* MENU_HEADERS[] = { "Please select an option from below:",
                          NULL };
-
-char* MENU_ITEMS[] = { "Install Zip",
-                       "Wipe Dalvik-Cache",
-                       "Wipe Cache Partition",
-                       "Nandroid Menu",
-                       "Advanced Menu",
-                       "USB Storage Toggle",
-                       "Check Battery Level",
-                       "Reboot system now",
-                       NULL };
+// NOTE: Main Menu items moved to recovery.c to be definied at runtime
 
 int device_recovery_start() {
     return 0;

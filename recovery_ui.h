@@ -67,21 +67,13 @@ int device_wipe_data();
 #define UP_A_LEVEL          -5
 #define HOME_MENU           -6
 
-//need to recode first apply_sdcard to actual install zip method
-#define ITEM_APPLY_SDCARD        0
-#define ITEM_WIPE_DALVIK         1
-#define ITEM_WIPE_CACHE          2
-#define ITEM_NANDROID_MENU     	 3
-#define ITEM_ADVANCED_MENU       4
-#define ITEM_USB_TOGGLE          5
-#define ITEM_SHOW_BATT           6
-#define ITEM_REBOOT              7
-
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];
 
 // Text of menu items.
 extern char* MENU_ITEMS[];
+
+// NOTE: Main Menu index definitions moved to recovery.c
 
 int sdcard_directory(const char* path);
 int get_menu_selection(char** headers, char** items, int menu_only, int initial_selection);
