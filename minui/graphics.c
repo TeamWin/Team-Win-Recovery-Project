@@ -28,6 +28,7 @@
 #include <linux/kd.h>
 
 #include <pixelflinger/pixelflinger.h>
+#include <cutils/memory.h>
 
 #include "font_10x18.h"
 #include "minui.h"
@@ -96,7 +97,7 @@ static int get_framebuffer(GGLSurface *fb)
     fb->width = vi.xres;
     fb->height = vi.yres;
     fb->stride = vi.xres;
-    fb->data = (void*) (((unsigned) bits) + vi.yres * vi.xres * 2);
+    fb->data = (void*) (((unsigned) bits) + (vi.yres * vi.xres * vi.bits_per_pixel / 8));
     fb->format = GGL_PIXEL_FORMAT_RGB_565;
     memset(fb->data, 0, vi.yres * vi.xres * 2);
 
@@ -117,9 +118,30 @@ static void set_active_framebuffer(unsigned n)
     if (n > 1) return;
     vi.yres_virtual = vi.yres * 2;
     vi.yoffset = n * vi.yres;
-    vi.bits_per_pixel = 16;
     if (ioctl(gr_fb_fd, FBIOPUT_VSCREENINFO, &vi) < 0) {
         perror("active fb swap failed");
+    }
+}
+
+void gr_flip_32(unsigned *bits, unsigned short *ptr, unsigned count)
+{
+   unsigned i=0;
+   while (i<count) {
+        uint32_t rgb32, red, green, blue, alpha;
+
+        /* convert 16 bits to 32 bits */
+        rgb32 = ((ptr[i] >> 11) & 0x1F);
+        red = (rgb32 << 3) | (rgb32 >> 2);
+        rgb32 = ((ptr[i] >> 5) & 0x3F);
+        green = (rgb32 << 2) | (rgb32 >> 4);
+        rgb32 = ((ptr[i]) & 0x1F);
+        blue = (rgb32 << 3) | (rgb32 >> 2);
+        alpha = 0xff;
+        rgb32 = (alpha << 24) | (blue << 16)
+        | (green << 8) | (red);
+        android_memset32((uint32_t *)bits, rgb32, 4);
+        i++;
+        bits++;
     }
 }
 
@@ -132,9 +154,18 @@ void gr_flip(void)
 
     /* copy data from the in-memory surface to the buffer we're about
      * to make active. */
-    memcpy(gr_framebuffer[gr_active_fb].data, gr_mem_surface.data,
-           vi.xres * vi.yres * 2);
-
+    if( vi.bits_per_pixel == 16)
+    {
+    	memcpy(gr_framebuffer[gr_active_fb].data, gr_mem_surface.data,
+    			vi.xres * vi.yres * 2);
+    }
+    else
+    {
+    	gr_flip_32((unsigned *)gr_framebuffer[gr_active_fb].data,
+    			(unsigned short *)gr_mem_surface.data,
+    			(vi.xres * vi.yres));
+    }
+    
     /* inform the display driver */
     set_active_framebuffer(gr_active_fb);
 }
