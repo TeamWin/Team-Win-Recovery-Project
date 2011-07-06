@@ -536,7 +536,7 @@ nandroid_menu()
 						  "Restore Menu",
 						  "<- Back To Main Menu",
 						  NULL };
-	
+        save_up_a_level_menu_location(ITEM_MENU_BACK);
 	for (;;)
 	{
 		int chosen_item = get_menu_selection(nan_headers, nan_items, 0, 0);
@@ -584,7 +584,8 @@ nan_backup_menu()
 							 nan_img_set(ITEM_NAN_ANDSEC),
 							 "<- Back To Main Menu",
 							 NULL };
-	save_up_a_level_menu_location(ITEM_NAN_BACK);
+        mark_menu_location();
+        save_up_a_level_menu_location(ITEM_NAN_BACK);
 	for (;;)
 	{
 		int chosen_item = get_menu_selection(nan_b_headers, nan_b_items, 0, 0);
@@ -594,6 +595,7 @@ nan_backup_menu()
 				//nandroid_string();
 				nandroid_back_exe();
 				//ui_print("\nNandroid String : %s\n\n", tw_nandroid_string);
+                                clear_menu_marker();
 				return;
 			case ITEM_NAN_SYSTEM:
             	if (is_true(tw_nan_system_val)) {
@@ -892,7 +894,7 @@ confirm_format(char* volume_name, char* volume_path) {
     char* items[] = {   "No",
                         "Yes -- Permanently Format",
                         NULL };
-    //save_up_a_level_menu_location(0); either menu option results in the same menu return, but if they choose yes then the back button gets out of sync
+    save_up_a_level_menu_location(0);
     int chosen_item = get_menu_selection(headers, items, 1, 0);
     if (chosen_item != 1) {
         return;
@@ -901,6 +903,7 @@ confirm_format(char* volume_name, char* volume_path) {
         ui_print("\n-- Wiping %s Partition...\n", volume_name);
         erase_volume(volume_path);
         ui_print("-- %s Partition Wipe Complete!\n", volume_name);
+        decrement_menu_location();
     }
 }
 

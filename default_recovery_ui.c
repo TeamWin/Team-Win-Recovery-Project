@@ -53,13 +53,13 @@ int device_handle_key(int key_code, int visible) {
                 
                 /* CAPACITATIVE BUTTONS */
             case KEY_HOME:
-            	return HOME_MENU; // temp command
+            	return HOME_MENU;
             case KEY_MENU:
-            	return advanced_menu(); // temp command
+            	return advanced_menu();
             case KEY_BACK:
-            	return UP_A_LEVEL; // temp command
+            	return UP_A_LEVEL;
             case KEY_SEARCH:
-            	return SELECT_ITEM; // temp command
+            	return SELECT_ITEM;
         }
     }
 

@@ -145,6 +145,9 @@ static int need_to_read_settings_file = 1;
 static const int MAX_UP_A_LEVEL_ARRAY_SIZE = 100;
 static int up_a_level_array[100]; // my C is kind of fail so someone may have to fix my variable declarations
 static int up_a_level_position = 0;
+static int marked_menu_location = 0;
+static int going_home = 0;
+static int going_up = 0;
 
 // open a given path, mounting partitions as necessary
 static FILE*
@@ -432,13 +435,15 @@ get_menu_selection(char** headers, char** items, int menu_only,
     ui_start_menu(headers, items, initial_selection);
     int selected = initial_selection;
     int chosen_item = -1;
-
+    
     while (chosen_item < 0) {
         int key = ui_wait_key();
         int visible = ui_text_visible();
 
         int action = device_handle_key(key, visible);
-
+        if (going_home == 1 || going_up == 1) {
+            action = UP_A_LEVEL;
+        }
         if (action < 0) {
             switch (action) {
                 case HIGHLIGHT_UP:
@@ -462,11 +467,25 @@ get_menu_selection(char** headers, char** items, int menu_only,
                         //LOGI("--up_a_level_array[%i]: %i\n", up_a_level_position, up_a_level_array[up_a_level_position]);
                         chosen_item = up_a_level_array[up_a_level_position];
                         up_a_level_position--;
+                        if (marked_menu_location == up_a_level_position) {
+                            marked_menu_location = 0;
+                        }
+                        if (marked_menu_location != 0) {
+                            going_up = 1;
+                        }
+                    }
+                    else {
+                        going_home = 0;
                     }
                     break;
                 case HOME_MENU:
-                    //up_a_level_position = 0; // need to re-zero the array index
-                    //device_recovery_start(); // launch main menu??? not sure how to do that
+                    if (up_a_level_position != 0) {
+                        //LOGI("--up_a_level_array[%i]: %i\n", up_a_level_position, up_a_level_array[up_a_level_position]);
+                        chosen_item = up_a_level_array[up_a_level_position];
+                        up_a_level_position--;
+                        going_home = 1;
+                    }
+                    break;
                 case NO_ACTION:
                     break;
             }
@@ -488,6 +507,21 @@ void save_up_a_level_menu_location(int up_location) {
     }
     up_a_level_array[up_a_level_position] = up_location;
     //LOGI("up_a_level_array[%i]: %i\n", up_a_level_position, up_a_level_array[up_a_level_position]);
+}
+
+// used after making a menu selection (e.g. confirm format)
+void decrement_menu_location() {
+    up_a_level_position--;
+}
+
+// used to mark a menu's back location for multi-select menus such as nandroid options for choosing which partitions to back up
+//   making a selection on this type of a menu causes a second instance of the menu to be called (recursion)
+//   would like to make it so that pressing back exits the nandroid menu
+void mark_menu_location() {
+    marked_menu_location = up_a_level_position;
+}
+void clear_menu_marker() {
+    marked_menu_location = 0;
 }
 
 static int compare_string(const void* a, const void* b) {
