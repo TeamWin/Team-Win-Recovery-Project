@@ -106,6 +106,7 @@ tw_set_defaults() {
 	strcpy(tw_nan_sdext_val, "0");
 	strcpy(tw_nan_andsec_val, "0");
 	strcpy(tw_zip_location_val, "/sdcard");
+    strcpy(tw_time_zone_val, "-5");
 }
 
 int is_true(char* tw_setting) {
@@ -164,6 +165,8 @@ write_s_file() {
 						fputs(tw_nan_andsec_val, fp);
 					} else if (i == TW_ZIP_LOCATION) {
 						fputs(tw_zip_location_val, fp);
+					} else if (i == TW_TIME_ZONE) {
+						fputs(tw_time_zone_val, fp);
 					}
 					fputs("\n", fp); // add a carriage return to finish line
 					i++; // increment loop
@@ -223,6 +226,8 @@ read_s_file() {
 			    	strcpy(tw_nan_andsec_val, s_line);
 				} else if (i == TW_ZIP_LOCATION) {
 			    	strcpy(tw_zip_location_val, s_line);
+				} else if (i == TW_TIME_ZONE) {
+			    	strcpy(tw_time_zone_val, s_line);
 				}
 				i++; // increment loop
 			}
@@ -872,15 +877,23 @@ print_batt_cap()  {
     now = time(0);
     struct tm *current;
     current = localtime(&now);
+    int hour = current->tm_hour;
+    // Account for timezone
+    int zone_off = atoi(tw_time_zone_val);
+    hour += zone_off;
+    if (hour < 0)
+        hour += 24;
     
+    //ui_print("Init H: %i\nZone Off: %i\nCor Time: %i", current->tm_hour, zone_off, hour);
+
     // HACK: Not sure if this could be a possible memory leak
     char* full_cap_s = (char*)malloc(30);
     char full_cap_a[30];
-    sprintf(full_cap_a, "Battery Level: %s%% @ %i:%i", cap_s, current->tm_hour, current->tm_min);
+    sprintf(full_cap_a, "Battery Level: %s%% @ %i:%i", cap_s, hour, current->tm_min);
 
     strcpy(full_cap_s, full_cap_a);
 
-    ui_print("\n%s\n", full_cap_s);
+    //ui_print("\n%s\n", full_cap_s);
     
     return full_cap_s;
 }

@@ -691,7 +691,7 @@ prompt_and_wait() {
                 return;
 
             case ITEM_SHOW_BATT:
-                print_batt_cap();
+                //print_batt_cap();
                 break;
         }
     }
