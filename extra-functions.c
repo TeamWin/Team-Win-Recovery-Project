@@ -48,6 +48,7 @@
 #include "minzip/Zip.h"
 #include "recovery_ui.h"
 #include "roots.h"
+#include "ddftw.h"
 
 //kang system() from bionic/libc/unistd and rename it __system() so we can be even more hackish :)
 #undef _PATH_BSHELL
@@ -522,6 +523,8 @@ void advanced_menu()
 void
 nandroid_menu()
 {
+	getLocations();
+	
 	#define ITEM_BACKUP_MENU       0
 	#define ITEM_RESTORE_MENU      1
 	#define ITEM_MENU_BACK         2

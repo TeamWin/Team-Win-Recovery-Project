@@ -15,7 +15,8 @@ LOCAL_SRC_FILES := \
     verifier.c \
     encryptedfs_provisioning.c \
     reboot.c \
-    extra-functions.c 
+    extra-functions.c \
+    ddftw.c
 
 LOCAL_MODULE := recovery
 

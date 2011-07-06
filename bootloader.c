@@ -32,9 +32,9 @@ static int set_bootloader_message_block(const struct bootloader_message *in, con
 char *get_fstype() {
     Volume* v = volume_for_path("/misc");
     if (strcmp(v->fs_type, "mtd") == 0) {
-        return "MTD";
+        return "mtd";
     } else if (strcmp(v->fs_type, "emmc") == 0) {
-        return "EMMC";
+        return "emmc";
     }
     LOGE("unknown misc partition fs_type \"%s\"\n", v->fs_type);
     return "Unknown"; //probably need to handle this better

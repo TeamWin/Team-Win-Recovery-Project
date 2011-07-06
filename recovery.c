@@ -402,8 +402,7 @@ prepend_title(const char** headers) {
                       "Based on Android system recovery <"
                       EXPAND(RECOVERY_API_VERSION) "e>",
                       "", //
-                      "Current Device Detected: ",
-                      get_fstype(), // Added output to show MTD/EMMC Type
+                      print_batt_cap(),
                       "", //
                       NULL };
 
@@ -617,14 +616,13 @@ sdcard_directory(const char* path) {
 }
 
 // Main Menu
-#define ITEM_SHOW_BATT           0
-#define ITEM_APPLY_SDCARD        1
-#define ITEM_WIPE_DALVIK         2
-#define ITEM_WIPE_CACHE          3
-#define ITEM_NANDROID_MENU     	 4
-#define ITEM_ADVANCED_MENU       5
-#define ITEM_USB_TOGGLE          6
-#define ITEM_REBOOT              7
+#define ITEM_APPLY_SDCARD        0
+#define ITEM_WIPE_DALVIK         1
+#define ITEM_WIPE_CACHE          2
+#define ITEM_NANDROID_MENU     	 3
+#define ITEM_ADVANCED_MENU       4
+#define ITEM_USB_TOGGLE          5
+#define ITEM_REBOOT              6
 
 void
 prompt_and_wait() {
@@ -634,8 +632,7 @@ prompt_and_wait() {
         finish_recovery(NULL);
         ui_reset_progress();
 
-        char* MENU_ITEMS[] = {  print_batt_cap(),
-                                "Install Zip",
+        char* MENU_ITEMS[] = {  "Install Zip",
                                 "Wipe Dalvik-Cache",
                                 "Wipe Cache Partition",
                                 "Nandroid Menu",
@@ -689,10 +686,6 @@ prompt_and_wait() {
 
             case ITEM_REBOOT:
                 return;
-
-            case ITEM_SHOW_BATT:
-                //print_batt_cap();
-                break;
         }
     }
 }
