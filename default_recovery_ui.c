@@ -55,11 +55,13 @@ int device_handle_key(int key_code, int visible) {
             case KEY_HOME:
             	return HOME_MENU;
             case KEY_MENU:
-            	return advanced_menu();
+			    advanced_menu();
+            	return 0;
             case KEY_BACK:
             	return UP_A_LEVEL;
             case KEY_SEARCH:
-            	return SELECT_ITEM;
+			    install_zip_menu();
+            	return 0;
         }
     }
 

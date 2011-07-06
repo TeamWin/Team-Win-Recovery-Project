@@ -486,9 +486,6 @@ get_menu_selection(char** headers, char** items, int menu_only,
                         up_a_level_position--;
                         going_home = 1;
                     }*/
-					up_a_level_position = 0;
-					LOGI("HOME BUTTON PRESSED, attempting to restart recovery! array indexed 0'ed.\n");
-					device_recovery_start();
                     break;
                 case NO_ACTION:
                     break;
@@ -522,7 +519,9 @@ void decrement_menu_location() {
 //   making a selection on this type of a menu causes a second instance of the menu to be called (recursion)
 //   would like to make it so that pressing back exits the nandroid menu
 void mark_menu_location() {
-    marked_menu_location = up_a_level_position;
+    if (marked_menu_location == 0) {
+	    marked_menu_location = up_a_level_position;
+	}
 }
 void clear_menu_marker() {
     marked_menu_location = 0;
