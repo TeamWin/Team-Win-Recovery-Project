@@ -591,9 +591,10 @@ nan_backup_menu()
 		switch (chosen_item)
 		{
 			case ITEM_NAN_BACKUP:
-				nandroid_string();
-				ui_print("\nNandroid String : %s\n\n", tw_nandroid_string);
-				break;
+				//nandroid_string();
+				nandroid_back_exe();
+				//ui_print("\nNandroid String : %s\n\n", tw_nandroid_string);
+				return;
 			case ITEM_NAN_SYSTEM:
             	if (is_true(tw_nan_system_val)) {
             		strcpy(tw_nan_system_val, "0");
@@ -739,6 +740,49 @@ nan_img_set(int tw_setting)
 		tmp_set[1] = 'x';
 	}
 	return tmp_set;
+}
+
+void 
+nandroid_back_exe()
+{
+	char exe[255];
+	char tw_image[150];
+	if (is_true(tw_nan_system_val)) {
+		strcpy(tw_image, "/sdcard/nandroid/system.img");
+		sprintf(exe,"dd bs=2048 if=%s of=%s", tw_system_loc, tw_image);
+		__system(exe);
+	}
+	if (is_true(tw_nan_data_val)) {
+		strcpy(tw_image, "/sdcard/nandroid/data.img");
+		sprintf(exe,"dd bs=2048 if=%s of=%s", tw_data_loc, tw_image);
+		__system(exe);
+	}
+	if (is_true(tw_nan_cache_val)) {
+		strcpy(tw_image, "/sdcard/nandroid/cache.img");
+		sprintf(exe,"dd bs=2048 if=%s of=%s", tw_cache_loc, tw_image);
+		__system(exe);
+	}
+	if (is_true(tw_nan_boot_val)) {
+		strcpy(tw_image, "/sdcard/nandroid/boot.img");
+		sprintf(exe,"dd bs=2048 if=%s of=%s", tw_boot_loc, tw_image);
+		__system(exe);
+	}
+	if (is_true(tw_nan_wimax_val)) {
+		strcpy(tw_image, "/sdcard/nandroid/wimax.img");
+		sprintf(exe,"dd bs=2048 if=%s of=%s", tw_wimax_loc, tw_image);
+		__system(exe);
+	}
+	if (is_true(tw_nan_recovery_val)) {
+		strcpy(tw_image, "/sdcard/nandroid/recovery.img");
+		sprintf(exe,"dd bs=2048 if=%s of=%s", tw_recovery_loc, tw_image);
+		__system(exe);
+	}
+//	if (is_true(tw_nan_sdext_val) == 1) {
+//		nandroid_back_exe(tw_system_loc, "");
+//	}
+//	if (is_true(tw_nan_andsec_val) == 1) {
+//		nandroid_back_exe(tw_system_loc, "");
+//	}
 }
 
 void
