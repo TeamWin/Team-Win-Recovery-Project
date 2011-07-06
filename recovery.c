@@ -464,7 +464,7 @@ get_menu_selection(char** headers, char** items, int menu_only,
                     break;
                 case UP_A_LEVEL:
                     if (up_a_level_position != 0) {
-                        //LOGI("--up_a_level_array[%i]: %i\n", up_a_level_position, up_a_level_array[up_a_level_position]);
+                        LOGI("--up_a_level_array[%i]: %i\n", up_a_level_position, up_a_level_array[up_a_level_position]);
                         chosen_item = up_a_level_array[up_a_level_position];
                         up_a_level_position--;
                         if (marked_menu_location == up_a_level_position) {
@@ -475,16 +475,20 @@ get_menu_selection(char** headers, char** items, int menu_only,
                         }
                     }
                     else {
-                        going_home = 0;
+                        LOGI("going home set to 0\n");
+						going_home = 0;
                     }
                     break;
                 case HOME_MENU:
-                    if (up_a_level_position != 0) {
-                        //LOGI("--up_a_level_array[%i]: %i\n", up_a_level_position, up_a_level_array[up_a_level_position]);
+                    /*if (up_a_level_position != 0) {
+                        LOGI("HOME BUTTON PRESSED: --up_a_level_array[%i]: %i\n", up_a_level_position, up_a_level_array[up_a_level_position]);
                         chosen_item = up_a_level_array[up_a_level_position];
                         up_a_level_position--;
                         going_home = 1;
-                    }
+                    }*/
+					up_a_level_position = 0;
+					LOGI("HOME BUTTON PRESSED, attempting to restart recovery! array indexed 0'ed.\n");
+					device_recovery_start();
                     break;
                 case NO_ACTION:
                     break;
