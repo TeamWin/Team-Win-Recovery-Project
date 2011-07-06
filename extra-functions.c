@@ -475,6 +475,7 @@ char* MENU_ADVANCED[] = {   "Reboot Menu",
 #define ITEM_FORMAT_MENU       1
 #define ITEM_BATTERY_STATS     2
 #define ITEM_ROTATE_DATA       3
+#define ADVANCED_MENU_BACK     4
 
 void advanced_menu()
 {
@@ -485,14 +486,13 @@ void advanced_menu()
                                                 "",
                                                 NULL
     };
-    save_up_a_level_menu_location(3);
+    save_up_a_level_menu_location(ADVANCED_MENU_BACK);
     for (;;)
     {
         int chosen_item = get_menu_selection(MENU_ADVANCED_HEADERS, MENU_ADVANCED, 0, 0);
         switch (chosen_item)
         {
-        // force item 4 always to go "back"
-        if (chosen_item == 4) {
+        if (chosen_item == ADVANCED_MENU_BACK) {
             result = -1;
             break;
             }
