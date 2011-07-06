@@ -628,6 +628,8 @@ void
 prompt_and_wait() {
     char** headers = prepend_title((const char**)MENU_HEADERS);
 
+	getLocations();
+	
     for (;;) {
         finish_recovery(NULL);
         ui_reset_progress();

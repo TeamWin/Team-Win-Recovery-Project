@@ -522,9 +522,7 @@ void advanced_menu()
 // NANDROID MENU
 void
 nandroid_menu()
-{
-	getLocations();
-	
+{	
 	#define ITEM_BACKUP_MENU       0
 	#define ITEM_RESTORE_MENU      1
 	#define ITEM_MENU_BACK         2
