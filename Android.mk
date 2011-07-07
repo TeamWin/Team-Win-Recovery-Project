@@ -17,7 +17,8 @@ LOCAL_SRC_FILES := \
     reboot.c \
     extra-functions.c \
     ddftw.c \
-    backstore.c
+    backstore.c \
+    settings_file.c
 
 LOCAL_MODULE := recovery
 

@@ -50,6 +50,7 @@
 #include "roots.h"
 #include "ddftw.h"
 #include "backstore.h"
+#include "settings_file.h"
 
 //kang system() from bionic/libc/unistd and rename it __system() so we can be even more hackish :)
 #undef _PATH_BSHELL

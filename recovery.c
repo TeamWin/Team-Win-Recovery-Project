@@ -41,7 +41,7 @@
 #include "encryptedfs_provisioning.h"
 
 #include "extra-functions.h"
-#include "backstore.h"
+#include "settings_file.h"
 #include "ddftw.h"
 
 static const struct option OPTIONS[] = {
