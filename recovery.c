@@ -43,6 +43,7 @@
 #include "extra-functions.h"
 #include "settings_file.h"
 #include "ddftw.h"
+#include "backstore.h"
 
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
@@ -482,12 +483,12 @@ get_menu_selection(char** headers, char** items, int menu_only,
                     }
                     break;
                 case HOME_MENU:
-                    /*if (up_a_level_position != 0) {
+                    //if (up_a_level_position != 0) {  // here is the issue, if statement, we needed a loop.
+                    while (up_a_level_position > 0) {
                         LOGI("HOME BUTTON PRESSED: --up_a_level_array[%i]: %i\n", up_a_level_position, up_a_level_array[up_a_level_position]);
                         chosen_item = up_a_level_array[up_a_level_position];
                         up_a_level_position--;
-                        going_home = 1;
-                    }*/
+                    }
                     break;
                 case NO_ACTION:
                     break;
