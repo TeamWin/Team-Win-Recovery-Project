@@ -41,6 +41,8 @@
 #include "encryptedfs_provisioning.h"
 
 #include "extra-functions.h"
+#include "backstore.h"
+#include "ddftw.h"
 
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },

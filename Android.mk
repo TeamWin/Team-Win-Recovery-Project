@@ -16,7 +16,8 @@ LOCAL_SRC_FILES := \
     encryptedfs_provisioning.c \
     reboot.c \
     extra-functions.c \
-    ddftw.c
+    ddftw.c \
+    backstore.c
 
 LOCAL_MODULE := recovery
 
