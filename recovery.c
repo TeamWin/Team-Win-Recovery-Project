@@ -494,34 +494,6 @@ get_menu_selection(char** headers, char** items, int menu_only,
     return chosen_item;
 }
 
-// used to store the location of the back or "up a level" option in each menu so that the user can press the back button to go back
-void save_up_a_level_menu_location(int up_location) {
-    up_a_level_position++;
-    if (up_a_level_position > MAX_UP_A_LEVEL_ARRAY_SIZE - 1) { // hopefully this never happens!
-        LOGE("reached max array size of up_a_level_array");
-        return;
-    }
-    up_a_level_array[up_a_level_position] = up_location;
-    //LOGI("up_a_level_array[%i]: %i\n", up_a_level_position, up_a_level_array[up_a_level_position]);
-}
-
-// used after making a menu selection (e.g. confirm format)
-void decrement_menu_location() {
-    up_a_level_position--;
-}
-
-// used to mark a menu's back location for multi-select menus such as nandroid options for choosing which partitions to back up
-//   making a selection on this type of a menu causes a second instance of the menu to be called (recursion)
-//   would like to make it so that pressing back exits the nandroid menu
-void mark_menu_location() {
-    if (marked_menu_location == 0) {
-	    marked_menu_location = up_a_level_position;
-	}
-}
-void clear_menu_marker() {
-    marked_menu_location = 0;
-}
-
 static int compare_string(const void* a, const void* b) {
     return strcmp(*(const char**)a, *(const char**)b);
 }
@@ -554,7 +526,6 @@ sdcard_directory(const char* path) {
     zips[0] = strdup("../");
     
     inc_menu_loc(0);
-	ui_print("=> index 1: %i\n", menu_loc_idx);
     while ((de = readdir(d)) != NULL) {
         int name_len = strlen(de->d_name);
 
@@ -675,15 +646,12 @@ prompt_and_wait() {
                             "USB Storage Toggle",
                             "Reboot system now",
                             NULL };
-    
-	getLocations();
 	
     for (;;) {
 
         go_home = 0;
         go_menu = 0;
         menu_loc_idx = 0;
-    	ui_print("=> index 0: %i\n", menu_loc_idx);
     	
         int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
 
@@ -864,6 +832,7 @@ main(int argc, char **argv) {
     if (status != INSTALL_SUCCESS || ui_text_visible()) {
         //assume we want to be here and its not an error - give us the pretty icon!
         ui_set_background(BACKGROUND_ICON_MAIN);
+    	getLocations();
         prompt_and_wait();
     }
 
