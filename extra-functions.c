@@ -182,9 +182,9 @@ void install_zip_menu()
 								  zip_verify(),
 	                              "<- Back To Main Menu",
 	                              NULL };
-	
-    save_up_a_level_menu_location(ITEM_ZIP_BACK);
-    
+
+    inc_menu_loc(ITEM_ZIP_BACK);
+	ui_print("=> index 10: %i\n", menu_loc_idx);
     for (;;)
     {
         int chosen_item = get_menu_selection(MENU_FLASH_HEADERS, MENU_INSTALL_ZIP, 0, 0);
@@ -212,13 +212,19 @@ void install_zip_menu()
                 write_s_file();
                 break;
             case ITEM_ZIP_BACK:
+    	        menu_loc_idx--;
                 ui_set_background(BACKGROUND_ICON_MAIN);
+            	ui_print("=> index 11: %i\n", menu_loc_idx);
                 return;
         }
+	    if (go_home) { 
+	        menu_loc_idx--;
+	        return;
+	    }
         break;
     }
 	ui_end_menu();
-	decrement_menu_location();
+    menu_loc_idx--;
 	install_zip_menu();
 }
 
@@ -253,41 +259,35 @@ void wipe_dalvik_cache()
         if (!ui_text_visible()) return;
 }
 
-// REBOOT MENU
-char* MENU_REBOOT[] = { "Reboot To System",
-                        "Reboot To Recovery",
-                        "Reboot To Bootloader",
-                        "Power Off",
-                        "<-Back To Main Menu",
-                        NULL };
-
-#define ITEM_SYSTEM      0
-#define ITEM_RECOVERY    1
-#define ITEM_BOOTLOADER  2
-#define ITEM_POWEROFF    3
-
 void reboot_menu()
 {
-    int result;
-    int chosen_item = 4;
-    finish_recovery(NULL);
+	
+	#define ITEM_SYSTEM      0
+	#define ITEM_RECOVERY    1
+	#define ITEM_BOOTLOADER  2
+	#define ITEM_POWEROFF    3
+	#define ITEM_BACKK		 4
+	
+	// REBOOT MENU
+	char* MENU_REBOOT[] = { "Reboot To System",
+	                        "Reboot To Recovery",
+	                        "Reboot To Bootloader",
+	                        "Power Off",
+	                        "<-Back To Main Menu",
+	                        NULL };
 
     static char* MENU_REBOOT_HEADERS[] = {  "Reboot Menu",
                                             "",
                                             NULL
     };
-    save_up_a_level_menu_location(4);
+    
+    inc_menu_loc(ITEM_BACKK);
+	ui_print("=> index 4: %i\n", menu_loc_idx);
     for (;;)
     {
         int chosen_item = get_menu_selection(MENU_REBOOT_HEADERS, MENU_REBOOT, 0, 0);
         switch (chosen_item)
         {
-        // force item 4 always to go "back"
-        if (chosen_item == 4) {
-            result = -1;
-            break;
-            }
-
             case ITEM_RECOVERY:
                 __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
                 break;
@@ -304,9 +304,15 @@ void reboot_menu()
                 reboot(RB_AUTOBOOT);
                 break;
 
-            default:
+            case ITEM_BACKK:
+            	menu_loc_idx--;
+            	ui_print("=> index 5: %i\n", menu_loc_idx);
                 return;
         }
+	    if (go_home) { 
+	        menu_loc_idx--;
+	        return;
+	    }
     }
 }
 
@@ -335,40 +341,35 @@ void wipe_rotate_data()
     ensure_path_unmounted("/data");
 }   
 
-// ADVANCED MENU
-char* MENU_ADVANCED[] = {   "Reboot Menu",
-                            "Format Menu",
-                            "Wipe Battery Stats",
-                            "Wipe Rotation Data",
-                            "<-Back To Main Menu",
-                            NULL };
-
-#define ITEM_REBOOT_MENU       0
-#define ITEM_FORMAT_MENU       1
-#define ITEM_BATTERY_STATS     2
-#define ITEM_ROTATE_DATA       3
-#define ADVANCED_MENU_BACK     4
 
 void advanced_menu()
 {
-    int result;
-    int chosen_item = 4;
-
+	// ADVANCED MENU
+	#define ITEM_REBOOT_MENU       0
+	#define ITEM_FORMAT_MENU       1
+	#define ITEM_BATTERY_STATS     2
+	#define ITEM_ROTATE_DATA       3
+	#define ADVANCED_MENU_BACK     4
+	
+	char* MENU_ADVANCED[] = {   "Reboot Menu",
+	                            "Format Menu",
+	                            "Wipe Battery Stats",
+	                            "Wipe Rotation Data",
+	                            "<-Back To Main Menu",
+	                            NULL };
+	
     static char* MENU_ADVANCED_HEADERS[] = {    "Advanced Options",
                                                 "",
                                                 NULL
     };
-    save_up_a_level_menu_location(ADVANCED_MENU_BACK);
+
+    inc_menu_loc(ADVANCED_MENU_BACK);
+	ui_print("=> index 6: %i\n", menu_loc_idx);
     for (;;)
     {
         int chosen_item = get_menu_selection(MENU_ADVANCED_HEADERS, MENU_ADVANCED, 0, 0);
         switch (chosen_item)
         {
-        if (chosen_item == ADVANCED_MENU_BACK) {
-            result = -1;
-            break;
-            }
-
             case ITEM_REBOOT_MENU:
                 reboot_menu();
                 break;
@@ -385,9 +386,15 @@ void advanced_menu()
                 wipe_rotate_data();
                 break;
 
-            default:
-                return;
+            case ADVANCED_MENU_BACK:
+            	menu_loc_idx--;
+            	ui_print("=> index 7: %i\n", menu_loc_idx);
+            	return;
         }
+	    if (go_home) { 
+	        menu_loc_idx--;
+	        return;
+	    }
     }
 }
 
@@ -430,8 +437,9 @@ format_menu()
                             "Format System (/system)",
 						    "<- Back To Main Menu",
 						    NULL };
-	
-	save_up_a_level_menu_location(ITEM_FORMAT_BACK);
+
+    inc_menu_loc(ITEM_FORMAT_BACK);
+	ui_print("=> index 8: %i\n", menu_loc_idx);
 	for (;;)
 	{
 		int chosen_item = get_menu_selection(part_headers, part_items, 0, 0);
@@ -450,8 +458,14 @@ format_menu()
                 confirm_format("System", "/system");
                 break;
 			case ITEM_FORMAT_BACK:
+            	menu_loc_idx--;
+            	ui_print("=> index 9: %i\n", menu_loc_idx);
 				return;
 		}
+	    if (go_home) { 
+	        menu_loc_idx--;
+	        return;
+	    }
 	}
 }
 
@@ -518,4 +532,10 @@ print_batt_cap()  {
     //ui_print("\n%s\n", full_cap_s);
     
     return full_cap_s;
+}
+
+void inc_menu_loc(int bInt)
+{
+	menu_loc_idx++;
+	menu_loc[menu_loc_idx] = bInt;
 }

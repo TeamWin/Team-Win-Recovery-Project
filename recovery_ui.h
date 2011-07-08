@@ -66,6 +66,7 @@ int device_wipe_data();
 #define SELECT_ITEM         -4
 #define UP_A_LEVEL          -5
 #define HOME_MENU           -6
+#define MENU_MENU           -7
 
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];
