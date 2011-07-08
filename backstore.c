@@ -39,7 +39,9 @@ nandroid_menu()
 						  "Restore Menu",
 						  "<- Back To Main Menu",
 						  NULL };
-        save_up_a_level_menu_location(ITEM_MENU_BACK);
+
+    inc_menu_loc(ITEM_MENU_BACK);
+	ui_print("=> index: %i\n", menu_loc_idx);
 	for (;;)
 	{
 		int chosen_item = get_menu_selection(nan_headers, nan_items, 0, 0);
@@ -52,8 +54,14 @@ nandroid_menu()
 				nan_restore_menu();
 				break;
 			case ITEM_MENU_BACK:
+            	menu_loc_idx--;
+            	ui_print("=> index: %i\n", menu_loc_idx);
 				return;
 		}
+	    if (go_home) { 
+	        menu_loc_idx--;
+	        return;
+	    }
 	}
 }
 
@@ -87,7 +95,9 @@ nan_backup_menu()
 							 nan_img_set(ITEM_NAN_ANDSEC),
 							 "<- Back To Main Menu",
 							 NULL };
-        save_up_a_level_menu_location(ITEM_NAN_BACK);
+
+    inc_menu_loc(ITEM_NAN_BACK);
+	ui_print("=> index: %i\n", menu_loc_idx);
 	for (;;)
 	{
 		int chosen_item = get_menu_selection(nan_b_headers, nan_b_items, 0, 0);
@@ -163,12 +173,18 @@ nan_backup_menu()
                 write_s_file();
 				break;
 			case ITEM_NAN_BACK:
+            	menu_loc_idx--;
+            	ui_print("=> index: %i\n", menu_loc_idx);
 				return;
 		}
+	    if (go_home) { 
+	        menu_loc_idx--;
+	        return;
+	    }
 		break;
 	}
 	ui_end_menu();
-	decrement_menu_location();
+    menu_loc_idx--;
 	nan_backup_menu();
 }
 
@@ -186,7 +202,9 @@ nan_restore_menu()
 	char* nan_r_items[] = { "-> Restore Naowz!",
 							"<- Back To Main Menu",
 							 NULL };
-	save_up_a_level_menu_location(ITEM_NAN_RESBACK);
+
+    inc_menu_loc(ITEM_NAN_RESBACK);
+	ui_print("=> index: %i\n", menu_loc_idx);
 	for (;;)
 	{
 		int chosen_item = get_menu_selection(nan_r_headers, nan_r_items, 0, 0);
@@ -195,8 +213,14 @@ nan_restore_menu()
 			case ITEM_NAN_RESTORE:
 				break;
 			case ITEM_NAN_RESBACK:
+		        menu_loc_idx--;
+            	ui_print("=> index: %i\n", menu_loc_idx);
 				return;
 		}
+	    if (go_home) { 
+	        menu_loc_idx--;
+	        return;
+	    }
 	}
 }
 

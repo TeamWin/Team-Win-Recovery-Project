@@ -27,3 +27,13 @@ void confirm_format(char* volume_name, char* volume_path);
 int get_menu_selection(char** headers, char** items, int menu_only, int initial_selection);
 
 char* zip_verify();
+
+// Menu Stuff
+#define GO_HOME 69
+
+int go_home;
+int go_menu;
+int menu_loc_idx;
+int menu_loc[255];
+
+void inc_menu_loc(int bInt);

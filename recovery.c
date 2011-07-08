@@ -444,9 +444,6 @@ get_menu_selection(char** headers, char** items, int menu_only,
         int visible = ui_text_visible();
 
         int action = device_handle_key(key, visible);
-        if (going_home == 1 || going_up == 1) {
-            action = UP_A_LEVEL;
-        }
         if (action < 0) {
             switch (action) {
                 case HIGHLIGHT_UP:
@@ -460,35 +457,30 @@ get_menu_selection(char** headers, char** items, int menu_only,
                 case KEY_POWER:
                 case SELECT_ITEM:
                     chosen_item = selected;
-                    if (chosen_item == up_a_level_array[up_a_level_position] && up_a_level_position != 0) { // if the user manually chooses the back option in the menu we need to decrement the array index
-                        up_a_level_position--;
-                        //LOGI("user manually selected the back menu item.\n");
-                    }
                     break;
                 case UP_A_LEVEL:
-                    if (up_a_level_position != 0) {
-                        LOGI("--up_a_level_array[%i]: %i\n", up_a_level_position, up_a_level_array[up_a_level_position]);
-                        chosen_item = up_a_level_array[up_a_level_position];
-                        up_a_level_position--;
-                        if (marked_menu_location == up_a_level_position) {
-                            marked_menu_location = 0;
-                        }
-                        if (marked_menu_location != 0) {
-                            going_up = 1;
-                        }
-                    }
-                    else {
-                        LOGI("going home set to 0\n");
-						going_home = 0;
-                    }
+                	if (menu_loc_idx != 0)
+                	{
+                		chosen_item = menu_loc[menu_loc_idx];
+                	}
                     break;
                 case HOME_MENU:
-                    /*if (up_a_level_position != 0) {
-                        LOGI("HOME BUTTON PRESSED: --up_a_level_array[%i]: %i\n", up_a_level_position, up_a_level_array[up_a_level_position]);
-                        chosen_item = up_a_level_array[up_a_level_position];
-                        up_a_level_position--;
-                        going_home = 1;
-                    }*/
+                	if (menu_loc_idx != 0)
+                	{
+                		go_home = 1;
+                		chosen_item = menu_loc[menu_loc_idx];
+                	}
+                    break;
+                case MENU_MENU:
+                	if (menu_loc_idx == 0)
+                	{
+                	    return 4;
+                	} else
+                	{
+                    	go_home = 1;
+                    	go_menu = 1;
+                    	chosen_item = menu_loc[menu_loc_idx];
+                	}
                     break;
                 case NO_ACTION:
                     break;
@@ -560,7 +552,9 @@ sdcard_directory(const char* path) {
     int z_alloc = 10;
     char** zips = malloc(z_alloc * sizeof(char*));
     zips[0] = strdup("../");
-    save_up_a_level_menu_location(0);
+    
+    inc_menu_loc(0);
+	ui_print("=> index 1: %i\n", menu_loc_idx);
     while ((de = readdir(d)) != NULL) {
         int name_len = strlen(de->d_name);
 
@@ -611,8 +605,10 @@ sdcard_directory(const char* path) {
 
         char* item = zips[chosen_item];
         int item_len = strlen(item);
+
         if (chosen_item == 0) {          // item 0 is always "../"
             // go up but continue browsing (if the caller is sdcard_directory)
+            menu_loc_idx--;
             result = -1;
             break;
         } else if (item[item_len-1] == '/') {
@@ -655,34 +651,40 @@ sdcard_directory(const char* path) {
     return result;
 }
 
-// Main Menu
-#define ITEM_APPLY_SDCARD        0
-#define ITEM_WIPE_DALVIK         1
-#define ITEM_WIPE_CACHE          2
-#define ITEM_NANDROID_MENU     	 3
-#define ITEM_ADVANCED_MENU       4
-#define ITEM_USB_TOGGLE          5
-#define ITEM_REBOOT              6
-
 void
 prompt_and_wait() {
-    char** headers = prepend_title((const char**)MENU_HEADERS);
 
+	// Main Menu
+	#define ITEM_APPLY_SDCARD        0
+	#define ITEM_WIPE_DALVIK         1
+	#define ITEM_WIPE_CACHE          2
+	#define ITEM_NANDROID_MENU     	 3
+	#define ITEM_ADVANCED_MENU       4
+	#define ITEM_USB_TOGGLE          5
+	#define ITEM_REBOOT              6
+
+    finish_recovery(NULL);
+    ui_reset_progress();
+    
+	char** headers = prepend_title((const char**)MENU_HEADERS);
+    char* MENU_ITEMS[] = {  "Install Zip",
+                            "Wipe Dalvik-Cache",
+                            "Wipe Cache Partition",
+                            "Nandroid Menu",
+                            "Advanced Menu",
+                            "USB Storage Toggle",
+                            "Reboot system now",
+                            NULL };
+    
 	getLocations();
 	
     for (;;) {
-        finish_recovery(NULL);
-        ui_reset_progress();
 
-        char* MENU_ITEMS[] = {  "Install Zip",
-                                "Wipe Dalvik-Cache",
-                                "Wipe Cache Partition",
-                                "Nandroid Menu",
-                                "Advanced Menu",
-                                "USB Storage Toggle",
-                                "Reboot system now",
-                                NULL };
-
+        go_home = 0;
+        go_menu = 0;
+        menu_loc_idx = 0;
+    	ui_print("=> index 0: %i\n", menu_loc_idx);
+    	
         int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
 
         // device-specific code may take some action here.  It may
@@ -697,7 +699,7 @@ prompt_and_wait() {
         	tw_set_defaults();
             read_s_file();
         }
-
+        
         switch (chosen_item) {
             case ITEM_APPLY_SDCARD:
                 install_zip_menu();
@@ -728,6 +730,9 @@ prompt_and_wait() {
 
             case ITEM_REBOOT:
                 return;
+        }
+        if (go_menu) {
+        	advanced_menu();
         }
     }
 }

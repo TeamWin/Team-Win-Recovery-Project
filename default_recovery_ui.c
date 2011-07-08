@@ -55,8 +55,7 @@ int device_handle_key(int key_code, int visible) {
             case KEY_HOME:
             	return HOME_MENU;
             case KEY_MENU:
-			    advanced_menu();
-            	return NO_ACTION;
+            	return MENU_MENU;
             case KEY_BACK:
             	return UP_A_LEVEL;
             case KEY_SEARCH:
