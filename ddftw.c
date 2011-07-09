@@ -94,4 +94,5 @@ void getLocations()
 			}
 		}
 	}
+	get_device_id();
 }

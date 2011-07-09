@@ -22,6 +22,7 @@
 #include "backstore.h"
 #include "settings_file.h"
 #include "common.h"
+#include "roots.h"
 
 // Default Settings
 void
@@ -36,7 +37,7 @@ tw_set_defaults() {
 	strcpy(tw_nan_sdext_val, "0");
 	strcpy(tw_nan_andsec_val, "0");
 	strcpy(tw_zip_location_val, "/sdcard");
-    strcpy(tw_time_zone_val, "-5");
+    strcpy(tw_time_zone_val, "CST6CDT");
 }
 
 int is_true(char* tw_setting) {
@@ -164,4 +165,6 @@ read_s_file() {
 			fclose(fp); // close file
 		}
 	}
+    setenv("TZ", tw_time_zone_val, 1);
+    tzset();
 }

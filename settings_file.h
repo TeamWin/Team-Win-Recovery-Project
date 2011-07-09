@@ -17,7 +17,7 @@ static const int TW_NAN_ANDSEC = 9;
 static const int TW_ZIP_LOCATION = 10; // Last location zip flashed from (remembers last folder) (Constant number corresponds to line number in file .twrs)
 static const int TW_TIME_ZONE = 11;
 
-static const char tw_version_val[] = "1.0.1"; // Variable Holding Version
+static const char tw_version_val[] = "1.0.2"; // Variable Holding Version
 char tw_signed_zip_val[TW_MIN_SETTINGS_CHARS]; // Variable that holds value, default is defined
 char tw_nan_system_val[TW_MIN_SETTINGS_CHARS]; //
 char tw_nan_data_val[TW_MIN_SETTINGS_CHARS]; //
@@ -28,7 +28,7 @@ char tw_nan_recovery_val[TW_MIN_SETTINGS_CHARS];
 char tw_nan_sdext_val[TW_MIN_SETTINGS_CHARS];
 char tw_nan_andsec_val[TW_MIN_SETTINGS_CHARS];
 char tw_zip_location_val[TW_MAX_SETTINGS_CHARS]; //
-static char tw_time_zone_val[5] = "-5"; // Should set a default if no file found
+static char tw_time_zone_val[7] = "CST6CDT"; // Should set a default if no file found
 
 // Read Settings Function
 int is_true(char* tw_setting);

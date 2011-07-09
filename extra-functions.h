@@ -1,5 +1,8 @@
 int __system(const char *command);
 
+char device_id[15];
+void get_device_id();
+
 // Menus
 void install_zip_menu();
 void advanced_menu();
