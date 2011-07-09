@@ -32,10 +32,12 @@
 void
 nandroid_menu()
 {	
+	// define constants for menu selection
 	#define ITEM_BACKUP_MENU       0
 	#define ITEM_RESTORE_MENU      1
 	#define ITEM_MENU_BACK         2
 	
+	// build headers and items in menu
 	char* nan_headers[] = { "Nandroid Menu",
 							"Choose Backup or Restore: ",
 							"",
@@ -47,8 +49,7 @@ nandroid_menu()
 						  NULL };
 	
 	int chosen_item;
-			
-    inc_menu_loc(ITEM_MENU_BACK);
+    inc_menu_loc(ITEM_MENU_BACK); // record back selection into array
 	for (;;)
 	{
 		chosen_item = get_menu_selection(nan_headers, nan_items, 0, 0);
@@ -64,7 +65,7 @@ nandroid_menu()
             	menu_loc_idx--;
 				return;
 		}
-	    if (go_home) { 
+	    if (go_home) { 		// if home was called
 	        menu_loc_idx--;
 	        return;
 	    }
@@ -105,7 +106,7 @@ nan_backup_menu()
     inc_menu_loc(ITEM_NAN_BACK);
 	for (;;)
 	{
-		int chosen_item = get_menu_selection(nan_b_headers, nan_b_items, 0, 0);
+		int chosen_item = get_menu_selection(nan_b_headers, nan_b_items, 0, 0); // get key presses
 		switch (chosen_item)
 		{
 			case ITEM_NAN_BACKUP:
@@ -113,7 +114,7 @@ nan_backup_menu()
 				return;
 			case ITEM_NAN_SYSTEM:
             	if (is_true(tw_nan_system_val)) {
-            		strcpy(tw_nan_system_val, "0");
+            		strcpy(tw_nan_system_val, "0"); // toggle's value
             	} else {
             		strcpy(tw_nan_system_val, "1");
             	}
@@ -185,9 +186,9 @@ nan_backup_menu()
 	    }
 		break;
 	}
-	ui_end_menu();
+	ui_end_menu(); // end menu
     menu_loc_idx--;
-	nan_backup_menu();
+	nan_backup_menu(); // restart menu (to refresh it)
 }
 
 void
@@ -196,6 +197,7 @@ set_restore_files()
 	struct stat st;
 	char* tmp_file = (char*)malloc(255);
 	
+	// check to see if images exist, so put int menu array
 	strcpy(tmp_file,nan_dir);
 	strcat(tmp_file,tw_nan_system);
 	if (stat(tmp_file,&st) == 0) 
@@ -371,10 +373,8 @@ nan_img_set(int tw_setting, int tw_backstore)
 	int isTrue = 0;
 	int isThere = 1;
 	char* tmp_set = (char*)malloc(25);
-
 	struct stat st;
 	char* tmp_file = (char*)malloc(255);
-	
 	switch (tw_setting)
 	{
 		case ITEM_NAN_SYSTEM:
@@ -469,14 +469,12 @@ nandroid_back_exe()
 	char tw_image_base[100];
 	char tw_image[255];
 	struct stat st;
-
     char timestamp[14];
     struct tm * t;
     time_t seconds;
     seconds = time(0);
     t = localtime(&seconds);
     sprintf(timestamp,"%02d%02d%d%02d%02d",t->tm_mon+1,t->tm_mday,t->tm_year+1900,t->tm_hour,t->tm_min);
-    
 	sprintf(tw_image_base, "%s/%s/", nandroid_folder, device_id);
 	if (stat(tw_image_base,&st) != 0) {
 		if(mkdir(tw_image_base,0777) == -1) {
@@ -486,12 +484,12 @@ nandroid_back_exe()
 		}
 	}
 	strcat(tw_image_base,timestamp);
+	strcat(tw_image_base,"/");
 	if(mkdir(tw_image_base,0777) == -1) {
 		LOGI("--> Can not create directory: %s\n", tw_image_base);
 	} else {
 		LOGI("--> Created directory: %s\n", tw_image_base);
 	}
-	strcat(tw_image_base,"/");
 	if (is_true(tw_nan_system_val)) {
 		strcpy(tw_image,tw_image_base);
 		strcat(tw_image,tw_nan_system);
@@ -552,43 +550,43 @@ nandroid_rest_exe()
 		strcpy(tmp_file,nan_dir);
 		strcat(tmp_file,tw_nan_system);
 		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, tw_system_loc);
-		ui_print("=> %s\n", exe);
+		//ui_print("=> %s\n", exe);
 		__system(exe);
 	}
 	if (tw_nan_data_x == 1) {
 		strcpy(tmp_file,nan_dir);
 		strcat(tmp_file,tw_nan_data);
 		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, tw_data_loc);
-		ui_print("=> %s\n", exe);
-		//__system(exe);
+		//ui_print("=> %s\n", exe);
+		__system(exe);
 	}
 	if (tw_nan_cache_x == 1) {
 		strcpy(tmp_file,nan_dir);
 		strcat(tmp_file,tw_nan_cache);
 		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, tw_cache_loc);
-		ui_print("=> %s\n", exe);
-		//__system(exe);
+		//ui_print("=> %s\n", exe);
+		__system(exe);
 	}
 	if (tw_nan_boot_x == 1) {
 		strcpy(tmp_file,nan_dir);
 		strcat(tmp_file,tw_nan_boot);
 		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, tw_boot_loc);
-		ui_print("=> %s\n", exe);
+		//ui_print("=> %s\n", exe);
 		__system(exe);
 	}
 	if (tw_nan_wimax_x == 1) {
 		strcpy(tmp_file,nan_dir);
 		strcat(tmp_file,tw_nan_wimax);
 		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, tw_wimax_loc);
-		ui_print("=> %s\n", exe);
-		//__system(exe);
+		//ui_print("=> %s\n", exe);
+		__system(exe);
 	}
 	if (tw_nan_recovery_x == 1) {
 		strcpy(tmp_file,nan_dir);
 		strcat(tmp_file,tw_nan_recovery);
 		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, tw_recovery_loc);
-		ui_print("=> %s\n", exe);
-		//__system(exe);
+		//ui_print("=> %s\n", exe);
+		__system(exe);
 	}
 //	if (tw_nan_sdext_x == 1) {
 //		strcpy(tmp_file,nan_dir);
