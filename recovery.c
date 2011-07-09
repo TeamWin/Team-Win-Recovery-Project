@@ -59,7 +59,7 @@ static const char *COMMAND_FILE = "/cache/recovery/command";
 static const char *INTENT_FILE = "/cache/recovery/intent";
 static const char *LOG_FILE = "/cache/recovery/log";
 static const char *LAST_LOG_FILE = "/cache/recovery/last_log";
-static const char *SDCARD_ROOT = "/sdcard";
+//static const char *SDCARD_ROOT = "/sdcard";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
 
@@ -144,13 +144,6 @@ static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
 static const int MAX_ARG_LENGTH = 4096;
 static const int MAX_ARGS = 100;
 static int need_to_read_settings_file = 1;
-
-static const int MAX_UP_A_LEVEL_ARRAY_SIZE = 100;
-static int up_a_level_array[100]; // my C is kind of fail so someone may have to fix my variable declarations
-static int up_a_level_position = 0;
-static int marked_menu_location = 0;
-static int going_home = 0;
-static int going_up = 0;
 
 // open a given path, mounting partitions as necessary
 static FILE*
@@ -590,6 +583,10 @@ sdcard_directory(const char* path) {
             strlcat(new_path, item, PATH_MAX);
             new_path[strlen(new_path)-1] = '\0';  // truncate the trailing '/'
             result = sdcard_directory(new_path);
+    	    if (go_home) { 
+    	        menu_loc_idx--;
+    	        return 0;
+    	    }
             if (result >= 0) break;
         } else {
             // selected a zip file:  attempt to install it, and return
@@ -664,8 +661,6 @@ prompt_and_wait() {
         // read settings file once and only once after the user makes a menu selection
         if (need_to_read_settings_file) {
         	need_to_read_settings_file = 0;
-        	tw_set_defaults();
-            read_s_file();
         }
         
         switch (chosen_item) {
@@ -833,6 +828,8 @@ main(int argc, char **argv) {
         //assume we want to be here and its not an error - give us the pretty icon!
         ui_set_background(BACKGROUND_ICON_MAIN);
     	getLocations();
+    	tw_set_defaults();
+        read_s_file();
         prompt_and_wait();
     }
 

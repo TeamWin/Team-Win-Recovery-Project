@@ -56,8 +56,6 @@
 #undef _PATH_BSHELL
 #define _PATH_BSHELL "/sbin/sh"
 
-static const char *SDCARD_ROOT = "/sdcard";
-
 extern char **environ;
 
 int
@@ -96,6 +94,25 @@ __system(const char *command)
 	return (pid == -1 ? -1 : pstat);
 }
 
+void get_device_id()
+{
+	__system("cat /proc/cmdline | sed \"s/.*serialno=//\" | cut -d\" \" -f1 >> /tmp/device.id");
+	
+	FILE *fp;
+	fp = fopen("/tmp/device.id", "r");
+	if (fp == NULL)
+	{
+		LOGI("=> device id file not found.");
+	} else 
+	{
+		fgets(device_id, 15, fp);
+		int len = strlen(device_id);
+		if (device_id[len-1] == '\n') {
+			device_id[len-1] = 0;
+		}
+		LOGI("\n=> DEVICE_ID: %s\n", device_id);
+	}
+}
 /*partial kangbang from system/vold
 TODO: Currently only one mount is supported, defaulting
 /mnt/sdcard to lun0 and anything else gets no love. Fix this.
@@ -199,7 +216,9 @@ void install_zip_menu()
                 } else if (!ui_text_visible()) {
                     return;  // reboot if logs aren't visible
                 } else {
-                    ui_print("\nInstall from sdcard complete.\n");
+            	    if (!go_home) {
+                        ui_print("\nInstall from sdcard complete.\n");
+            	    }
                 }
                 break;
             case ITEM_TOGGLE_SIG:
@@ -503,23 +522,16 @@ print_batt_cap()  {
 	}
     
     // Get a usable time
+
+    struct tm *current;
     time_t now;
     now = time(0);
-    struct tm *current;
     current = localtime(&now);
-    int hour = current->tm_hour;
-    // Account for timezone
-    int zone_off = atoi(tw_time_zone_val);
-    hour += zone_off;
-    if (hour < 0)
-        hour += 24;
     
-    //ui_print("Init H: %i\nZone Off: %i\nCor Time: %i", current->tm_hour, zone_off, hour);
-
     // HACK: Not sure if this could be a possible memory leak
     char* full_cap_s = (char*)malloc(30);
     char full_cap_a[30];
-    sprintf(full_cap_a, "Battery Level: %s%% @ %i:%i", cap_s, hour, current->tm_min);
+    sprintf(full_cap_a, "Battery Level: %s%% @ %i:%i", cap_s, current->tm_hour, current->tm_min);
 
     strcpy(full_cap_s, full_cap_a);
 

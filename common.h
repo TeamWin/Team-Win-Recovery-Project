@@ -19,6 +19,8 @@
 
 #include <stdio.h>
 
+static const char *SDCARD_ROOT = "/sdcard";
+
 // Initialize the graphics system.
 void ui_init();
 
