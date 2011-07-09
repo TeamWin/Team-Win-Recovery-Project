@@ -479,7 +479,6 @@ nandroid_back_exe()
     
 	sprintf(tw_image_base, "%s/%s/", nandroid_folder, device_id);
 	strcat(tw_image_base,timestamp);
-	strcat(tw_image_base,"/");
 	if (stat(tw_image_base,&st) != 0) {
 		if(mkdir(tw_image_base,0777) == -1) {
 			LOGI("--> Can not create directory: %s\n", tw_image_base);
@@ -487,6 +486,7 @@ nandroid_back_exe()
 			LOGI("--> Created directory: %s\n", tw_image_base);
 		}
 	}
+	strcat(tw_image_base,"/");
 	if (is_true(tw_nan_system_val)) {
 		strcpy(tw_image,tw_image_base);
 		strcat(tw_image,tw_nan_system);
