@@ -18,6 +18,9 @@
 #include <stdlib.h>
 
 #include "ddftw.h"
+#include "common.h"
+#include "bootloader.h"
+#include "extra-functions.h"
 
 void getLocations()
 {
@@ -61,32 +64,32 @@ void getLocations()
 				{
 					strcpy(tw_system_loc, locBase);
 					strcat(tw_system_loc, fs_dev);
-					ui_print("=> %s = %s\n", fs_name, tw_system_loc);
+					LOGI("=> %s = %s\n", fs_name, tw_system_loc);
 				} else if (strcmp(fs_name,"\"userdata\"") == 0) 
 				{
 					strcpy(tw_data_loc, locBase);
 					strcat(tw_data_loc, fs_dev);
-					ui_print("=> %s = %s\n", fs_name, tw_data_loc);
+					LOGI("=> %s = %s\n", fs_name, tw_data_loc);
 				} else if (strcmp(fs_name,"\"cache\"") == 0) 
 				{
 					strcpy(tw_cache_loc, locBase);
 					strcat(tw_cache_loc, fs_dev);
-					ui_print("=> %s = %s\n", fs_name, tw_cache_loc);
+					LOGI("=> %s = %s\n", fs_name, tw_cache_loc);
 				} else if (strcmp(fs_name,"\"boot\"") == 0) 
 				{
 					strcpy(tw_boot_loc, locBase);
 					strcat(tw_boot_loc, fs_dev);
-					ui_print("=> %s = %s\n", fs_name, tw_boot_loc);
+					LOGI("=> %s = %s\n", fs_name, tw_boot_loc);
 				} else if (strcmp(fs_name,"\"wimax\"") == 0) 
 				{
 					strcpy(tw_wimax_loc, locBase);
 					strcat(tw_wimax_loc, fs_dev);
-					ui_print("=> %s = %s\n", fs_name, tw_wimax_loc);
+					LOGI("=> %s = %s\n", fs_name, tw_wimax_loc);
 				} else if (strcmp(fs_name,"\"recovery\"") == 0) 
 				{
 					strcpy(tw_recovery_loc, locBase);
 					strcat(tw_recovery_loc, fs_dev);
-					ui_print("=> %s = %s\n", fs_name, tw_recovery_loc);
+					LOGI("=> %s = %s\n", fs_name, tw_recovery_loc);
 				}
 			}
 		}

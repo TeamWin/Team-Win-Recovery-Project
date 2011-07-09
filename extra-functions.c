@@ -184,7 +184,6 @@ void install_zip_menu()
 	                              NULL };
 
     inc_menu_loc(ITEM_ZIP_BACK);
-	ui_print("=> index 10: %i\n", menu_loc_idx);
     for (;;)
     {
         int chosen_item = get_menu_selection(MENU_FLASH_HEADERS, MENU_INSTALL_ZIP, 0, 0);
@@ -214,7 +213,6 @@ void install_zip_menu()
             case ITEM_ZIP_BACK:
     	        menu_loc_idx--;
                 ui_set_background(BACKGROUND_ICON_MAIN);
-            	ui_print("=> index 11: %i\n", menu_loc_idx);
                 return;
         }
 	    if (go_home) { 
@@ -282,7 +280,6 @@ void reboot_menu()
     };
     
     inc_menu_loc(ITEM_BACKK);
-	ui_print("=> index 4: %i\n", menu_loc_idx);
     for (;;)
     {
         int chosen_item = get_menu_selection(MENU_REBOOT_HEADERS, MENU_REBOOT, 0, 0);
@@ -306,7 +303,6 @@ void reboot_menu()
 
             case ITEM_BACKK:
             	menu_loc_idx--;
-            	ui_print("=> index 5: %i\n", menu_loc_idx);
                 return;
         }
 	    if (go_home) { 
@@ -364,7 +360,6 @@ void advanced_menu()
     };
 
     inc_menu_loc(ADVANCED_MENU_BACK);
-	ui_print("=> index 6: %i\n", menu_loc_idx);
     for (;;)
     {
         int chosen_item = get_menu_selection(MENU_ADVANCED_HEADERS, MENU_ADVANCED, 0, 0);
@@ -388,7 +383,6 @@ void advanced_menu()
 
             case ADVANCED_MENU_BACK:
             	menu_loc_idx--;
-            	ui_print("=> index 7: %i\n", menu_loc_idx);
             	return;
         }
 	    if (go_home) { 
@@ -439,7 +433,6 @@ format_menu()
 						    NULL };
 
     inc_menu_loc(ITEM_FORMAT_BACK);
-	ui_print("=> index 8: %i\n", menu_loc_idx);
 	for (;;)
 	{
 		int chosen_item = get_menu_selection(part_headers, part_items, 0, 0);
@@ -459,7 +452,6 @@ format_menu()
                 break;
 			case ITEM_FORMAT_BACK:
             	menu_loc_idx--;
-            	ui_print("=> index 9: %i\n", menu_loc_idx);
 				return;
 		}
 	    if (go_home) { 
@@ -482,16 +474,18 @@ confirm_format(char* volume_name, char* volume_path) {
     char* items[] = {   "No",
                         "Yes -- Permanently Format",
                         NULL };
-    save_up_a_level_menu_location(0);
+    
+    inc_menu_loc(0);
     int chosen_item = get_menu_selection(headers, items, 1, 0);
     if (chosen_item != 1) {
+        menu_loc_idx--;
         return;
     }
     else {
         ui_print("\n-- Wiping %s Partition...\n", volume_name);
         erase_volume(volume_path);
         ui_print("-- %s Partition Wipe Complete!\n", volume_name);
-        decrement_menu_location();
+        menu_loc_idx--;
     }
 }
 
