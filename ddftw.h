@@ -1,11 +1,13 @@
-char tw_fstab_file[255];
-char tw_system_loc[255];
-char tw_data_loc[255];
-char tw_cache_loc[255];
-char tw_boot_loc[255];
-char tw_wimax_loc[255];
-char tw_recovery_loc[255];
-char tw_sdext_loc[255];
-char tw_andsec_loc[255];
+static const char tw_dinfo_file[] = "/etc/device.info";
+char tw_device_name[20];
 
+struct dInfo {
+	char mnt[10];
+	char blk[100];
+	char dev[100];
+	char fst[10];
+};
+struct dInfo tmp, sys, dat, boo, rec, wim, cac, mis, sdc;
+
+void createFstab();
 void getLocations();

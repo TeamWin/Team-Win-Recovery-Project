@@ -110,8 +110,10 @@ void get_device_id()
 		if (device_id[len-1] == '\n') {
 			device_id[len-1] = 0;
 		}
-		LOGI("\n=> DEVICE_ID: %s\n", device_id);
+		LOGI("=> DEVICE_ID: %s\n", device_id);
 	}
+	fclose(fp);
+	remove("/tmp/device.id");
 }
 /*partial kangbang from system/vold
 TODO: Currently only one mount is supported, defaulting
@@ -191,8 +193,7 @@ void install_zip_menu()
 	#define ITEM_ZIP_BACK		 2
 	
     ui_set_background(BACKGROUND_ICON_FLASH_ZIP);
-    static char* MENU_FLASH_HEADERS[] = {   "Flash zip From SD card",
-                                            "",
+    static char* MENU_FLASH_HEADERS[] = {   "Flash zip From SD card:",
                                             NULL };
 
 	char* MENU_INSTALL_ZIP[] = {  "Choose Zip To Flash",
@@ -200,10 +201,12 @@ void install_zip_menu()
 	                              "<- Back To Main Menu",
 	                              NULL };
 
+	char** headers = prepend_title(MENU_FLASH_HEADERS);
+	
     inc_menu_loc(ITEM_ZIP_BACK);
     for (;;)
     {
-        int chosen_item = get_menu_selection(MENU_FLASH_HEADERS, MENU_INSTALL_ZIP, 0, 0);
+        int chosen_item = get_menu_selection(headers, MENU_INSTALL_ZIP, 0, 0);
         switch (chosen_item)
         {
             case ITEM_CHOOSE_ZIP:
@@ -230,18 +233,18 @@ void install_zip_menu()
                 write_s_file();
                 break;
             case ITEM_ZIP_BACK:
-    	        menu_loc_idx--;
+    	        dec_menu_loc();
                 ui_set_background(BACKGROUND_ICON_MAIN);
                 return;
         }
 	    if (go_home) { 
-	        menu_loc_idx--;
+	        dec_menu_loc();
 	        return;
 	    }
         break;
     }
 	ui_end_menu();
-    menu_loc_idx--;
+    dec_menu_loc();
 	install_zip_menu();
 }
 
@@ -285,6 +288,10 @@ void reboot_menu()
 	#define ITEM_POWEROFF    3
 	#define ITEM_BACKK		 4
 	
+
+    static char* MENU_REBOOT_HEADERS[] = {  "Reboot Menu:",
+                                            NULL };
+    
 	// REBOOT MENU
 	char* MENU_REBOOT[] = { "Reboot To System",
 	                        "Reboot To Recovery",
@@ -293,15 +300,13 @@ void reboot_menu()
 	                        "<-Back To Main Menu",
 	                        NULL };
 
-    static char* MENU_REBOOT_HEADERS[] = {  "Reboot Menu",
-                                            "",
-                                            NULL
-    };
+    
+    char** headers = prepend_title(MENU_REBOOT_HEADERS);
     
     inc_menu_loc(ITEM_BACKK);
     for (;;)
     {
-        int chosen_item = get_menu_selection(MENU_REBOOT_HEADERS, MENU_REBOOT, 0, 0);
+        int chosen_item = get_menu_selection(headers, MENU_REBOOT, 0, 0);
         switch (chosen_item)
         {
             case ITEM_RECOVERY:
@@ -321,11 +326,11 @@ void reboot_menu()
                 break;
 
             case ITEM_BACKK:
-            	menu_loc_idx--;
+            	dec_menu_loc();
                 return;
         }
 	    if (go_home) { 
-	        menu_loc_idx--;
+	        dec_menu_loc();
 	        return;
 	    }
     }
@@ -365,23 +370,24 @@ void advanced_menu()
 	#define ITEM_BATTERY_STATS     2
 	#define ITEM_ROTATE_DATA       3
 	#define ADVANCED_MENU_BACK     4
-	
-	char* MENU_ADVANCED[] = {   "Reboot Menu",
-	                            "Format Menu",
-	                            "Wipe Battery Stats",
-	                            "Wipe Rotation Data",
-	                            "<-Back To Main Menu",
-	                            NULL };
-	
-    static char* MENU_ADVANCED_HEADERS[] = {    "Advanced Options",
-                                                "",
-                                                NULL
-    };
 
+    static char* MENU_ADVANCED_HEADERS[] = { "Advanced Options",
+                                              NULL };
+    
+	char* MENU_ADVANCED[] = { "Reboot Menu",
+	                          "Format Menu",
+	                          "Wipe Battery Stats",
+	                          "Wipe Rotation Data",
+	                          "<-Back To Main Menu",
+	                          NULL };
+	
+
+    char** headers = prepend_title(MENU_ADVANCED_HEADERS);
+    
     inc_menu_loc(ADVANCED_MENU_BACK);
     for (;;)
     {
-        int chosen_item = get_menu_selection(MENU_ADVANCED_HEADERS, MENU_ADVANCED, 0, 0);
+        int chosen_item = get_menu_selection(headers, MENU_ADVANCED, 0, 0);
         switch (chosen_item)
         {
             case ITEM_REBOOT_MENU:
@@ -401,11 +407,11 @@ void advanced_menu()
                 break;
 
             case ADVANCED_MENU_BACK:
-            	menu_loc_idx--;
+            	dec_menu_loc();
             	return;
         }
 	    if (go_home) { 
-	        menu_loc_idx--;
+	        dec_menu_loc();
 	        return;
 	    }
     }
@@ -439,9 +445,7 @@ format_menu()
 	#define ITEM_FORMAT_BACK        4
 	
 	char* part_headers[] = {    "Format Menu",
-                                "",
                                 "Choose Partition to Format: ",
-    							"",
                                 NULL };
 	
     char* part_items[] = {  "Format Cache (/cache)",
@@ -451,10 +455,12 @@ format_menu()
 						    "<- Back To Main Menu",
 						    NULL };
 
+    char** headers = prepend_title(part_headers);
+    
     inc_menu_loc(ITEM_FORMAT_BACK);
 	for (;;)
 	{
-		int chosen_item = get_menu_selection(part_headers, part_items, 0, 0);
+		int chosen_item = get_menu_selection(headers, part_items, 0, 0);
 		switch (chosen_item)
 		{
 			case ITEM_FORMAT_CACHE:
@@ -470,11 +476,11 @@ format_menu()
                 confirm_format("System", "/system");
                 break;
 			case ITEM_FORMAT_BACK:
-            	menu_loc_idx--;
+            	dec_menu_loc();
 				return;
 		}
 	    if (go_home) { 
-	        menu_loc_idx--;
+	        dec_menu_loc();
 	        return;
 	    }
 	}
@@ -483,28 +489,29 @@ format_menu()
 void
 confirm_format(char* volume_name, char* volume_path) {
 
-    char* headers[] = { "Confirm Format of Partition: ",
+    char* confirm_headers[] = { "Confirm Format of Partition: ",
                         volume_name,
                         "",
                         "  THIS CAN NOT BE UNDONE!",
-                        "",
                         NULL };
 
     char* items[] = {   "No",
                         "Yes -- Permanently Format",
                         NULL };
     
+    char** headers = prepend_title(confirm_headers);
+    
     inc_menu_loc(0);
     int chosen_item = get_menu_selection(headers, items, 1, 0);
     if (chosen_item != 1) {
-        menu_loc_idx--;
+        dec_menu_loc();
         return;
     }
     else {
         ui_print("\n-- Wiping %s Partition...\n", volume_name);
         erase_volume(volume_path);
         ui_print("-- %s Partition Wipe Complete!\n", volume_name);
-        menu_loc_idx--;
+        dec_menu_loc();
     }
 }
 
@@ -531,7 +538,7 @@ print_batt_cap()  {
     // HACK: Not sure if this could be a possible memory leak
     char* full_cap_s = (char*)malloc(30);
     char full_cap_a[30];
-    sprintf(full_cap_a, "Battery Level: %s%% @ %i:%i", cap_s, current->tm_hour, current->tm_min);
+    sprintf(full_cap_a, "Battery Level: %s%% @ %02D:%02D", cap_s, current->tm_hour, current->tm_min);
 
     strcpy(full_cap_s, full_cap_a);
 
@@ -544,4 +551,10 @@ void inc_menu_loc(int bInt)
 {
 	menu_loc_idx++;
 	menu_loc[menu_loc_idx] = bInt;
+	//ui_print("=> Increased Menu Level; %d : %d\n",menu_loc_idx,menu_loc[menu_loc_idx]);
+}
+void dec_menu_loc()
+{
+	menu_loc_idx--;
+	//ui_print("=> Decreased Menu Level; %d : %d\n",menu_loc_idx,menu_loc[menu_loc_idx]);
 }

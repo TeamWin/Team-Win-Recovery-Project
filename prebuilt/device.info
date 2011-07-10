@@ -1,0 +1,10 @@
+# <SUPERSONIC>
+# <MOUNT> <BLOCK> <DEVICE> <FILESYSTEM>
+system /dev/block/mtdblock4 /dev/mtd/mtd4 yaffs2
+data /dev/block/mtdblock6 /dev/mtd/mtd6 yaffs2
+boot /dev/block/mtdblock3 /dev/mtd/mtd3 mtd
+recovery /dev/block/mtdblock2 /dev/mtd/mtd2 mtd
+wimax /dev/block/mtdblock0 /dev/mtd/mtd0 mtd
+cache /dev/block/mtdblock5 /dev/mtd/mtd5 mtd
+misc /dev/block/mtdblock1 /dev/mtd/mtd1 mtd
+sdcard /dev/block/mmcblk0p1 /dev/block/mmcblk0 vfat

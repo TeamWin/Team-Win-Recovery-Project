@@ -40,7 +40,6 @@ nandroid_menu()
 	// build headers and items in menu
 	char* nan_headers[] = { "Nandroid Menu",
 							"Choose Backup or Restore: ",
-							"",
 							NULL };
 	
 	char* nan_items[] = { "Backup Menu",
@@ -48,25 +47,27 @@ nandroid_menu()
 						  "<- Back To Main Menu",
 						  NULL };
 	
+	char** headers = prepend_title(nan_headers);
+	
 	int chosen_item;
     inc_menu_loc(ITEM_MENU_BACK); // record back selection into array
 	for (;;)
 	{
-		chosen_item = get_menu_selection(nan_headers, nan_items, 0, 0);
+		chosen_item = get_menu_selection(headers, nan_items, 0, 0);
 		switch (chosen_item)
 		{
 			case ITEM_BACKUP_MENU:
-				nan_backup_menu();
+				nan_backup_menu(0);
 				break;
 			case ITEM_RESTORE_MENU:
                 choose_nandroid_folder();
 				break;
 			case ITEM_MENU_BACK:
-            	menu_loc_idx--;
+            	dec_menu_loc();
 				return;
 		}
 	    if (go_home) { 		// if home was called
-	        menu_loc_idx--;
+	        dec_menu_loc();
 	        return;
 	    }
 	}
@@ -84,11 +85,11 @@ nandroid_menu()
 #define ITEM_NAN_BACK       9
 
 void
-nan_backup_menu()
+nan_backup_menu(int pIdx)
 {
+	tw_total = 0;
 	char* nan_b_headers[] = { "Nandroid Backup",
 							   "Choose Nandroid Options: ",
-							   "",
 							   NULL	};
 	
 	char* nan_b_items[] = { "-> Backup Naowz!",
@@ -103,92 +104,116 @@ nan_backup_menu()
 							 "<- Back To Main Menu",
 							 NULL };
 
+	char** headers = prepend_title(nan_b_headers);
+	
     inc_menu_loc(ITEM_NAN_BACK);
 	for (;;)
 	{
-		int chosen_item = get_menu_selection(nan_b_headers, nan_b_items, 0, 0); // get key presses
+		int chosen_item = get_menu_selection(headers, nan_b_items, 0, pIdx); // get key presses
+		pIdx = chosen_item; // remember last selection location
 		switch (chosen_item)
 		{
 			case ITEM_NAN_BACKUP:
-				nandroid_back_exe();
-				return;
+				if (tw_total > 0) // only call backup if something was checked
+				{
+					nandroid_back_exe();
+	            	dec_menu_loc();
+					return;
+				}
+				break;
 			case ITEM_NAN_SYSTEM:
             	if (is_true(tw_nan_system_val)) {
             		strcpy(tw_nan_system_val, "0"); // toggle's value
+            		tw_total--;
             	} else {
             		strcpy(tw_nan_system_val, "1");
+            		tw_total++;
             	}
                 write_s_file();
                 break;
 			case ITEM_NAN_DATA:
             	if (is_true(tw_nan_data_val)) {
             		strcpy(tw_nan_data_val, "0");
+            		tw_total--;
             	} else {
             		strcpy(tw_nan_data_val, "1");
+            		tw_total++;
             	}
                 write_s_file();
 				break;
 			case ITEM_NAN_CACHE:
             	if (is_true(tw_nan_cache_val)) {
             		strcpy(tw_nan_cache_val, "0");
+            		tw_total--;
             	} else {
             		strcpy(tw_nan_cache_val, "1");
+            		tw_total++;
             	}
                 write_s_file();
 				break;
 			case ITEM_NAN_BOOT:
             	if (is_true(tw_nan_boot_val)) {
             		strcpy(tw_nan_boot_val, "0");
+            		tw_total--;
             	} else {
             		strcpy(tw_nan_boot_val, "1");
+            		tw_total++;
             	}
                 write_s_file();
 				break;
 			case ITEM_NAN_WIMAX:
             	if (is_true(tw_nan_wimax_val)) {
             		strcpy(tw_nan_wimax_val, "0");
+            		tw_total--;
             	} else {
             		strcpy(tw_nan_wimax_val, "1");
+            		tw_total++;
             	}
                 write_s_file();
 				break;
 			case ITEM_NAN_RECOVERY:
             	if (is_true(tw_nan_recovery_val)) {
             		strcpy(tw_nan_recovery_val, "0");
+            		tw_total--;
             	} else {
             		strcpy(tw_nan_recovery_val, "1");
+            		tw_total++;
             	}
                 write_s_file();
 				break;
 			case ITEM_NAN_SDEXT:
             	if (is_true(tw_nan_sdext_val)) {
             		strcpy(tw_nan_sdext_val, "0");
+            		tw_total--;
             	} else {
             		strcpy(tw_nan_sdext_val, "1");
+            		tw_total++;
             	}
                 write_s_file();
 				break;
 			case ITEM_NAN_ANDSEC:
             	if (is_true(tw_nan_andsec_val)) {
             		strcpy(tw_nan_andsec_val, "0");
+            		tw_total--;
             	} else {
             		strcpy(tw_nan_andsec_val, "1");
+            		tw_total++;
             	}
                 write_s_file();
 				break;
 			case ITEM_NAN_BACK:
-            	menu_loc_idx--;
+            	dec_menu_loc();
 				return;
 		}
 	    if (go_home) { 
-	        menu_loc_idx--;
+	        dec_menu_loc();
 	        return;
 	    }
 		break;
 	}
 	ui_end_menu(); // end menu
-    menu_loc_idx--;
-	nan_backup_menu(); // restart menu (to refresh it)
+    dec_menu_loc();
+	nan_backup_menu(pIdx); // restart menu (to refresh it)
 }
 
 void
@@ -203,6 +228,7 @@ set_restore_files()
 	if (stat(tmp_file,&st) == 0) 
 	{
 		tw_nan_system_x = 1;
+		tw_total++;
 	} else {
 		tw_nan_system_x = -1;
 	}
@@ -211,6 +237,7 @@ set_restore_files()
 	if (stat(tmp_file,&st) == 0) 
 	{
 		tw_nan_data_x = 1;
+		tw_total++;
 	} else {
 		tw_nan_data_x = -1;
 	}	strcpy(tmp_file,nan_dir);
@@ -218,6 +245,7 @@ set_restore_files()
 	if (stat(tmp_file,&st) == 0) 
 	{
 		tw_nan_cache_x = 1;
+		tw_total++;
 	} else {
 		tw_nan_cache_x = -1;
 	}	strcpy(tmp_file,nan_dir);
@@ -225,6 +253,7 @@ set_restore_files()
 	if (stat(tmp_file,&st) == 0) 
 	{
 		tw_nan_boot_x = 1;
+		tw_total++;
 	} else {
 		tw_nan_boot_x = -1;
 	}	strcpy(tmp_file,nan_dir);
@@ -232,6 +261,7 @@ set_restore_files()
 	if (stat(tmp_file,&st) == 0) 
 	{
 		tw_nan_wimax_x = 1;
+		tw_total++;
 	} else {
 		tw_nan_wimax_x = -1;
 	}	strcpy(tmp_file,nan_dir);
@@ -239,6 +269,7 @@ set_restore_files()
 	if (stat(tmp_file,&st) == 0) 
 	{
 		tw_nan_recovery_x = 1;
+		tw_total++;
 	} else {
 		tw_nan_recovery_x = -1;
 	}	strcpy(tmp_file,nan_dir);
@@ -246,6 +277,7 @@ set_restore_files()
 	if (stat(tmp_file,&st) == 0) 
 	{
 		tw_nan_sdext_x = 1;
+		tw_total++;
 	} else {
 		tw_nan_sdext_x = -1;
 	}	strcpy(tmp_file,nan_dir);
@@ -253,6 +285,7 @@ set_restore_files()
 	if (stat(tmp_file,&st) == 0) 
 	{
 		tw_nan_andsec_x = 1;
+		tw_total++;
 	} else {
 		tw_nan_andsec_x = -1;
 	}
@@ -260,11 +293,11 @@ set_restore_files()
 }
 
 void
-nan_restore_menu()
+nan_restore_menu(int pIdx)
 {
+	tw_total = 0;
 	char* nan_r_headers[] = { "Nandroid Restore",
 							  "Choose Nandroid Options: ",
-							  "",
 							  NULL	};
 	
 	char* nan_r_items[] = { "-> Restore Naowz!",
@@ -279,92 +312,116 @@ nan_restore_menu()
 							"<- Back To Main Menu",
 							 NULL };
 
+	char** headers = prepend_title(nan_r_headers);
+	
     inc_menu_loc(ITEM_NAN_BACK);
 	for (;;)
 	{
-		int chosen_item = get_menu_selection(nan_r_headers, nan_r_items, 0, 0);
+		int chosen_item = get_menu_selection(headers, nan_r_items, 0, pIdx);
+		pIdx = chosen_item; // remember last selection location
 		switch (chosen_item)
 		{
 		case ITEM_NAN_BACKUP:
-			nandroid_rest_exe();
-			return;
+			if (tw_total > 0) // only call restore if something was checked
+			{
+				nandroid_rest_exe();
+				dec_menu_loc();
+				return;
+			}
+			break;
 		case ITEM_NAN_SYSTEM:
 			if (tw_nan_system_x == 0)
 			{
 				tw_nan_system_x = 1;
+        		tw_total++;
 			} else if (tw_nan_system_x == 1) {
 				tw_nan_system_x = 0;
+        		tw_total--;
 			}
             break;
 		case ITEM_NAN_DATA:
 			if (tw_nan_data_x == 0)
 			{
 				tw_nan_data_x = 1;
+        		tw_total++;
 			} else if (tw_nan_data_x == 1) {
 				tw_nan_data_x = 0;
+        		tw_total--;
 			}
 			break;
 		case ITEM_NAN_CACHE:
 			if (tw_nan_cache_x == 0)
 			{
 				tw_nan_cache_x = 1;
+        		tw_total++;
 			} else if (tw_nan_cache_x == 1) {
 				tw_nan_cache_x = 0;
+        		tw_total--;
 			}
 			break;
 		case ITEM_NAN_BOOT:
 			if (tw_nan_boot_x == 0)
 			{
 				tw_nan_boot_x = 1;
+        		tw_total++;
 			} else if (tw_nan_boot_x == 1) {
 				tw_nan_boot_x = 0;
+        		tw_total--;
 			}
 			break;
 		case ITEM_NAN_WIMAX:
 			if (tw_nan_wimax_x == 0)
 			{
 				tw_nan_wimax_x = 1;
+        		tw_total++;
 			} else if (tw_nan_wimax_x == 1) {
 				tw_nan_wimax_x = 0;
+        		tw_total--;
 			}
 			break;
 		case ITEM_NAN_RECOVERY:
 			if (tw_nan_recovery_x == 0)
 			{
 				tw_nan_recovery_x = 1;
+        		tw_total++;
 			} else if (tw_nan_recovery_x == 1) {
 				tw_nan_recovery_x = 0;
+        		tw_total--;
 			}
 			break;
 		case ITEM_NAN_SDEXT:
 			if (tw_nan_sdext_x == 0)
 			{
 				tw_nan_sdext_x = 1;
+        		tw_total++;
 			} else if (tw_nan_sdext_x == 1) {
 				tw_nan_sdext_x = 0;
+        		tw_total--;
 			}
 			break;
 		case ITEM_NAN_ANDSEC:
 			if (tw_nan_andsec_x == 0)
 			{
 				tw_nan_andsec_x = 1;
+        		tw_total++;
 			} else if (tw_nan_andsec_x == 1) {
 				tw_nan_andsec_x = 0;
+        		tw_total--;
 			}
 			break;
 		case ITEM_NAN_BACK:
-        	menu_loc_idx--;
+        	dec_menu_loc();
 			return;
 		}
 	    if (go_home) { 
-	        menu_loc_idx--;
+	        dec_menu_loc();
 	        return;
 	    }
 	    break;
 	}
 	ui_end_menu();
-    menu_loc_idx--;
-    nan_restore_menu();
+    dec_menu_loc();
+    nan_restore_menu(pIdx);
 }
 
 char* 
@@ -450,10 +507,13 @@ nan_img_set(int tw_setting, int tw_backstore)
 			}
 			break;
 	}
-	if (isTrue == 1) {
+	if (isTrue == 1)
+	{
 		tmp_set[1] = 'x';
-	}
-	if (isTrue == -1) {
+		tw_total++;
+	} 
+	if (isTrue == -1) 
+	{
 		tmp_set[0] = ' ';
 		tmp_set[1] = ' ';
 		tmp_set[2] = ' ';
@@ -474,70 +534,113 @@ nandroid_back_exe()
     time_t seconds;
     seconds = time(0);
     t = localtime(&seconds);
-    sprintf(timestamp,"%02d%02d%d%02d%02d",t->tm_mon+1,t->tm_mday,t->tm_year+1900,t->tm_hour,t->tm_min);
+    sprintf(timestamp,"%02d%02d%d%02d%02d",t->tm_mon+1,t->tm_mday,t->tm_year+1900,t->tm_hour,t->tm_min); // get timestamp for nandroid
 	sprintf(tw_image_base, "%s/%s/", nandroid_folder, device_id);
 	if (stat(tw_image_base,&st) != 0) {
 		if(mkdir(tw_image_base,0777) == -1) {
-			LOGI("--> Can not create directory: %s\n", tw_image_base);
+			LOGI("=> Can not create directory: %s\n", tw_image_base);
 		} else {
-			LOGI("--> Created directory: %s\n", tw_image_base);
+			LOGI("=> Created directory: %s\n", tw_image_base);
 		}
 	}
 	strcat(tw_image_base,timestamp);
 	strcat(tw_image_base,"/");
 	if(mkdir(tw_image_base,0777) == -1) {
-		LOGI("--> Can not create directory: %s\n", tw_image_base);
+		LOGI("=> Can not create directory: %s\n", tw_image_base);
 	} else {
-		LOGI("--> Created directory: %s\n", tw_image_base);
+		LOGI("=> Created directory: %s\n", tw_image_base);
 	}
+
+	ui_print("\nStarting Backup...\n");
 	if (is_true(tw_nan_system_val)) {
 		strcpy(tw_image,tw_image_base);
 		strcat(tw_image,tw_nan_system);
-		sprintf(exe,"dd bs=2048 if=%s of=%s", tw_system_loc, tw_image);
+		sprintf(exe,"dd bs=2048 if=%s of=%s", sys.dev, tw_image);
+		LOGI("=> %s\n", exe);
+		ui_print("...Backing up system partition.\n");
+		ui_show_progress(1.0,30);
 		__system(exe);
+		ui_reset_progress();
+		ui_print("...Done.\n");
 	}
 	if (is_true(tw_nan_data_val)) {
 		strcpy(tw_image,tw_image_base);
 		strcat(tw_image,tw_nan_data);
-		sprintf(exe,"dd bs=2048 if=%s of=%s", tw_data_loc, tw_image);
+		sprintf(exe,"dd bs=2048 if=%s of=%s", dat.dev, tw_image);
+		LOGI("=> %s\n", exe);
+		ui_print("...Backing up data partition.\n");
+		ui_show_progress(1.0,10);
 		__system(exe);
+		ui_reset_progress();
+		ui_print("...Done.\n");
 	}
 	if (is_true(tw_nan_cache_val)) {
 		strcpy(tw_image,tw_image_base);
 		strcat(tw_image,tw_nan_cache);
-		sprintf(exe,"dd bs=2048 if=%s of=%s", tw_cache_loc, tw_image);
+		sprintf(exe,"dd bs=2048 if=%s of=%s", cac.dev, tw_image);
+		LOGI("=> %s\n", exe);
+		ui_print("...Backing up cache partition.\n");
+		ui_show_progress(1.0,2);
 		__system(exe);
+		ui_reset_progress();
+		ui_print("...Done.\n");
 	}
 	if (is_true(tw_nan_boot_val)) {
 		strcpy(tw_image,tw_image_base);
 		strcat(tw_image,tw_nan_boot);
-		sprintf(exe,"dd bs=2048 if=%s of=%s", tw_boot_loc, tw_image);
+		sprintf(exe,"dd bs=2048 if=%s of=%s", boo.dev, tw_image);
+		LOGI("=> %s\n", exe);
+		ui_print("...Backing up boot partition.\n");
+		ui_show_progress(1.0,3);
 		__system(exe);
+		ui_reset_progress();
+		ui_print("...Done.\n");
 	}
 	if (is_true(tw_nan_wimax_val)) {
 		strcpy(tw_image,tw_image_base);
 		strcat(tw_image,tw_nan_wimax);
-		sprintf(exe,"dd bs=2048 if=%s of=%s", tw_wimax_loc, tw_image);
+		sprintf(exe,"dd bs=2048 if=%s of=%s", wim.dev, tw_image);
+		LOGI("=> %s\n", exe);
+		ui_print("...Backing up wimax partition.\n");
+		ui_show_progress(1.0,3);
 		__system(exe);
+		ui_reset_progress();
+		ui_print("...Done.\n");
 	}
 	if (is_true(tw_nan_recovery_val)) {
 		strcpy(tw_image,tw_image_base);
 		strcat(tw_image,tw_nan_recovery);
-		sprintf(exe,"dd bs=2048 if=%s of=%s", tw_recovery_loc, tw_image);
+		sprintf(exe,"dd bs=2048 if=%s of=%s", rec.dev, tw_image);
+		LOGI("=> %s\n", exe);
+		ui_print("...Backing up recovery partition.\n");
+		ui_show_progress(1.0,3);
 		__system(exe);
+		ui_reset_progress();
+		ui_print("...Done.\n");
 	}
 //	if (is_true(tw_nan_sdext_val)) {
 //		strcpy(tw_image,tw_image_base);
 //		strcat(tw_image,tw_nan_sdext);
-//		sprintf(exe,"dd bs=2048 if=%s of=%s", tw_sdext_loc, tw_image);
+//		sprintf(exe,"dd bs=2048 if=%s of=%s", "TODO", tw_image);
+//		LOGI("=> %s\n", exe);
+//		ui_print("...Backing up sd-ext partition.\n");
+//		ui_show_progress(1.0,5);
 //		__system(exe);
+//		ui_reset_progress();
+//		ui_print("...Done.\n");
 //	}
 //	if (is_true(tw_nan_andsec_val)) {
 //		strcpy(tw_image,tw_image_base);
 //		strcat(tw_image,tw_nan_andsec);
-//		sprintf(exe,"dd bs=2048 if=%s of=%s", tw_andsec_loc, tw_image);
+//		sprintf(exe,"dd bs=2048 if=%s of=%s", "TODO", tw_image);
+//		LOGI("=> %s\n", exe);
+//		ui_print("...Backing up .android-secure.\n");
+//		ui_show_progress(1.0,5);
 //		__system(exe);
+//		ui_reset_progress();
+//		ui_print("...Done.\n");
 //	}
+	ui_print("Backup Completed.\n\n");
 }
 
 void 
@@ -546,62 +649,97 @@ nandroid_rest_exe()
 	char exe[255];
 	char* tmp_file = (char*)malloc(255);
 
+	ui_print("\nStarting Restore...\n");
 	if (tw_nan_system_x == 1) {
 		strcpy(tmp_file,nan_dir);
 		strcat(tmp_file,tw_nan_system);
-		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, tw_system_loc);
-		//ui_print("=> %s\n", exe);
+		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, sys.dev);
+		LOGI("=> %s\n", exe);
+		ui_print("...Backing up system partition.\n");
+		ui_show_progress(1.0,30);
 		__system(exe);
+		ui_reset_progress();
+		ui_print("...Done.\n");
 	}
 	if (tw_nan_data_x == 1) {
 		strcpy(tmp_file,nan_dir);
 		strcat(tmp_file,tw_nan_data);
-		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, tw_data_loc);
-		//ui_print("=> %s\n", exe);
+		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, dat.dev);
+		LOGI("=> %s\n", exe);
+		ui_print("...Backing up data partition.\n");
+		ui_show_progress(1.0,10);
 		__system(exe);
+		ui_reset_progress();
+		ui_print("...Done.\n");
 	}
 	if (tw_nan_cache_x == 1) {
 		strcpy(tmp_file,nan_dir);
 		strcat(tmp_file,tw_nan_cache);
-		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, tw_cache_loc);
-		//ui_print("=> %s\n", exe);
+		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, cac.dev);
+		LOGI("=> %s\n", exe);
+		ui_print("...Backing up cache partition.\n");
+		ui_show_progress(1.0,3);
 		__system(exe);
+		ui_reset_progress();
+		ui_print("...Done.\n");
 	}
 	if (tw_nan_boot_x == 1) {
 		strcpy(tmp_file,nan_dir);
 		strcat(tmp_file,tw_nan_boot);
-		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, tw_boot_loc);
-		//ui_print("=> %s\n", exe);
+		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, boo.dev);
+		LOGI("=> %s\n", exe);
+		ui_print("...Backing up boot partition.");
+		ui_show_progress(1.0,3);
 		__system(exe);
+		ui_reset_progress();
+		ui_print("...Done.");
 	}
 	if (tw_nan_wimax_x == 1) {
 		strcpy(tmp_file,nan_dir);
 		strcat(tmp_file,tw_nan_wimax);
-		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, tw_wimax_loc);
-		//ui_print("=> %s\n", exe);
+		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, wim.dev);
+		LOGI("=> %s\n", exe);
+		ui_print("...Backing up wimax partition.");
+		ui_show_progress(1.0,3);
 		__system(exe);
+		ui_reset_progress();
+		ui_print("...Done.");
 	}
 	if (tw_nan_recovery_x == 1) {
 		strcpy(tmp_file,nan_dir);
 		strcat(tmp_file,tw_nan_recovery);
-		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, tw_recovery_loc);
-		//ui_print("=> %s\n", exe);
+		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, rec.dev);
+		LOGI("=> %s\n", exe);
+		ui_print("...Backing up recovery partition.\n");
+		ui_show_progress(1.0,3);
 		__system(exe);
+		ui_reset_progress();
+		ui_print("...Done.\n");
 	}
 //	if (tw_nan_sdext_x == 1) {
 //		strcpy(tmp_file,nan_dir);
 //		strcat(tmp_file,tw_nan_sdext);
-//		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, tw_sdext_loc);
-//		ui_print("=> %s\n", exe);
-//		//__system(exe);
+//		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, "TODO");
+//		LOGI("=> %s\n", exe);
+//		ui_print("...Backing up sd-ext partition.\n");
+//		ui_show_progress(1.0,5);
+//		__system(exe);
+//		ui_reset_progress();
+//		ui_print("...Done.\n");
 //	}
 //	if (tw_nan_andsec_x == 1) {
 //		strcpy(tmp_file,nan_dir);
 //		strcat(tmp_file,tw_nan_andsec);
-//		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, tw_andsec_loc);
-//		ui_print("=> %s\n", exe);
-//		//__system(exe);
+//		sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, "TODO");
+//		LOGI("=> %s\n", exe);
+//		ui_print("...Backing up .android-secure partition.\n");
+//		ui_show_progress(1.0,5);
+//		__system(exe);
+//		ui_reset_progress();
+//		ui_print("...Done.\n");
 //	}
+	ui_print("Restore Completed.\n\n");
+	free(tmp_file);
 }
 
 static int compare_string(const void* a, const void* b) {
@@ -616,8 +754,10 @@ void choose_nandroid_folder()
     sprintf(tw_dir, "%s/%s/", nandroid_folder, device_id);
     const char* MENU_HEADERS[] = { "Choose a Nandroid Folder:",
     							   tw_dir,
-                                   "",
                                    NULL };
+    
+    char** headers = prepend_title(MENU_HEADERS);
+    
     DIR* d;
     struct dirent* de;
     d = opendir(tw_dir);
@@ -672,7 +812,7 @@ void choose_nandroid_folder()
     int chosen_item = 0;
     for (;;) 
     {
-        chosen_item = get_menu_selection(MENU_HEADERS, zips, 1, chosen_item);
+        chosen_item = get_menu_selection(headers, zips, 1, chosen_item);
 
         char* item = zips[chosen_item];
         int item_len = strlen(item);
@@ -683,7 +823,7 @@ void choose_nandroid_folder()
             strcpy(nan_dir, tw_dir);
             strcat(nan_dir, item);
             set_restore_files();
-            nan_restore_menu();
+            nan_restore_menu(0);
             break;
         }
     }
@@ -693,5 +833,5 @@ void choose_nandroid_folder()
     free(zips);
 
     ensure_path_unmounted(SDCARD_ROOT);
-    menu_loc_idx--;
+    dec_menu_loc();
 }

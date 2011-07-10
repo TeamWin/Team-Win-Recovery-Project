@@ -17,15 +17,17 @@ int tw_nan_recovery_x;
 int tw_nan_sdext_x;
 int tw_nan_andsec_x;
 
+int tw_total;
+
 char* nan_img_set(int tw_setting, int tw_backstore);
 char tw_nandroid_string[1024];
 char nan_dir[255];
 
 void nandroid_menu();
-void nan_backup_menu();
+void nan_backup_menu(int pIdx);
 void nandroid_back_exe();
 
 void choose_nandroid_folder();
 void set_restore_files();
-void nan_restore_menu();
+void nan_restore_menu(int pIdx);
 void nandroid_rest_exe();

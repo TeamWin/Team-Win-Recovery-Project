@@ -395,7 +395,7 @@ copy_sideloaded_package(const char* original_path) {
   return strdup(copy_path);
 }
 
-static char**
+char**
 prepend_title(const char** headers) {
     char* title[] = { "TeamWin Android Recovery Utility",
                       "Based on Android system recovery <"
@@ -497,7 +497,6 @@ sdcard_directory(const char* path) {
 
     const char* MENU_HEADERS[] = { "Choose a package to install:",
                                    path,
-                                   "",
                                    NULL };
     DIR* d;
     struct dirent* de;
@@ -572,7 +571,7 @@ sdcard_directory(const char* path) {
 
         if (chosen_item == 0) {          // item 0 is always "../"
             // go up but continue browsing (if the caller is sdcard_directory)
-            menu_loc_idx--;
+            dec_menu_loc();
             result = -1;
             break;
         } else if (item[item_len-1] == '/') {
@@ -584,7 +583,7 @@ sdcard_directory(const char* path) {
             new_path[strlen(new_path)-1] = '\0';  // truncate the trailing '/'
             result = sdcard_directory(new_path);
     	    if (go_home) { 
-    	        menu_loc_idx--;
+    	        dec_menu_loc();
     	        return 0;
     	    }
             if (result >= 0) break;

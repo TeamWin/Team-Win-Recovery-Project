@@ -34,3 +34,4 @@ int menu_loc_idx;
 int menu_loc[255];
 
 void inc_menu_loc(int bInt);
+void dec_menu_loc();
