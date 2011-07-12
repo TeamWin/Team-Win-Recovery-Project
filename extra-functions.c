@@ -94,12 +94,134 @@ __system(const char *command)
 	return (pid == -1 ? -1 : pstat);
 }
 
+static struct pid {
+	struct pid *next;
+	FILE *fp;
+	pid_t pid;
+} *pidlist;
+
+FILE *
+__popen(const char *program, const char *type)
+{
+	struct pid * volatile cur;
+	FILE *iop;
+	int pdes[2];
+	pid_t pid;
+
+	if ((*type != 'r' && *type != 'w') || type[1] != '\0') {
+		errno = EINVAL;
+		return (NULL);
+	}
+
+	if ((cur = malloc(sizeof(struct pid))) == NULL)
+		return (NULL);
+
+	if (pipe(pdes) < 0) {
+		free(cur);
+		return (NULL);
+	}
+
+	switch (pid = vfork()) {
+	case -1:			/* Error. */
+		(void)close(pdes[0]);
+		(void)close(pdes[1]);
+		free(cur);
+		return (NULL);
+		/* NOTREACHED */
+	case 0:				/* Child. */
+	    {
+		struct pid *pcur;
+		/*
+		 * because vfork() instead of fork(), must leak FILE *,
+		 * but luckily we are terminally headed for an execl()
+		 */
+		for (pcur = pidlist; pcur; pcur = pcur->next)
+			close(fileno(pcur->fp));
+
+		if (*type == 'r') {
+			int tpdes1 = pdes[1];
+
+			(void) close(pdes[0]);
+			/*
+			 * We must NOT modify pdes, due to the
+			 * semantics of vfork.
+			 */
+			if (tpdes1 != STDOUT_FILENO) {
+				(void)dup2(tpdes1, STDOUT_FILENO);
+				(void)close(tpdes1);
+				tpdes1 = STDOUT_FILENO;
+			}
+		} else {
+			(void)close(pdes[1]);
+			if (pdes[0] != STDIN_FILENO) {
+				(void)dup2(pdes[0], STDIN_FILENO);
+				(void)close(pdes[0]);
+			}
+		}
+		execl(_PATH_BSHELL, "sh", "-c", program, (char *)NULL);
+		_exit(127);
+		/* NOTREACHED */
+	    }
+	}
+
+	/* Parent; assume fdopen can't fail. */
+	if (*type == 'r') {
+		iop = fdopen(pdes[0], type);
+		(void)close(pdes[1]);
+	} else {
+		iop = fdopen(pdes[1], type);
+		(void)close(pdes[0]);
+	}
+
+	/* Link into list of file descriptors. */
+	cur->fp = iop;
+	cur->pid =  pid;
+	cur->next = pidlist;
+	pidlist = cur;
+
+	return (iop);
+}
+
+/*
+ * pclose --
+ *	Pclose returns -1 if stream is not associated with a `popened' command,
+ *	if already `pclosed', or waitpid returns an error.
+ */
+int
+__pclose(FILE *iop)
+{
+	struct pid *cur, *last;
+	int pstat;
+	pid_t pid;
+
+	/* Find the appropriate file pointer. */
+	for (last = NULL, cur = pidlist; cur; last = cur, cur = cur->next)
+		if (cur->fp == iop)
+			break;
+
+	if (cur == NULL)
+		return (-1);
+
+	(void)fclose(iop);
+
+	do {
+		pid = waitpid(cur->pid, &pstat, 0);
+	} while (pid == -1 && errno == EINTR);
+
+	/* Remove the entry from the linked list. */
+	if (last == NULL)
+		pidlist = cur->next;
+	else
+		last->next = cur->next;
+	free(cur);
+
+	return (pid == -1 ? -1 : pstat);
+}
+
 void get_device_id()
 {
-	__system("cat /proc/cmdline | sed \"s/.*serialno=//\" | cut -d\" \" -f1 >> /tmp/device.id");
-	
 	FILE *fp;
-	fp = fopen("/tmp/device.id", "r");
+	fp = __popen("cat /proc/cmdline | sed \"s/.*serialno=//\" | cut -d\" \" -f1", "r");
 	if (fp == NULL)
 	{
 		LOGI("=> device id file not found.");
@@ -112,9 +234,9 @@ void get_device_id()
 		}
 		LOGI("=> DEVICE_ID: %s\n", device_id);
 	}
-	fclose(fp);
-	remove("/tmp/device.id");
+	__pclose(fp);
 }
+
 /*partial kangbang from system/vold
 TODO: Currently only one mount is supported, defaulting
 /mnt/sdcard to lun0 and anything else gets no love. Fix this.

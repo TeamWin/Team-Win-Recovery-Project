@@ -1,4 +1,7 @@
 static const char tw_dinfo_file[] = "/etc/device.info";
+static const char tw_block[] = "/dev/block/";
+static const char tw_mtd[] = "/dev/mtd/";
+
 char tw_device_name[20];
 
 struct dInfo {
@@ -7,7 +10,8 @@ struct dInfo {
 	char dev[100];
 	char fst[10];
 };
-struct dInfo tmp, sys, dat, boo, rec, wim, cac, mis, sdc;
+struct dInfo tmp, sys, dat, boo, rec, wim, cac, mis, sdc, sde, ase;
 
+void readRecFstab();
 void createFstab();
 void getLocations();
