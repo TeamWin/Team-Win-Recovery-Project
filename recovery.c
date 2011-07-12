@@ -618,6 +618,46 @@ sdcard_directory(const char* path) {
     return result;
 }
 
+static void
+wipe_data(int confirm) {
+    if (confirm) {
+        static char** title_headers = NULL;
+
+	ui_set_background(BACKGROUND_ICON_WIPE_CHOOSE);
+        if (title_headers == NULL) {
+            char* headers[] = { "Confirm wipe of all user data?",
+                                "  THIS CAN NOT BE UNDONE.",
+                                "",
+                                NULL };
+            title_headers = prepend_title((const char**)headers);
+        }
+
+        char* items[] = { " No",
+                          " No",
+                          " No",
+                          " No",
+                          " No",
+                          " No",
+                          " No",
+                          " Yes -- delete all user data",   // [7]
+                          " No",
+                          " No",
+                          " No",
+                          NULL };
+
+        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
+        if (chosen_item != 7) {
+            return;
+        }
+    }
+    ui_set_background(BACKGROUND_ICON_WIPE);
+    ui_print("\n-- Wiping data...\n");
+    device_wipe_data();
+    erase_volume("/data");
+    erase_volume("/cache");
+    ui_print("Data wipe complete.\n");
+}
+
 void
 prompt_and_wait() {
 
@@ -625,10 +665,11 @@ prompt_and_wait() {
 	#define ITEM_APPLY_SDCARD        0
 	#define ITEM_WIPE_DALVIK         1
 	#define ITEM_WIPE_CACHE          2
-	#define ITEM_NANDROID_MENU     	 3
-	#define ITEM_ADVANCED_MENU       4
-	#define ITEM_USB_TOGGLE          5
-	#define ITEM_REBOOT              6
+	#define ITEM_WIPE_DATA           3
+	#define ITEM_NANDROID_MENU     	 4
+	#define ITEM_ADVANCED_MENU       5
+	#define ITEM_USB_TOGGLE          6
+	#define ITEM_REBOOT              7
 
     finish_recovery(NULL);
     ui_reset_progress();
@@ -637,6 +678,7 @@ prompt_and_wait() {
     char* MENU_ITEMS[] = {  "Install Zip",
                             "Wipe Dalvik-Cache",
                             "Wipe Cache Partition",
+                            "Wipe Data Factory Reset",
                             "Nandroid Menu",
                             "Advanced Menu",
                             "USB Storage Toggle",
@@ -672,9 +714,17 @@ prompt_and_wait() {
                 break;
 
             case ITEM_WIPE_CACHE:
+		ui_set_background(BACKGROUND_ICON_WIPE);
                 ui_print("\n-- Wiping Cache Partition...\n");
                 erase_volume("/cache");
                 ui_print("-- Cache Partition Wipe Complete!\n");
+                ui_set_background(BACKGROUND_ICON_MAIN);
+                if (!ui_text_visible()) return;
+                break;
+
+            case ITEM_WIPE_DATA:
+                wipe_data(ui_text_visible());
+                ui_set_background(BACKGROUND_ICON_MAIN);
                 if (!ui_text_visible()) return;
                 break;
 

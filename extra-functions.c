@@ -493,6 +493,7 @@ void wipe_battery_stats()
     {
         ui_print("No Battery Stats Found. No Need To Wipe.\n");
     } else {
+        ui_set_background(BACKGROUND_ICON_WIPE);
         remove("/data/system/batterystats.bin");
         ui_print("Cleared: Battery Stats...\n");
         ensure_path_unmounted("/data");
@@ -502,6 +503,7 @@ void wipe_battery_stats()
 // ROTATION SETTINGS
 void wipe_rotate_data()
 {
+    ui_set_background(BACKGROUND_ICON_WIPE);
     ensure_path_mounted("/data");
     __system("rm -r /data/misc/akmd*");
     __system("rm -r /data/misc/rild*");
@@ -568,7 +570,6 @@ void advanced_menu()
 // kang'd this from recovery.c cuz there wasnt a recovery.h!
 int
 erase_volume(const char *volume) {
-    ui_set_background(BACKGROUND_ICON_INSTALLING);
     ui_show_indeterminate_progress();
     ui_print("Formatting %s...\n", volume);
 
@@ -600,7 +601,7 @@ format_menu()
                             "Format Data (/data)",
                             "Format Sdcard (/sdcard)",
                             "Format System (/system)",
-						    "<- Back To Main Menu",
+						    "<- Back To Advanced Menu",
 						    NULL };
 
     char** headers = prepend_title(part_headers);
@@ -608,6 +609,7 @@ format_menu()
     inc_menu_loc(ITEM_FORMAT_BACK);
 	for (;;)
 	{
+                ui_set_background(BACKGROUND_ICON_WIPE_CHOOSE);
 		int chosen_item = get_menu_selection(headers, part_items, 0, 0);
 		switch (chosen_item)
 		{
@@ -625,10 +627,12 @@ format_menu()
                 break;
 			case ITEM_FORMAT_BACK:
             	dec_menu_loc();
+                ui_set_background(BACKGROUND_ICON_MAIN);
 				return;
 		}
 	    if (go_home) { 
-	        dec_menu_loc();
+    	        dec_menu_loc();
+                ui_set_background(BACKGROUND_ICON_MAIN);
 	        return;
 	    }
 	}
@@ -656,6 +660,7 @@ confirm_format(char* volume_name, char* volume_path) {
         return;
     }
     else {
+        ui_set_background(BACKGROUND_ICON_WIPE);
         ui_print("\n-- Wiping %s Partition...\n", volume_name);
         erase_volume(volume_path);
         ui_print("-- %s Partition Wipe Complete!\n", volume_name);
