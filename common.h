@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 
+char** prepend_title(const char** headers);
 static const char *SDCARD_ROOT = "/sdcard";
 
 // Initialize the graphics system.

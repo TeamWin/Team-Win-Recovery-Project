@@ -19,80 +19,173 @@
 
 #include "ddftw.h"
 #include "common.h"
-#include "bootloader.h"
 #include "extra-functions.h"
+#include "bootloader.h"
 
+// get locations from our device.info
 void getLocations()
 {
-	char chkString[255];
-	char locBase[15];
-	sprintf(tw_fstab_file, "/tmp/%s.fstab", get_fstype());
-	sprintf(chkString,"cat /proc/%s >> %s", get_fstype(), tw_fstab_file);
-	__system(chkString);
-	
-	if (strcmp(get_fstype(), "mtd") == 0)
-	{
-		strcpy(locBase, "/dev/mtd/");
-	} else if (strcmp(get_fstype(), "emmc") == 0)
-	{
-		strcpy(locBase, "/dev/block/");
-	} else {
-		ui_print("File type not supported");
-	}
-	
 	FILE *fp;
-	fp = fopen(tw_fstab_file, "r");
+	int tmpInt;
+	char tmpText[50];
+	if (strcmp(get_fstype(),"mtd") == 0)
+	{
+		fp = __popen("cat /proc/mtd", "r");
+	} else if (strcmp(get_fstype(),"emmc") == 0) {
+		fp = __popen("cat /proc/emmc", "r");
+	}
 	if (fp == NULL)
 	{
-		ui_print("=> Can't open fstab");
-	} else 
-	{
-		int len;
-		char fs_dev[25];
-		char fs_size[25];
-		char fs_ersize[25];
-		char fs_name[25];
-		
-		while (fscanf(fp, "%s %s %s %s", fs_dev, fs_size, fs_ersize, fs_name) != EOF) 
+		ui_print("\n=> Halp! Could not determine flash type!\n");
+	} else {
+		while (fscanf(fp,"%s %*s %*s %*c%s",tmp.dev,tmp.mnt) != EOF)
 		{
-			if (strcmp(fs_name,"name") != 0) {
-				len = strlen(fs_dev); // get length of line
-				if (fs_dev[len-1] == ':') { // if last char is carriage return
-					fs_dev[len-1] = 0; // remove it by setting it to 0
+			if (strcmp(tmp.dev,"dev:") != 0)
+			{
+				tmp.dev[strlen(tmp.dev)-1] = '\0';
+				tmp.mnt[strlen(tmp.mnt)-1] = '\0';
+				if (sscanf(tmp.dev,"mtd%d",&tmpInt) == 1)
+				{
+					sprintf(tmpText,"%smtdblock%d",tw_block,tmpInt);
+					strcpy(tmp.blk,tmpText);
+					sprintf(tmpText,"%s%s",tw_mtd,tmp.dev);
+					strcpy(tmp.dev,tmpText);
+				} else {
+					sprintf(tmpText,"%s%s",tw_block,tmp.dev);
+					strcpy(tmp.dev,tmpText);
+					strcpy(tmp.blk,tmp.dev);
 				}
-				if (strcmp(fs_name,"\"system\"") == 0) 
+			}
+			if (strcmp(tmp.mnt,"system") == 0) { // read in system line
+				strcpy(sys.mnt,tmp.mnt);
+				strcpy(sys.dev,tmp.dev);
+				strcpy(sys.blk,tmp.blk);
+			}
+			if (strcmp(tmp.mnt,"userdata") == 0) {
+				strcpy(dat.mnt,"data");
+				strcpy(dat.dev,tmp.dev);
+				strcpy(dat.blk,tmp.blk);
+			}
+			if (strcmp(tmp.mnt,"boot") == 0) {
+				strcpy(boo.mnt,tmp.mnt);
+				strcpy(boo.dev,tmp.dev);
+				strcpy(boo.blk,tmp.blk);
+			}
+			if (strcmp(tmp.mnt,"wimax") == 0) {
+				strcpy(wim.mnt,tmp.mnt);
+				strcpy(wim.dev,tmp.dev);
+				strcpy(wim.blk,tmp.blk);
+			}
+			if (strcmp(tmp.mnt,"recovery") == 0) {
+				strcpy(rec.mnt,tmp.mnt);
+				strcpy(rec.dev,tmp.dev);
+				strcpy(rec.blk,tmp.blk);
+			}
+			if (strcmp(tmp.mnt,"cache") == 0) {
+				strcpy(cac.mnt,tmp.mnt);
+				strcpy(cac.dev,tmp.dev);
+				strcpy(cac.blk,tmp.blk);
+			}
+		}
+		pclose(fp);
+		readRecFstab();
+	}
+	get_device_id();
+}
+
+void readRecFstab()
+{
+	FILE *fp;
+	char tmpText[255];
+	fp = fopen("/etc/recovery.fstab", "r");
+	if (fp == NULL) {
+		LOGI("=> Can not open /etc/recovery.fstab.\n");
+	} else {
+		fgets(tmpText, 255, fp);
+		fgets(tmpText, 255, fp);
+		while (fgets(tmpText,255,fp) != NULL)
+		{
+			sscanf(tmpText,"%*c%s %s %s %s",tmp.mnt,tmp.fst,tmp.blk,tmp.dev);
+			if (strcmp(tmp.mnt,"system") == 0)
+			{
+				strcpy(sys.fst,tmp.fst);
+				if (strcmp(sys.mnt,"system") != 0)
 				{
-					strcpy(tw_system_loc, locBase);
-					strcat(tw_system_loc, fs_dev);
-					LOGI("=> %s = %s\n", fs_name, tw_system_loc);
-				} else if (strcmp(fs_name,"\"userdata\"") == 0) 
+					strcpy(sys.mnt,"system");
+					strcpy(sys.blk,tmp.blk);
+					strcpy(sys.dev,tmp.blk);
+				}
+			}
+			if (strcmp(tmp.mnt,"data") == 0)
+			{
+				strcpy(dat.fst,tmp.fst);
+				if (strcmp(dat.mnt,"data") != 0)
 				{
-					strcpy(tw_data_loc, locBase);
-					strcat(tw_data_loc, fs_dev);
-					LOGI("=> %s = %s\n", fs_name, tw_data_loc);
-				} else if (strcmp(fs_name,"\"cache\"") == 0) 
+					strcpy(dat.mnt,"data");
+					strcpy(dat.blk,tmp.blk);
+					strcpy(dat.dev,tmp.blk);
+				}
+			}
+			if (strcmp(tmp.mnt,"cache") == 0)
+			{
+				strcpy(cac.fst,tmp.fst);
+				if (strcmp(cac.mnt,"cache") != 0)
 				{
-					strcpy(tw_cache_loc, locBase);
-					strcat(tw_cache_loc, fs_dev);
-					LOGI("=> %s = %s\n", fs_name, tw_cache_loc);
-				} else if (strcmp(fs_name,"\"boot\"") == 0) 
+					strcpy(cac.mnt,"cache");
+					strcpy(cac.blk,tmp.blk);
+					strcpy(cac.dev,tmp.blk);
+				}
+			}
+			if (strcmp(tmp.mnt,"sdcard") == 0)
+			{
+				strcpy(sdc.fst,tmp.fst);
+				if (strcmp(sdc.mnt,"sdcard") != 0)
 				{
-					strcpy(tw_boot_loc, locBase);
-					strcat(tw_boot_loc, fs_dev);
-					LOGI("=> %s = %s\n", fs_name, tw_boot_loc);
-				} else if (strcmp(fs_name,"\"wimax\"") == 0) 
-				{
-					strcpy(tw_wimax_loc, locBase);
-					strcat(tw_wimax_loc, fs_dev);
-					LOGI("=> %s = %s\n", fs_name, tw_wimax_loc);
-				} else if (strcmp(fs_name,"\"recovery\"") == 0) 
-				{
-					strcpy(tw_recovery_loc, locBase);
-					strcat(tw_recovery_loc, fs_dev);
-					LOGI("=> %s = %s\n", fs_name, tw_recovery_loc);
+					strcpy(sdc.mnt,"sdcard");
+					strcpy(sdc.blk,tmp.blk);
+					strcpy(sdc.dev,tmp.dev);
 				}
 			}
 		}
 	}
-	get_device_id();
+	fclose(fp);
+	strcpy(ase.dev,"/sdcard/.android_secure");
+	strcpy(ase.mnt,".android_secure");
+	strcpy(sde.mnt,"/sd-ext");
+	int tmpInt;
+	char tmpBase[50];
+	char tmpWildCard[50];
+	strcpy(tmpBase,sdc.blk);
+	tmpBase[strlen(tmpBase)-1] = '\0';
+	sprintf(tmpWildCard,"%s%%d",tmpBase);
+	sscanf(sdc.blk,tmpWildCard,&tmpInt);
+	sprintf(sde.blk,"%s%d",tmpBase,tmpInt+1);
+	createFstab();
+}
+
+// write fstab so we can mount in adb shell
+void createFstab()
+{
+	FILE *fp;
+	fp = fopen("/etc/fstab", "w");
+	if (fp == NULL) {
+		LOGI("=> Can not open /etc/fstab.\n");
+	} else {
+		char tmpString[255];
+		sprintf(tmpString,"%s /%s %s rw\n",sys.blk,sys.mnt,sys.fst);
+		fputs(tmpString, fp);
+		sprintf(tmpString,"%s /%s %s rw\n",dat.blk,dat.mnt,dat.fst);
+		fputs(tmpString, fp);
+		sprintf(tmpString,"%s /%s %s rw\n",cac.blk,cac.mnt,cac.fst);
+		fputs(tmpString, fp);
+		sprintf(tmpString,"%s /%s %s rw\n",sdc.blk,sdc.mnt,sdc.fst);
+		fputs(tmpString, fp);
+		if (strcmp(sde.mnt,"sd-ext") == 0)
+		{
+			sprintf(tmpString,"%s /%s %s rw\n",sde.blk,sde.mnt,sde.fst);
+			fputs(tmpString, fp);
+		}
+	}
+	fclose(fp);
+	LOGI("=> /etc/fstab created.\n");
 }
