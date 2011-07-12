@@ -146,19 +146,20 @@ void readRecFstab()
 					strcpy(sdc.dev,tmp.dev);
 				}
 			}
-			if (strcmp(tmp.mnt,"sd-ext") == 0)
-			{
-				strcpy(sde.fst,tmp.fst);
-				if (strcmp(sde.mnt,"sd-ext") != 0)
-				{
-					strcpy(sde.mnt,"sd-ext");
-					strcpy(sde.blk,tmp.blk);
-					strcpy(sde.dev,tmp.blk);
-				}
-			}
 		}
 	}
 	fclose(fp);
+	strcpy(ase.dev,"/sdcard/.android_secure");
+	strcpy(ase.mnt,".android_secure");
+	strcpy(sde.mnt,"/sd-ext");
+	int tmpInt;
+	char tmpBase[50];
+	char tmpWildCard[50];
+	strcpy(tmpBase,sdc.blk);
+	tmpBase[strlen(tmpBase)-1] = '\0';
+	sprintf(tmpWildCard,"%s%%d",tmpBase);
+	sscanf(sdc.blk,tmpWildCard,&tmpInt);
+	sprintf(sde.blk,"%s%d",tmpBase,tmpInt+1);
 	createFstab();
 }
 
