@@ -18,7 +18,7 @@ static const int TW_ZIP_LOCATION = 10; // Last location zip flashed from (rememb
 static const int TW_TIME_ZONE = 11;
 static const int TW_REBOOT_AFTER_FLASH = 12;
 
-static const char tw_version_val[] = "1.0.2"; // Variable Holding Version
+static const char tw_version_val[] = "1.0.3"; // Variable Holding Version
 char tw_signed_zip_val[TW_MIN_SETTINGS_CHARS]; // Variable that holds value, default is defined
 char tw_nan_system_val[TW_MIN_SETTINGS_CHARS]; //
 char tw_nan_data_val[TW_MIN_SETTINGS_CHARS]; //
