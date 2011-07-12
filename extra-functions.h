@@ -26,6 +26,7 @@ void confirm_format(char* volume_name, char* volume_path);
 int get_menu_selection(char** headers, char** items, int menu_only, int initial_selection);
 
 char* zip_verify();
+char* reboot_after_flash();
 
 // Menu Stuff
 #define GO_HOME 69

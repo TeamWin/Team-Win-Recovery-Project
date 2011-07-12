@@ -1,7 +1,7 @@
 // Settings Constants 
 #define TW_MIN_SETTINGS_CHARS 1 // Max Character Length Per Line
 #define TW_MAX_SETTINGS_CHARS 255 // Max Character Length Per Line
-#define TW_MAX_NUM_SETTINGS 12 // Total Number of Settings (Change this as we add more settings)
+#define TW_MAX_NUM_SETTINGS 13 // Total Number of Settings (Change this as we add more settings)
 
 static const char* TW_SETTINGS_FILE = "/sdcard/nandroid/.twrs"; // Actual File
 static const int TW_VERSION = 0; // Used to make sure of settings compatability
@@ -16,6 +16,7 @@ static const int TW_NAN_SDEXT = 8;
 static const int TW_NAN_ANDSEC = 9;
 static const int TW_ZIP_LOCATION = 10; // Last location zip flashed from (remembers last folder) (Constant number corresponds to line number in file .twrs)
 static const int TW_TIME_ZONE = 11;
+static const int TW_REBOOT_AFTER_FLASH = 12;
 
 static const char tw_version_val[] = "1.0.2"; // Variable Holding Version
 char tw_signed_zip_val[TW_MIN_SETTINGS_CHARS]; // Variable that holds value, default is defined
@@ -29,6 +30,7 @@ char tw_nan_sdext_val[TW_MIN_SETTINGS_CHARS];
 char tw_nan_andsec_val[TW_MIN_SETTINGS_CHARS];
 char tw_zip_location_val[TW_MAX_SETTINGS_CHARS]; //
 static char tw_time_zone_val[7] = "CST6CDT"; // Should set a default if no file found
+char tw_reboot_after_flash_option[TW_MIN_SETTINGS_CHARS];
 
 // Read Settings Function
 int is_true(char* tw_setting);
