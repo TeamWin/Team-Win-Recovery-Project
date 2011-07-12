@@ -183,12 +183,23 @@ char* zip_verify()
 	return tmp_set;
 }
 
+char* reboot_after_flash()
+{
+	char* tmp_set = (char*)malloc(40);
+	strcpy(tmp_set, "[ ] Reboot After Successful Flash");
+	if (is_true(tw_reboot_after_flash_option) == 1) {
+		tmp_set[1] = 'x';
+	}
+	return tmp_set;
+}
+
 void install_zip_menu()
 {
 	// INSTALL ZIP MENU
-	#define ITEM_CHOOSE_ZIP      0
-	#define ITEM_TOGGLE_SIG      1
-	#define ITEM_ZIP_BACK		 2
+	#define ITEM_CHOOSE_ZIP           0
+	#define ITEM_REBOOT_AFTER_FLASH   1
+	#define ITEM_TOGGLE_SIG           2
+	#define ITEM_ZIP_BACK		      3
 	
     ui_set_background(BACKGROUND_ICON_FLASH_ZIP);
     static char* MENU_FLASH_HEADERS[] = {   "Flash zip From SD card",
@@ -196,6 +207,7 @@ void install_zip_menu()
                                             NULL };
 
 	char* MENU_INSTALL_ZIP[] = {  "Choose Zip To Flash",
+	                              reboot_after_flash(),
 								  zip_verify(),
 	                              "<- Back To Main Menu",
 	                              NULL };
@@ -211,15 +223,29 @@ void install_zip_menu()
                 int status = sdcard_directory(SDCARD_ROOT);
                 ui_reset_progress();  // reset status bar so it doesnt run off the screen 
                 if (status != INSTALL_SUCCESS) {
-                    //ui_set_background(BACKGROUND_ICON_ERROR);
-                    //ui_print("Installation aborted.\n");
+                    ui_set_background(BACKGROUND_ICON_ERROR);
+                    ui_print("Installation aborted due to an error.\n");
                 } else if (!ui_text_visible()) {
                     return;  // reboot if logs aren't visible
                 } else {
+                    ui_print("\nInstall from sdcard complete.\n");
+					if (is_true(tw_reboot_after_flash_option)) {
+						ui_print("\nRebooting phone.\n");
+						reboot(RB_AUTOBOOT);
+						return;
+					}
             	    if (!go_home) {
                         ui_print("\nInstall from sdcard complete.\n");
             	    }
                 }
+                break;
+			case ITEM_REBOOT_AFTER_FLASH:
+				if (is_true(tw_reboot_after_flash_option)) {
+            		strcpy(tw_reboot_after_flash_option, "0");
+            	} else {
+            		strcpy(tw_reboot_after_flash_option, "1");
+            	}
+                write_s_file();
                 break;
             case ITEM_TOGGLE_SIG:
             	if (is_true(tw_signed_zip_val)) {

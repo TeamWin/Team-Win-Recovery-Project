@@ -38,6 +38,7 @@ tw_set_defaults() {
 	strcpy(tw_nan_andsec_val, "0");
 	strcpy(tw_zip_location_val, "/sdcard");
     strcpy(tw_time_zone_val, "CST6CDT");
+	strcpy(tw_reboot_after_flash_option, "0");
 }
 
 int is_true(char* tw_setting) {
@@ -98,6 +99,8 @@ write_s_file() {
 						fputs(tw_zip_location_val, fp);
 					} else if (i == TW_TIME_ZONE) {
 						fputs(tw_time_zone_val, fp);
+					} else if (i == TW_REBOOT_AFTER_FLASH) {
+						fputs(tw_reboot_after_flash_option, fp);
 					}
 					fputs("\n", fp); // add a carriage return to finish line
 					i++; // increment loop
@@ -159,6 +162,8 @@ read_s_file() {
 			    	strcpy(tw_zip_location_val, s_line);
 				} else if (i == TW_TIME_ZONE) {
 			    	strcpy(tw_time_zone_val, s_line);
+				} else if (i == TW_REBOOT_AFTER_FLASH) {
+			    	strcpy(tw_reboot_after_flash_option, s_line);
 				}
 				i++; // increment loop
 			}
