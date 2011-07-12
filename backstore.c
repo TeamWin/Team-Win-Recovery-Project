@@ -188,24 +188,31 @@ nan_backup_menu(int pIdx)
                 write_s_file();
 				break;
 			case ITEM_NAN_SDEXT:
-//            	if (is_true(tw_nan_sdext_val)) {
-//            		strcpy(tw_nan_sdext_val, "0");
-//            		tw_total--;
-//            	} else {
-//            		strcpy(tw_nan_sdext_val, "1");
-//            		tw_total++;
-//            	}
-//                write_s_file();
+				if (tw_nan_sdext_x != -1)
+				{
+	            	if (is_true(tw_nan_sdext_val)) {
+	            		strcpy(tw_nan_sdext_val, "0");
+	            		tw_total--;
+	            	} else {
+	            		strcpy(tw_nan_sdext_val, "1");
+	            		tw_total++;
+	           		}
+	                write_s_file();
+				}
 				break;
 			case ITEM_NAN_ANDSEC:
-//            	if (is_true(tw_nan_andsec_val)) {
-//            		strcpy(tw_nan_andsec_val, "0");
-//            		tw_total--;
-//            	} else {
-//            		strcpy(tw_nan_andsec_val, "1");
-//            		tw_total++;
-//            	}
-//                write_s_file();
+				if (tw_nan_andsec_x != -1)
+				{
+					
+				}
+            	if (is_true(tw_nan_andsec_val)) {
+            		strcpy(tw_nan_andsec_val, "0");
+            		tw_total--;
+            	} else {
+            		strcpy(tw_nan_andsec_val, "1");
+            		tw_total++;
+            	}
+                write_s_file();
 				break;
 			case ITEM_NAN_BACK:
             	dec_menu_loc();
@@ -283,24 +290,24 @@ set_restore_files()
 	} else {
 		tw_nan_recovery_x = -1;
 	}	
-//	strcpy(tmp_file,nan_dir);
-//	strcat(tmp_file,tw_nan_sdext);
-//	if (stat(tmp_file,&st) == 0) 
-//	{
-//		tw_nan_sdext_x = 1;
-//		tw_total++;
-//	} else {
-//		tw_nan_sdext_x = -1;
-//	}	
-//	strcpy(tmp_file,nan_dir);
-//	strcat(tmp_file,tw_nan_andsec);
-//	if (stat(tmp_file,&st) == 0) 
-//	{
-//		tw_nan_andsec_x = 1;
-//		tw_total++;
-//	} else {
-//		tw_nan_andsec_x = -1;
-//	}
+	strcpy(tmp_file,nan_dir);
+	strcat(tmp_file,tw_nan_sdext);
+	if (stat(tmp_file,&st) == 0) 
+	{
+		tw_nan_sdext_x = 1;
+		tw_total++;
+	} else {
+		tw_nan_sdext_x = -1;
+	}	
+	strcpy(tmp_file,nan_dir);
+	strcat(tmp_file,tw_nan_andsec);
+	if (stat(tmp_file,&st) == 0) 
+	{
+		tw_nan_andsec_x = 1;
+		tw_total++;
+	} else {
+		tw_nan_andsec_x = -1;
+	}
 	free(tmp_file);
 }
 
@@ -402,24 +409,24 @@ nan_restore_menu(int pIdx)
 			}
 			break;
 		case ITEM_NAN_SDEXT:
-//			if (tw_nan_sdext_x == 0)
-//			{
-//				tw_nan_sdext_x = 1;
-//        		tw_total++;
-//			} else if (tw_nan_sdext_x == 1) {
-//				tw_nan_sdext_x = 0;
-//        		tw_total--;
-//			}
+			if (tw_nan_sdext_x == 0)
+			{
+				tw_nan_sdext_x = 1;
+        		tw_total++;
+			} else if (tw_nan_sdext_x == 1) {
+				tw_nan_sdext_x = 0;
+        		tw_total--;
+			}
 			break;
 		case ITEM_NAN_ANDSEC:
-//			if (tw_nan_andsec_x == 0)
-//			{
-//				tw_nan_andsec_x = 1;
-//        		tw_total++;
-//			} else if (tw_nan_andsec_x == 1) {
-//				tw_nan_andsec_x = 0;
-//        		tw_total--;
-//			}
+			if (tw_nan_andsec_x == 0)
+			{
+				tw_nan_andsec_x = 1;
+        		tw_total++;
+			} else if (tw_nan_andsec_x == 1) {
+				tw_nan_andsec_x = 0;
+        		tw_total--;
+			}
 			break;
 		case ITEM_NAN_BACK:
         	dec_menu_loc();
@@ -440,10 +447,8 @@ char*
 nan_img_set(int tw_setting, int tw_backstore)
 {
 	int isTrue = 0;
-	int isThere = 1;
 	char* tmp_set = (char*)malloc(25);
 	struct stat st;
-	char* tmp_file = (char*)malloc(255);
 	switch (tw_setting)
 	{
 		case ITEM_NAN_SYSTEM:
@@ -501,22 +506,34 @@ nan_img_set(int tw_setting, int tw_backstore)
 			}
 			break;
 		case ITEM_NAN_SDEXT:
-			strcpy(tmp_set, "    sd-ext");
-//			if (tw_backstore)
-//			{
-//				isTrue = tw_nan_sdext_x;
-//			} else {
-//				isTrue = is_true(tw_nan_sdext_val);
-//			}
+			strcpy(tmp_set, "[ ] sd-ext");
+			if (tw_backstore)
+			{
+				isTrue = tw_nan_sdext_x;
+			} else {
+				if (stat(sde.blk,&st) != 0) 
+				{
+					tw_nan_sdext_x = -1;
+					isTrue = -1;
+				} else {
+					isTrue = is_true(tw_nan_sdext_val);
+				}
+			}
 			break;
 		case ITEM_NAN_ANDSEC:
-			strcpy(tmp_set, "    .android-secure");
-//			if (tw_backstore)
-//			{
-//				isTrue = tw_nan_andsec_x;
-//			} else {
-//				isTrue = is_true(tw_nan_andsec_val);
-//			}
+			strcpy(tmp_set, "[ ] .android-secure");
+			if (tw_backstore)
+			{
+				isTrue = tw_nan_andsec_x;
+			} else {
+				if (stat(ase.dev,&st) != 0) 
+				{
+					tw_nan_andsec_x = -1;
+					isTrue = -1;
+				} else {
+					isTrue = is_true(tw_nan_andsec_val);
+				}
+			}
 			break;
 	}
 	if (isTrue == 1)
@@ -530,7 +547,6 @@ nan_img_set(int tw_setting, int tw_backstore)
 		tmp_set[1] = ' ';
 		tmp_set[2] = ' ';
 	}
-	free(tmp_file);
 	return tmp_set;
 }
 
@@ -684,42 +700,42 @@ nandroid_back_exe()
 		ui_print("...Done.\n\n");
 		ui_reset_progress();
 	}
-//	if (is_true(tw_nan_sdext_val)) {
-//		ensure_path_mounted("/sd-ext");
-//		strcpy(tw_image,tw_image_base);
-//		strcat(tw_image,tw_nan_sdext);
-//		sprintf(exe,"dd bs=2048 if=%s of=%s", "TODO", tw_image);
-//		LOGI("=> %s\n", exe);
-//		ui_print("...Backing up sd-ext partition.\n");
-//		ui_show_progress(1,5);
-//		__system(exe);
-//		ui_print("....Done.\n");
-//		ui_print("...Generating %s md5...\n", sde.mnt);
-//		makeMD5(tw_image_base,tw_nan_sdext);
-//		ui_print("....Done.\n");
-//		ui_print("...Verifying %s md5...\n", sde.mnt);
-//		checkMD5(tw_image_base,tw_nan_sdext);
-//		ui_print("...Done.\n\n");
-//		ui_reset_progress();
-//	}
-//	if (is_true(tw_nan_andsec_val)) {
-//		ensure_path_mounted("/sdcard/.android-secure");
-//		strcpy(tw_image,tw_image_base);
-//		strcat(tw_image,tw_nan_andsec);
-//		sprintf(exe,"dd bs=2048 if=%s of=%s", "TODO", tw_image);
-//		LOGI("=> %s\n", exe);
-//		ui_print("...Backing up .android-secure.\n");
-//		ui_show_progress(1,5);
-//		__system(exe);
-//		ui_print("....Done.\n");
-//		ui_print("...Generating %s md5...\n", ase.mnt);
-//		makeMD5(tw_image_base,tw_nan_andsec);
-//		ui_print("....Done.\n");
-//		ui_print("...Verifying %s md5...\n", ase.mnt);
-//		checkMD5(tw_image_base,tw_nan_andsec);
-//		ui_print("...Done.\n\n");
-//		ui_reset_progress();
-//	}
+	if (is_true(tw_nan_sdext_val)) {
+		ensure_path_mounted("/sd-ext");
+		strcpy(tw_image,tw_image_base);
+		strcat(tw_image,tw_nan_sdext);
+		sprintf(exe,"cd %s && tar -cvzf %s ./*", sde.mnt, tw_image);
+		LOGI("=> %s\n", exe);
+		ui_print("...Backing up sd-ext partition.\n");
+		ui_show_progress(1,30);
+		__system(exe);
+		ui_print("....Done.\n");
+		ui_print("...Generating %s md5...\n", sde.mnt);
+		makeMD5(tw_image_base,tw_nan_sdext);
+		ui_print("....Done.\n");
+		ui_print("...Verifying %s md5...\n", sde.mnt);
+		checkMD5(tw_image_base,tw_nan_sdext);
+		ui_print("...Done.\n\n");
+		ui_reset_progress();
+	}
+	if (is_true(tw_nan_andsec_val)) {
+		ensure_path_mounted(ase.dev);
+		strcpy(tw_image,tw_image_base);
+		strcat(tw_image,tw_nan_andsec);
+		sprintf(exe,"cd %s && tar -cvzf %s ./*", ase.dev, tw_image);
+		LOGI("=> %s\n", exe);
+		ui_print("...Backing up .android_secure.\n");
+		ui_show_progress(1,30);
+		__system(exe);
+		ui_print("....Done.\n");
+		ui_print("...Generating %s md5...\n", ase.mnt);
+		makeMD5(tw_image_base,tw_nan_andsec);
+		ui_print("....Done.\n");
+		ui_print("...Verifying %s md5...\n", ase.mnt);
+		checkMD5(tw_image_base,tw_nan_andsec);
+		ui_print("...Done.\n\n");
+		ui_reset_progress();
+	}
 	ui_print("Backup Completed.\n\n");
 }
 
@@ -855,40 +871,48 @@ nandroid_rest_exe()
 		}
 		ui_reset_progress();
 	}
-//	if (tw_nan_sdext_x == 1) {
-//		ui_print("...Verifying md5 hash for %s.\n",tw_nan_sdext);
-//		ui_show_progress(1,5);
-//		if(checkMD5(nan_dir,tw_nan_sdext))
-//		{
-//			strcpy(tmp_file,nan_dir);
-//			strcat(tmp_file,tw_nan_sdext);
-//			sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, "TODO");
-//			LOGI("=> %s\n", exe);
-//			ui_print("...Restoring sd-ext partition.\n");
-//			__system(exe);
-//			ui_print("...Done.\n");
-//		} else {
-//			ui_print("...Failed md5 check. Aborted.\n");
-//		}
-//		ui_reset_progress();
-//	}
-//	if (tw_nan_andsec_x == 1) {
-//		ui_print("...Verifying md5 hash for %s.\n",tw_nan_andsec);
-//		ui_show_progress(1,5);
-//		if(checkMD5(nan_dir,tw_nan_andsec))
-//		{
-//			strcpy(tmp_file,nan_dir);
-//			strcat(tmp_file,tw_nan_andsec);
-//			sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, "TODO");
-//			LOGI("=> %s\n", exe);
-//			ui_print("...Restoring .android-secure.\n");
-//			__system(exe);
-//			ui_print("...Done.\n");		
-//		} else {
-//			ui_print("...Failed md5 check. Aborted.\n");
-//		}
-//		ui_reset_progress();
-//	}
+	if (tw_nan_sdext_x == 1) {
+		ui_print("...Verifying md5 hash for %s.\n",tw_nan_sdext);
+		ui_show_progress(1,30);
+		if(checkMD5(nan_dir,tw_nan_sdext))
+		{
+			ensure_path_mounted(sde.mnt);
+			strcpy(tmp_file,nan_dir);
+			strcat(tmp_file,tw_nan_sdext);
+			sprintf(exe,"rm -rf %s/* 2>/dev/null", sde.mnt);
+			ui_print("...Wiping %s.\n",sde.mnt);
+			__system(exe);
+			sprintf(exe,"cd %s && tar -xv -zf %s", sde.dev, tmp_file);
+			LOGI("=> %s\n", exe);
+			ui_print("...Restoring sd-ext partition.\n");
+			__system(exe);
+			ui_print("...Done.\n\n");
+		} else {
+			ui_print("...Failed md5 check. Aborted.\n");
+		}
+		ui_reset_progress();
+	}
+	if (tw_nan_andsec_x == 1) {
+		ui_print("...Verifying md5 hash for %s.\n",tw_nan_andsec);
+		ui_show_progress(1,30);
+		if(checkMD5(nan_dir,tw_nan_andsec))
+		{
+			ensure_path_mounted(ase.dev);
+			strcpy(tmp_file,nan_dir);
+			strcat(tmp_file,tw_nan_andsec);
+			sprintf(exe,"rm -rf %s/* 2>/dev/null", ase.dev);
+			ui_print("...Wiping %s.\n",ase.dev);
+			__system(exe);
+			sprintf(exe,"cd %s && tar -xv -zf %s", ase.dev, tmp_file);
+			LOGI("=> %s\n", exe);
+			ui_print("...Restoring .android-secure.\n");
+			__system(exe);
+			ui_print("...Done.\n\n");	
+		} else {
+			ui_print("...Failed md5 check. Aborted.\n");
+		}
+		ui_reset_progress();
+	}
 	ui_print("Restore Completed.\n\n");
 	free(tmp_file);
 }

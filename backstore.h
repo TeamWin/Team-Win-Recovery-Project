@@ -5,8 +5,8 @@ static const char tw_nan_cache[] = "cache.img";
 static const char tw_nan_boot[] = "boot.img";
 static const char tw_nan_wimax[] = "wimax.img";
 static const char tw_nan_recovery[] = "recovery.img";
-static const char tw_nan_sdext[] = "sd-ext.img";
-static const char tw_nan_andsec[] = "and-sec.img";
+static const char tw_nan_sdext[] = "sd-ext.tgz";
+static const char tw_nan_andsec[] = "and-sec.tgz";
 
 int tw_nan_system_x;
 int tw_nan_data_x;
