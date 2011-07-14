@@ -584,12 +584,13 @@ nandroid_back_exe()
 		ensure_path_mounted("/system");
 		strcpy(tw_image,tw_image_base);
 		strcat(tw_image,tw_nan_system);
-		if (strcmp(sys.fst,"yaffs2") == 0)
-		{
-			sprintf(exe,"mkyaffs /%s %s", sys.mnt, tw_image);
-		} else {
-			sprintf(exe,"dd bs=2048 if=%s of=%s", sys.dev, tw_image);
-		}
+//		if (strcmp(sys.fst,"yaffs2") == 0)
+//		{
+//			sprintf(exe,"mkyaffs /%s %s", sys.mnt, tw_image);
+//		} else {
+//			sprintf(exe,"dd bs=2048 if=%s of=%s", sys.dev, tw_image);
+//		}
+		sprintf(exe,"cd /%s && tar -cvzf %s ./*", sys.mnt, tw_image);
 		LOGI("=> %s\n", exe);
 		ui_print("...Backing up system partition.\n");
 		ui_show_progress(1,300);
@@ -607,12 +608,13 @@ nandroid_back_exe()
 		ensure_path_mounted("/data");
 		strcpy(tw_image,tw_image_base);
 		strcat(tw_image,tw_nan_data);
-		if (strcmp(dat.fst,"yaffs2") == 0)
-		{
-			sprintf(exe,"mkyaffs /%s %s", dat.mnt, tw_image);
-		} else {
-			sprintf(exe,"dd bs=2048 if=%s of=%s", dat.dev, tw_image);
-		}
+//		if (strcmp(dat.fst,"yaffs2") == 0)
+//		{
+//			sprintf(exe,"mkyaffs /%s %s", dat.mnt, tw_image);
+//		} else {
+//			sprintf(exe,"dd bs=2048 if=%s of=%s", dat.dev, tw_image);
+//		}
+		sprintf(exe,"cd /%s && tar -cvzf %s ./*", dat.mnt, tw_image);
 		LOGI("=> %s\n", exe);
 		ui_print("...Backing up data partition.\n");
 		ui_show_progress(1,300);
@@ -630,12 +632,13 @@ nandroid_back_exe()
 		ensure_path_mounted("/cache");
 		strcpy(tw_image,tw_image_base);
 		strcat(tw_image,tw_nan_cache);
-		if (strcmp(cac.fst,"yaffs2") == 0)
-		{
-			sprintf(exe,"mkyaffs /%s %s", cac.mnt, tw_image);
-		} else {
-			sprintf(exe,"dd bs=2048 if=%s of=%s", cac.dev, tw_image);
-		}
+//		if (strcmp(cac.fst,"yaffs2") == 0)
+//		{
+//			sprintf(exe,"mkyaffs /%s %s", cac.mnt, tw_image);
+//		} else {
+//			sprintf(exe,"dd bs=2048 if=%s of=%s", cac.dev, tw_image);
+//		}
+		sprintf(exe,"cd /%s && tar -cvzf %s ./*", cac.mnt, tw_image);
 		LOGI("=> %s\n", exe);
 		ui_print("...Backing up cache partition.\n");
 		ui_show_progress(1,100);
@@ -752,15 +755,10 @@ nandroid_rest_exe()
 		{
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_system);
-			if (strcmp(sys.fst,"yaffs2") == 0)
-			{
-				sprintf(exe,"/%s",sys.mnt);
-				erase_volume(exe);
-				ensure_path_mounted("/system");
-				sprintf(exe,"unyaffs %s /%s",tmp_file,sys.mnt);
-			} else {
-				sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, sys.dev);
-			}
+			ui_print("...Wiping %s.\n",sys.mnt);
+			sprintf(exe,"rm -rf /%s/* 2>/dev/null", sys.mnt);
+			__system(exe);
+			sprintf(exe,"cd /%s && tar -xv -zf %s", sys.mnt, tmp_file);
 			LOGI("=> %s\n", exe);
 			ui_print("...Restoring system partition.\n");
 			__system(exe);
@@ -775,17 +773,13 @@ nandroid_rest_exe()
 		ui_show_progress(1,300);
 		if(checkMD5(nan_dir,tw_nan_data))
 		{
+			ensure_path_mounted("/data");
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_data);
-			if (strcmp(dat.fst,"yaffs2") == 0)
-			{
-				sprintf(exe,"/%s",dat.mnt);
-				erase_volume(exe);
-				ensure_path_mounted("/data");
-				sprintf(exe,"unyaffs %s /%s",tmp_file,dat.mnt);
-			} else {
-				sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, dat.dev);
-			}
+			ui_print("...Wiping %s.\n",dat.mnt);
+			sprintf(exe,"rm -rf /%s/* 2>/dev/null", dat.mnt);
+			__system(exe);
+			sprintf(exe,"cd /%s && tar -xv -zf %s", dat.mnt, tmp_file);
 			LOGI("=> %s\n", exe);
 			ui_print("...Restoring data partition.\n");
 			__system(exe);
@@ -800,17 +794,13 @@ nandroid_rest_exe()
 		ui_show_progress(1,100);
 		if(checkMD5(nan_dir,tw_nan_cache))
 		{
+			ensure_path_mounted("/cache");
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_cache);
-			if (strcmp(cac.fst,"yaffs2") == 0)
-			{
-				sprintf(exe,"/%s",cac.mnt);
-				erase_volume(exe);
-				ensure_path_mounted("/cache");
-				sprintf(exe,"unyaffs %s /%s",tmp_file,cac.mnt);
-			} else {
-				sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, cac.dev);
-			}
+			ui_print("...Wiping %s.\n",cac.mnt);
+			sprintf(exe,"rm -rf /%s/* 2>/dev/null", cac.mnt);
+			__system(exe);
+			sprintf(exe,"cd /%s && tar -xv -zf %s", cac.mnt, tmp_file);
 			LOGI("=> %s\n", exe);
 			ui_print("...Restoring cache partition.\n");
 			__system(exe);
