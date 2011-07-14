@@ -79,16 +79,27 @@ nandroid_menu()
 	}
 }
 
+char* reboot_after_nandroid()
+{
+	char* tmp_set = (char*)malloc(40);
+	strcpy(tmp_set, "[ ] Reboot After Completed");
+	if (is_true(tw_reboot_after_flash_option) == 1) {
+		tmp_set[1] = 'x';
+	}
+	return tmp_set;
+}
+
 #define ITEM_NAN_BACKUP		0
-#define ITEM_NAN_SYSTEM		1
-#define ITEM_NAN_DATA      	2
-#define ITEM_NAN_CACHE		3
-#define ITEM_NAN_BOOT       4
-#define ITEM_NAN_WIMAX      5
-#define ITEM_NAN_RECOVERY   6
-#define ITEM_NAN_SDEXT      7
-#define ITEM_NAN_ANDSEC     8
-#define ITEM_NAN_BACK       9
+#define ITEM_NAN_REBOOT     1
+#define ITEM_NAN_SYSTEM		2
+#define ITEM_NAN_DATA      	3
+#define ITEM_NAN_CACHE		4
+#define ITEM_NAN_BOOT       5
+#define ITEM_NAN_WIMAX      6
+#define ITEM_NAN_RECOVERY   7
+#define ITEM_NAN_SDEXT      8
+#define ITEM_NAN_ANDSEC     9
+#define ITEM_NAN_BACK       10
 
 void
 nan_backup_menu(int pIdx)
@@ -99,6 +110,7 @@ nan_backup_menu(int pIdx)
 							   NULL	};
 	
 	char* nan_b_items[] = { "-> Backup Naowz!",
+	                         reboot_after_nandroid(),
 							 nan_img_set(ITEM_NAN_SYSTEM,0),
 							 nan_img_set(ITEM_NAN_DATA,0),
 							 nan_img_set(ITEM_NAN_CACHE,0),
@@ -123,10 +135,24 @@ nan_backup_menu(int pIdx)
 				if (tw_total > 0) // only call backup if something was checked
 				{
 					nandroid_back_exe();
-	            	dec_menu_loc();
+					if (is_true(tw_reboot_after_flash_option)) {
+						ui_print("\nRebooting phone.\n");
+						reboot(RB_AUTOBOOT);
+						return;
+					} else {
+	            	    dec_menu_loc();
+					}
 					return;
 				}
 				break;
+			case ITEM_NAN_REBOOT:
+			    if (is_true(tw_reboot_after_flash_option)) {
+            		strcpy(tw_reboot_after_flash_option, "0");
+            	} else {
+            		strcpy(tw_reboot_after_flash_option, "1");
+            	}
+                write_s_file();
+                break;
 			case ITEM_NAN_SYSTEM:
             	if (is_true(tw_nan_system_val)) {
             		strcpy(tw_nan_system_val, "0"); // toggle's value
@@ -320,6 +346,7 @@ nan_restore_menu(int pIdx)
 							  NULL	};
 	
 	char* nan_r_items[] = { "-> Restore Naowz!",
+	                        reboot_after_nandroid(),
 			 	 	 	 	nan_img_set(ITEM_NAN_SYSTEM,1),
 			 	 	 	 	nan_img_set(ITEM_NAN_DATA,1),
 			 	 	 	 	nan_img_set(ITEM_NAN_CACHE,1),
@@ -344,10 +371,24 @@ nan_restore_menu(int pIdx)
 			if (tw_total > 0) // only call restore if something was checked
 			{
 				nandroid_rest_exe();
-				dec_menu_loc();
+				if (is_true(tw_reboot_after_flash_option)) {
+					ui_print("\nRebooting phone.\n");
+					reboot(RB_AUTOBOOT);
+					return;
+				} else {
+					dec_menu_loc();
+				}
 				return;
 			}
 			break;
+		case ITEM_NAN_REBOOT:
+			    if (is_true(tw_reboot_after_flash_option)) {
+            		strcpy(tw_reboot_after_flash_option, "0");
+            	} else {
+            		strcpy(tw_reboot_after_flash_option, "1");
+            	}
+                write_s_file();
+                break;	
 		case ITEM_NAN_SYSTEM:
 			if (tw_nan_system_x == 0)
 			{

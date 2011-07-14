@@ -24,6 +24,7 @@ char tw_nandroid_string[1024];
 char nan_dir[255];
 
 void nandroid_menu();
+char* reboot_after_nandroid();
 void nan_backup_menu(int pIdx);
 void nandroid_back_exe();
 
