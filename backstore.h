@@ -32,5 +32,5 @@ void set_restore_files();
 void nan_restore_menu(int pIdx);
 void nandroid_rest_exe();
 
-int makeMD5(char* imgDir, char* imgFile);
-int checkMD5(char* imgDir, char* imgFile);
+int makeMD5(char *imgDir, const char *imgFile);
+int checkMD5(char *imgDir, const char *imgFile);

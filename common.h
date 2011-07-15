@@ -25,6 +25,8 @@ static const char *SDCARD_ROOT = "/sdcard";
 // Initialize the graphics system.
 void ui_init();
 
+int notError;
+
 // Use KEY_* codes from <linux/input.h> or KEY_DREAM_* from "minui/minui.h".
 int ui_wait_key();            // waits for a key/button press, returns the code
 int ui_key_pressed(int key);  // returns >0 if the code is currently pressed

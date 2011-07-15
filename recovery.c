@@ -548,6 +548,7 @@ sdcard_directory(const char* path) {
     }
     closedir(d);
 
+    notError = 0;
     qsort(dirs, d_size, sizeof(char*), compare_string);
     qsort(zips, z_size, sizeof(char*), compare_string);
 
@@ -583,6 +584,7 @@ sdcard_directory(const char* path) {
             new_path[strlen(new_path)-1] = '\0';  // truncate the trailing '/'
             result = sdcard_directory(new_path);
     	    if (go_home) { 
+    	    	notError = 1;
     	        dec_menu_loc();
     	        return 0;
     	    }
