@@ -561,6 +561,7 @@ nandroid_back_exe()
 	unsigned long sdSpace;
 	unsigned long sdSpaceFinal;
 	unsigned long imgSpace;
+	char tmpOutput[255];
 	char tmpString[10];
 	char exe[255];
 	char tw_image_base[100];
@@ -598,7 +599,7 @@ nandroid_back_exe()
 		ensure_path_mounted("/system");
 		fp = __popen("du -sk /system", "r");
 	    fscanf(fp,"%lu %*s",&imgSpace);
-		progTime = imgSpace / 525;
+		progTime = imgSpace / 500;
 		tmpSize = imgSpace / 1024;
 		ui_print("[SYSTEM (%dMB)]\n",tmpSize);
 		__pclose(fp);
@@ -607,11 +608,17 @@ nandroid_back_exe()
 			strcpy(tw_image,tw_image_base);
 			strcat(tw_image,tw_nan_system);
 			sprintf(exe,"cd /%s && tar -cvzf %s ./*", sys.mnt, tw_image);
-			ui_print("...Backing up system partition.\n");
+			ui_print("...Backing up system partition.\n\n");
 			ui_show_progress(1,progTime);
-			__system(exe);
-			ui_print("....Done.\n");
-			ui_print("...Generating %s md5...\n", sys.mnt);
+			fp = __popen(exe, "r");
+			while (fgets(tmpOutput,255,fp) != NULL)
+			{
+				tmpOutput[strlen(tmpOutput)-1] = '\0';
+				ui_print_overwrite("%s",tmpOutput);
+			}
+			__pclose(fp);
+			ui_print_overwrite("....Done.");
+			ui_print("\n\n...Generating %s md5...\n", sys.mnt);
 			makeMD5(tw_image_base,tw_nan_system);
 			ui_print("....Done.\n");
 			ui_print("...Verifying %s md5...\n", sys.mnt);
@@ -630,7 +637,7 @@ nandroid_back_exe()
 			ensure_path_mounted("/data");
 			fp = __popen("du -sk /data", "r");
 		    fscanf(fp,"%lu %*s",&imgSpace);
-			progTime = imgSpace / 525;
+			progTime = imgSpace / 500;
 			tmpSize = imgSpace / 1024;
 			ui_print("[DATA (%dMB)]\n",tmpSize);
 			__pclose(fp);
@@ -639,11 +646,17 @@ nandroid_back_exe()
 				strcpy(tw_image,tw_image_base);
 				strcat(tw_image,tw_nan_data);
 				sprintf(exe,"cd /%s && tar -cvzf %s ./*", dat.mnt, tw_image);
-				ui_print("...Backing up data partition.\n");
+				ui_print("...Backing up data partition.\n\n");
 				ui_show_progress(1,progTime);
-				__system(exe);
-				ui_print("....Done.\n");
-				ui_print("...Generating %s md5...\n", dat.mnt);
+				fp = __popen(exe, "r");
+				while (fgets(tmpOutput,255,fp) != NULL)
+				{
+					tmpOutput[strlen(tmpOutput)-1] = '\0';
+					ui_print_overwrite("%s",tmpOutput);
+				}
+				__pclose(fp);
+				ui_print_overwrite("....Done.");
+				ui_print("\n\n...Generating %s md5...\n", dat.mnt);
 				makeMD5(tw_image_base,tw_nan_data);
 				ui_print("....Done.\n");
 				ui_print("...Verifying %s md5...\n", dat.mnt);
@@ -663,7 +676,7 @@ nandroid_back_exe()
 			ensure_path_mounted("/cache");
 			fp = __popen("du -sk /cache", "r");
 		    fscanf(fp,"%lu %*s",&imgSpace);
-			progTime = imgSpace / 525;
+			progTime = imgSpace / 500;
 			tmpSize = imgSpace / 1024;
 			ui_print("[CACHE (%dMB)]\n",tmpSize);
 			__pclose(fp);
@@ -672,11 +685,17 @@ nandroid_back_exe()
 				strcpy(tw_image,tw_image_base);
 				strcat(tw_image,tw_nan_cache);
 				sprintf(exe,"cd /%s && tar -cvzf %s ./*", cac.mnt, tw_image);
-				ui_print("...Backing up cache partition.\n");
+				ui_print("...Backing up cache partition.\n\n");
 				ui_show_progress(1,progTime);
-				__system(exe);
-				ui_print("....Done.\n");
-				ui_print("...Generating %s md5...\n", cac.mnt);
+				fp = __popen(exe, "r");
+				while (fgets(tmpOutput,255,fp) != NULL)
+				{
+					tmpOutput[strlen(tmpOutput)-1] = '\0';
+					ui_print_overwrite("%s",tmpOutput);
+				}
+				__pclose(fp);
+				ui_print_overwrite("....Done.");
+				ui_print("\n\n...Generating %s md5...\n", cac.mnt);
 				makeMD5(tw_image_base,tw_nan_cache);
 				ui_print("....Done.\n");
 				ui_print("...Verifying %s md5...\n", cac.mnt);
@@ -777,7 +796,7 @@ nandroid_back_exe()
 			ensure_path_mounted("/sd-ext");
 			fp = __popen("du -sk /sd-ext", "r");
 		    fscanf(fp,"%lu %*s",&imgSpace);
-			progTime = imgSpace / 525;
+			progTime = imgSpace / 500;
 			tmpSize = imgSpace / 1024;
 			ui_print("[SD-EXT (%dMB)]\n",tmpSize);
 			__pclose(fp);
@@ -786,11 +805,17 @@ nandroid_back_exe()
 				strcpy(tw_image,tw_image_base);
 				strcat(tw_image,tw_nan_sdext);
 				sprintf(exe,"cd %s && tar -cvzf %s ./*", sde.mnt, tw_image);
-				ui_print("...Backing up sd-ext partition.\n");
+				ui_print("...Backing up sd-ext partition.\n\n");
 				ui_show_progress(1,progTime);
-				__system(exe);
-				ui_print("....Done.\n");
-				ui_print("...Generating %s md5...\n", sde.mnt);
+				fp = __popen(exe, "r");
+				while (fgets(tmpOutput,255,fp) != NULL)
+				{
+					tmpOutput[strlen(tmpOutput)-1] = '\0';
+					ui_print_overwrite("%s",tmpOutput);
+				}
+				__pclose(fp);
+				ui_print_overwrite("....Done.");
+				ui_print("\n\n...Generating %s md5...\n", sde.mnt);
 				makeMD5(tw_image_base,tw_nan_sdext);
 				ui_print("....Done.\n");
 				ui_print("...Verifying %s md5...\n", sde.mnt);
@@ -810,7 +835,7 @@ nandroid_back_exe()
 			ensure_path_mounted(ase.dev);
 			fp = __popen("du -sk /sdcard/.android_secure", "r");
 		    fscanf(fp,"%lu %*s",&imgSpace);
-			progTime = imgSpace / 525;
+			progTime = imgSpace / 500;
 			tmpSize = imgSpace / 1024;
 			ui_print("[ANDROID_SECURE (%dMB)]\n",tmpSize);
 			__pclose(fp);
@@ -819,11 +844,17 @@ nandroid_back_exe()
 				strcpy(tw_image,tw_image_base);
 				strcat(tw_image,tw_nan_andsec);
 				sprintf(exe,"cd %s && tar -cvzf %s ./*", ase.dev, tw_image);
-				ui_print("...Backing up .android_secure.\n");
+				ui_print("...Backing up .android_secure.\n\n");
 				ui_show_progress(1,progTime);
-				__system(exe);
-				ui_print("....Done.\n");
-				ui_print("...Generating %s md5...\n", ase.mnt);
+				fp = __popen(exe, "r");
+				while (fgets(tmpOutput,255,fp) != NULL)
+				{
+					tmpOutput[strlen(tmpOutput)-1] = '\0';
+					ui_print_overwrite("%s",tmpOutput);
+				}
+				__pclose(fp);
+				ui_print_overwrite("....Done.");
+				ui_print("\n\n...Generating %s md5...\n", ase.mnt);
 				makeMD5(tw_image_base,tw_nan_andsec);
 				ui_print("....Done.\n");
 				ui_print("...Verifying %s md5...\n", ase.mnt);
@@ -863,10 +894,9 @@ nandroid_rest_exe()
 			sprintf(exe,"rm -rf /%s/* 2>/dev/null", sys.mnt);
 			__system(exe);
 			sprintf(exe,"cd /%s && tar -xv -zf %s", sys.mnt, tmp_file);
-			LOGI("=> %s\n", exe);
-			ui_print("...Restoring system partition.\n");
+			ui_print("...Restoring system partition.\n\n");
 			__system(exe);
-			ui_print("...Done.\n\n");
+			ui_print_overwrite("....Done.\n\n");
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
 		}
@@ -884,10 +914,9 @@ nandroid_rest_exe()
 			sprintf(exe,"rm -rf /%s/* 2>/dev/null", dat.mnt);
 			__system(exe);
 			sprintf(exe,"cd /%s && tar -xv -zf %s", dat.mnt, tmp_file);
-			LOGI("=> %s\n", exe);
-			ui_print("...Restoring data partition.\n");
+			ui_print("...Restoring data partition.\n\n");
 			__system(exe);
-			ui_print("...Done.\n\n");
+			ui_print_overwrite("....Done.\n\n");
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
 		}
@@ -906,9 +935,9 @@ nandroid_rest_exe()
 			__system(exe);
 			sprintf(exe,"cd /%s && tar -xv -zf %s", cac.mnt, tmp_file);
 			LOGI("=> %s\n", exe);
-			ui_print("...Restoring cache partition.\n");
+			ui_print("...Restoring cache partition.\n\n");
 			__system(exe);
-			ui_print("...Done.\n\n");
+			ui_print_overwrite("....Done.\n\n");
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
 		}
@@ -978,9 +1007,9 @@ nandroid_rest_exe()
 			__system(exe);
 			sprintf(exe,"cd %s && tar -xv -zf %s", sde.dev, tmp_file);
 			LOGI("=> %s\n", exe);
-			ui_print("...Restoring sd-ext partition.\n");
+			ui_print("...Restoring sd-ext partition.\n\n");
 			__system(exe);
-			ui_print("...Done.\n\n");
+			ui_print_overwrite("....Done.\n\n");
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n");
 		}
@@ -999,9 +1028,9 @@ nandroid_rest_exe()
 			__system(exe);
 			sprintf(exe,"cd %s && tar -xv -zf %s", ase.dev, tmp_file);
 			LOGI("=> %s\n", exe);
-			ui_print("...Restoring .android-secure.\n");
+			ui_print("...Restoring .android-secure.\n\n");
 			__system(exe);
-			ui_print("...Done.\n\n");	
+			ui_print_overwrite("....Done.\n\n");
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n");
 		}

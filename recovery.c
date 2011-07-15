@@ -718,7 +718,7 @@ prompt_and_wait() {
                 break;
 
             case ITEM_WIPE_CACHE:
-		ui_set_background(BACKGROUND_ICON_WIPE);
+            	ui_set_background(BACKGROUND_ICON_WIPE);
                 ui_print("\n-- Wiping Cache Partition...\n");
                 erase_volume("/cache");
                 ui_print("-- Cache Partition Wipe Complete!\n");
