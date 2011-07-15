@@ -336,7 +336,7 @@ void install_zip_menu()
 	                              NULL };
 
 	char** headers = prepend_title(MENU_FLASH_HEADERS);
-	
+
     inc_menu_loc(ITEM_ZIP_BACK);
     for (;;)
     {
@@ -345,11 +345,13 @@ void install_zip_menu()
         {
             case ITEM_CHOOSE_ZIP:
             	;
-                int status = sdcard_directory(SDCARD_ROOT);
+                int status = sdcard_directory(tw_zip_location_val);
                 ui_reset_progress();  // reset status bar so it doesnt run off the screen 
                 if (status != INSTALL_SUCCESS) {
-                    ui_set_background(BACKGROUND_ICON_ERROR);
-                    ui_print("Installation aborted due to an error.\n");
+                	if (notError == 1) {
+                        ui_set_background(BACKGROUND_ICON_ERROR);
+                        ui_print("Installation aborted due to an error.\n");  
+                	}
                 } else if (!ui_text_visible()) {
                     return;  // reboot if logs aren't visible
                 } else {

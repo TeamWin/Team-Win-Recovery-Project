@@ -18,6 +18,8 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdlib.h>
+#include <time.h>
 
 #include "backstore.h"
 #include "settings_file.h"
@@ -30,7 +32,7 @@ tw_set_defaults() {
 	strcpy(tw_signed_zip_val, "0");
 	strcpy(tw_nan_system_val, "1");
 	strcpy(tw_nan_data_val, "1");
-	strcpy(tw_nan_cache_val, "1");
+	strcpy(tw_nan_cache_val, "0");
 	strcpy(tw_nan_boot_val, "1");
 	strcpy(tw_nan_wimax_val, "1");
 	strcpy(tw_nan_recovery_val, "0");

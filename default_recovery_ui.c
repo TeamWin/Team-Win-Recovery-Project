@@ -59,8 +59,7 @@ int device_handle_key(int key_code, int visible) {
             case KEY_BACK:
             	return UP_A_LEVEL;
             case KEY_SEARCH:
-			    install_zip_menu();
-            	return NO_ACTION;
+            	return SELECT_ITEM;
         }
     }
 
