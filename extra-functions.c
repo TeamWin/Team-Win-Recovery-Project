@@ -728,8 +728,8 @@ void all_settings_menu()
     static char* MENU_ALLS_HEADERS[] = { "All Settings",
                                               NULL };
     
-	char* MENU_ALLS[] =     { zip_verify,
-	                          reboot_after_flash,
+	char* MENU_ALLS[] =     { zip_verify(),
+	                          reboot_after_flash(),
 				  save_reboot_setting(),
 	                          "Change Time Zone",
 	                          "<-Back To Main Menu",
@@ -782,8 +782,12 @@ void all_settings_menu()
 	        dec_menu_loc();
 	        return;
 	    }
+        break;
     }
-}
+	ui_end_menu();
+    dec_menu_loc();
+	all_settings_menu();
+}	
 
 void time_zone_menu()
 {
