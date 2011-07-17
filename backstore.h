@@ -35,3 +35,4 @@ void nandroid_rest_exe();
 
 int makeMD5(char *imgDir, const char *imgFile);
 int checkMD5(char *imgDir, const char *imgFile);
+
