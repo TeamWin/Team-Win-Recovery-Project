@@ -531,6 +531,7 @@ void advanced_menu()
 	                          "Format Menu",
 	                          "Wipe Battery Stats",
 	                          "Wipe Rotation Data",
+				  "All Teamwin Settings",
 	                          "<-Back To Main Menu",
 	                          NULL };
 	
@@ -729,7 +730,7 @@ void all_settings_menu()
     
 	char* MENU_ALLS[] =     { zip_verify,
 	                          reboot_after_flash,
-							  save_reboot_setting(),
+				  save_reboot_setting(),
 	                          "Change Time Zone",
 	                          "<-Back To Main Menu",
 	                          NULL };
