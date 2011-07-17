@@ -41,6 +41,7 @@ tw_set_defaults() {
 	strcpy(tw_zip_location_val, "/sdcard");
     strcpy(tw_time_zone_val, "CST6CDT");
 	strcpy(tw_reboot_after_flash_option, "0");
+	strcpy(tw_save_reboot_setting_option, "0");
 }
 
 int is_true(char* tw_setting) {
@@ -103,6 +104,8 @@ write_s_file() {
 						fputs(tw_time_zone_val, fp);
 					} else if (i == TW_REBOOT_AFTER_FLASH) {
 						fputs(tw_reboot_after_flash_option, fp);
+					} else if (i == TW_SAVE_REBOOT_SETTING) {
+						fputs(tw_save_reboot_setting_option, fp);
 					}
 					fputs("\n", fp); // add a carriage return to finish line
 					i++; // increment loop
@@ -166,6 +169,8 @@ read_s_file() {
 			    	strcpy(tw_time_zone_val, s_line);
 				} else if (i == TW_REBOOT_AFTER_FLASH) {
 			    	strcpy(tw_reboot_after_flash_option, s_line);
+				} else if (i == TW_SAVE_REBOOT_SETTING) {
+			    	strcpy(tw_save_reboot_setting_option, s_line);
 				}
 				i++; // increment loop
 			}
@@ -174,4 +179,7 @@ read_s_file() {
 	}
     setenv("TZ", tw_time_zone_val, 1);
     tzset();
+	if (is_true(tw_save_reboot_setting_option) != 1) {
+	    strcpy(tw_reboot_after_flash_option, "0"); // if the save option is turned off, then we default the reboot option to 0
+	}
 }

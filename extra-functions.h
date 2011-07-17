@@ -28,6 +28,11 @@ int get_menu_selection(char** headers, char** items, int menu_only, int initial_
 char* zip_verify();
 char* reboot_after_flash();
 
+char* save_reboot_setting();
+void all_settings_menu();
+void time_zone_menu();
+void update_tz_environment_variables();
+
 // Menu Stuff
 #define GO_HOME 69
 

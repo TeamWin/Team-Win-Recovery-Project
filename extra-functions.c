@@ -521,7 +521,8 @@ void advanced_menu()
 	#define ITEM_FORMAT_MENU       1
 	#define ITEM_BATTERY_STATS     2
 	#define ITEM_ROTATE_DATA       3
-	#define ADVANCED_MENU_BACK     4
+	#define ITEM_ALL_SETTINGS      4
+	#define ADVANCED_MENU_BACK     5
 
     static char* MENU_ADVANCED_HEADERS[] = { "Advanced Options",
                                               NULL };
@@ -557,7 +558,9 @@ void advanced_menu()
             case ITEM_ROTATE_DATA:
                 wipe_rotate_data();
                 break;
-
+            case ITEM_ALL_SETTINGS:
+			    all_settings_menu();
+				break;
             case ADVANCED_MENU_BACK:
             	dec_menu_loc();
             	return;
@@ -700,6 +703,183 @@ print_batt_cap()  {
     //ui_print("\n%s\n", full_cap_s);
     
     return full_cap_s;
+}
+
+char* save_reboot_setting()
+{
+	char* tmp_set = (char*)malloc(40);
+	strcpy(tmp_set, "[ ] Save Reboot Setting");
+	if (is_true(tw_save_reboot_setting_option) == 1) {
+		tmp_set[1] = 'x';
+	}
+	return tmp_set;
+}
+
+void all_settings_menu()
+{
+	// ALL SETTINGS MENU (ALLS for ALL Settings)
+	#define ALLS_SIG_TOGGLE           0
+	#define ALLS_REBOOT_AFTER_FLASH   1
+	#define ALLS_SAVE_REBOOT_SETTING  2
+	#define ALLS_TIME_ZONE            3
+	#define ALLS_MENU_BACK            4
+
+    static char* MENU_ALLS_HEADERS[] = { "All Settings",
+                                              NULL };
+    
+	char* MENU_ALLS[] =     { zip_verify,
+	                          reboot_after_flash,
+							  save_reboot_setting(),
+	                          "Change Time Zone",
+	                          "<-Back To Main Menu",
+	                          NULL };
+
+    char** headers = prepend_title(MENU_ALLS_HEADERS);
+    
+    inc_menu_loc(ALLS_MENU_BACK);
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, MENU_ALLS, 0, 0);
+        switch (chosen_item)
+        {
+            case ALLS_SIG_TOGGLE:
+            	if (is_true(tw_signed_zip_val)) {
+            		strcpy(tw_signed_zip_val, "0");
+            	} else {
+            		strcpy(tw_signed_zip_val, "1");
+            	}
+                write_s_file();
+                break;
+			case ALLS_REBOOT_AFTER_FLASH:
+                if (is_true(tw_reboot_after_flash_option)) {
+            		strcpy(tw_reboot_after_flash_option, "0");
+            	} else {
+            		strcpy(tw_reboot_after_flash_option, "1");
+            	}
+				if (is_true(tw_save_reboot_setting_option)) {
+                    write_s_file();
+				} else {
+				    ui_print("Change 'Save Reboot Setting' to save this setting.\n");
+				}
+                break;
+			case ALLS_SAVE_REBOOT_SETTING:
+                if (is_true(tw_save_reboot_setting_option)) {
+            		strcpy(tw_save_reboot_setting_option, "0");
+            	} else {
+            		strcpy(tw_save_reboot_setting_option, "1");
+            	}
+                write_s_file();
+                break;
+			case ALLS_TIME_ZONE:
+			    time_zone_menu();
+				break;
+            case ALLS_MENU_BACK:
+            	dec_menu_loc();
+            	return;
+        }
+	    if (go_home) { 
+	        dec_menu_loc();
+	        return;
+	    }
+    }
+}
+
+void time_zone_menu()
+{
+	// ALL SETTINGS MENU (ALLS for ALL Settings)
+	#define TZ_AST4                   0
+	#define TZ_EST5EDT                1
+	#define TZ_CST6CDT                2
+	#define TZ_MST7MDT                3
+	#define TZ_MST7                   4
+	#define TZ_PST8PDT                5
+	#define TZ_UTC_9DST               6
+	#define TZ_UTC_10DST              7
+	#define TZ_UTC_10                 8
+	#define TZ_MENU_BACK              9
+
+    static char* MENU_TZ_HEADERS[] = { "Time Zone",
+                                              NULL };
+    
+	char* MENU_TZ[] =       { "AST4",
+	                          "EST5EDT",
+							  "CST6CDT",
+							  "MST7MDT",
+							  "MST7",
+							  "PST8PDT",
+							  "UTC-9DST",
+							  "UTC-10DST",
+							  "UTC-10",
+	                          "<-Back To Main Menu",
+	                          NULL };
+
+    char** headers = prepend_title(MENU_TZ_HEADERS);
+    
+    inc_menu_loc(TZ_MENU_BACK);
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, MENU_TZ, 0, 3); // puts the initially selected item to MST7MDT which should be right in the middle of the most used time zones for ease of use
+        switch (chosen_item)
+        {
+            case TZ_AST4:
+            	strcpy(tw_time_zone_val, "AST4");
+				update_tz_environment_variables();
+                write_s_file();
+                break;
+			case TZ_EST5EDT:
+                strcpy(tw_time_zone_val, "EST5EDT");
+				update_tz_environment_variables();
+                write_s_file();
+                break;
+			case TZ_CST6CDT:
+                strcpy(tw_time_zone_val, "CST6CDT");
+				update_tz_environment_variables();
+                write_s_file();
+                break;
+			case TZ_MST7MDT:
+                strcpy(tw_time_zone_val, "MST7MDT");
+				update_tz_environment_variables();
+                write_s_file();
+                break;
+			case TZ_MST7:
+                strcpy(tw_time_zone_val, "MST7");
+				update_tz_environment_variables();
+                write_s_file();
+                break;
+			case TZ_PST8PDT:
+                strcpy(tw_time_zone_val, "PST8PDT");
+				update_tz_environment_variables();
+                write_s_file();
+                break;
+			case TZ_UTC_9DST:
+                strcpy(tw_time_zone_val, "UTC-9DST");
+				update_tz_environment_variables();
+                write_s_file();
+                break;
+			case TZ_UTC_10DST:
+                strcpy(tw_time_zone_val, "UTC-10DST");
+				update_tz_environment_variables();
+                write_s_file();
+                break;
+			case TZ_UTC_10:
+                strcpy(tw_time_zone_val, "UTC-10");
+				update_tz_environment_variables();
+                write_s_file();
+                break;
+            case TZ_MENU_BACK:
+            	dec_menu_loc();
+            	return;
+        }
+	    if (go_home) { 
+	        dec_menu_loc();
+	        return;
+	    }
+    }
+}
+
+void update_tz_environment_variables() {
+    setenv("TZ", tw_time_zone_val, 1);
+    tzset();
 }
 
 void inc_menu_loc(int bInt)
