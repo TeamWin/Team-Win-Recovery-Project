@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 
 #include "ddftw.h"
 #include "common.h"
@@ -151,7 +152,7 @@ void readRecFstab()
 	fclose(fp);
 	strcpy(ase.dev,"/sdcard/.android_secure");
 	strcpy(ase.mnt,".android_secure");
-	strcpy(sde.mnt,"/sd-ext");
+	strcpy(sde.mnt,"sd-ext");
 	int tmpInt;
 	char tmpBase[50];
 	char tmpWildCard[50];
@@ -167,6 +168,7 @@ void readRecFstab()
 void createFstab()
 {
 	FILE *fp;
+	struct stat st;
 	fp = fopen("/etc/fstab", "w");
 	if (fp == NULL) {
 		LOGI("=> Can not open /etc/fstab.\n");
@@ -180,7 +182,7 @@ void createFstab()
 		fputs(tmpString, fp);
 		sprintf(tmpString,"%s /%s %s rw\n",sdc.blk,sdc.mnt,sdc.fst);
 		fputs(tmpString, fp);
-		if (strcmp(sde.mnt,"sd-ext") == 0)
+		if (stat(sde.blk,&st) == 0)
 		{
 			sprintf(tmpString,"%s /%s %s rw\n",sde.blk,sde.mnt,sde.fst);
 			fputs(tmpString, fp);

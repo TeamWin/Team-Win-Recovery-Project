@@ -672,8 +672,9 @@ prompt_and_wait() {
 	#define ITEM_WIPE_DATA           3
 	#define ITEM_NANDROID_MENU     	 4
 	#define ITEM_ADVANCED_MENU       5
-	#define ITEM_USB_TOGGLE          6
-	#define ITEM_REBOOT              7
+	#define ITEM_MOUNT_MENU       	 6
+	#define ITEM_USB_TOGGLE          7
+	#define ITEM_REBOOT              8
 
     finish_recovery(NULL);
     ui_reset_progress();
@@ -685,6 +686,7 @@ prompt_and_wait() {
                             "Wipe Data Factory Reset",
                             "Nandroid Menu",
                             "Advanced Menu",
+                            "Mount Menu",
                             "USB Storage Toggle",
                             "Reboot system now",
                             NULL };
@@ -738,6 +740,10 @@ prompt_and_wait() {
             	
             case ITEM_ADVANCED_MENU:
             	advanced_menu();
+                break;
+
+            case ITEM_MOUNT_MENU:
+            	mount_menu(0);
                 break;
                 
             case ITEM_USB_TOGGLE:

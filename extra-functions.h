@@ -44,3 +44,11 @@ int menu_loc[255];
 void inc_menu_loc(int bInt);
 void dec_menu_loc();
 
+char* isMounted(int mInt);
+void mount_menu(int pIdx);
+void chkMounts();
+int sysIsMounted;
+int datIsMounted;
+int cacIsMounted;
+int sdcIsMounted;
+int sdeIsMounted;

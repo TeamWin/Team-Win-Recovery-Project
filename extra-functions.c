@@ -769,7 +769,7 @@ void all_settings_menu()
 	ui_end_menu();
     dec_menu_loc();
 	all_settings_menu();
-}	
+}
 
 void time_zone_menu()
 {
@@ -793,7 +793,7 @@ void time_zone_menu()
 							  "GMT-6 (CST)",
 							  "GMT-5 (EST)",
 							  "GMT-4 (AST)",
-	                          "<-Back To Main Menu",
+	                          "<-- Back To Main Menu",
 	                          NULL };
 
     char** headers = prepend_title(MENU_TZ_HEADERS);
@@ -855,3 +855,190 @@ void dec_menu_loc()
 	//ui_print("=> Decreased Menu Level; %d : %d\n",menu_loc_idx,menu_loc[menu_loc_idx]);
 }
 
+#define MNT_SYSTEM 	0
+#define MNT_DATA	1
+#define MNT_CACHE	2
+#define MNT_SDCARD	3
+#define MNT_SDEXT	4
+#define MNT_BACK	5
+
+void chkMounts()
+{
+	FILE *fp;
+	char tmpOutput[255];
+	sysIsMounted = 0;
+	datIsMounted = 0;
+	cacIsMounted = 0;
+	sdcIsMounted = 0;
+	sdeIsMounted = 0;
+	fp = __popen("cat /proc/mounts", "r");
+	while (fgets(tmpOutput,255,fp) != NULL)
+	{
+	    sscanf(tmpOutput,"%s %*s %*s %*s %*d %*d",tmp.blk);
+	    if (strcmp(tmp.blk,sys.blk) == 0)
+	    {
+	    	sysIsMounted = 1;
+	    }
+	    if (strcmp(tmp.blk,dat.blk) == 0)
+	    {
+	    	datIsMounted = 1;
+	    }
+	    if (strcmp(tmp.blk,cac.blk) == 0)
+	    {
+	    	cacIsMounted = 1;
+	    }
+	    if (strcmp(tmp.blk,sdc.blk) == 0)
+	    {
+	    	sdcIsMounted = 1;
+	    }
+	    if (strcmp(tmp.blk,sde.blk) == 0)
+	    {
+	    	sdeIsMounted = 1;
+	    }
+	}
+	__pclose(fp);
+}
+
+char* isMounted(int mInt)
+{
+	int isTrue = 0;
+	struct stat st;
+	char* tmp_set = (char*)malloc(25);
+	if (mInt == MNT_SYSTEM)
+	{
+	    if (sysIsMounted == 1) {
+			strcpy(tmp_set, "unmount");
+	    } else {
+			strcpy(tmp_set, "mount");
+	    }
+		strcat(tmp_set, " /system");
+	}
+	if (mInt == MNT_DATA)
+	{
+	    if (datIsMounted == 1) {
+			strcpy(tmp_set, "unmount");
+	    } else {
+			strcpy(tmp_set, "mount");
+	    }
+		strcat(tmp_set, " /data");
+	}
+	if (mInt == MNT_CACHE)
+	{
+	    if (cacIsMounted == 1) {
+			strcpy(tmp_set, "unmount");
+	    } else {
+			strcpy(tmp_set, "mount");
+	    }
+		strcat(tmp_set, " /cache");
+	}
+	if (mInt == MNT_SDCARD)
+	{
+	    if (sdcIsMounted == 1) {
+			strcpy(tmp_set, "unmount");
+	    } else {
+			strcpy(tmp_set, "mount");
+	    }
+		strcat(tmp_set, " /sdcard");
+	}
+	if (mInt == MNT_SDEXT)
+	{
+		if (stat(sde.blk,&st) != 0)
+		{
+			strcpy(tmp_set, "-------");
+			sdeIsMounted = -1;
+		} else {
+		    if (sdeIsMounted == 1) {
+				strcpy(tmp_set, "unmount");
+		    } else {
+				strcpy(tmp_set, "mount");
+		    }
+		}
+		strcat(tmp_set, " /sd-ext");
+	}
+	return tmp_set;
+}
+
+void mount_menu(int pIdx)
+{
+	chkMounts();
+	
+	static char* MENU_MNT_HEADERS[] = { "Mount Menu",
+										NULL };
+	
+	char* MENU_MNT[] = { isMounted(MNT_SYSTEM),
+						 isMounted(MNT_DATA),
+						 isMounted(MNT_CACHE),
+						 isMounted(MNT_SDCARD),
+						 isMounted(MNT_SDEXT),
+						 "<-- Back To Main Menu",
+						 NULL };
+	
+	char** headers = prepend_title(MENU_MNT_HEADERS);
+	
+	inc_menu_loc(MNT_BACK);
+	for (;;)
+	{
+		int chosen_item = get_menu_selection(headers, MENU_MNT, 0, pIdx);
+		pIdx = chosen_item;
+		switch (chosen_item)
+		{
+		case MNT_SYSTEM:
+			if (sysIsMounted == 0)
+			{
+				__system("mount /system");
+				ui_print("/system has been mounted.\n");
+			} else if (sysIsMounted == 1) {
+				__system("umount /system");
+				ui_print("/system has been unmounted.\n");
+			}
+			break;
+		case MNT_DATA:
+			if (datIsMounted == 0)
+			{
+				__system("mount /data");
+				ui_print("/data has been mounted.\n");
+			} else if (datIsMounted == 1) {
+				__system("umount /data");
+				ui_print("/data has been unmounted.\n");
+			}
+			break;
+		case MNT_CACHE:
+			if (cacIsMounted == 0)
+			{
+				__system("mount /cache");
+				ui_print("/cache has been mounted.\n");
+			} else if (cacIsMounted == 1) {
+				__system("umount /cache");
+				ui_print("/cache has been unmounted.\n");
+			}
+			break; 
+		case MNT_SDCARD:
+			if (sdcIsMounted == 0)
+			{
+				__system("mount /sdcard");
+				ui_print("/sdcard has been mounted.\n");
+			} else if (sdcIsMounted == 1) {
+				__system("umount /sdcard");
+				ui_print("/sdcard has been unmounted.\n");
+			}
+			break;
+		case MNT_SDEXT:
+			if (sdeIsMounted == 0)
+			{
+				__system("mount /sd-ext");
+				ui_print("/sd-ext has been mounted.\n");
+			} else if (sdeIsMounted == 1) {
+				__system("umount /sd-ext");
+				ui_print("/sd-ext has been unmounted.\n");
+			}
+			break;
+		case MNT_BACK:
+			dec_menu_loc();
+			return;
+		}
+	    break;
+	}
+	ui_end_menu();
+    dec_menu_loc();
+    mount_menu(pIdx);
+}
