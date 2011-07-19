@@ -56,11 +56,13 @@ nandroid_menu()
     inc_menu_loc(ITEM_MENU_BACK); // record back selection into array
 	for (;;)
 	{
+         ui_set_background(BACKGROUND_ICON_NANDROID);
 		chosen_item = get_menu_selection(headers, nan_items, 0, 0);
 		switch (chosen_item)
 		{
 			case ITEM_MENU_BACK:
 				dec_menu_loc();
+                                ui_set_background(BACKGROUND_ICON_MAIN);
 				return;
 			case ITEM_BACKUP_MENU:
 				nan_backup_menu(0);
@@ -74,6 +76,7 @@ nandroid_menu()
 		}
 	    if (go_home) { 		// if home was called
 	        dec_menu_loc();
+                ui_set_background(BACKGROUND_ICON_MAIN);
 	        return;
 	    }
 	}
