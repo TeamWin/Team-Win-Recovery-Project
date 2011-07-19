@@ -71,11 +71,6 @@ void getLocations()
 				strcpy(boo.dev,tmp.dev);
 				strcpy(boo.blk,tmp.blk);
 			}
-			if (strcmp(tmp.mnt,"wimax") == 0) {
-				strcpy(wim.mnt,tmp.mnt);
-				strcpy(wim.dev,tmp.dev);
-				strcpy(wim.blk,tmp.blk);
-			}
 			if (strcmp(tmp.mnt,"recovery") == 0) {
 				strcpy(rec.mnt,tmp.mnt);
 				strcpy(rec.dev,tmp.dev);
@@ -85,6 +80,11 @@ void getLocations()
 				strcpy(cac.mnt,tmp.mnt);
 				strcpy(cac.dev,tmp.dev);
 				strcpy(cac.blk,tmp.blk);
+			}
+			if (strcmp(tmp.mnt,"wimax") == 0) {
+				strcpy(wim.mnt,tmp.mnt);
+				strcpy(wim.dev,tmp.dev);
+				strcpy(wim.blk,tmp.blk);
 			}
 		}
 		pclose(fp);

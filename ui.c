@@ -30,10 +30,10 @@
 #include "recovery_ui.h"
 
 #define MAX_COLS 96
-#define MAX_ROWS 32
+#define MAX_ROWS 48
 
-#define MENU_MAX_COLS 64
-#define MENU_MAX_ROWS 251
+#define MENU_MAX_COLS 96
+#define MENU_MAX_ROWS 48
 
 #define CHAR_WIDTH 10
 #define CHAR_HEIGHT 18

@@ -44,10 +44,10 @@ nandroid_menu()
 							"Choose Backup or Restore: ",
 							NULL };
 	
-	char* nan_items[] = { "<- Back To Main Menu",
+	char* nan_items[] = { "<-- Back To Main Menu",
 						  "Backup Menu",
 						  "Restore Menu",
-						  "-> Reboot System",
+						  "--> Reboot System",
 						  NULL };
 	
 	char** headers = prepend_title(nan_headers);
@@ -79,27 +79,16 @@ nandroid_menu()
 	}
 }
 
-char* reboot_after_nandroid()
-{
-	char* tmp_set = (char*)malloc(40);
-	strcpy(tmp_set, "[ ] Reboot After Completed");
-	if (is_true(tw_reboot_after_flash_option) == 1) {
-		tmp_set[1] = 'x';
-	}
-	return tmp_set;
-}
-
 #define ITEM_NAN_BACKUP		0
-#define ITEM_NAN_REBOOT     1
-#define ITEM_NAN_SYSTEM		2
-#define ITEM_NAN_DATA      	3
-#define ITEM_NAN_CACHE		4
-#define ITEM_NAN_BOOT       5
+#define ITEM_NAN_SYSTEM		1
+#define ITEM_NAN_DATA      	2
+#define ITEM_NAN_BOOT       3
+#define ITEM_NAN_RECOVERY   4
+#define ITEM_NAN_CACHE		5
 #define ITEM_NAN_WIMAX      6
-#define ITEM_NAN_RECOVERY   7
+#define ITEM_NAN_ANDSEC     7
 #define ITEM_NAN_SDEXT      8
-#define ITEM_NAN_ANDSEC     9
-#define ITEM_NAN_BACK       10
+#define ITEM_NAN_BACK       9
 
 void
 nan_backup_menu(int pIdx)
@@ -109,17 +98,16 @@ nan_backup_menu(int pIdx)
 							   "Choose Nandroid Options: ",
 							   NULL	};
 	
-	char* nan_b_items[] = { "-> Backup Naowz!",
-	                         reboot_after_nandroid(),
+	char* nan_b_items[] = { "--> Backup Naowz!",
 							 nan_img_set(ITEM_NAN_SYSTEM,0),
 							 nan_img_set(ITEM_NAN_DATA,0),
-							 nan_img_set(ITEM_NAN_CACHE,0),
 							 nan_img_set(ITEM_NAN_BOOT,0),
-							 nan_img_set(ITEM_NAN_WIMAX,0),
 							 nan_img_set(ITEM_NAN_RECOVERY,0),
-							 nan_img_set(ITEM_NAN_SDEXT,0),
+							 nan_img_set(ITEM_NAN_CACHE,0),
+							 nan_img_set(ITEM_NAN_WIMAX,0),
 							 nan_img_set(ITEM_NAN_ANDSEC,0),
-							 "<- Back To Main Menu",
+							 nan_img_set(ITEM_NAN_SDEXT,0),
+							 "<-- Back To Main Menu",
 							 NULL };
 
 	char** headers = prepend_title(nan_b_headers);
@@ -135,24 +123,10 @@ nan_backup_menu(int pIdx)
 				if (tw_total > 0) // only call backup if something was checked
 				{
 					nandroid_back_exe();
-					if (is_true(tw_reboot_after_flash_option)) {
-						ui_print("\nRebooting phone.\n");
-						reboot(RB_AUTOBOOT);
-						return;
-					} else {
-	            	    dec_menu_loc();
-					}
+					dec_menu_loc();
 					return;
 				}
 				break;
-			case ITEM_NAN_REBOOT:
-			    if (is_true(tw_reboot_after_flash_option)) {
-            		strcpy(tw_reboot_after_flash_option, "0");
-            	} else {
-            		strcpy(tw_reboot_after_flash_option, "1");
-            	}
-                write_s_file();
-                break;
 			case ITEM_NAN_SYSTEM:
             	if (is_true(tw_nan_system_val)) {
             		strcpy(tw_nan_system_val, "0"); // toggle's value
@@ -173,32 +147,12 @@ nan_backup_menu(int pIdx)
             	}
                 write_s_file();
 				break;
-			case ITEM_NAN_CACHE:
-            	if (is_true(tw_nan_cache_val)) {
-            		strcpy(tw_nan_cache_val, "0");
-            		tw_total--;
-            	} else {
-            		strcpy(tw_nan_cache_val, "1");
-            		tw_total++;
-            	}
-                write_s_file();
-				break;
 			case ITEM_NAN_BOOT:
             	if (is_true(tw_nan_boot_val)) {
             		strcpy(tw_nan_boot_val, "0");
             		tw_total--;
             	} else {
             		strcpy(tw_nan_boot_val, "1");
-            		tw_total++;
-            	}
-                write_s_file();
-				break;
-			case ITEM_NAN_WIMAX:
-            	if (is_true(tw_nan_wimax_val)) {
-            		strcpy(tw_nan_wimax_val, "0");
-            		tw_total--;
-            	} else {
-            		strcpy(tw_nan_wimax_val, "1");
             		tw_total++;
             	}
                 write_s_file();
@@ -213,6 +167,42 @@ nan_backup_menu(int pIdx)
             	}
                 write_s_file();
 				break;
+			case ITEM_NAN_CACHE:
+            	if (is_true(tw_nan_cache_val)) {
+            		strcpy(tw_nan_cache_val, "0");
+            		tw_total--;
+            	} else {
+            		strcpy(tw_nan_cache_val, "1");
+            		tw_total++;
+            	}
+                write_s_file();
+				break;
+			case ITEM_NAN_WIMAX:
+				if (tw_nan_wimax_x != -1)
+				{
+	            	if (is_true(tw_nan_wimax_val)) {
+	            		strcpy(tw_nan_wimax_val, "0");
+	            		tw_total--;
+	            	} else {
+	            		strcpy(tw_nan_wimax_val, "1");
+	            		tw_total++;
+	            	}
+	                write_s_file();
+				}
+				break;
+			case ITEM_NAN_ANDSEC:
+				if (tw_nan_andsec_x != -1)
+				{
+	            	if (is_true(tw_nan_andsec_val)) {
+	            		strcpy(tw_nan_andsec_val, "0");
+	            		tw_total--;
+	            	} else {
+	            		strcpy(tw_nan_andsec_val, "1");
+	            		tw_total++;
+	            	}
+	                write_s_file();
+				}
+				break;
 			case ITEM_NAN_SDEXT:
 				if (tw_nan_sdext_x != -1)
 				{
@@ -225,20 +215,6 @@ nan_backup_menu(int pIdx)
 	           		}
 	                write_s_file();
 				}
-				break;
-			case ITEM_NAN_ANDSEC:
-				if (tw_nan_andsec_x != -1)
-				{
-					
-				}
-            	if (is_true(tw_nan_andsec_val)) {
-            		strcpy(tw_nan_andsec_val, "0");
-            		tw_total--;
-            	} else {
-            		strcpy(tw_nan_andsec_val, "1");
-            		tw_total++;
-            	}
-                write_s_file();
 				break;
 			case ITEM_NAN_BACK:
             	dec_menu_loc();
@@ -279,6 +255,24 @@ set_restore_files()
 		tw_total++;
 	} else {
 		tw_nan_data_x = -1;
+	}
+	strcpy(tmp_file,nan_dir);
+	strcat(tmp_file,tw_nan_boot);
+	if (stat(tmp_file,&st) == 0) 
+	{
+		tw_nan_boot_x = 1;
+		tw_total++;
+	} else {
+		tw_nan_boot_x = -1;
+	}
+	strcpy(tmp_file,nan_dir);
+	strcat(tmp_file,tw_nan_recovery);
+	if (stat(tmp_file,&st) == 0) 
+	{
+		tw_nan_recovery_x = 1;
+		tw_total++;
+	} else {
+		tw_nan_recovery_x = -1;
 	}	
 	strcpy(tmp_file,nan_dir);
 	strcat(tmp_file,tw_nan_cache);
@@ -290,15 +284,6 @@ set_restore_files()
 		tw_nan_cache_x = -1;
 	}	
 	strcpy(tmp_file,nan_dir);
-	strcat(tmp_file,tw_nan_boot);
-	if (stat(tmp_file,&st) == 0) 
-	{
-		tw_nan_boot_x = 1;
-		tw_total++;
-	} else {
-		tw_nan_boot_x = -1;
-	}	
-	strcpy(tmp_file,nan_dir);
 	strcat(tmp_file,tw_nan_wimax);
 	if (stat(tmp_file,&st) == 0) 
 	{
@@ -306,25 +291,7 @@ set_restore_files()
 		tw_total++;
 	} else {
 		tw_nan_wimax_x = -1;
-	}	
-	strcpy(tmp_file,nan_dir);
-	strcat(tmp_file,tw_nan_recovery);
-	if (stat(tmp_file,&st) == 0) 
-	{
-		tw_nan_recovery_x = 1;
-		tw_total++;
-	} else {
-		tw_nan_recovery_x = -1;
-	}	
-	strcpy(tmp_file,nan_dir);
-	strcat(tmp_file,tw_nan_sdext);
-	if (stat(tmp_file,&st) == 0) 
-	{
-		tw_nan_sdext_x = 1;
-		tw_total++;
-	} else {
-		tw_nan_sdext_x = -1;
-	}	
+	}		
 	strcpy(tmp_file,nan_dir);
 	strcat(tmp_file,tw_nan_andsec);
 	if (stat(tmp_file,&st) == 0) 
@@ -333,6 +300,15 @@ set_restore_files()
 		tw_total++;
 	} else {
 		tw_nan_andsec_x = -1;
+	}		
+	strcpy(tmp_file,nan_dir);
+	strcat(tmp_file,tw_nan_sdext);
+	if (stat(tmp_file,&st) == 0) 
+	{
+		tw_nan_sdext_x = 1;
+		tw_total++;
+	} else {
+		tw_nan_sdext_x = -1;
 	}
 	free(tmp_file);
 }
@@ -345,17 +321,16 @@ nan_restore_menu(int pIdx)
 							  "Choose Nandroid Options: ",
 							  NULL	};
 	
-	char* nan_r_items[] = { "-> Restore Naowz!",
-	                        reboot_after_nandroid(),
+	char* nan_r_items[] = { "--> Restore Naowz!",
 			 	 	 	 	nan_img_set(ITEM_NAN_SYSTEM,1),
 			 	 	 	 	nan_img_set(ITEM_NAN_DATA,1),
-			 	 	 	 	nan_img_set(ITEM_NAN_CACHE,1),
 			 	 	 	 	nan_img_set(ITEM_NAN_BOOT,1),
-			 	 	 	 	nan_img_set(ITEM_NAN_WIMAX,1),
 			 	 	 	 	nan_img_set(ITEM_NAN_RECOVERY,1),
-			 	 	 	 	nan_img_set(ITEM_NAN_SDEXT,1),
+			 	 	 	 	nan_img_set(ITEM_NAN_CACHE,1),
+			 	 	 	 	nan_img_set(ITEM_NAN_WIMAX,1),
 			 	 	 	 	nan_img_set(ITEM_NAN_ANDSEC,1),
-							"<- Back To Main Menu",
+			 	 	 	 	nan_img_set(ITEM_NAN_SDEXT,1),
+							"<-- Back To Main Menu",
 							 NULL };
 
 	char** headers = prepend_title(nan_r_headers);
@@ -371,24 +346,10 @@ nan_restore_menu(int pIdx)
 			if (tw_total > 0) // only call restore if something was checked
 			{
 				nandroid_rest_exe();
-				if (is_true(tw_reboot_after_flash_option)) {
-					ui_print("\nRebooting phone.\n");
-					reboot(RB_AUTOBOOT);
-					return;
-				} else {
-					dec_menu_loc();
-				}
+				dec_menu_loc();
 				return;
 			}
 			break;
-		case ITEM_NAN_REBOOT:
-			    if (is_true(tw_reboot_after_flash_option)) {
-            		strcpy(tw_reboot_after_flash_option, "0");
-            	} else {
-            		strcpy(tw_reboot_after_flash_option, "1");
-            	}
-                write_s_file();
-                break;	
 		case ITEM_NAN_SYSTEM:
 			if (tw_nan_system_x == 0)
 			{
@@ -409,16 +370,6 @@ nan_restore_menu(int pIdx)
         		tw_total--;
 			}
 			break;
-		case ITEM_NAN_CACHE:
-			if (tw_nan_cache_x == 0)
-			{
-				tw_nan_cache_x = 1;
-        		tw_total++;
-			} else if (tw_nan_cache_x == 1) {
-				tw_nan_cache_x = 0;
-        		tw_total--;
-			}
-			break;
 		case ITEM_NAN_BOOT:
 			if (tw_nan_boot_x == 0)
 			{
@@ -426,16 +377,6 @@ nan_restore_menu(int pIdx)
         		tw_total++;
 			} else if (tw_nan_boot_x == 1) {
 				tw_nan_boot_x = 0;
-        		tw_total--;
-			}
-			break;
-		case ITEM_NAN_WIMAX:
-			if (tw_nan_wimax_x == 0)
-			{
-				tw_nan_wimax_x = 1;
-        		tw_total++;
-			} else if (tw_nan_wimax_x == 1) {
-				tw_nan_wimax_x = 0;
         		tw_total--;
 			}
 			break;
@@ -449,13 +390,23 @@ nan_restore_menu(int pIdx)
         		tw_total--;
 			}
 			break;
-		case ITEM_NAN_SDEXT:
-			if (tw_nan_sdext_x == 0)
+		case ITEM_NAN_CACHE:
+			if (tw_nan_cache_x == 0)
 			{
-				tw_nan_sdext_x = 1;
+				tw_nan_cache_x = 1;
         		tw_total++;
-			} else if (tw_nan_sdext_x == 1) {
-				tw_nan_sdext_x = 0;
+			} else if (tw_nan_cache_x == 1) {
+				tw_nan_cache_x = 0;
+        		tw_total--;
+			}
+			break;
+		case ITEM_NAN_WIMAX:
+			if (tw_nan_wimax_x == 0)
+			{
+				tw_nan_wimax_x = 1;
+        		tw_total++;
+			} else if (tw_nan_wimax_x == 1) {
+				tw_nan_wimax_x = 0;
         		tw_total--;
 			}
 			break;
@@ -466,6 +417,16 @@ nan_restore_menu(int pIdx)
         		tw_total++;
 			} else if (tw_nan_andsec_x == 1) {
 				tw_nan_andsec_x = 0;
+        		tw_total--;
+			}
+			break;
+		case ITEM_NAN_SDEXT:
+			if (tw_nan_sdext_x == 0)
+			{
+				tw_nan_sdext_x = 1;
+        		tw_total++;
+			} else if (tw_nan_sdext_x == 1) {
+				tw_nan_sdext_x = 0;
         		tw_total--;
 			}
 			break;
@@ -510,15 +471,6 @@ nan_img_set(int tw_setting, int tw_backstore)
 				isTrue = is_true(tw_nan_data_val);
 			}
 			break;
-		case ITEM_NAN_CACHE:
-			strcpy(tmp_set, "[ ] cache");
-			if (tw_backstore)
-			{
-				isTrue = tw_nan_cache_x;
-			} else {
-				isTrue = is_true(tw_nan_cache_val);
-			}
-			break;
 		case ITEM_NAN_BOOT:
 			strcpy(tmp_set, "[ ] boot");
 			if (tw_backstore)
@@ -526,15 +478,6 @@ nan_img_set(int tw_setting, int tw_backstore)
 				isTrue = tw_nan_boot_x;
 			} else {
 				isTrue = is_true(tw_nan_boot_val);
-			}
-			break;
-		case ITEM_NAN_WIMAX:
-			strcpy(tmp_set, "[ ] wimax");
-			if (tw_backstore)
-			{
-				isTrue = tw_nan_wimax_x;
-			} else {
-				isTrue = is_true(tw_nan_wimax_val);
 			}
 			break;
 		case ITEM_NAN_RECOVERY:
@@ -546,18 +489,27 @@ nan_img_set(int tw_setting, int tw_backstore)
 				isTrue = is_true(tw_nan_recovery_val);
 			}
 			break;
-		case ITEM_NAN_SDEXT:
-			strcpy(tmp_set, "[ ] sd-ext");
+		case ITEM_NAN_CACHE:
+			strcpy(tmp_set, "[ ] cache");
 			if (tw_backstore)
 			{
-				isTrue = tw_nan_sdext_x;
+				isTrue = tw_nan_cache_x;
 			} else {
-				if (stat(sde.blk,&st) != 0) 
+				isTrue = is_true(tw_nan_cache_val);
+			}
+			break;
+		case ITEM_NAN_WIMAX:
+			strcpy(tmp_set, "[ ] wimax");
+			if (tw_backstore)
+			{
+				isTrue = tw_nan_wimax_x;
+			} else {
+				if (strcmp(wim.mnt,"wimax") != 0)
 				{
-					tw_nan_sdext_x = -1;
+					tw_nan_wimax_x = -1;
 					isTrue = -1;
 				} else {
-					isTrue = is_true(tw_nan_sdext_val);
+					isTrue = is_true(tw_nan_wimax_val);
 				}
 			}
 			break;
@@ -573,6 +525,21 @@ nan_img_set(int tw_setting, int tw_backstore)
 					isTrue = -1;
 				} else {
 					isTrue = is_true(tw_nan_andsec_val);
+				}
+			}
+			break;
+		case ITEM_NAN_SDEXT:
+			strcpy(tmp_set, "[ ] sd-ext");
+			if (tw_backstore)
+			{
+				isTrue = tw_nan_sdext_x;
+			} else {
+				if (stat(sde.blk,&st) != 0) 
+				{
+					tw_nan_sdext_x = -1;
+					isTrue = -1;
+				} else {
+					isTrue = is_true(tw_nan_sdext_val);
 				}
 			}
 			break;
@@ -713,6 +680,60 @@ nandroid_back_exe()
 	}
 	if (isContinue)
 	{
+		if (is_true(tw_nan_boot_val)) {
+			ui_print("[BOOT (<10MB)]\n");
+			if (sdSpace > 10000)
+			{
+				strcpy(tw_image,tw_image_base);
+				strcat(tw_image,tw_nan_boot);
+				sprintf(exe,"dd bs=2048 if=%s of=%s", boo.dev, tw_image);
+				ui_print("...Backing up boot partition.\n");
+				ui_show_progress(1,5);
+				__system(exe);
+				ui_print("....Done.\n");
+				ui_print("...Generating %s md5...\n", boo.mnt);
+				makeMD5(tw_image_base,tw_nan_boot);
+				ui_print("....Done.\n");
+				ui_print("...Verifying %s md5...\n", boo.mnt);
+				checkMD5(tw_image_base,tw_nan_boot);
+				ui_print("...Done.\n\n");
+				ui_reset_progress();
+			} else {
+				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
+				isContinue = 0;
+			}
+			sdSpace -= 10000;
+		}
+	}
+	if (isContinue)
+	{
+		if (is_true(tw_nan_recovery_val)) {
+			ui_print("[RECOVERY (<10MB)]\n");
+			if (sdSpace > 10000)
+			{
+				strcpy(tw_image,tw_image_base);
+				strcat(tw_image,tw_nan_recovery);
+				sprintf(exe,"dd bs=2048 if=%s of=%s", rec.dev, tw_image);
+				ui_print("...Backing up recovery partition.\n");
+				ui_show_progress(1,5);
+				__system(exe);
+				ui_print("....Done.\n");
+				ui_print("...Generating %s md5...\n", rec.mnt);
+				makeMD5(tw_image_base,tw_nan_recovery);
+				ui_print("....Done.\n");
+				ui_print("...Verifying %s md5...\n", rec.mnt);
+				checkMD5(tw_image_base,tw_nan_recovery);
+				ui_print("...Done.\n\n");
+				ui_reset_progress();
+			} else {
+				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
+				isContinue = 0;
+			}
+			sdSpace -= 10000;
+		}
+	}
+	if (isContinue)
+	{
 		if (is_true(tw_nan_cache_val)) {
 			ensure_path_mounted("/cache");
 			fp = __popen("du -sk /cache", "r");
@@ -752,33 +773,6 @@ nandroid_back_exe()
 	}
 	if (isContinue)
 	{
-		if (is_true(tw_nan_boot_val)) {
-			ui_print("[BOOT (<10MB)]\n");
-			if (sdSpace > 10000)
-			{
-				strcpy(tw_image,tw_image_base);
-				strcat(tw_image,tw_nan_boot);
-				sprintf(exe,"dd bs=2048 if=%s of=%s", boo.dev, tw_image);
-				ui_print("...Backing up boot partition.\n");
-				ui_show_progress(1,5);
-				__system(exe);
-				ui_print("....Done.\n");
-				ui_print("...Generating %s md5...\n", boo.mnt);
-				makeMD5(tw_image_base,tw_nan_boot);
-				ui_print("....Done.\n");
-				ui_print("...Verifying %s md5...\n", boo.mnt);
-				checkMD5(tw_image_base,tw_nan_boot);
-				ui_print("...Done.\n\n");
-				ui_reset_progress();
-			} else {
-				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
-				isContinue = 0;
-			}
-			sdSpace -= 10000;
-		}
-	}
-	if (isContinue)
-	{
 		if (is_true(tw_nan_wimax_val)) {
 			ui_print("[WIMAX (<15MB)]\n");
 			if (sdSpace > 20000)
@@ -802,72 +796,6 @@ nandroid_back_exe()
 				isContinue = 0;
 			}
 			sdSpace -= 20000;
-		}
-	}
-	if (isContinue)
-	{
-		if (is_true(tw_nan_recovery_val)) {
-			ui_print("[RECOVERY (<10MB)]\n");
-			if (sdSpace > 10000)
-			{
-				strcpy(tw_image,tw_image_base);
-				strcat(tw_image,tw_nan_recovery);
-				sprintf(exe,"dd bs=2048 if=%s of=%s", rec.dev, tw_image);
-				ui_print("...Backing up recovery partition.\n");
-				ui_show_progress(1,5);
-				__system(exe);
-				ui_print("....Done.\n");
-				ui_print("...Generating %s md5...\n", rec.mnt);
-				makeMD5(tw_image_base,tw_nan_recovery);
-				ui_print("....Done.\n");
-				ui_print("...Verifying %s md5...\n", rec.mnt);
-				checkMD5(tw_image_base,tw_nan_recovery);
-				ui_print("...Done.\n\n");
-				ui_reset_progress();
-			} else {
-				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
-				isContinue = 0;
-			}
-			sdSpace -= 10000;
-		}
-	}
-	if (isContinue)
-	{
-		if (is_true(tw_nan_sdext_val)) {
-			ensure_path_mounted("/sd-ext");
-			fp = __popen("du -sk /sd-ext", "r");
-		    fscanf(fp,"%lu %*s",&imgSpace);
-			progTime = imgSpace / 500;
-			tmpSize = imgSpace / 1024;
-			ui_print("[SD-EXT (%dMB)]\n",tmpSize);
-			__pclose(fp);
-			if (sdSpace > imgSpace)
-			{
-				strcpy(tw_image,tw_image_base);
-				strcat(tw_image,tw_nan_sdext);
-				sprintf(exe,"cd %s && tar -cvzf %s ./*", sde.mnt, tw_image);
-				ui_print("...Backing up sd-ext partition.\n\n");
-				ui_show_progress(1,progTime);
-				fp = __popen(exe, "r");
-				while (fgets(tmpOutput,255,fp) != NULL)
-				{
-					tmpOutput[strlen(tmpOutput)-1] = '\0';
-					ui_print_overwrite("%s",tmpOutput);
-				}
-				__pclose(fp);
-				ui_print_overwrite("....Done.");
-				ui_print("\n\n...Generating %s md5...\n", sde.mnt);
-				makeMD5(tw_image_base,tw_nan_sdext);
-				ui_print("....Done.\n");
-				ui_print("...Verifying %s md5...\n", sde.mnt);
-				checkMD5(tw_image_base,tw_nan_sdext);
-				ui_print("...Done.\n\n");
-				ui_reset_progress();
-			} else {
-				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
-				isContinue = 0;
-			}
-			sdSpace -= imgSpace;
 		}
 	}
 	if (isContinue)
@@ -900,6 +828,45 @@ nandroid_back_exe()
 				ui_print("....Done.\n");
 				ui_print("...Verifying %s md5...\n", ase.mnt);
 				checkMD5(tw_image_base,tw_nan_andsec);
+				ui_print("...Done.\n\n");
+				ui_reset_progress();
+			} else {
+				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
+				isContinue = 0;
+			}
+			sdSpace -= imgSpace;
+		}
+	}
+	if (isContinue)
+	{
+		if (is_true(tw_nan_sdext_val)) {
+			ensure_path_mounted("/sd-ext");
+			fp = __popen("du -sk /sd-ext", "r");
+		    fscanf(fp,"%lu %*s",&imgSpace);
+			progTime = imgSpace / 500;
+			tmpSize = imgSpace / 1024;
+			ui_print("[SD-EXT (%dMB)]\n",tmpSize);
+			__pclose(fp);
+			if (sdSpace > imgSpace)
+			{
+				strcpy(tw_image,tw_image_base);
+				strcat(tw_image,tw_nan_sdext);
+				sprintf(exe,"cd %s && tar -cvzf %s ./*", sde.mnt, tw_image);
+				ui_print("...Backing up sd-ext partition.\n\n");
+				ui_show_progress(1,progTime);
+				fp = __popen(exe, "r");
+				while (fgets(tmpOutput,255,fp) != NULL)
+				{
+					tmpOutput[strlen(tmpOutput)-1] = '\0';
+					ui_print_overwrite("%s",tmpOutput);
+				}
+				__pclose(fp);
+				ui_print_overwrite("....Done.");
+				ui_print("\n\n...Generating %s md5...\n", sde.mnt);
+				makeMD5(tw_image_base,tw_nan_sdext);
+				ui_print("....Done.\n");
+				ui_print("...Verifying %s md5...\n", sde.mnt);
+				checkMD5(tw_image_base,tw_nan_sdext);
 				ui_print("...Done.\n\n");
 				ui_reset_progress();
 			} else {
@@ -963,27 +930,6 @@ nandroid_rest_exe()
 		}
 		ui_reset_progress();
 	}
-	if (tw_nan_cache_x == 1) {
-		ui_print("...Verifying md5 hash for %s.\n",tw_nan_cache);
-		ui_show_progress(1,100);
-		if(checkMD5(nan_dir,tw_nan_cache))
-		{
-			ensure_path_mounted("/cache");
-			strcpy(tmp_file,nan_dir);
-			strcat(tmp_file,tw_nan_cache);
-			ui_print("...Wiping %s.\n",cac.mnt);
-			sprintf(exe,"rm -rf /%s/* 2>/dev/null", cac.mnt);
-			__system(exe);
-			sprintf(exe,"cd /%s && tar -xv -zf %s", cac.mnt, tmp_file);
-			LOGI("=> %s\n", exe);
-			ui_print("...Restoring cache partition.\n\n");
-			__system(exe);
-			ui_print_overwrite("....Done.\n\n");
-		} else {
-			ui_print("...Failed md5 check. Aborted.\n\n");
-		}
-		ui_reset_progress();
-	}
 	if (tw_nan_boot_x == 1) {
 		ui_print("...Verifying md5 hash for %s.\n",tw_nan_boot);
 		ui_show_progress(1,5);
@@ -994,23 +940,6 @@ nandroid_rest_exe()
 			sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, boo.dev);
 			LOGI("=> %s\n", exe);
 			ui_print("...Restoring boot partition.\n");
-			__system(exe);
-			ui_print("...Done.\n\n");
-		} else {
-			ui_print("...Failed md5 check. Aborted.\n\n");
-		}
-		ui_reset_progress();
-	}
-	if (tw_nan_wimax_x == 1) {
-		ui_print("...Verifying md5 hash for %s.\n",tw_nan_wimax);
-		ui_show_progress(1,5);
-		if(checkMD5(nan_dir,tw_nan_wimax))
-		{
-			strcpy(tmp_file,nan_dir);
-			strcat(tmp_file,tw_nan_wimax);
-			sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, wim.dev);
-			LOGI("=> %s\n", exe);
-			ui_print("...Restoring wimax partition.\n");
 			__system(exe);
 			ui_print("...Done.\n\n");
 		} else {
@@ -1035,24 +964,41 @@ nandroid_rest_exe()
 		}
 		ui_reset_progress();
 	}
-	if (tw_nan_sdext_x == 1) {
-		ui_print("...Verifying md5 hash for %s.\n",tw_nan_sdext);
-		ui_show_progress(1,30);
-		if(checkMD5(nan_dir,tw_nan_sdext))
+	if (tw_nan_cache_x == 1) {
+		ui_print("...Verifying md5 hash for %s.\n",tw_nan_cache);
+		ui_show_progress(1,100);
+		if(checkMD5(nan_dir,tw_nan_cache))
 		{
-			ensure_path_mounted(sde.mnt);
+			ensure_path_mounted("/cache");
 			strcpy(tmp_file,nan_dir);
-			strcat(tmp_file,tw_nan_sdext);
-			ui_print("...Wiping %s.\n",sde.mnt);
-			sprintf(exe,"rm -rf %s/* 2>/dev/null", sde.mnt);
+			strcat(tmp_file,tw_nan_cache);
+			ui_print("...Wiping %s.\n",cac.mnt);
+			sprintf(exe,"rm -rf /%s/* 2>/dev/null", cac.mnt);
 			__system(exe);
-			sprintf(exe,"cd %s && tar -xv -zf %s", sde.dev, tmp_file);
+			sprintf(exe,"cd /%s && tar -xv -zf %s", cac.mnt, tmp_file);
 			LOGI("=> %s\n", exe);
-			ui_print("...Restoring sd-ext partition.\n\n");
+			ui_print("...Restoring cache partition.\n\n");
 			__system(exe);
 			ui_print_overwrite("....Done.\n\n");
 		} else {
-			ui_print("...Failed md5 check. Aborted.\n");
+			ui_print("...Failed md5 check. Aborted.\n\n");
+		}
+		ui_reset_progress();
+	}
+	if (tw_nan_wimax_x == 1) {
+		ui_print("...Verifying md5 hash for %s.\n",tw_nan_wimax);
+		ui_show_progress(1,5);
+		if(checkMD5(nan_dir,tw_nan_wimax))
+		{
+			strcpy(tmp_file,nan_dir);
+			strcat(tmp_file,tw_nan_wimax);
+			sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, wim.dev);
+			LOGI("=> %s\n", exe);
+			ui_print("...Restoring wimax partition.\n");
+			__system(exe);
+			ui_print("...Done.\n\n");
+		} else {
+			ui_print("...Failed md5 check. Aborted.\n\n");
 		}
 		ui_reset_progress();
 	}
@@ -1070,6 +1016,27 @@ nandroid_rest_exe()
 			sprintf(exe,"cd %s && tar -xv -zf %s", ase.dev, tmp_file);
 			LOGI("=> %s\n", exe);
 			ui_print("...Restoring .android-secure.\n\n");
+			__system(exe);
+			ui_print_overwrite("....Done.\n\n");
+		} else {
+			ui_print("...Failed md5 check. Aborted.\n");
+		}
+		ui_reset_progress();
+	}
+	if (tw_nan_sdext_x == 1) {
+		ui_print("...Verifying md5 hash for %s.\n",tw_nan_sdext);
+		ui_show_progress(1,30);
+		if(checkMD5(nan_dir,tw_nan_sdext))
+		{
+			ensure_path_mounted(sde.mnt);
+			strcpy(tmp_file,nan_dir);
+			strcat(tmp_file,tw_nan_sdext);
+			ui_print("...Wiping %s.\n",sde.mnt);
+			sprintf(exe,"rm -rf %s/* 2>/dev/null", sde.mnt);
+			__system(exe);
+			sprintf(exe,"cd %s && tar -xv -zf %s", sde.dev, tmp_file);
+			LOGI("=> %s\n", exe);
+			ui_print("...Restoring sd-ext partition.\n\n");
 			__system(exe);
 			ui_print_overwrite("....Done.\n\n");
 		} else {

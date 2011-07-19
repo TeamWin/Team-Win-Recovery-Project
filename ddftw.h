@@ -10,7 +10,7 @@ struct dInfo {
 	char dev[100];
 	char fst[10];
 };
-struct dInfo tmp, sys, dat, boo, rec, wim, cac, mis, sdc, sde, ase;
+struct dInfo tmp, sys, dat, boo, rec, wim, cac, sdc, ase, sde;
 
 void readRecFstab();
 void createFstab();
