@@ -34,23 +34,18 @@ service ueventd /sbin/ueventd
     critical
 
 service choice_fn /sbin/choice_fn
-oneshot
+    oneshot
 
 service recovery /sbin/recovery
+    disabled
 
 service power_test /sbin/power_test
-disabled
-oneshot
+    disabled
+    oneshot
 
 service offmode_charging /sbin/offmode_charging
 
 service detect_key /sbin/detect_key
-disabled
-oneshot
-
-service htcbatt /sbin/htcbatt
-disabled
-oneshot
 
 service adbd /sbin/adbd recovery
     disabled
