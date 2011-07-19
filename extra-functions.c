@@ -58,8 +58,6 @@
 
 extern char **environ;
 
-int tw_gapps_backup_restore_option = 0; // option to backup / restore gapps before and after a zip flash - not saved in settings, defaults to off
-
 int
 __system(const char *command)
 {

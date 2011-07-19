@@ -2,7 +2,7 @@ int __system(const char *command);
 FILE * __popen(const char *program, const char *type);
 int __pclose(FILE *iop);
 
-
+static int tw_gapps_auto_backup_restore_option ; // option to backup / restore gapps before and after a zip flash - not saved in settings, defaults to off
 
 // Device ID variable / function
 char device_id[15];
