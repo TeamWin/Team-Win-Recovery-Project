@@ -54,6 +54,7 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS[] = {
     { &gBackgroundIcon[BACKGROUND_ICON_WIPE],       "icon_wipe" },
     { &gBackgroundIcon[BACKGROUND_ICON_WIPE_CHOOSE],"icon_wipe_choose" },
     { &gBackgroundIcon[BACKGROUND_ICON_FLASH_ZIP],  "icon_flash_zip" },
+    { &gBackgroundIcon[BACKGROUND_ICON_NANDROID],  "icon_nandroid" },
     { &gProgressBarIndeterminate[0],    "indeterminate1" },
     { &gProgressBarIndeterminate[1],    "indeterminate2" },
     { &gProgressBarIndeterminate[2],    "indeterminate3" },
