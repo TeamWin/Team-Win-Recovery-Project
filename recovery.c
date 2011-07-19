@@ -620,7 +620,7 @@ sdcard_directory(const char* path) {
     return result;
 }
 
-static void
+void
 wipe_data(int confirm) {
     if (confirm) {
         static char** title_headers = NULL;
@@ -662,29 +662,26 @@ wipe_data(int confirm) {
     ui_print("Data wipe complete.\n");
 }
 
+
 void
 prompt_and_wait() {
 
 	// Main Menu
 	#define ITEM_APPLY_SDCARD        0
-	#define ITEM_WIPE_DALVIK         1
-	#define ITEM_WIPE_CACHE          2
-	#define ITEM_WIPE_DATA           3
-	#define ITEM_NANDROID_MENU     	 4
-	#define ITEM_ADVANCED_MENU       5
-	#define ITEM_MOUNT_MENU       	 6
-	#define ITEM_USB_TOGGLE          7
-	#define ITEM_REBOOT              8
+	#define ITEM_NANDROID_MENU     	 1
+	#define ITEM_MAIN_WIPE_MENU      2
+	#define ITEM_ADVANCED_MENU       3
+	#define ITEM_MOUNT_MENU       	 4
+	#define ITEM_USB_TOGGLE          5
+	#define ITEM_REBOOT              6
 
     finish_recovery(NULL);
     ui_reset_progress();
     
 	char** headers = prepend_title((const char**)MENU_HEADERS);
     char* MENU_ITEMS[] = {  "Install Zip",
-                            "Wipe Dalvik-Cache",
-                            "Wipe Cache Partition",
-                            "Wipe Data Factory Reset",
                             "Nandroid Menu",
+			    "Wipe Menu",
                             "Advanced Menu",
                             "Mount Menu",
                             "USB Storage Toggle",
@@ -715,29 +712,14 @@ prompt_and_wait() {
                 install_zip_menu();
                 break;
 
-            case ITEM_WIPE_DALVIK:
-                wipe_dalvik_cache();
-                break;
-
-            case ITEM_WIPE_CACHE:
-            	ui_set_background(BACKGROUND_ICON_WIPE);
-                ui_print("\n-- Wiping Cache Partition...\n");
-                erase_volume("/cache");
-                ui_print("-- Cache Partition Wipe Complete!\n");
-                ui_set_background(BACKGROUND_ICON_MAIN);
-                if (!ui_text_visible()) return;
-                break;
-
-            case ITEM_WIPE_DATA:
-                wipe_data(ui_text_visible());
-                ui_set_background(BACKGROUND_ICON_MAIN);
-                if (!ui_text_visible()) return;
-                break;
-
             case ITEM_NANDROID_MENU:
             	nandroid_menu();
             	break;
             	
+            case ITEM_MAIN_WIPE_MENU:
+                main_wipe_menu();
+                break;
+
             case ITEM_ADVANCED_MENU:
             	advanced_menu();
                 break;

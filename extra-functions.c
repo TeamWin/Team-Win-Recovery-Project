@@ -1042,3 +1042,66 @@ void mount_menu(int pIdx)
     dec_menu_loc();
     mount_menu(pIdx);
 }
+
+void main_wipe_menu()
+{
+	// ALL SETTINGS MENU (ALLS for ALL Settings)
+	#define MAIN_WIPE_CACHE           0
+	#define MAIN_WIPE_DALVIK   	  1
+	#define MAIN_WIPE_DATA            2
+	#define MAIN_WIPE_BACK            3
+
+    static char* MENU_MAIN_WIPE_HEADERS[] = { "All Settings",
+                                              NULL };
+    
+	char* MENU_MAIN_WIPE[] =     { "Wipe Cache",
+	                          "Wipe Dalvik Cache",
+	                          "Wipe Data Factory Reset",
+	                          "<-- Back To Main Menu",
+	                          NULL };
+
+    char** headers = prepend_title(MENU_MAIN_WIPE_HEADERS);
+    
+    inc_menu_loc(MAIN_WIPE_BACK);
+    for (;;)
+    {
+	ui_set_background(BACKGROUND_ICON_WIPE_CHOOSE);
+        int chosen_item = get_menu_selection(headers, MENU_MAIN_WIPE, 0, 0);
+        switch (chosen_item)
+        {
+            case MAIN_WIPE_DALVIK:
+                wipe_dalvik_cache();
+                break;
+
+            case MAIN_WIPE_CACHE:
+            	ui_set_background(BACKGROUND_ICON_WIPE);
+                ui_print("\n-- Wiping Cache Partition...\n");
+                erase_volume("/cache");
+                ui_print("-- Cache Partition Wipe Complete!\n");
+                ui_set_background(BACKGROUND_ICON_WIPE_CHOOSE);
+                if (!ui_text_visible()) return;
+                break;
+
+            case MAIN_WIPE_DATA:
+                wipe_data(ui_text_visible());
+                ui_set_background(BACKGROUND_ICON_WIPE_CHOOSE);
+                if (!ui_text_visible()) return;
+                break;
+
+            case MAIN_WIPE_BACK:
+            	dec_menu_loc();
+                ui_set_background(BACKGROUND_ICON_MAIN);
+            	return;
+        }
+	    if (go_home) { 
+	        dec_menu_loc();
+                ui_set_background(BACKGROUND_ICON_MAIN);
+	        return;
+	    }
+        break;
+    }
+	ui_end_menu();
+        dec_menu_loc();
+        ui_set_background(BACKGROUND_ICON_MAIN);
+	main_wipe_menu();
+}

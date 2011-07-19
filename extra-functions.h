@@ -13,6 +13,7 @@ void usb_storage_toggle();
 void wipe_dalvik_cache();
 
 void format_menu();
+void main_wipe_menu();
 
 // Format Menu Stuff
 int erase_volume(const char *volume);

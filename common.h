@@ -111,4 +111,6 @@ typedef struct {
                               // 'device' fails
 } Volume;
 
+void wipe_data(int confirm);
+
 #endif  // RECOVERY_COMMON_H
