@@ -447,7 +447,7 @@ void reboot_menu()
 	                        "Reboot To Recovery",
 	                        "Reboot To Bootloader",
 	                        "Power Off",
-	                        "<-Back To Main Menu",
+	                        "<-- Back To Main Menu",
 	                        NULL };
 
     
@@ -532,7 +532,7 @@ void advanced_menu()
 	                          "Wipe Battery Stats",
 	                          "Wipe Rotation Data",
 	                          "Change twrp Settings",
-	                          "<-Back To Main Menu",
+	                          "<-- Back To Main Menu",
 	                          NULL };
 	
 
@@ -603,11 +603,11 @@ format_menu()
                                 "Choose Partition to Format: ",
                                 NULL };
 	
-    char* part_items[] = {  "Format Cache (/cache)",
-                            "Format Data (/data)",
-                            "Format Sdcard (/sdcard)",
-                            "Format System (/system)",
-						    "<- Back To Advanced Menu",
+    char* part_items[] = {  "Format CACHE (/cache)",
+                            "Format DATA (/data)",
+                            "Format SDCARD (/sdcard)",
+                            "Format SYSTEM (/system)",
+						    "<-- Back To Advanced Menu",
 						    NULL };
 
     char** headers = prepend_title(part_headers);
@@ -801,7 +801,7 @@ void time_zone_menu()
     inc_menu_loc(TZ_GMT_MENU_BACK);
     for (;;)
     {
-        int chosen_item = get_menu_selection(headers, MENU_TZ, 0, 3); // puts the initially selected item to GMT which should be right in the middle of the most used time zones for ease of use
+        int chosen_item = get_menu_selection(headers, MENU_TZ, 0, 3); // puts the initially selected item to MST/MDT which should be right in the middle of the most used time zones for ease of use
         switch (chosen_item)
         {
             case TZ_GMT_MINUS10:
