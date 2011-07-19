@@ -34,10 +34,12 @@ void
 nandroid_menu()
 {	
 	// define constants for menu selection
-#define ITEM_MENU_BACK         0
-#define ITEM_BACKUP_MENU       1
-#define ITEM_RESTORE_MENU      2
-#define ITEM_MENU_RBOOT 	   3
+#define ITEM_MENU_BACK           0
+#define ITEM_BACKUP_MENU         1
+#define ITEM_RESTORE_MENU        2
+#define ITEM_GAPPS_BACKUP        3
+#define ITEM_GAPPS_RESTORE       4
+#define ITEM_MENU_RBOOT 	     5
 	
 	// build headers and items in menu
 	char* nan_headers[] = { "Nandroid Menu",
@@ -47,6 +49,8 @@ nandroid_menu()
 	char* nan_items[] = { "<-- Back To Main Menu",
 						  "Backup Menu",
 						  "Restore Menu",
+						  "Backup Google Apps",
+						  "Restore Google Apps",
 						  "--> Reboot System",
 						  NULL };
 	
@@ -70,6 +74,12 @@ nandroid_menu()
 			case ITEM_RESTORE_MENU:
                 choose_nandroid_folder();
 				break;
+			case ITEM_GAPPS_BACKUP:
+			    create_gapps_backup();
+			    break;
+			case ITEM_GAPPS_RESTORE:
+			    
+			    break;
 			case ITEM_MENU_RBOOT:
                 reboot(RB_AUTOBOOT);
                 break;
@@ -1053,6 +1063,95 @@ nandroid_rest_exe()
 
 static int compare_string(const void* a, const void* b) {
     return strcmp(*(const char**)a, *(const char**)b);
+}
+
+void create_gapps_backup() {
+
+    ensure_path_mounted("/sdcard");
+	FILE *fp;
+	int progTime;
+	int tmpSize;
+	unsigned long sdSpace;
+	char exe[255];
+	char tw_image_folder[255];
+	struct stat st;
+    
+	// make sure we have the gapps folder in the nandroid folder
+	if (stat(gapps_backup_folder,&st) != 0) {
+		if(mkdir(gapps_backup_folder,0777) == -1) {
+			LOGI("=> Can not create directory: %s\n", gapps_backup_folder);
+		} else {
+			LOGI("=> Created directory: %s\n", gapps_backup_folder);
+		}
+	}
+	
+	// make sure we have the device_id folder inside the nandroid/gapps folder
+	sprintf(tw_image_folder, "%s/%s/", gapps_backup_folder, device_id);
+	if (stat(tw_image_folder,&st) != 0) {
+		if(mkdir(tw_image_folder,0777) == -1) {
+			LOGI("=> Can not create directory: %s\n", tw_image_folder);
+		} else {
+			LOGI("=> Created directory: %s\n", tw_image_folder);
+		}
+	}
+	
+	// find out how much sdcard space is available
+	fp = __popen("df -k /sdcard| grep sdcard | awk '{ print $4 }'", "r");
+    fscanf(fp,"%lu",&sdSpace);
+	__pclose(fp);
+	
+	if (sdSpace > 20000) // make sure we have 20MB of sdcard space for gapps backup
+	{
+		sprintf(tw_image_folder, "%s/%s/", gapps_backup_folder, device_id); // location of the gapps backup folder
+		ui_print("...Backing up Google Apps.");
+		ui_show_progress(1,10);
+		sprintf(exe,"bakgapps.sh backup");
+		__system(exe);
+		LOGI("=> %s\n", exe);
+		ui_show_progress(1,90);
+		ui_print("...Done.");
+		ui_print("\n\n...Generating md5.");
+		makeMD5(tw_image_folder,gapps_backup_file);
+		ui_show_progress(1,95);
+		ui_print("...Done.\n");
+		ui_print("...Verifying md5.");
+		checkMD5(tw_image_folder,gapps_backup_file);
+		ui_print("...Done.\n\n");
+		ui_reset_progress();
+		gapps_error = 0;
+	} else {
+		ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
+		gapps_error = 1;
+	}
+}
+
+void restore_gapps_backup() {
+
+    ensure_path_mounted("/sdcard");
+	FILE *fp;
+	int progTime;
+	int tmpSize;
+	unsigned long sdSpace;
+	char exe[255];
+	char tw_image_folder[255];
+	struct stat st;
+	
+	sprintf(tw_image_folder, "%s/%s/", gapps_backup_folder, device_id); // location of the gapps backup folder
+	ui_print("...Verifying md5 hash for %s.\n",tw_nan_sdext);
+	ui_show_progress(1,10);
+	if(checkMD5(tw_image_folder,gapps_backup_file))
+	{
+		ensure_path_mounted(sde.mnt);
+		ui_print("...Restoring Google Apps.");
+		sprintf(exe,"bakgapps.sh restore");
+		__system(exe);
+		LOGI("=> %s\n", exe);
+		ui_print("....Done.\n\n");
+		gapps_error = 0;
+	} else {
+		ui_print("...Failed md5 check. Aborted.\n");
+		gapps_error = 1;
+	}
 }
 
 void choose_nandroid_folder() 

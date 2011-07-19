@@ -2,6 +2,9 @@ int __system(const char *command);
 FILE * __popen(const char *program, const char *type);
 int __pclose(FILE *iop);
 
+
+
+// Device ID variable / function
 char device_id[15];
 void get_device_id();
 
@@ -27,6 +30,7 @@ int get_menu_selection(char** headers, char** items, int menu_only, int initial_
 
 char* zip_verify();
 char* reboot_after_flash();
+char* backup_restore_gapps();
 
 char* save_reboot_setting();
 void all_settings_menu();
