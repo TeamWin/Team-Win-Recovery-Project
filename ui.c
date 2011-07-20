@@ -29,11 +29,11 @@
 #include "minui/minui.h"
 #include "recovery_ui.h"
 
-#define MAX_COLS 100
-#define MAX_ROWS 50
+#define MAX_COLS 50
+#define MAX_ROWS 40
 
-#define MENU_MAX_COLS 100
-#define MENU_MAX_ROWS 50
+#define MENU_MAX_COLS 50
+#define MENU_MAX_ROWS 40
 
 #define CHAR_WIDTH 10
 #define CHAR_HEIGHT 18
