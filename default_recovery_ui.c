@@ -19,7 +19,8 @@
 #include "recovery_ui.h"
 #include "common.h"
 
-char* MENU_HEADERS[] = { "Please select an option from below:",
+char* MENU_HEADERS[] = { "Main Menu",
+						 "Please select an option from below:",
                          NULL };
 // NOTE: Main Menu items moved to recovery.c to be definied at runtime
 

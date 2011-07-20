@@ -320,29 +320,30 @@ char* reboot_after_flash()
 char* backup_restore_gapps_menu_option()
 {
 	char* tmp_set = (char*)malloc(40);
-	strcpy(tmp_set, "[ ] Backup Google Apps before flash & restore after");
+	strcpy(tmp_set, "[ ] Auto Backup/Restore GAPPS on Flash");
 	if (tw_gapps_auto_backup_restore_option == 1) {
 		tmp_set[1] = 'x';
 	}
 	return tmp_set;
 }
 
-void install_zip_menu()
+void install_zip_menu(int pIdx)
 {
 	// INSTALL ZIP MENU
 	#define ITEM_CHOOSE_ZIP           0
-	#define ITEM_REBOOT_AFTER_FLASH   1
-	#define ITEM_BACKREST_GAPPS       2 // auto backup and restore gapps
+	#define ITEM_BACKREST_GAPPS       1 // auto backup and restore gapps
+	#define ITEM_REBOOT_AFTER_FLASH   2
 	#define ITEM_TOGGLE_SIG           3
 	#define ITEM_ZIP_BACK		      4
 	
     ui_set_background(BACKGROUND_ICON_FLASH_ZIP);
-    static char* MENU_FLASH_HEADERS[] = {   "Flash zip From SD card:",
-                                            NULL };
+    static char* MENU_FLASH_HEADERS[] = { "Install Zip Menu",
+    									  "Flash Zip From SD Card:",
+                                          NULL };
 
 	char* MENU_INSTALL_ZIP[] = {  "--> Choose Zip To Flash",
+			  	  	  	  	  	  backup_restore_gapps_menu_option(),
 	                              reboot_after_flash(),
-								  backup_restore_gapps_menu_option(),
 								  zip_verify(),
 	                              "<-- Back To Main Menu",
 	                              NULL };
@@ -352,7 +353,8 @@ void install_zip_menu()
     inc_menu_loc(ITEM_ZIP_BACK);
     for (;;)
     {
-        int chosen_item = get_menu_selection(headers, MENU_INSTALL_ZIP, 0, 0);
+        int chosen_item = get_menu_selection(headers, MENU_INSTALL_ZIP, 0, pIdx);
+        pIdx = chosen_item;
         switch (chosen_item)
         {
             case ITEM_CHOOSE_ZIP:
@@ -384,6 +386,13 @@ void install_zip_menu()
 					}
 				}
                 break;
+			case ITEM_BACKREST_GAPPS:
+			    if (tw_gapps_auto_backup_restore_option == 0) {
+				    tw_gapps_auto_backup_restore_option = 1;
+				} else {
+				    tw_gapps_auto_backup_restore_option = 0;
+				}
+				break;
 			case ITEM_REBOOT_AFTER_FLASH:
 				if (is_true(tw_reboot_after_flash_option)) {
             		strcpy(tw_reboot_after_flash_option, "0");
@@ -392,13 +401,6 @@ void install_zip_menu()
             	}
                 write_s_file();
                 break;
-			case ITEM_BACKREST_GAPPS:
-			    if (tw_gapps_auto_backup_restore_option == 0) {
-				    tw_gapps_auto_backup_restore_option = 1;
-				} else {
-				    tw_gapps_auto_backup_restore_option = 0;
-				}
-				break;
             case ITEM_TOGGLE_SIG:
             	if (is_true(tw_signed_zip_val)) {
             		strcpy(tw_signed_zip_val, "0");
@@ -420,7 +422,7 @@ void install_zip_menu()
     }
 	ui_end_menu();
     dec_menu_loc();
-	install_zip_menu();
+	install_zip_menu(pIdx);
 }
 
 void wipe_dalvik_cache()
@@ -464,7 +466,8 @@ void reboot_menu()
 	#define ITEM_BACKK		 4
 	
 
-    static char* MENU_REBOOT_HEADERS[] = {  "Reboot Menu:",
+    static char* MENU_REBOOT_HEADERS[] = {  "Reboot Menu",
+    										"Choose Your Destiny:",
                                             NULL };
     
 	// REBOOT MENU
@@ -472,7 +475,7 @@ void reboot_menu()
 	                        "Reboot To Recovery",
 	                        "Reboot To Bootloader",
 	                        "Power Off",
-	                        "<-- Back To Main Menu",
+	                        "<-- Back To Advanced Menu",
 	                        NULL };
 
     
@@ -544,18 +547,15 @@ void advanced_menu()
 	// ADVANCED MENU
 	#define ITEM_REBOOT_MENU       0
 	#define ITEM_FORMAT_MENU       1
-	#define ITEM_BATTERY_STATS     2
-	#define ITEM_ROTATE_DATA       3
-	#define ITEM_ALL_SETTINGS      4
-	#define ADVANCED_MENU_BACK     5
+	#define ITEM_ALL_SETTINGS      2
+	#define ADVANCED_MENU_BACK     3
 
-    static char* MENU_ADVANCED_HEADERS[] = { "Advanced Options",
+    static char* MENU_ADVANCED_HEADERS[] = { "Advanced Menu",
+    										 "Reboot, Format, or twrp!",
                                               NULL };
     
 	char* MENU_ADVANCED[] = { "Reboot Menu",
 	                          "Format Menu",
-	                          "Wipe Battery Stats",
-	                          "Wipe Rotation Data",
 	                          "Change twrp Settings",
 	                          "<-- Back To Main Menu",
 	                          NULL };
@@ -572,20 +572,11 @@ void advanced_menu()
             case ITEM_REBOOT_MENU:
                 reboot_menu();
                 break;
-
             case ITEM_FORMAT_MENU:
                 format_menu();
                 break;
-
-            case ITEM_BATTERY_STATS:
-                wipe_battery_stats();
-                break;
-
-            case ITEM_ROTATE_DATA:
-                wipe_rotate_data();
-                break;
             case ITEM_ALL_SETTINGS:
-			    all_settings_menu();
+			    all_settings_menu(0);
 				break;
             case ADVANCED_MENU_BACK:
             	dec_menu_loc();
@@ -625,7 +616,7 @@ format_menu()
 	#define ITEM_FORMAT_BACK        4
 	
 	char* part_headers[] = {    "Format Menu",
-                                "Choose Partition to Format: ",
+                                "Choose a Partition to Format: ",
                                 NULL };
 	
     char* part_items[] = {  "Format CACHE (/cache)",
@@ -701,37 +692,31 @@ confirm_format(char* volume_name, char* volume_path) {
 
 char* 
 print_batt_cap()  {
+	char* full_cap_s = (char*)malloc(30);
     char cap_s[4];
-    
-    FILE * cap = fopen("/sys/class/power_supply/battery/capacity","r");
-    fgets(cap_s, 4, cap);
-    fclose(cap);
+	char full_cap_a[30];
+	FILE * cap = fopen("/sys/class/power_supply/battery/capacity","r");
+	fgets(cap_s, 4, cap);
+	fclose(cap);
 	
-    int len = strlen(cap_s);
+	int len = strlen(cap_s);
 	if (cap_s[len-1] == '\n') {
 		cap_s[len-1] = 0;
 	}
-    
-    // Get a usable time
-
-    struct tm *current;
-    time_t now;
-    now = time(0);
-    current = localtime(&now);
-    
-    // HACK: Not sure if this could be a possible memory leak
-    char* full_cap_s = (char*)malloc(30);
-    char full_cap_a[30];
-    sprintf(full_cap_a, "Battery Level: %s%% @ %02D:%02D", cap_s, current->tm_hour, current->tm_min);
-
-    strcpy(full_cap_s, full_cap_a);
-
-    //ui_print("\n%s\n", full_cap_s);
-    
-    return full_cap_s;
+	
+	// Get a usable time
+	struct tm *current;
+	time_t now;
+	now = time(0);
+	current = localtime(&now);
+	
+	sprintf(full_cap_a, "Battery Level: %s%% @ %02D:%02D", cap_s, current->tm_hour, current->tm_min);
+	strcpy(full_cap_s, full_cap_a);
+	
+	return full_cap_s;
 }
 
-void all_settings_menu()
+void all_settings_menu(int pIdx)
 {
 	// ALL SETTINGS MENU (ALLS for ALL Settings)
 	#define ALLS_SIG_TOGGLE           0
@@ -740,14 +725,15 @@ void all_settings_menu()
 	#define ALLS_DEFAULT              3
 	#define ALLS_MENU_BACK            4
 
-    static char* MENU_ALLS_HEADERS[] = { "All Settings",
-                                              NULL };
+    static char* MENU_ALLS_HEADERS[] = { "twrp Settings",
+    									 "twrp or gtfo:",
+                                         NULL };
     
 	char* MENU_ALLS[] =     { zip_verify(),
 	                          reboot_after_flash(),
 	                          "Change Time Zone",
 	                          "Reset Settings to Defaults",
-	                          "<-- Back To Main Menu",
+	                          "<-- Back To Advanced Menu",
 	                          NULL };
 
     char** headers = prepend_title(MENU_ALLS_HEADERS);
@@ -755,7 +741,8 @@ void all_settings_menu()
     inc_menu_loc(ALLS_MENU_BACK);
     for (;;)
     {
-        int chosen_item = get_menu_selection(headers, MENU_ALLS, 0, 0);
+        int chosen_item = get_menu_selection(headers, MENU_ALLS, 0, pIdx);
+        pIdx = chosen_item;
         switch (chosen_item)
         {
             case ALLS_SIG_TOGGLE:
@@ -793,7 +780,7 @@ void all_settings_menu()
     }
 	ui_end_menu();
     dec_menu_loc();
-	all_settings_menu();
+	all_settings_menu(pIdx);
 }
 
 void time_zone_menu()
@@ -809,6 +796,7 @@ void time_zone_menu()
 	#define TZ_GMT_MENU_BACK	7
 
     static char* MENU_TZ_HEADERS[] = { "Time Zone",
+    								   "Instant Time Machine:",
                                               NULL };
     
 	char* MENU_TZ[] =       { "GMT-10 (HST)",
@@ -818,7 +806,7 @@ void time_zone_menu()
 							  "GMT-6 (CST)",
 							  "GMT-5 (EST)",
 							  "GMT-4 (AST)",
-	                          "<-- Back To Main Menu",
+	                          "<-- Back To twrp Settings",
 	                          NULL };
 
     char** headers = prepend_title(MENU_TZ_HEADERS);
@@ -988,6 +976,7 @@ void mount_menu(int pIdx)
 	chkMounts();
 	
 	static char* MENU_MNT_HEADERS[] = { "Mount Menu",
+										"Pick a Partition to Mount:",
 										NULL };
 	
 	char* MENU_MNT[] = { isMounted(MNT_SYSTEM),
@@ -1072,18 +1061,23 @@ void main_wipe_menu()
 {
 	// ALL SETTINGS MENU (ALLS for ALL Settings)
 	#define MAIN_WIPE_CACHE           0
-	#define MAIN_WIPE_DALVIK   	  1
+	#define MAIN_WIPE_DALVIK   	  	  1
 	#define MAIN_WIPE_DATA            2
-	#define MAIN_WIPE_BACK            3
+	#define ITEM_BATTERY_STATS     	  3
+	#define ITEM_ROTATE_DATA       	  4
+	#define MAIN_WIPE_BACK            5
 
-    static char* MENU_MAIN_WIPE_HEADERS[] = { "All Settings",
+    static char* MENU_MAIN_WIPE_HEADERS[] = { "Wipe Menu",
+    										  "Wipe Front to Back:",
                                               NULL };
     
-	char* MENU_MAIN_WIPE[] =     { "Wipe Cache",
-	                          "Wipe Dalvik Cache",
-	                          "Wipe Data Factory Reset",
-	                          "<-- Back To Main Menu",
-	                          NULL };
+	char* MENU_MAIN_WIPE[] = { "Wipe Cache",
+	                           "Wipe Dalvik Cache",
+	                           "Wipe Everything (Data Factory Reset)",
+		                       "Wipe Battery Stats",
+		                       "Wipe Rotation Data",
+	                           "<-- Back To Main Menu",
+	                           NULL };
 
     char** headers = prepend_title(MENU_MAIN_WIPE_HEADERS);
     
@@ -1113,6 +1107,14 @@ void main_wipe_menu()
                 if (!ui_text_visible()) return;
                 break;
 
+            case ITEM_BATTERY_STATS:
+                wipe_battery_stats();
+                break;
+
+            case ITEM_ROTATE_DATA:
+                wipe_rotate_data();
+                break;
+                
             case MAIN_WIPE_BACK:
             	dec_menu_loc();
                 ui_set_background(BACKGROUND_ICON_MAIN);

@@ -397,8 +397,8 @@ copy_sideloaded_package(const char* original_path) {
 
 char**
 prepend_title(const char** headers) {
-    char* title[] = { "TeamWin Android Recovery Utility",
-                      "Based on Android system recovery <"
+    char* title[] = { "Team Win Recovery Pwnt (twrp) v1.0.0",
+                      "Based on Android System Recovery <"
                       EXPAND(RECOVERY_API_VERSION) "e>",
                       "", //
                       print_batt_cap(),
@@ -635,20 +635,11 @@ wipe_data(int confirm) {
         }
 
         char* items[] = { " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " Yes -- delete all user data",   // [7]
-                          " No",
-                          " No",
-                          " No",
+                          " Yes -- delete all user data",   // [1]
                           NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 7) {
+        if (chosen_item != 1) {
             return;
         }
     }
@@ -681,7 +672,7 @@ prompt_and_wait() {
 	char** headers = prepend_title((const char**)MENU_HEADERS);
     char* MENU_ITEMS[] = {  "Install Zip",
                             "Nandroid Menu",
-			    "Wipe Menu",
+                            "Wipe Menu",
                             "Advanced Menu",
                             "Mount Menu",
                             "USB Storage Toggle",
@@ -709,7 +700,7 @@ prompt_and_wait() {
         
         switch (chosen_item) {
             case ITEM_APPLY_SDCARD:
-                install_zip_menu();
+                install_zip_menu(0);
                 break;
 
             case ITEM_NANDROID_MENU:

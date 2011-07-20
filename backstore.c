@@ -34,24 +34,24 @@ void
 nandroid_menu()
 {	
 	// define constants for menu selection
-#define ITEM_MENU_BACK           0
-#define ITEM_BACKUP_MENU         1
-#define ITEM_RESTORE_MENU        2
-#define ITEM_GAPPS_BACKUP        3
-#define ITEM_GAPPS_RESTORE       4
-#define ITEM_MENU_RBOOT 	     5
+#define ITEM_BACKUP_MENU         0
+#define ITEM_RESTORE_MENU        1
+#define ITEM_GAPPS_BACKUP        2
+#define ITEM_GAPPS_RESTORE       3
+#define ITEM_MENU_RBOOT 	     4
+#define ITEM_MENU_BACK           5
 	
 	// build headers and items in menu
 	char* nan_headers[] = { "Nandroid Menu",
-							"Choose Backup or Restore: ",
+							"Choose Backup or Restore:",
 							NULL };
 	
-	char* nan_items[] = { "<-- Back To Main Menu",
-						  "Backup Menu",
-						  "Restore Menu",
+	char* nan_items[] = { "Backup Partitions",
+						  "Restore Partitions",
 						  "Backup Google Apps",
 						  "Restore Google Apps",
 						  "--> Reboot System",
+						  "<-- Back To Main Menu",
 						  NULL };
 	
 	char** headers = prepend_title(nan_headers);
@@ -64,10 +64,6 @@ nandroid_menu()
 		chosen_item = get_menu_selection(headers, nan_items, 0, 0);
 		switch (chosen_item)
 		{
-			case ITEM_MENU_BACK:
-				dec_menu_loc();
-                                ui_set_background(BACKGROUND_ICON_MAIN);
-				return;
 			case ITEM_BACKUP_MENU:
 				nan_backup_menu(0);
 				break;
@@ -78,11 +74,15 @@ nandroid_menu()
 			    create_gapps_backup();
 			    break;
 			case ITEM_GAPPS_RESTORE:
-			    
+				restore_gapps_backup();
 			    break;
 			case ITEM_MENU_RBOOT:
                 reboot(RB_AUTOBOOT);
                 break;
+			case ITEM_MENU_BACK:
+				dec_menu_loc();
+                ui_set_background(BACKGROUND_ICON_MAIN);
+				return;
 		}
 	    if (go_home) { 		// if home was called
 	        dec_menu_loc();
@@ -108,7 +108,7 @@ nan_backup_menu(int pIdx)
 {
 	tw_total = 0;
 	char* nan_b_headers[] = { "Nandroid Backup",
-							   "Choose Nandroid Options: ",
+							   "Choose Backup Options:",
 							   NULL	};
 	
 	char* nan_b_items[] = { "--> Backup Naowz!",
@@ -120,7 +120,7 @@ nan_backup_menu(int pIdx)
 							 nan_img_set(ITEM_NAN_WIMAX,0),
 							 nan_img_set(ITEM_NAN_ANDSEC,0),
 							 nan_img_set(ITEM_NAN_SDEXT,0),
-							 "<-- Back To Main Menu",
+							 "<-- Back To Nandroid Menu",
 							 NULL };
 
 	char** headers = prepend_title(nan_b_headers);
@@ -331,7 +331,7 @@ nan_restore_menu(int pIdx)
 {
 	tw_total = 0;
 	char* nan_r_headers[] = { "Nandroid Restore",
-							  "Choose Nandroid Options: ",
+							  "Choose Restore Options:",
 							  NULL	};
 	
 	char* nan_r_items[] = { "--> Restore Naowz!",
@@ -343,7 +343,7 @@ nan_restore_menu(int pIdx)
 			 	 	 	 	nan_img_set(ITEM_NAN_WIMAX,1),
 			 	 	 	 	nan_img_set(ITEM_NAN_ANDSEC,1),
 			 	 	 	 	nan_img_set(ITEM_NAN_SDEXT,1),
-							"<-- Back To Main Menu",
+							"<-- Back To Nandroid Menu",
 							 NULL };
 
 	char** headers = prepend_title(nan_r_headers);
@@ -629,7 +629,7 @@ nandroid_back_exe()
 			strcpy(tw_image,tw_image_base);
 			strcat(tw_image,tw_nan_system);
 			sprintf(exe,"cd /%s && tar -cvzf %s ./*", sys.mnt, tw_image);
-			ui_print("...Backing up system partition.\n\n");
+			ui_print("...Backing up system partition.\n");
 			ui_show_progress(1,progTime);
 			fp = __popen(exe, "r");
 			while (fgets(tmpOutput,255,fp) != NULL)
@@ -638,8 +638,8 @@ nandroid_back_exe()
 				ui_print_overwrite("%s",tmpOutput);
 			}
 			__pclose(fp);
-			ui_print_overwrite("....Done.");
-			ui_print("\n\n...Generating %s md5...\n", sys.mnt);
+			ui_print_overwrite("....Done.\n");
+			ui_print("...Generating %s md5...\n", sys.mnt);
 			makeMD5(tw_image_base,tw_nan_system);
 			ui_print("....Done.\n");
 			ui_print("...Verifying %s md5...\n", sys.mnt);
@@ -667,7 +667,7 @@ nandroid_back_exe()
 				strcpy(tw_image,tw_image_base);
 				strcat(tw_image,tw_nan_data);
 				sprintf(exe,"cd /%s && tar -cvzf %s ./*", dat.mnt, tw_image);
-				ui_print("...Backing up data partition.\n\n");
+				ui_print("...Backing up data partition.\n");
 				ui_show_progress(1,progTime);
 				fp = __popen(exe, "r");
 				while (fgets(tmpOutput,255,fp) != NULL)
@@ -676,8 +676,8 @@ nandroid_back_exe()
 					ui_print_overwrite("%s",tmpOutput);
 				}
 				__pclose(fp);
-				ui_print_overwrite("....Done.");
-				ui_print("\n\n...Generating %s md5...\n", dat.mnt);
+				ui_print_overwrite("....Done.\n");
+				ui_print("...Generating %s md5...\n", dat.mnt);
 				makeMD5(tw_image_base,tw_nan_data);
 				ui_print("....Done.\n");
 				ui_print("...Verifying %s md5...\n", dat.mnt);
@@ -760,7 +760,7 @@ nandroid_back_exe()
 				strcpy(tw_image,tw_image_base);
 				strcat(tw_image,tw_nan_cache);
 				sprintf(exe,"cd /%s && tar -cvzf %s ./*", cac.mnt, tw_image);
-				ui_print("...Backing up cache partition.\n\n");
+				ui_print("...Backing up cache partition.\n");
 				ui_show_progress(1,progTime);
 				fp = __popen(exe, "r");
 				while (fgets(tmpOutput,255,fp) != NULL)
@@ -769,8 +769,8 @@ nandroid_back_exe()
 					ui_print_overwrite("%s",tmpOutput);
 				}
 				__pclose(fp);
-				ui_print_overwrite("....Done.");
-				ui_print("\n\n...Generating %s md5...\n", cac.mnt);
+				ui_print_overwrite("....Done.\n");
+				ui_print("...Generating %s md5...\n", cac.mnt);
 				makeMD5(tw_image_base,tw_nan_cache);
 				ui_print("....Done.\n");
 				ui_print("...Verifying %s md5...\n", cac.mnt);
@@ -826,7 +826,7 @@ nandroid_back_exe()
 				strcpy(tw_image,tw_image_base);
 				strcat(tw_image,tw_nan_andsec);
 				sprintf(exe,"cd %s && tar -cvzf %s ./*", ase.dev, tw_image);
-				ui_print("...Backing up .android_secure.\n\n");
+				ui_print("...Backing up .android_secure.\n");
 				ui_show_progress(1,progTime);
 				fp = __popen(exe, "r");
 				while (fgets(tmpOutput,255,fp) != NULL)
@@ -835,8 +835,8 @@ nandroid_back_exe()
 					ui_print_overwrite("%s",tmpOutput);
 				}
 				__pclose(fp);
-				ui_print_overwrite("....Done.");
-				ui_print("\n\n...Generating %s md5...\n", ase.mnt);
+				ui_print_overwrite("....Done.\n");
+				ui_print("...Generating %s md5...\n", ase.mnt);
 				makeMD5(tw_image_base,tw_nan_andsec);
 				ui_print("....Done.\n");
 				ui_print("...Verifying %s md5...\n", ase.mnt);
@@ -865,7 +865,7 @@ nandroid_back_exe()
 				strcpy(tw_image,tw_image_base);
 				strcat(tw_image,tw_nan_sdext);
 				sprintf(exe,"cd %s && tar -cvzf %s ./*", sde.mnt, tw_image);
-				ui_print("...Backing up sd-ext partition.\n\n");
+				ui_print("...Backing up sd-ext partition.\n");
 				ui_show_progress(1,progTime);
 				fp = __popen(exe, "r");
 				while (fgets(tmpOutput,255,fp) != NULL)
@@ -874,8 +874,8 @@ nandroid_back_exe()
 					ui_print_overwrite("%s",tmpOutput);
 				}
 				__pclose(fp);
-				ui_print_overwrite("....Done.");
-				ui_print("\n\n...Generating %s md5...\n", sde.mnt);
+				ui_print_overwrite("....Done.\n");
+				ui_print("...Generating %s md5...\n", sde.mnt);
 				makeMD5(tw_image_base,tw_nan_sdext);
 				ui_print("....Done.\n");
 				ui_print("...Verifying %s md5...\n", sde.mnt);
@@ -1066,14 +1066,13 @@ static int compare_string(const void* a, const void* b) {
 }
 
 void create_gapps_backup() {
-
     ensure_path_mounted("/sdcard");
+    ensure_path_mounted("/system");
+    
 	FILE *fp;
-	int progTime;
-	int tmpSize;
 	unsigned long sdSpace;
-	char exe[255];
 	char tw_image_folder[255];
+	char tmpText[15];
 	struct stat st;
     
 	// make sure we have the gapps folder in the nandroid folder
@@ -1095,63 +1094,41 @@ void create_gapps_backup() {
 		}
 	}
 	
-	// find out how much sdcard space is available
-	fp = __popen("df -k /sdcard| grep sdcard | awk '{ print $4 }'", "r");
-    fscanf(fp,"%lu",&sdSpace);
-	__pclose(fp);
-	
-	if (sdSpace > 20000) // make sure we have 20MB of sdcard space for gapps backup
-	{
-		sprintf(tw_image_folder, "%s/%s/", gapps_backup_folder, device_id); // location of the gapps backup folder
-		ui_print("...Backing up Google Apps.");
-		ui_show_progress(1,10);
-		sprintf(exe,"bakgapps.sh backup");
-		__system(exe);
-		LOGI("=> %s\n", exe);
-		ui_show_progress(1,90);
-		ui_print("...Done.");
-		ui_print("\n\n...Generating md5.");
-		makeMD5(tw_image_folder,gapps_backup_file);
-		ui_show_progress(1,95);
-		ui_print("...Done.\n");
-		ui_print("...Verifying md5.");
-		checkMD5(tw_image_folder,gapps_backup_file);
-		ui_print("...Done.\n\n");
-		ui_reset_progress();
-		gapps_error = 0;
-	} else {
-		ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
-		gapps_error = 1;
-	}
+	// removed disk space check cause it was screwing up nandroid. If you aint got 10mb for gapps, you're too cheap!
+	ui_print("[Google Apps Backup]\n");
+	sprintf(tw_image_folder, "%s/%s/", gapps_backup_folder, device_id); // location of the gapps backup folder
+	ui_print("...Backing up Google Apps.\n");
+	ui_show_progress(1,10);
+	__system("bakgapps.sh backup");
+	ui_print("...Done.\n");
+	ui_print("...Generating md5.\n");
+	makeMD5(tw_image_folder,gapps_backup_file);
+	ui_print("...Done.\n");
+	ui_print("...Verifying md5\n");
+	checkMD5(tw_image_folder,gapps_backup_file);
+	ui_print("...Done backing up Google Apps.\n\n");
+	ui_reset_progress();
 }
 
 void restore_gapps_backup() {
-
     ensure_path_mounted("/sdcard");
-	FILE *fp;
-	int progTime;
-	int tmpSize;
-	unsigned long sdSpace;
-	char exe[255];
+    ensure_path_mounted("/system");
+    
 	char tw_image_folder[255];
-	struct stat st;
 	
+	ui_print("[Google Apps Restore]\n");
 	sprintf(tw_image_folder, "%s/%s/", gapps_backup_folder, device_id); // location of the gapps backup folder
-	ui_print("...Verifying md5 hash for %s.\n",tw_nan_sdext);
+	ui_print("...Verifying md5 hash for bakgapps.tgz\n");
 	ui_show_progress(1,10);
 	if(checkMD5(tw_image_folder,gapps_backup_file))
 	{
-		ensure_path_mounted(sde.mnt);
-		ui_print("...Restoring Google Apps.");
-		sprintf(exe,"bakgapps.sh restore");
-		__system(exe);
-		LOGI("=> %s\n", exe);
-		ui_print("....Done.\n\n");
-		gapps_error = 0;
+		ui_print("...Restoring Google Apps.\n");
+		__system("bakgapps.sh restore");
+		ui_print("....Done restoring Google Apps.\n\n");
 	} else {
 		ui_print("...Failed md5 check. Aborted.\n");
-		gapps_error = 1;
 	}
+	ui_reset_progress();
 }
 
 void choose_nandroid_folder() 

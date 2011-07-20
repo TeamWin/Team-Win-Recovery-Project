@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/sbin/sh
 #
 #
 [ $# -ne 1 ] && echo "$0 deviceid [backup|restore]" && exit 2 
 
 task=$1
-devid=`cat /proc/cmdline | sed \"s/.*serialno=//\" | cut -d\" \" -f1`
+devid=`cat /proc/cmdline | sed "s/.*serialno=//" | cut -d" " -f1`
 sapath="/system/app/"
 sepath="/system/etc/"
 slpath="/system/lib/"
@@ -19,12 +19,12 @@ if [ "$task" == "backup" ]; then
 			echo "$file"
 		fi
 	
-	done | xargs tar cf ${bkpath}bakgapps.tar
+	done | xargs tar -zcf ${bkpath}bakgapps.tgz
 
 elif [ "$task" == "restore" ]; then
 
 	cd /
-	tar xf ${bkpath}bakgapps.tar
+	tar -xzf ${bkpath}bakgapps.tgz
 
 else
 	echo "command line arg $task unknown, options are [backup|restore]"

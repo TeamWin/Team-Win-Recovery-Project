@@ -25,7 +25,6 @@
 #include "settings_file.h"
 #include "common.h"
 #include "roots.h"
-#include "extra-functions.h"
 
 // Default Settings
 void
@@ -118,7 +117,6 @@ write_s_file() {
 // Read from Settings file Function
 void
 read_s_file() {
-	tw_gapps_auto_backup_restore_option = 0;
 	if (ensure_path_mounted("/sdcard") != 0) {
 		LOGI("=> Can not mount /sdcard, running on default settings\n"); // Can't mount sdcard, default settings should be unchanged.
 	} else {

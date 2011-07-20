@@ -2,14 +2,14 @@ int __system(const char *command);
 FILE * __popen(const char *program, const char *type);
 int __pclose(FILE *iop);
 
-static int tw_gapps_auto_backup_restore_option ; // option to backup / restore gapps before and after a zip flash - not saved in settings, defaults to off
+static int tw_gapps_auto_backup_restore_option = 0; // option to backup / restore gapps before and after a zip flash - not saved in settings, defaults to off
 
 // Device ID variable / function
 char device_id[15];
 void get_device_id();
 
 // Menus
-void install_zip_menu();
+void install_zip_menu(int pIdx);
 void advanced_menu();
 
 void usb_storage_toggle();
@@ -34,7 +34,7 @@ char* reboot_after_flash();
 char* backup_restore_gapps();
 
 char* save_reboot_setting();
-void all_settings_menu();
+void all_settings_menu(int pIdx);
 void time_zone_menu();
 void update_tz_environment_variables();
 
