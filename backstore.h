@@ -1,4 +1,6 @@
 static const char nandroid_folder[] = "/sdcard/nandroid";
+static const char gapps_backup_folder[] = "/sdcard/nandroid/gapps";
+static const char gapps_backup_file[] = "bakgapps.tar";
 static const char tw_nan_system[] = "system.win";
 static const char tw_nan_data[] = "data.win";
 static const char tw_nan_cache[] = "cache.win";
@@ -19,6 +21,8 @@ int tw_nan_sdext_x;
 
 int tw_total;
 
+int gapps_error;
+
 char* nan_img_set(int tw_setting, int tw_backstore);
 char tw_nandroid_string[1024];
 char nan_dir[255];
@@ -31,6 +35,8 @@ void choose_nandroid_folder();
 void set_restore_files();
 void nan_restore_menu(int pIdx);
 void nandroid_rest_exe();
+void create_gapps_backup();
+void restore_gapps_backup();
 
 int makeMD5(char *imgDir, const char *imgFile);
 int checkMD5(char *imgDir, const char *imgFile);

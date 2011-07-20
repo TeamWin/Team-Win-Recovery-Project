@@ -317,13 +317,24 @@ char* reboot_after_flash()
 	return tmp_set;
 }
 
+char* backup_restore_gapps_menu_option()
+{
+	char* tmp_set = (char*)malloc(40);
+	strcpy(tmp_set, "[ ] Backup Google Apps before flash & restore after");
+	if (tw_gapps_auto_backup_restore_option == 1) {
+		tmp_set[1] = 'x';
+	}
+	return tmp_set;
+}
+
 void install_zip_menu()
 {
 	// INSTALL ZIP MENU
 	#define ITEM_CHOOSE_ZIP           0
 	#define ITEM_REBOOT_AFTER_FLASH   1
-	#define ITEM_TOGGLE_SIG           2
-	#define ITEM_ZIP_BACK		      3
+	#define ITEM_BACKREST_GAPPS       2 // auto backup and restore gapps
+	#define ITEM_TOGGLE_SIG           3
+	#define ITEM_ZIP_BACK		      4
 	
     ui_set_background(BACKGROUND_ICON_FLASH_ZIP);
     static char* MENU_FLASH_HEADERS[] = {   "Flash zip From SD card:",
@@ -331,6 +342,7 @@ void install_zip_menu()
 
 	char* MENU_INSTALL_ZIP[] = {  "--> Choose Zip To Flash",
 	                              reboot_after_flash(),
+								  backup_restore_gapps_menu_option(),
 								  zip_verify(),
 	                              "<-- Back To Main Menu",
 	                              NULL };
@@ -345,26 +357,32 @@ void install_zip_menu()
         {
             case ITEM_CHOOSE_ZIP:
             	;
-                int status = sdcard_directory(tw_zip_location_val);
-                ui_reset_progress();  // reset status bar so it doesnt run off the screen 
-                if (status != INSTALL_SUCCESS) {
-                	if (notError == 1) {
-                        ui_set_background(BACKGROUND_ICON_ERROR);
-                        ui_print("Installation aborted due to an error.\n");  
-                	}
-                } else if (!ui_text_visible()) {
-                    return;  // reboot if logs aren't visible
-                } else {
-                    ui_print("\nInstall from sdcard complete.\n");
+				if (tw_gapps_auto_backup_restore_option == 1) {
+				    create_gapps_backup();
+				}
+				int status = sdcard_directory(tw_zip_location_val);
+				ui_reset_progress();  // reset status bar so it doesnt run off the screen 
+				if (status != INSTALL_SUCCESS) {
+					if (notError == 1) {
+						ui_set_background(BACKGROUND_ICON_ERROR);
+						ui_print("Installation aborted due to an error.\n");  
+					}
+				} else if (!ui_text_visible()) {
+					return;  // reboot if logs aren't visible
+				} else {
+					ui_print("\nInstall from sdcard complete.\n");
+					if (tw_gapps_auto_backup_restore_option == 1) {
+						restore_gapps_backup();
+					}
 					if (is_true(tw_reboot_after_flash_option)) {
 						ui_print("\nRebooting phone.\n");
 						reboot(RB_AUTOBOOT);
 						return;
 					}
-            	    if (!go_home) {
-                        ui_print("\nInstall from sdcard complete.\n");
-            	    }
-                }
+					if (!go_home) {
+						ui_print("\nInstall from sdcard complete.\n");
+					}
+				}
                 break;
 			case ITEM_REBOOT_AFTER_FLASH:
 				if (is_true(tw_reboot_after_flash_option)) {
@@ -374,6 +392,13 @@ void install_zip_menu()
             	}
                 write_s_file();
                 break;
+			case ITEM_BACKREST_GAPPS:
+			    if (tw_gapps_auto_backup_restore_option == 0) {
+				    tw_gapps_auto_backup_restore_option = 1;
+				} else {
+				    tw_gapps_auto_backup_restore_option = 0;
+				}
+				break;
             case ITEM_TOGGLE_SIG:
             	if (is_true(tw_signed_zip_val)) {
             		strcpy(tw_signed_zip_val, "0");
