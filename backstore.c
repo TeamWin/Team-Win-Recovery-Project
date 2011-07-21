@@ -583,7 +583,8 @@ nandroid_back_exe()
 	unsigned long sdSpaceFinal;
 	unsigned long imgSpace;
 	char tmpOutput[255];
-	char tmpString[10];
+	char tmpString[15];
+	char tmpChar;
 	char exe[255];
 	char tw_image_base[100];
 	char tw_image[255];
@@ -609,13 +610,26 @@ nandroid_back_exe()
 	} else {
 		LOGI("=> Created directory: %s\n", tw_image_base);
 	}
-	
+
 	fp = __popen("df -k /sdcard| grep sdcard | awk '{ print $4 }'", "r");
-    fscanf(fp,"%lu",&sdSpace);
-	sdSpaceFinal = sdSpace;
+	LOGI("=> Checking SDCARD Disk Space.\n");
+	while (fgets(tmpString,15,fp) != NULL)
+	{
+		tmpChar = tmpString[strlen(tmpString)-2];
+	}
 	__pclose(fp);
-	ui_print("\nStarting Backup...\n\n");
+	if(tmpChar == '%')
+	{
+		fp = __popen("df -k /sdcard| grep sdcard | awk '{ print $3 }'", "r");
+		LOGI("=> Not the response we were looking for, trying again.\n");
+		fgets(tmpString,15,fp);
+		__pclose(fp);
+	}
+	sscanf(tmpString,"%lu",&sdSpace);
+	sdSpaceFinal = sdSpace;
+	LOGI("=> SDCARD Space Left: %lu\n\n",sdSpaceFinal);
 	
+	ui_print("\nStarting Backup...\n\n");
 	if (is_true(tw_nan_system_val)) {
 		ensure_path_mounted("/system");
 		fp = __popen("du -sk /system", "r");
@@ -1072,7 +1086,8 @@ void create_gapps_backup() {
 	FILE *fp;
 	unsigned long sdSpace;
 	char tw_image_folder[255];
-	char tmpText[15];
+	char tmpString[15];
+	char tmpChar;
 	struct stat st;
     
 	// make sure we have the gapps folder in the nandroid folder
@@ -1093,21 +1108,44 @@ void create_gapps_backup() {
 			LOGI("=> Created directory: %s\n", tw_image_folder);
 		}
 	}
-	
-	// removed disk space check cause it was screwing up nandroid. If you aint got 10mb for gapps, you're too cheap!
-	ui_print("[Google Apps Backup]\n");
-	sprintf(tw_image_folder, "%s/%s/", gapps_backup_folder, device_id); // location of the gapps backup folder
-	ui_print("...Backing up Google Apps.\n");
-	ui_show_progress(1,10);
-	__system("bakgapps.sh backup");
-	ui_print("...Done.\n");
-	ui_print("...Generating md5.\n");
-	makeMD5(tw_image_folder,gapps_backup_file);
-	ui_print("...Done.\n");
-	ui_print("...Verifying md5\n");
-	checkMD5(tw_image_folder,gapps_backup_file);
-	ui_print("...Done backing up Google Apps.\n\n");
-	ui_reset_progress();
+
+	ui_print("Checking for Disk Space on /sdcard\n");
+	fp = __popen("df -k /sdcard| grep sdcard | awk '{ print $4 }'", "r");
+	LOGI("=> Checking SDCARD Disk Space.\n");
+	while (fgets(tmpString,15,fp) != NULL)
+	{
+		tmpChar = tmpString[strlen(tmpString)-2];
+	}
+	__pclose(fp);
+	if(tmpChar == '%')
+	{
+		fp = __popen("df -k /sdcard| grep sdcard | awk '{ print $3 }'", "r");
+		LOGI("=> Not the response we were looking for, trying again.\n");
+		fgets(tmpString,15,fp);
+		__pclose(fp);
+	}
+	sscanf(tmpString,"%lu",&sdSpace);
+	LOGI("=> SDCARD Space Left: %lu\n\n",sdSpace);
+
+	if (sdSpace > 20000)
+	{
+		// removed disk space check cause it was screwing up nandroid. If you aint got 10mb for gapps, you're too cheap!
+		ui_print("[Google Apps Backup]\n");
+		sprintf(tw_image_folder, "%s/%s/", gapps_backup_folder, device_id); // location of the gapps backup folder
+		ui_print("...Backing up Google Apps.\n");
+		ui_show_progress(1,10);
+		__system("bakgapps.sh backup");
+		ui_print("...Done.\n");
+		ui_print("...Generating md5.\n");
+		makeMD5(tw_image_folder,gapps_backup_file);
+		ui_print("...Done.\n");
+		ui_print("...Verifying md5\n");
+		checkMD5(tw_image_folder,gapps_backup_file);
+		ui_print("...Done backing up Google Apps.\n\n");
+		ui_reset_progress();
+	} else {
+		ui_print("Not Enough Disk Space on /sdcard\n");
+	}
 }
 
 void restore_gapps_backup() {

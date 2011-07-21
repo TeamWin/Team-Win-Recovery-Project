@@ -215,4 +215,36 @@ void set_theme(char* tw_theme)
 		mhebc.b = 0;
 		mhebc.a = 255;
 	}
+	if (strcmp(tw_theme,"1") == 0)
+	{
+		htc.r = 255;
+		htc.g = 255;
+		htc.b = 255;
+		htc.a = 255;
+
+		mtc.r = 255;
+		mtc.g = 0;
+		mtc.b = 0;
+		mtc.a = 255;
+
+		upc.r = 255;
+		upc.g = 0;
+		upc.b = 0;
+		upc.a = 255;
+
+		mihc.r = 255;
+		mihc.g = 0;
+		mihc.b = 0;
+		mihc.a = 255;
+
+		miwhc.r = 0;
+		miwhc.g = 0;
+		miwhc.b = 0;
+		miwhc.a = 0;
+		
+		mhebc.r = 255;
+		mhebc.g = 0;
+		mhebc.b = 0;
+		mhebc.a = 255;
+	}
 }
