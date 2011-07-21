@@ -18,7 +18,8 @@ LOCAL_SRC_FILES := \
     extra-functions.c \
     ddftw.c \
     backstore.c \
-    settings_file.c
+    settings_file.c \
+    themes.c
 
 LOCAL_MODULE := recovery
 
