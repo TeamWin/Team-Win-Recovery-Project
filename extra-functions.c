@@ -381,7 +381,7 @@ void install_zip_menu(int pIdx)
 						reboot(RB_AUTOBOOT);
 						return;
 					}
-					if (!go_home) {
+					if (go_home != 1) {
 						ui_print("\nInstall from sdcard complete.\n");
 					}
 				}
@@ -722,16 +722,18 @@ void all_settings_menu(int pIdx)
 	#define ALLS_SIG_TOGGLE           0
 	#define ALLS_REBOOT_AFTER_FLASH   1
 	#define ALLS_TIME_ZONE            2
-	#define ALLS_DEFAULT              3
-	#define ALLS_MENU_BACK            4
+	#define ALLS_ZIP_LOCATION   	  3
+	#define ALLS_DEFAULT              4
+	#define ALLS_MENU_BACK            5
 
-    static char* MENU_ALLS_HEADERS[] = { "twrp Settings",
+    static char* MENU_ALLS_HEADERS[] = { "Change twrp Settings",
     									 "twrp or gtfo:",
                                          NULL };
     
 	char* MENU_ALLS[] =     { zip_verify(),
 	                          reboot_after_flash(),
 	                          "Change Time Zone",
+							  "Change Zip Default Folder",
 	                          "Reset Settings to Defaults",
 	                          "<-- Back To Advanced Menu",
 	                          NULL };
@@ -764,6 +766,11 @@ void all_settings_menu(int pIdx)
 			case ALLS_TIME_ZONE:
 			    time_zone_menu();
 				break;
+            case ALLS_ZIP_LOCATION:
+            	get_new_zip_dir = 1;
+            	sdcard_directory(SDCARD_ROOT);
+            	get_new_zip_dir = 0;
+                break;
 			case ALLS_DEFAULT:
 				tw_set_defaults();
                 write_s_file();
@@ -860,12 +867,12 @@ void inc_menu_loc(int bInt)
 {
 	menu_loc_idx++;
 	menu_loc[menu_loc_idx] = bInt;
-	//ui_print("=> Increased Menu Level; %d : %d\n",menu_loc_idx,menu_loc[menu_loc_idx]);
+	//ui_print("=> Increased Menu Level; %d : %d\n",menu_loc_idx,menu_loc[menu_loc_idx]);  //TURN THIS ON TO DEBUG
 }
 void dec_menu_loc()
 {
 	menu_loc_idx--;
-	//ui_print("=> Decreased Menu Level; %d : %d\n",menu_loc_idx,menu_loc[menu_loc_idx]);
+	//ui_print("=> Decreased Menu Level; %d : %d\n",menu_loc_idx,menu_loc[menu_loc_idx]); //TURN THIS ON TO DEBUG
 }
 
 #define MNT_SYSTEM 	0

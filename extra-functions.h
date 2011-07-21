@@ -57,3 +57,5 @@ int datIsMounted;
 int cacIsMounted;
 int sdcIsMounted;
 int sdeIsMounted;
+
+int get_new_zip_dir;

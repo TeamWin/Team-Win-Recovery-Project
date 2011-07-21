@@ -509,15 +509,24 @@ sdcard_directory(const char* path) {
 
     char** headers = prepend_title(MENU_HEADERS);
 
+    int s_size = 0;
+    int s_alloc = 10;
+    char** sele = malloc(s_alloc * sizeof(char*));
     int d_size = 0;
     int d_alloc = 10;
     char** dirs = malloc(d_alloc * sizeof(char*));
-    int z_size = 1;
+    int z_size = 0;
     int z_alloc = 10;
     char** zips = malloc(z_alloc * sizeof(char*));
-    zips[0] = strdup("../");
+    if (get_new_zip_dir == 1)
+    {
+    	sele[0] = strdup("[Select Current Folder]");
+    	s_size++;
+    }
+	sele[s_size] = strdup("../");
+    inc_menu_loc(s_size);
+	s_size++;
     
-    inc_menu_loc(0);
     while ((de = readdir(d)) != NULL) {
         int name_len = strlen(de->d_name);
 
@@ -551,7 +560,7 @@ sdcard_directory(const char* path) {
     notError = 0;
     qsort(dirs, d_size, sizeof(char*), compare_string);
     qsort(zips, z_size, sizeof(char*), compare_string);
-
+    
     // append dirs to the zips list
     if (d_size + z_size + 1 > z_alloc) {
         z_alloc = d_size + z_size + 1;
@@ -562,17 +571,36 @@ sdcard_directory(const char* path) {
     z_size += d_size;
     zips[z_size] = NULL;
 
+    if (z_size + s_size + 1 > s_alloc) {
+        s_alloc = z_size + s_size + 1;
+        sele = realloc(sele, s_alloc * sizeof(char*));
+    }
+    memcpy(sele + s_size, zips, z_size * sizeof(char*));
+    s_size += z_size;
+    sele[s_size] = NULL;
+    
     int result;
     int chosen_item = 0;
     do {
-        chosen_item = get_menu_selection(headers, zips, 1, chosen_item);
+        chosen_item = get_menu_selection(headers, sele, 1, chosen_item);
 
-        char* item = zips[chosen_item];
+        char* item = sele[chosen_item];
         int item_len = strlen(item);
 
         if (chosen_item == 0) {          // item 0 is always "../"
             // go up but continue browsing (if the caller is sdcard_directory)
-            dec_menu_loc();
+        	if (get_new_zip_dir == 1)
+        	{
+        		strcpy(tw_zip_location_val,path);
+                write_s_file();
+                return 1;
+        	} else {
+            	dec_menu_loc();
+                result = -1;
+                break;
+        	}
+        } else if (chosen_item == 1 && get_new_zip_dir == 1) {
+        	dec_menu_loc();
             result = -1;
             break;
         } else if (item[item_len-1] == '/') {
@@ -586,37 +614,44 @@ sdcard_directory(const char* path) {
     	    if (go_home) { 
     	    	notError = 1;
     	        dec_menu_loc();
-    	        return 0;
+    	        if (get_new_zip_dir == 1)
+    	        {
+        	        return 1;
+    	        } else {
+        	        return 0;
+    	        }
     	    }
             if (result >= 0) break;
         } else {
-            // selected a zip file:  attempt to install it, and return
-            // the status to the caller.
-            char new_path[PATH_MAX];
-            strlcpy(new_path, path, PATH_MAX);
-            strlcat(new_path, "/", PATH_MAX);
-            strlcat(new_path, item, PATH_MAX);
+        	if (get_new_zip_dir != 1)
+        	{
+                // selected a zip file:  attempt to install it, and return
+                // the status to the caller.
+                char new_path[PATH_MAX];
+                strlcpy(new_path, path, PATH_MAX);
+                strlcat(new_path, "/", PATH_MAX);
+                strlcat(new_path, item, PATH_MAX);
 
-            ui_print("\n-- Install %s ...\n", path);
-            set_sdcard_update_bootloader_message();
-            char* copy = copy_sideloaded_package(new_path);
-            ensure_path_unmounted(SDCARD_ROOT);
-            if (copy) {
-                result = install_package(copy);
-                free(copy);
-            } else {
-                result = INSTALL_ERROR;
-            }
-            break;
+                ui_print("\n-- Install %s ...\n", path);
+                set_sdcard_update_bootloader_message();
+                char* copy = copy_sideloaded_package(new_path);
+                ensure_path_unmounted(SDCARD_ROOT);
+                if (copy) {
+                    result = install_package(copy);
+                    free(copy);
+                } else {
+                    result = INSTALL_ERROR;
+                }
+                break;
+        	}
         }
     } while (true);
-
-    int i;
-    for (i = 0; i < z_size; ++i) free(zips[i]);
+    
     free(zips);
+    free(sele);
     free(headers);
 
-    ensure_path_unmounted(SDCARD_ROOT);
+    //ensure_path_unmounted(SDCARD_ROOT);
     return result;
 }
 
