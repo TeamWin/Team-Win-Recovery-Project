@@ -467,7 +467,7 @@ get_menu_selection(char** headers, char** items, int menu_only,
                 case MENU_MENU:
                 	if (menu_loc_idx == 0)
                 	{
-                	    return 4;
+                	    return 3;
                 	} else
                 	{
                     	go_home = 1;
