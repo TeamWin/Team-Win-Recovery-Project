@@ -40,6 +40,7 @@ tw_set_defaults() {
     strcpy(tw_time_zone_val, "CST6CDT");
 	strcpy(tw_reboot_after_flash_option, "0");
 	strcpy(tw_signed_zip_val, "0");
+	strcpy(tw_color_theme_val, "0");
 	strcpy(tw_zip_location_val, "/sdcard");
 }
 
@@ -101,6 +102,8 @@ write_s_file() {
 						fputs(tw_reboot_after_flash_option, fp);
 					} else if (i == TW_SIGNED_ZIP) {
 						fputs(tw_signed_zip_val, fp);
+					} else if (i == TW_COLOR_THEME) {
+						fputs(tw_color_theme_val, fp);
 					} else if (i == TW_ZIP_LOCATION) {
 						fputs(tw_zip_location_val, fp);
 					} 
@@ -164,6 +167,8 @@ read_s_file() {
 			    	strcpy(tw_reboot_after_flash_option, s_line);
 				} else if (i == TW_SIGNED_ZIP) {
 			    	strcpy(tw_signed_zip_val, s_line);
+			    } else if (i == TW_COLOR_THEME) {
+			    	strcpy(tw_color_theme_val, s_line);
 			    } else if (i == TW_ZIP_LOCATION) {
 			    	strcpy(tw_zip_location_val, s_line);
 				} 
@@ -173,4 +178,41 @@ read_s_file() {
 		}
 	}
 	update_tz_environment_variables();
+	set_theme(tw_color_theme_val);
+}
+
+void set_theme(char* tw_theme)
+{
+	if (strcmp(tw_theme,"0") == 0)
+	{
+		htc.r = 255;
+		htc.g = 255;
+		htc.b = 255;
+		htc.a = 255;
+
+		mtc.r = 0;
+		mtc.g = 255;
+		mtc.b = 0;
+		mtc.a = 255;
+
+		upc.r = 0;
+		upc.g = 255;
+		upc.b = 0;
+		upc.a = 255;
+
+		mihc.r = 0;
+		mihc.g = 255;
+		mihc.b = 0;
+		mihc.a = 255;
+
+		miwhc.r = 0;
+		miwhc.g = 0;
+		miwhc.b = 0;
+		miwhc.a = 0;
+		
+		mhebc.r = 0;
+		mhebc.g = 255;
+		mhebc.b = 0;
+		mhebc.a = 255;
+	}
 }

@@ -28,6 +28,7 @@
 #include "common.h"
 #include "minui/minui.h"
 #include "recovery_ui.h"
+#include "settings_file.h"
 
 #define MAX_COLS 50
 #define MAX_ROWS 40
@@ -158,12 +159,12 @@ static void draw_text_line(int row, const char* t) {
 }
 
 //setup up all our fancy colors in one convenient location
-#define HEADER_TEXT_COLOR 255, 255, 255, 255 //white
-#define MENU_ITEM_COLOR 0, 255, 0, 255 //teamwin green
-#define UI_PRINT_COLOR 0, 255, 0, 255 //teamwin green
-#define MENU_ITEM_HIGHLIGHT_COLOR 0, 255, 0, 255 //teamwin green
-#define MENU_ITEM_WHEN_HIGHLIGHTED_COLOR 0, 0, 0, 0 //black
-#define MENU_HORIZONTAL_END_BAR_COLOR 0, 255, 0, 255 //teamwin green
+//#define HEADER_TEXT_COLOR 255, 255, 255, 255 //white
+//#define MENU_ITEM_COLOR 0, 255, 0, 255 //teamwin green
+//#define UI_PRINT_COLOR 0, 255, 0, 255 //teamwin green
+//#define MENU_ITEM_HIGHLIGHT_COLOR 0, 255, 0, 255 //teamwin green
+//#define MENU_ITEM_WHEN_HIGHLIGHTED_COLOR 0, 0, 0, 0 //black
+//#define MENU_HORIZONTAL_END_BAR_COLOR 0, 255, 0, 255 //teamwin green
 
 // Redraw everything on the screen.  Does not flip pages.
 // Should only be called with gUpdateMutex locked.
@@ -186,19 +187,19 @@ static void draw_screen_locked(void)
         //LOGI("menu_top: %i\n", menu_top);
         //LOGI("menu_show_start: %i\n", menu_show_start);
             //menu line item selection highlight draws
-            gr_color(MENU_ITEM_HIGHLIGHT_COLOR);
+            gr_color(mihc.r, mihc.g, mihc.b, mihc.a);
             gr_fill(0, (menu_top + menu_sel - menu_show_start+1) * CHAR_HEIGHT,
                     gr_fb_width(), (menu_top + menu_sel - menu_show_start + 2)*CHAR_HEIGHT+1);
 
             //draw semi-static headers
             for (i = 0; i < menu_top; ++i) {
-                gr_color(HEADER_TEXT_COLOR);
+                gr_color(htc.r, htc.g, htc.b, htc.a);
                 draw_text_line(i, menu[i]);
                 //LOGI("Semi-static headers internal counter i: %i\n", i);
             }
 
             //LOGI("Drawing horizontal start bar at k and k = %i\n", k);
-            gr_color(MENU_HORIZONTAL_END_BAR_COLOR);
+            gr_color(mhebc.r, mhebc.g, mhebc.b, mhebc.a);
             //draws horizontal line at bottom of the menu
             gr_fill(0, (k-1)*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
                     gr_fb_width(), (k-1)*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
@@ -216,11 +217,11 @@ static void draw_screen_locked(void)
              for (i = menu_show_start + menu_top; i < (menu_show_start + menu_top + j); ++i) {
                 //LOGI("inside draw menu items for loop and i = %i\n", i);
                 if (i == menu_top + menu_sel) {
-                    gr_color(MENU_ITEM_WHEN_HIGHLIGHTED_COLOR);
+                    gr_color(miwhc.r, miwhc.g, miwhc.b, miwhc.a);
                     //LOGI("draw_text_line -menu_item_when_highlighted_color- at i + 1= %i\n", i+1);
                     draw_text_line(i - menu_show_start +1, menu[i]);
                 } else {
-                    gr_color(MENU_ITEM_COLOR);
+                    gr_color(mtc.r, mtc.g, mtc.b, mtc.a);
                     //LOGI("draw_text_line -menu_item_color- at i + 1= %i\n", i+1);
                     draw_text_line(i - menu_show_start +1, menu[i]);
                 }
@@ -228,14 +229,14 @@ static void draw_screen_locked(void)
                 k++;
             }
             //LOGI("drawing horizontal end bar at k and k = %i\n", k);
-            gr_color(MENU_HORIZONTAL_END_BAR_COLOR);
+            gr_color(mhebc.r, mhebc.g, mhebc.b, mhebc.a);
             //draws horizontal line at bottom of the menu
             gr_fill(0, k*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
                     gr_fb_width(), k*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
         }
 
         k++; //keep ui_print below menu items display
-        gr_color(UI_PRINT_COLOR); //called by at least ui_print
+        gr_color(upc.r, upc.g, upc.b, upc.a); //called by at least ui_print
         for (; k < text_rows; ++k) {
             draw_text_line(k, text[(k+text_top) % text_rows]);
         }
