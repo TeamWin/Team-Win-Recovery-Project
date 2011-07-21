@@ -701,8 +701,14 @@ prompt_and_wait() {
 	#define ITEM_USB_TOGGLE          5
 	#define ITEM_REBOOT              6
 
+
     finish_recovery(NULL);
     ui_reset_progress();
+
+    // buying a split second for mmc driver to load to avoid error on some devices
+    getLocations();
+    tw_set_defaults();
+    read_s_file();
     
 	char** headers = prepend_title((const char**)MENU_HEADERS);
     char* MENU_ITEMS[] = {  "Install Zip",
@@ -894,9 +900,6 @@ main(int argc, char **argv) {
     if (status != INSTALL_SUCCESS || ui_text_visible()) {
         //assume we want to be here and its not an error - give us the pretty icon!
         ui_set_background(BACKGROUND_ICON_MAIN);
-    	getLocations();
-    	tw_set_defaults();
-        read_s_file();
         prompt_and_wait();
     }
 
