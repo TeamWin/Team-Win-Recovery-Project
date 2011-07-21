@@ -488,6 +488,7 @@ void reboot_menu()
         switch (chosen_item)
         {
             case ITEM_RECOVERY:
+		ensure_path_unmounted("/sdcard");
                 __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
                 break;
 
@@ -716,83 +717,8 @@ print_batt_cap()  {
 	return full_cap_s;
 }
 
-void all_settings_menu(int pIdx)
-{
-	// ALL SETTINGS MENU (ALLS for ALL Settings)
-	#define ALLS_SIG_TOGGLE           0
-	#define ALLS_REBOOT_AFTER_FLASH   1
-	#define ALLS_TIME_ZONE            2
-	#define ALLS_ZIP_LOCATION   	  3
-	#define ALLS_DEFAULT              4
-	#define ALLS_MENU_BACK            5
-
-    static char* MENU_ALLS_HEADERS[] = { "Change twrp Settings",
-    									 "twrp or gtfo:",
-                                         NULL };
-    
-	char* MENU_ALLS[] =     { zip_verify(),
-	                          reboot_after_flash(),
-	                          "Change Time Zone",
-							  "Change Zip Default Folder",
-	                          "Reset Settings to Defaults",
-	                          "<-- Back To Advanced Menu",
-	                          NULL };
-
-    char** headers = prepend_title(MENU_ALLS_HEADERS);
-    
-    inc_menu_loc(ALLS_MENU_BACK);
-    for (;;)
-    {
-        int chosen_item = get_menu_selection(headers, MENU_ALLS, 0, pIdx);
-        pIdx = chosen_item;
-        switch (chosen_item)
-        {
-            case ALLS_SIG_TOGGLE:
-            	if (is_true(tw_signed_zip_val)) {
-            		strcpy(tw_signed_zip_val, "0");
-            	} else {
-            		strcpy(tw_signed_zip_val, "1");
-            	}
-                write_s_file();
-                break;
-			case ALLS_REBOOT_AFTER_FLASH:
-                if (is_true(tw_reboot_after_flash_option)) {
-            		strcpy(tw_reboot_after_flash_option, "0");
-            	} else {
-            		strcpy(tw_reboot_after_flash_option, "1");
-            	}
-                write_s_file();
-                break;
-			case ALLS_TIME_ZONE:
-			    time_zone_menu();
-				break;
-            case ALLS_ZIP_LOCATION:
-            	get_new_zip_dir = 1;
-            	sdcard_directory(SDCARD_ROOT);
-            	get_new_zip_dir = 0;
-                break;
-			case ALLS_DEFAULT:
-				tw_set_defaults();
-                write_s_file();
-				break;
-            case ALLS_MENU_BACK:
-            	dec_menu_loc();
-            	return;
-        }
-	    if (go_home) { 
-	        dec_menu_loc();
-	        return;
-	    }
-        break;
-    }
-	ui_end_menu();
-    dec_menu_loc();
-	all_settings_menu(pIdx);
-}
-
 void time_zone_menu()
 {
-	// ALL SETTINGS MENU (ALLS for ALL Settings)
 	#define TZ_GMT_MINUS10		0
 	#define TZ_GMT_MINUS09		1
 	#define TZ_GMT_MINUS08		2
@@ -1066,7 +992,6 @@ void mount_menu(int pIdx)
 
 void main_wipe_menu()
 {
-	// ALL SETTINGS MENU (ALLS for ALL Settings)
 	#define MAIN_WIPE_CACHE           0
 	#define MAIN_WIPE_DALVIK   	  	  1
 	#define MAIN_WIPE_DATA            2
@@ -1139,3 +1064,173 @@ void main_wipe_menu()
         ui_set_background(BACKGROUND_ICON_MAIN);
 	main_wipe_menu();
 }
+
+char* theme_tw_verify()
+{
+	char* tmp_set = (char*)malloc(40);
+	strcpy(tmp_set, "[ ] Teamwin Theme (default)");
+	if (is_true(tw_color_theme_val) == 0) {
+		tmp_set[1] = 'x';
+	}
+	return tmp_set;
+}
+
+char* theme_cm_verify()
+{
+	char* tmp_set = (char*)malloc(40);
+	strcpy(tmp_set, "[ ] CM Theme");
+	if (is_true(tw_color_theme_val) == 1) {
+		tmp_set[1] = 'x';
+	}
+	return tmp_set;
+}
+
+char* theme_red_verify()
+{
+	char* tmp_set = (char*)malloc(40);
+	strcpy(tmp_set, "[ ] Red Theme");
+	if (is_true(tw_color_theme_val) == 2) {
+		tmp_set[1] = 'x';
+	}
+	return tmp_set;
+}
+
+void twrp_themes_menu()
+{
+	#define THEMES_BACK	0
+	#define THEME_REBOOT_RECOVERY 1
+	#define TW_THEME	2
+	#define CM_THEME	3
+	#define RED_THEME	4
+
+    static char* MENU_THEMES_HEADERS[] = { "TWRP Themes Menu",
+    								   "Taste tEh Rainbow:",
+                                              NULL };
+    
+	char* MENU_THEMES[] =       { 	"<-- Back To twrp Settings",
+					"REBOOT AND APPLY THEME",
+					theme_tw_verify(),
+					theme_cm_verify(),
+				        theme_red_verify(),
+	                          NULL };
+
+    char** headers = prepend_title(MENU_THEMES_HEADERS);
+    
+    inc_menu_loc(THEMES_BACK);
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, MENU_THEMES, 0, 0);
+        switch (chosen_item)
+        {
+            case THEME_REBOOT_RECOVERY:
+		ensure_path_unmounted("/sdcard");
+                __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
+                break;
+            case TW_THEME:
+            	strcpy(tw_color_theme_val,"0");
+                write_s_file();
+                break;
+            case CM_THEME:
+            	strcpy(tw_color_theme_val,"1");
+                write_s_file();
+                break;
+            case RED_THEME:
+            	strcpy(tw_color_theme_val,"2");
+                write_s_file();
+                break;
+
+            case THEMES_BACK:
+            	dec_menu_loc();
+            	return;
+            }
+            write_s_file();
+	    if (go_home) { 
+	        dec_menu_loc();
+	        return;
+	    }
+        break;
+    }
+	ui_end_menu();
+        dec_menu_loc();
+        twrp_themes_menu();
+}
+
+void all_settings_menu(int pIdx)
+{
+	// ALL SETTINGS MENU (ALLS for ALL Settings)
+	#define ALLS_SIG_TOGGLE           0
+	#define ALLS_REBOOT_AFTER_FLASH   1
+	#define ALLS_TIME_ZONE            2
+	#define ALLS_ZIP_LOCATION   	  3
+	#define ALLS_THEMES               4
+	#define ALLS_DEFAULT              5
+	#define ALLS_MENU_BACK            6
+
+    static char* MENU_ALLS_HEADERS[] = { "Change twrp Settings",
+    									 "twrp or gtfo:",
+                                         NULL };
+    
+	char* MENU_ALLS[] =     { zip_verify(),
+	                          reboot_after_flash(),
+	                          "Change Time Zone",
+				  "Change Zip Default Folder",
+	                          "Change Themes Menu",
+	                          "Reset Settings to Defaults",
+	                          "<-- Back To Advanced Menu",
+	                          NULL };
+
+    char** headers = prepend_title(MENU_ALLS_HEADERS);
+    
+    inc_menu_loc(ALLS_MENU_BACK);
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, MENU_ALLS, 0, pIdx);
+        pIdx = chosen_item;
+        switch (chosen_item)
+        {
+            case ALLS_SIG_TOGGLE:
+            	if (is_true(tw_signed_zip_val)) {
+            		strcpy(tw_signed_zip_val, "0");
+            	} else {
+            		strcpy(tw_signed_zip_val, "1");
+            	}
+                write_s_file();
+                break;
+			case ALLS_REBOOT_AFTER_FLASH:
+                if (is_true(tw_reboot_after_flash_option)) {
+            		strcpy(tw_reboot_after_flash_option, "0");
+            	} else {
+            		strcpy(tw_reboot_after_flash_option, "1");
+            	}
+                write_s_file();
+                break;
+			case ALLS_THEMES:
+			    twrp_themes_menu();
+				break;
+			case ALLS_TIME_ZONE:
+			    time_zone_menu();
+				break;
+            case ALLS_ZIP_LOCATION:
+            	get_new_zip_dir = 1;
+            	sdcard_directory(SDCARD_ROOT);
+            	get_new_zip_dir = 0;
+                break;
+			case ALLS_DEFAULT:
+				tw_set_defaults();
+                write_s_file();
+				break;
+            case ALLS_MENU_BACK:
+            	dec_menu_loc();
+            	return;
+        }
+	    if (go_home) { 
+	        dec_menu_loc();
+	        return;
+	    }
+        break;
+    }
+	ui_end_menu();
+    dec_menu_loc();
+	all_settings_menu(pIdx);
+}
+

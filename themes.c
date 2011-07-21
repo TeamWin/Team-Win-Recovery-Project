@@ -19,7 +19,7 @@
 
 void set_theme(char* tw_theme)
 {
-	if (strcmp(tw_theme,"0") == 0) // GREEN
+	if (strcmp(tw_theme,"0") == 0) // TEAMWIN THEME (default)
 	{
 		htc.r = 255;
 		htc.g = 255;
@@ -51,7 +51,39 @@ void set_theme(char* tw_theme)
 		mhebc.b = 0;
 		mhebc.a = 255;
 	}
-	if (strcmp(tw_theme,"1") == 0) // RED
+	if (strcmp(tw_theme,"1") == 0) // CM theme
+	{
+		htc.r = 193;
+		htc.g = 193;
+		htc.b = 193;
+		htc.a = 255;
+
+		mtc.r = 61;
+		mtc.g = 233;
+		mtc.b = 255;
+		mtc.a = 255;
+
+		upc.r = 193;
+		upc.g = 193;
+		upc.b = 193;
+		upc.a = 255;
+
+		mihc.r = 61;
+		mihc.g = 233;
+		mihc.b = 255;
+		mihc.a = 255;
+
+		miwhc.r = 0;
+		miwhc.g = 0;
+		miwhc.b = 0;
+		miwhc.a = 0;
+		
+		mhebc.r = 61;
+		mhebc.g = 233;
+		mhebc.b = 255;
+		mhebc.a = 255;
+	}
+	if (strcmp(tw_theme,"2") == 0) // RED
 	{
 		htc.r = 255;
 		htc.g = 255;
