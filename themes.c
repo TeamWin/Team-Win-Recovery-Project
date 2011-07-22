@@ -25,7 +25,9 @@
 #define TW_THEME	1
 #define CM_THEME	2
 #define RED_THEME	3
-#define THEMES_BACK	4
+#define GOOGLE_THEME	4
+#define JF_THEME	5
+#define THEMES_BACK	6
 
 char* checkTheme(int tw_theme)
 {
@@ -42,6 +44,12 @@ char* checkTheme(int tw_theme)
 			break;
 		case RED_THEME:
 			strcpy(tmp_set, "[ ] Red Rum Theme");
+			break;
+		case GOOGLE_THEME:
+			strcpy(tmp_set, "[ ] Google Theme");
+			break;
+		case JF_THEME:
+			strcpy(tmp_set, "[ ] JesusFreke Theme (oldschool)");
 			break;
 	}
 	sscanf(tw_color_theme_val,"%d",&isVal);
@@ -62,6 +70,8 @@ void twrp_themes_menu()
 									checkTheme(TW_THEME),
 									checkTheme(CM_THEME),
 									checkTheme(RED_THEME),
+									checkTheme(GOOGLE_THEME),
+									checkTheme(JF_THEME),
 									"<-- Back To twrp Settings",
 									NULL };
 
@@ -85,6 +95,12 @@ void twrp_themes_menu()
                 break;
             case RED_THEME:
             	strcpy(tw_color_theme_val,"2");
+                break;
+            case GOOGLE_THEME:
+            	strcpy(tw_color_theme_val,"3");
+                break;
+            case JF_THEME:
+            	strcpy(tw_color_theme_val,"4");
                 break;
             case THEMES_BACK:
             	dec_menu_loc();
@@ -204,6 +220,72 @@ void set_theme(char* tw_theme)
 		mhebc.r = 255;
 		mhebc.g = 0;
 		mhebc.b = 0;
+		mhebc.a = 255;
+	}
+	if (strcmp(tw_theme,"3") == 0) // GOOGLE
+	{
+		//HEADER_TEXT_COLOR
+		htc.r = 255;
+		htc.g = 255;
+		htc.b = 255;
+		htc.a = 255;
+		//MENU_ITEM_COLOR
+		mtc.r = 64;
+		mtc.g = 96;
+		mtc.b = 255;
+		mtc.a = 255;
+		//UI_PRINT_COLOR
+		upc.r = 255;
+		upc.g = 255;
+		upc.b = 0;
+		upc.a = 255;
+		//MENU_ITEM_HIGHLIGHT_COLOR
+		mihc.r = 64;
+		mihc.g = 96;
+		mihc.b = 255;
+		mihc.a = 255;
+		//MENU_ITEM_WHEN_HIGHLIGHTED_COLOR
+		miwhc.r = 0;
+		miwhc.g = 0;
+		miwhc.b = 0;
+		miwhc.a = 0;
+		//MENU_HORIZONTAL_END_BAR_COLOR
+		mhebc.r = 0;
+		mhebc.g = 0;
+		mhebc.b = 0;
+		mhebc.a = 0;
+	}
+	if (strcmp(tw_theme,"4") == 0) // JesusFreke
+	{
+		//HEADER_TEXT_COLOR
+		htc.r = 255;
+		htc.g = 255;
+		htc.b = 255;
+		htc.a = 255;
+		//MENU_ITEM_COLOR
+		mtc.r = 61;
+		mtc.g = 96;
+		mtc.b = 255;
+		mtc.a = 255;
+		//UI_PRINT_COLOR
+		upc.r = 255;
+		upc.g = 255;
+		upc.b = 0;
+		upc.a = 255;
+		//MENU_ITEM_HIGHLIGHT_COLOR
+		mihc.r = 61;
+		mihc.g = 96;
+		mihc.b = 255;
+		mihc.a = 255;
+		//MENU_ITEM_WHEN_HIGHLIGHTED_COLOR
+		miwhc.r = 0;
+		miwhc.g = 0;
+		miwhc.b = 0;
+		miwhc.a = 0;
+		//MENU_HORIZONTAL_END_BAR_COLOR
+		mhebc.r = 61;
+		mhebc.g = 96;
+		mhebc.b = 255;
 		mhebc.a = 255;
 	}
 }
