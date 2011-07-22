@@ -22,14 +22,15 @@
 #include "extra-functions.h"
 
 #define THEME_REBOOT_RECOVERY 0
-#define TW_THEME	1
-#define CM_THEME	2
-#define RED_THEME	3
-#define GOOGLE_THEME	4
-#define JF_THEME	5
-#define HTC_THEME	6
-#define FABULOUS_THEME	7
-#define THEMES_BACK	8
+#define TW_THEME              1
+#define CM_THEME              2
+#define RED_THEME             3
+#define GOOGLE_THEME          4
+#define JF_THEME              5
+#define HTC_THEME             6
+#define FABULOUS_THEME        7
+#define PURPLE_SHIFT          8
+#define THEMES_BACK           9
 
 char* checkTheme(int tw_theme)
 {
@@ -59,6 +60,9 @@ char* checkTheme(int tw_theme)
 		case FABULOUS_THEME:
 			strcpy(tmp_set, "[ ] Fabulous Theme");
 			break;
+		case PURPLE_SHIFT:
+			strcpy(tmp_set, "[ ] Purple Shift");
+			break;
 	}
 	sscanf(tw_color_theme_val,"%d",&isVal);
 	if (isVal == tw_theme - 1)
@@ -82,6 +86,7 @@ void twrp_themes_menu()
 									checkTheme(JF_THEME),
 									checkTheme(HTC_THEME),
 									checkTheme(FABULOUS_THEME),
+									checkTheme(PURPLE_SHIFT),
 									"<-- Back To twrp Settings",
 									NULL };
 
@@ -117,6 +122,9 @@ void twrp_themes_menu()
                 break;
             case FABULOUS_THEME:
             	strcpy(tw_color_theme_val,"6");
+                break;
+			case PURPLE_SHIFT:
+			    strcpy(tw_color_theme_val,"7");
                 break;
             case THEMES_BACK:
             	dec_menu_loc();
@@ -368,6 +376,44 @@ void set_theme(char* tw_theme)
 		mhebc.r = 195;
 		mhebc.g = 255;
 		mhebc.b = 77;
+		mhebc.a = 255;
+	}
+	if (strcmp(tw_theme,"7") == 0) // PURPLE SHIFT
+	{
+        //HEADER_TEXT_COLOR
+		htc.r = 255;
+		htc.g = 0;
+		htc.b = 242;
+		htc.a = 255;
+
+		//MENU_ITEM_COLOR
+		mtc.r = 140;
+		mtc.g = 0;
+		mtc.b = 255;
+		mtc.a = 255;
+
+		//UI_PRINT_COLOR
+		upc.r = 195;
+		upc.g = 122;
+		upc.b = 255;
+		upc.a = 255;
+
+		//MENU_ITEM_HIGHLIGHT_COLOR
+		mihc.r = 140;
+		mihc.g = 0;
+		mihc.b = 255;
+		mihc.a = 255;
+
+		//MENU_ITEM_WHEN_HIGHLIGHTED_COLOR
+		miwhc.r = 0;
+		miwhc.g = 0;
+		miwhc.b = 0;
+		miwhc.a = 0;
+
+		//MENU_HORIZONTAL_END_BAR_COLOR
+		mhebc.r = 140;
+		mhebc.g = 0;
+		mhebc.b = 255;
 		mhebc.a = 255;
 	}
 }

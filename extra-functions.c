@@ -373,7 +373,6 @@ void install_zip_menu(int pIdx)
 				} else if (!ui_text_visible()) {
 					return;  // reboot if logs aren't visible
 				} else {
-					ui_print("\nInstall from sdcard complete.\n");
 					if (tw_gapps_auto_backup_restore_option == 1) {
 						restore_gapps_backup();
 					}
