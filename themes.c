@@ -30,7 +30,8 @@
 #define HTC_THEME             6
 #define FABULOUS_THEME        7
 #define PURPLE_SHIFT          8
-#define THEMES_BACK           9
+#define GREYBALLER_THEME      9
+#define THEMES_BACK           10
 
 char* checkTheme(int tw_theme)
 {
@@ -63,6 +64,9 @@ char* checkTheme(int tw_theme)
 		case PURPLE_SHIFT:
 			strcpy(tmp_set, "[ ] Purple Shift");
 			break;
+		case GREYBALLER_THEME:
+			strcpy(tmp_set, "[ ] Greyballer");
+			break;
 	}
 	sscanf(tw_color_theme_val,"%d",&isVal);
 	if (isVal == tw_theme - 1)
@@ -87,6 +91,7 @@ void twrp_themes_menu()
 									checkTheme(HTC_THEME),
 									checkTheme(FABULOUS_THEME),
 									checkTheme(PURPLE_SHIFT),
+									checkTheme(GREYBALLER_THEME),
 									"<-- Back To twrp Settings",
 									NULL };
 
@@ -123,8 +128,11 @@ void twrp_themes_menu()
             case FABULOUS_THEME:
             	strcpy(tw_color_theme_val,"6");
                 break;
-			case PURPLE_SHIFT:
-			    strcpy(tw_color_theme_val,"7");
+	    case PURPLE_SHIFT:
+		strcpy(tw_color_theme_val,"7");
+                break;
+	    case GREYBALLER_THEME:
+		strcpy(tw_color_theme_val,"8");
                 break;
             case THEMES_BACK:
             	dec_menu_loc();
@@ -380,7 +388,7 @@ void set_theme(char* tw_theme)
 	}
 	if (strcmp(tw_theme,"7") == 0) // PURPLE SHIFT
 	{
-        //HEADER_TEXT_COLOR
+        	//HEADER_TEXT_COLOR
 		htc.r = 255;
 		htc.g = 0;
 		htc.b = 242;
@@ -414,6 +422,44 @@ void set_theme(char* tw_theme)
 		mhebc.r = 140;
 		mhebc.g = 0;
 		mhebc.b = 255;
+		mhebc.a = 255;
+	}
+	if (strcmp(tw_theme,"8") == 0) // GREYBALLER
+	{
+        	//HEADER_TEXT_COLOR
+		htc.r = 138;
+		htc.g = 138;
+		htc.b = 138;
+		htc.a = 255;
+
+		//MENU_ITEM_COLOR
+		mtc.r = 163;
+		mtc.g = 163;
+		mtc.b = 163;
+		mtc.a = 255;
+
+		//UI_PRINT_COLOR
+		upc.r = 163;
+		upc.g = 163;
+		upc.b = 163;
+		upc.a = 255;
+
+		//MENU_ITEM_HIGHLIGHT_COLOR
+		mihc.r = 138;
+		mihc.g = 138;
+		mihc.b = 138;
+		mihc.a = 255;
+
+		//MENU_ITEM_WHEN_HIGHLIGHTED_COLOR
+		miwhc.r = 99;
+		miwhc.g = 99;
+		miwhc.b = 99;
+		miwhc.a = 255;
+
+		//MENU_HORIZONTAL_END_BAR_COLOR
+		mhebc.r = 138;
+		mhebc.g = 138;
+		mhebc.b = 138;
 		mhebc.a = 255;
 	}
 }
