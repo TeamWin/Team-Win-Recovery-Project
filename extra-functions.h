@@ -59,3 +59,5 @@ int sdcIsMounted;
 int sdeIsMounted;
 
 int get_new_zip_dir;
+
+char* checkTheme(int tw_theme);

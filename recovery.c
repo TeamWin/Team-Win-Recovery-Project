@@ -520,7 +520,7 @@ sdcard_directory(const char* path) {
     char** zips = malloc(z_alloc * sizeof(char*));
     if (get_new_zip_dir == 1)
     {
-    	sele[0] = strdup("[Select Current Folder]");
+    	sele[0] = strdup("[SELECT CURRENT FOLDER]");
     	s_size++;
     }
 	sele[s_size] = strdup("../");

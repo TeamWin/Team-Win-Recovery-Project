@@ -51,6 +51,7 @@
 #include "ddftw.h"
 #include "backstore.h"
 #include "settings_file.h"
+#include "themes.h"
 
 //kang system() from bionic/libc/unistd and rename it __system() so we can be even more hackish :)
 #undef _PATH_BSHELL
@@ -1065,96 +1066,6 @@ void main_wipe_menu()
 	main_wipe_menu();
 }
 
-char* theme_tw_verify()
-{
-	char* tmp_set = (char*)malloc(40);
-	strcpy(tmp_set, "[ ] Teamwin Theme (default)");
-	if (is_true(tw_color_theme_val) == 0) {
-		tmp_set[1] = 'x';
-	}
-	return tmp_set;
-}
-
-char* theme_cm_verify()
-{
-	char* tmp_set = (char*)malloc(40);
-	strcpy(tmp_set, "[ ] CM Theme");
-	if (is_true(tw_color_theme_val) == 1) {
-		tmp_set[1] = 'x';
-	}
-	return tmp_set;
-}
-
-char* theme_red_verify()
-{
-	char* tmp_set = (char*)malloc(40);
-	strcpy(tmp_set, "[ ] Red Theme");
-	if (is_true(tw_color_theme_val) == 2) {
-		tmp_set[1] = 'x';
-	}
-	return tmp_set;
-}
-
-void twrp_themes_menu()
-{
-	#define THEMES_BACK	0
-	#define THEME_REBOOT_RECOVERY 1
-	#define TW_THEME	2
-	#define CM_THEME	3
-	#define RED_THEME	4
-
-    static char* MENU_THEMES_HEADERS[] = { "TWRP Themes Menu",
-    								   "Taste tEh Rainbow:",
-                                              NULL };
-    
-	char* MENU_THEMES[] =       { 	"<-- Back To twrp Settings",
-					"REBOOT AND APPLY THEME",
-					theme_tw_verify(),
-					theme_cm_verify(),
-				        theme_red_verify(),
-	                          NULL };
-
-    char** headers = prepend_title(MENU_THEMES_HEADERS);
-    
-    inc_menu_loc(THEMES_BACK);
-    for (;;)
-    {
-        int chosen_item = get_menu_selection(headers, MENU_THEMES, 0, 0);
-        switch (chosen_item)
-        {
-            case THEME_REBOOT_RECOVERY:
-		ensure_path_unmounted("/sdcard");
-                __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
-                break;
-            case TW_THEME:
-            	strcpy(tw_color_theme_val,"0");
-                write_s_file();
-                break;
-            case CM_THEME:
-            	strcpy(tw_color_theme_val,"1");
-                write_s_file();
-                break;
-            case RED_THEME:
-            	strcpy(tw_color_theme_val,"2");
-                write_s_file();
-                break;
-
-            case THEMES_BACK:
-            	dec_menu_loc();
-            	return;
-            }
-            write_s_file();
-	    if (go_home) { 
-	        dec_menu_loc();
-	        return;
-	    }
-        break;
-    }
-	ui_end_menu();
-        dec_menu_loc();
-        twrp_themes_menu();
-}
-
 void all_settings_menu(int pIdx)
 {
 	// ALL SETTINGS MENU (ALLS for ALL Settings)
@@ -1173,8 +1084,8 @@ void all_settings_menu(int pIdx)
 	char* MENU_ALLS[] =     { zip_verify(),
 	                          reboot_after_flash(),
 	                          "Change Time Zone",
-				  "Change Zip Default Folder",
-	                          "Change Themes Menu",
+	                          "Change Zip Default Folder",
+	                          "Change twrp Color Theme",
 	                          "Reset Settings to Defaults",
 	                          "<-- Back To Advanced Menu",
 	                          NULL };

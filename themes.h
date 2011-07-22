@@ -1,4 +1,6 @@
 void set_theme(char* tw_theme);
+char* checkTheme(int tw_theme);
+void twrp_themes_menu();
 
 struct twTheme {
 	int r;
