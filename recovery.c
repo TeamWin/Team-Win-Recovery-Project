@@ -700,6 +700,7 @@ prompt_and_wait() {
 	#define ITEM_MOUNT_MENU       	 4
 	#define ITEM_USB_TOGGLE          5
 	#define ITEM_REBOOT              6
+	#define ITEM_SHUTDOWN		 7
 
 
     finish_recovery(NULL);
@@ -718,6 +719,7 @@ prompt_and_wait() {
                             "Mount Menu",
                             "USB Storage Toggle",
                             "Reboot system now",
+			    "Power down system",
                             NULL };
 	
     for (;;) {
@@ -766,6 +768,10 @@ prompt_and_wait() {
 
             case ITEM_REBOOT:
                 return;
+
+	    case ITEM_SHUTDOWN:
+	        __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
+		break;
         }
         if (go_menu) {
         	advanced_menu();
