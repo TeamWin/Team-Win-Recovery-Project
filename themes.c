@@ -27,7 +27,8 @@
 #define RED_THEME	3
 #define GOOGLE_THEME	4
 #define JF_THEME	5
-#define THEMES_BACK	6
+#define HTC_THEME	6
+#define THEMES_BACK	7
 
 char* checkTheme(int tw_theme)
 {
@@ -51,6 +52,9 @@ char* checkTheme(int tw_theme)
 		case JF_THEME:
 			strcpy(tmp_set, "[ ] JesusFreke Theme (oldschool)");
 			break;
+		case HTC_THEME:
+			strcpy(tmp_set, "[ ] HTC Theme");
+			break;
 	}
 	sscanf(tw_color_theme_val,"%d",&isVal);
 	if (isVal == tw_theme - 1)
@@ -72,6 +76,7 @@ void twrp_themes_menu()
 									checkTheme(RED_THEME),
 									checkTheme(GOOGLE_THEME),
 									checkTheme(JF_THEME),
+									checkTheme(HTC_THEME),
 									"<-- Back To twrp Settings",
 									NULL };
 
@@ -101,6 +106,9 @@ void twrp_themes_menu()
                 break;
             case JF_THEME:
             	strcpy(tw_color_theme_val,"4");
+                break;
+            case HTC_THEME:
+            	strcpy(tw_color_theme_val,"5");
                 break;
             case THEMES_BACK:
             	dec_menu_loc();
@@ -286,6 +294,39 @@ void set_theme(char* tw_theme)
 		mhebc.r = 61;
 		mhebc.g = 96;
 		mhebc.b = 255;
+		mhebc.a = 255;
+	}
+	if (strcmp(tw_theme,"5") == 0) // HTC
+	{
+		//HEADER_TEXT_COLOR
+		htc.r = 255;
+		htc.g = 255;
+		htc.b = 255;
+		htc.a = 255;
+		//MENU_ITEM_COLOR
+		mtc.r = 153;
+		mtc.g = 207;
+		mtc.b = 23;
+		mtc.a = 255;
+		//UI_PRINT_COLOR
+		upc.r = 153;
+		upc.g = 153;
+		upc.b = 153;
+		upc.a = 255;
+		//MENU_ITEM_HIGHLIGHT_COLOR
+		mihc.r = 153;
+		mihc.g = 153;
+		mihc.b = 153;
+		mihc.a = 255;
+		//MENU_ITEM_WHEN_HIGHLIGHTED_COLOR
+		miwhc.r = 153;
+		miwhc.g = 207;
+		miwhc.b = 23;
+		miwhc.a = 255;
+		//MENU_HORIZONTAL_END_BAR_COLOR
+		mhebc.r = 153;
+		mhebc.g = 207;
+		mhebc.b = 23;
 		mhebc.a = 255;
 	}
 }
