@@ -68,7 +68,7 @@ nandroid_menu()
 				nan_backup_menu(0);
 				break;
 			case ITEM_RESTORE_MENU:
-                choose_nandroid_folder();
+                choose_backup_folder();
 				break;
 			case ITEM_GAPPS_BACKUP:
 			    create_gapps_backup();
@@ -595,7 +595,14 @@ nandroid_back_exe()
     seconds = time(0);
     t = localtime(&seconds);
     sprintf(timestamp,"%02d%02d%d%02d%02d",t->tm_mon+1,t->tm_mday,t->tm_year+1900,t->tm_hour,t->tm_min); // get timestamp for nandroid
-	sprintf(tw_image_base, "%s/%s/", nandroid_folder, device_id);
+	if (stat(backup_folder,&st) != 0) {
+		if(mkdir(backup_folder,0777) == -1) {
+			LOGI("=> Can not create directory: %s\n", backup_folder);
+		} else {
+			LOGI("=> Created directory: %s\n", backup_folder);
+		}
+	}
+	sprintf(tw_image_base, "%s/%s/", backup_folder, device_id);
 	if (stat(tw_image_base,&st) != 0) {
 		if(mkdir(tw_image_base,0777) == -1) {
 			LOGI("=> Can not create directory: %s\n", tw_image_base);
@@ -1156,7 +1163,7 @@ void restore_gapps_backup() {
 	
 	ui_print("[Google Apps Restore]\n");
 	sprintf(tw_image_folder, "%s/%s/", gapps_backup_folder, device_id); // location of the gapps backup folder
-	ui_print("...Verifying md5 hash for bakgapps.tgz\n");
+	ui_print("...Verifying md5 hash for gappsbackup.tgz\n");
 	ui_show_progress(1,10);
 	if(checkMD5(tw_image_folder,gapps_backup_file))
 	{
@@ -1169,12 +1176,12 @@ void restore_gapps_backup() {
 	ui_reset_progress();
 }
 
-void choose_nandroid_folder() 
+void choose_backup_folder() 
 {
     ensure_path_mounted(SDCARD_ROOT);
 
     char tw_dir[255];
-    sprintf(tw_dir, "%s/%s/", nandroid_folder, device_id);
+    sprintf(tw_dir, "%s/%s/", backup_folder, device_id);
     const char* MENU_HEADERS[] = { "Choose a Nandroid Folder:",
     							   tw_dir,
                                    NULL };

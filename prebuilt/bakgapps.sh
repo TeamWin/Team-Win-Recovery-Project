@@ -9,7 +9,7 @@ sapath="/system/app/"
 sepath="/system/etc/"
 slpath="/system/lib/"
 sfpath="/system/framework/"
-bkpath="/sdcard/nandroid/gapps/${devid}/"
+bkpath="/sdcard/TWRP/GAPPS/${devid}/"
 
 if [ "$task" == "backup" ]; then
 
@@ -19,12 +19,12 @@ if [ "$task" == "backup" ]; then
 			echo "$file"
 		fi
 	
-	done | xargs tar -zcf ${bkpath}bakgapps.tgz
+	done | xargs tar -zcf ${bkpath}gappsbackup.tgz
 
 elif [ "$task" == "restore" ]; then
 
 	cd /
-	tar -xzf ${bkpath}bakgapps.tgz
+	tar -xzf ${bkpath}gappsbackup.tgz
 
 else
 	echo "command line arg $task unknown, options are [backup|restore]"

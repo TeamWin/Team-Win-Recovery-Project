@@ -61,14 +61,14 @@ write_s_file() {
 		LOGI("=> Can not mount /sdcard, running on default settings\n"); // Can't mount sdcard, default settings should be unchanged.
 	} else {
 		struct stat st;
-		if(stat("/sdcard/nandroid",&st) != 0) {
-			LOGI("=> /sdcard/nandroid directory not present!\n");
-			if(mkdir("/sdcard/nandroid",0777) == -1) { // create directory
+		if(stat("/sdcard/TWRP",&st) != 0) {
+			LOGI("=> /sdcard/TWRP directory not present!\n");
+			if(mkdir("/sdcard/TWRP",0777) == -1) { // create directory
 				nan_dir_status = 0;
-				LOGI("=> Can not create directory: /sdcard/nandroid\n");
+				LOGI("=> Can not create directory: /sdcard/TWRP\n");
 			} else {
 				nan_dir_status = 1;
-				LOGI("=> Created directory: /sdcard/nandroid\n");
+				LOGI("=> Created directory: /sdcard/TWRP\n");
 			}
 		}
 		if (nan_dir_status == 1) {
@@ -141,7 +141,7 @@ read_s_file() {
 				}
 				if (i == TW_VERSION) {
 					if (strcmp(s_line,tw_version_val) != 0) {
-						LOGI("\n=> Wrong recoverywin version detected, default settings applied.\n\n"); //
+						LOGI("=> Wrong recoverywin version detected, default settings applied.\n"); //
 						tw_set_defaults();
 						write_s_file();
 						break;

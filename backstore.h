@@ -1,6 +1,6 @@
-static const char nandroid_folder[] = "/sdcard/nandroid";
-static const char gapps_backup_folder[] = "/sdcard/nandroid/gapps";
-static const char gapps_backup_file[] = "bakgapps.tgz";
+static const char backup_folder[] = "/sdcard/TWRP/BACKUPS";
+static const char gapps_backup_folder[] = "/sdcard/TWRP/GAPPS";
+static const char gapps_backup_file[] = "gappsbackup.tgz";
 static const char tw_nan_system[] = "system.win";
 static const char tw_nan_data[] = "data.win";
 static const char tw_nan_cache[] = "cache.win";
@@ -29,7 +29,7 @@ void nandroid_menu();
 void nan_backup_menu(int pIdx);
 void nandroid_back_exe();
 
-void choose_nandroid_folder();
+void choose_backup_folder();
 void set_restore_files();
 void nan_restore_menu(int pIdx);
 void nandroid_rest_exe();

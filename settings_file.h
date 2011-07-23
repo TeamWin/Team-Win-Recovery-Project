@@ -3,7 +3,7 @@
 #define TW_MAX_SETTINGS_CHARS 255 // Max Character Length Per Line
 #define TW_MAX_NUM_SETTINGS 14 // Total Number of Settings (Change this as we add more settings)
 
-static const char* TW_SETTINGS_FILE = "/sdcard/nandroid/.twrps"; // Actual File
+static const char* TW_SETTINGS_FILE = "/sdcard/TWRP/.twrps"; // Actual File
 static const int TW_VERSION = 0; // Used to make sure of settings compatability
 static const int TW_NAN_SYSTEM = 1; // system is backed up during nandroid (Constant number corresponds to line number in file .twrs)
 static const int TW_NAN_DATA = 2; // data is backed up during nandroid (Constant number corresponds to line number in file .twrs)
@@ -19,7 +19,7 @@ static const int TW_SIGNED_ZIP = 11; // Zip Signed Toggle (Constant number corre
 static const int TW_COLOR_THEME = 12;
 static const int TW_ZIP_LOCATION = 13; // Last location zip flashed from (remembers last folder) (Constant number corresponds to line number in file .twrs)
 
-static const char tw_version_val[] = "1.0.0.0"; // Variable Holding Version
+static const char tw_version_val[] = "1.0.0"; // Variable Holding Version
 char tw_nan_system_val[TW_MIN_SETTINGS_CHARS]; //
 char tw_nan_data_val[TW_MIN_SETTINGS_CHARS]; //
 char tw_nan_boot_val[TW_MIN_SETTINGS_CHARS];
