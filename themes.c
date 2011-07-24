@@ -31,7 +31,9 @@
 #define FABULOUS_THEME        7
 #define PURPLE_SHIFT          8
 #define GREYBALLER_THEME      9
-#define THEMES_BACK           10
+#define TRIPPY_THEME	      10
+#define SHIFTY_BASTARD	      11
+#define THEMES_BACK           12
 
 char* checkTheme(int tw_theme)
 {
@@ -67,6 +69,12 @@ char* checkTheme(int tw_theme)
 		case GREYBALLER_THEME:
 			strcpy(tmp_set, "[ ] Greyballer");
 			break;
+		case TRIPPY_THEME:
+			strcpy(tmp_set, "[ ] Trippy");
+			break;
+		case SHIFTY_BASTARD:
+			strcpy(tmp_set, "[ ] Shifty Bastard");
+			break;
 	}
 	sscanf(tw_color_theme_val,"%d",&isVal);
 	if (isVal == tw_theme - 1)
@@ -92,6 +100,8 @@ void twrp_themes_menu()
 									checkTheme(FABULOUS_THEME),
 									checkTheme(PURPLE_SHIFT),
 									checkTheme(GREYBALLER_THEME),
+									checkTheme(TRIPPY_THEME),
+									checkTheme(SHIFTY_BASTARD),
 									"<-- Back To twrp Settings",
 									NULL };
 
@@ -133,6 +143,12 @@ void twrp_themes_menu()
                 break;
 	    case GREYBALLER_THEME:
 		strcpy(tw_color_theme_val,"8");
+                break;
+	    case TRIPPY_THEME:
+		strcpy(tw_color_theme_val,"9");
+                break;
+	    case SHIFTY_BASTARD:
+		strcpy(tw_color_theme_val,"10");
                 break;
             case THEMES_BACK:
             	dec_menu_loc();
@@ -356,34 +372,39 @@ void set_theme(char* tw_theme)
 	if (strcmp(tw_theme,"6") == 0) // FABULOUS
 	{
 		//HEADER_TEXT_COLOR
-		htc.r = 255;
+		htc.r = 195;
 		htc.g = 77;
-		htc.b = 195;
+		htc.b = 255;
 		htc.a = 255;
+
 		//MENU_ITEM_COLOR
-		mtc.r = 255;
-		mtc.g = 136;
-		mtc.b = 77;
+		mtc.r = 77;
+		mtc.g = 106;
+		mtc.b = 255;
 		mtc.a = 255;
+
 		//UI_PRINT_COLOR
 		upc.r = 106;
 		upc.g = 255;
 		upc.b = 77;
 		upc.a = 255;
+
 		//MENU_ITEM_HIGHLIGHT_COLOR
-		mihc.r = 136;
+		mihc.r = 255;
 		mihc.g = 77;
-		mihc.b = 255;
+		mihc.b = 136;
 		mihc.a = 125;
+
 		//MENU_ITEM_WHEN_HIGHLIGHTED_COLOR
-		miwhc.r = 77;
-		miwhc.g = 106;
-		miwhc.b = 255;
+		miwhc.r = 255;
+		miwhc.g = 136;
+		miwhc.b = 77;
 		miwhc.a = 255;
+
 		//MENU_HORIZONTAL_END_BAR_COLOR
-		mhebc.r = 195;
-		mhebc.g = 255;
-		mhebc.b = 77;
+		mhebc.r = 77; //195
+		mhebc.g = 255; //255
+		mhebc.b = 195; //77
 		mhebc.a = 255;
 	}
 	if (strcmp(tw_theme,"7") == 0) // PURPLE SHIFT
@@ -460,6 +481,82 @@ void set_theme(char* tw_theme)
 		mhebc.r = 138;
 		mhebc.g = 138;
 		mhebc.b = 138;
+		mhebc.a = 255;
+	}
+	if (strcmp(tw_theme,"9") == 0) // TRIPPY
+	{
+		//HEADER_TEXT_COLOR
+		htc.r = 255;
+		htc.g = 77;
+		htc.b = 195;
+		htc.a = 255;
+
+		//MENU_ITEM_COLOR
+		mtc.r = 255;
+		mtc.g = 136;
+		mtc.b = 77;
+		mtc.a = 255;
+
+		//UI_PRINT_COLOR
+		upc.r = 106;
+		upc.g = 255;
+		upc.b = 77;
+		upc.a = 255;
+
+		//MENU_ITEM_HIGHLIGHT_COLOR
+		mihc.r = 136;
+		mihc.g = 77;
+		mihc.b = 255;
+		mihc.a = 125;
+
+		//MENU_ITEM_WHEN_HIGHLIGHTED_COLOR
+		miwhc.r = 77;
+		miwhc.g = 106;
+		miwhc.b = 255;
+		miwhc.a = 255;
+
+		//MENU_HORIZONTAL_END_BAR_COLOR
+		mhebc.r = 195;
+		mhebc.g = 255;
+		mhebc.b = 77;
+		mhebc.a = 255;
+	}
+	if (strcmp(tw_theme,"10") == 0) // SHIFTY BASTARD
+	{
+		//HEADER_TEXT_COLOR
+		htc.r = 224;
+		htc.g = 0;
+		htc.b = 0;
+		htc.a = 255;
+
+		//MENU_ITEM_COLOR
+		mtc.r = 174;
+		mtc.g = 0;
+		mtc.b = 0;
+		mtc.a = 255;
+
+		//UI_PRINT_COLOR
+		upc.r = 132;
+		upc.g = 0;
+		upc.b = 0;
+		upc.a = 255;
+
+		//MENU_ITEM_HIGHLIGHT_COLOR
+		mihc.r = 207;
+		mihc.g = 207;
+		mihc.b = 207;
+		mihc.a = 125;
+
+		//MENU_ITEM_WHEN_HIGHLIGHTED_COLOR
+		miwhc.r = 0;
+		miwhc.g = 0;
+		miwhc.b = 0;
+		miwhc.a = 255;
+
+		//MENU_HORIZONTAL_END_BAR_COLOR
+		mhebc.r = 207;
+		mhebc.g = 207;
+		mhebc.b = 207;
 		mhebc.a = 255;
 	}
 }
