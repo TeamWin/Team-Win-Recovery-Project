@@ -4,6 +4,10 @@ ifeq ($(TARGET_ARCH),arm)
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
+ifeq ($(BOARD_KERNEL_PAGE_SIZE),4096)
+LOCAL_CFLAGS += -DBOARD_KERNEL_PAGE_SIZE_4096
+endif
+
 commands_recovery_local_path := $(LOCAL_PATH)
 
 LOCAL_SRC_FILES := \

@@ -30,6 +30,12 @@
 #include "roots.h"
 #include "settings_file.h"
 
+#ifdef BOARD_KERNEL_PAGE_SIZE_4096
+	const char bs_size[] = "4096";
+#else
+	const char bs_size[] = "2048";
+#endif
+
 void
 nandroid_menu()
 {	
@@ -671,6 +677,7 @@ nandroid_back_exe()
 			ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
 			isContinue = 0;
 		}
+		ensure_path_unmounted("/system");
 		sdSpace -= imgSpace;
 	}
 	if (isContinue)
@@ -709,6 +716,7 @@ nandroid_back_exe()
 				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
 				isContinue = 0;
 			}
+			ensure_path_unmounted("/data");
 			sdSpace -= imgSpace;
 		}
 	}
@@ -720,10 +728,11 @@ nandroid_back_exe()
 			{
 				strcpy(tw_image,tw_image_base);
 				strcat(tw_image,tw_nan_boot);
-				sprintf(exe,"dd bs=2048 if=%s of=%s", boo.dev, tw_image);
+				sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, boo.dev, tw_image);
 				ui_print("...Backing up boot partition.\n");
 				ui_show_progress(1,5);
 				__system(exe);
+				LOGI("=> %s\n", exe);
 				ui_print("....Done.\n");
 				ui_print("...Generating %s md5...\n", boo.mnt);
 				makeMD5(tw_image_base,tw_nan_boot);
@@ -747,10 +756,11 @@ nandroid_back_exe()
 			{
 				strcpy(tw_image,tw_image_base);
 				strcat(tw_image,tw_nan_recovery);
-				sprintf(exe,"dd bs=2048 if=%s of=%s", rec.dev, tw_image);
+				sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, rec.dev, tw_image);
 				ui_print("...Backing up recovery partition.\n");
 				ui_show_progress(1,5);
 				__system(exe);
+				LOGI("=> %s\n", exe);
 				ui_print("....Done.\n");
 				ui_print("...Generating %s md5...\n", rec.mnt);
 				makeMD5(tw_image_base,tw_nan_recovery);
@@ -802,6 +812,7 @@ nandroid_back_exe()
 				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
 				isContinue = 0;
 			}
+			ensure_path_unmounted("/cache");
 			sdSpace -= imgSpace;
 		}
 	}
@@ -813,10 +824,11 @@ nandroid_back_exe()
 			{
 				strcpy(tw_image,tw_image_base);
 				strcat(tw_image,tw_nan_wimax);
-				sprintf(exe,"dd bs=2048 if=%s of=%s", wim.dev, tw_image);
+				sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, wim.dev, tw_image);
 				ui_print("...Backing up wimax partition.\n");
 				ui_show_progress(1,5);
 				__system(exe);
+				LOGI("=> %s\n", exe);
 				ui_print("....Done.\n");
 				ui_print("...Generating %s md5...\n", wim.mnt);
 				makeMD5(tw_image_base,tw_nan_wimax);
@@ -907,6 +919,7 @@ nandroid_back_exe()
 				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
 				isContinue = 0;
 			}
+			ensure_path_unmounted("/sd-ext");
 			sdSpace -= imgSpace;
 		}
 	}
@@ -920,6 +933,7 @@ nandroid_back_exe()
 void 
 nandroid_rest_exe()
 {
+	ensure_path_mounted("/sdcard");
 	FILE *fp;
 	char exe[255];
 	char* tmp_file = (char*)malloc(255);
@@ -939,6 +953,7 @@ nandroid_rest_exe()
 			ui_print("...Restoring system partition.\n\n");
 			__system(exe);
 			ui_print_overwrite("....Done.\n\n");
+			ensure_path_unmounted("/system");
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
 		}
@@ -959,6 +974,7 @@ nandroid_rest_exe()
 			ui_print("...Restoring data partition.\n\n");
 			__system(exe);
 			ui_print_overwrite("....Done.\n\n");
+			ensure_path_unmounted("/data");
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
 		}
@@ -971,7 +987,7 @@ nandroid_rest_exe()
 		{
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_boot);
-			sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, boo.dev);
+			sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, tmp_file, boo.dev);
 			LOGI("=> %s\n", exe);
 			ui_print("...Restoring boot partition.\n");
 			__system(exe);
@@ -988,7 +1004,7 @@ nandroid_rest_exe()
 		{
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_recovery);
-			sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, rec.dev);
+			sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, tmp_file, rec.dev);
 			LOGI("=> %s\n", exe);
 			ui_print("...Restoring recovery partition.\n");
 			__system(exe);
@@ -1014,6 +1030,7 @@ nandroid_rest_exe()
 			ui_print("...Restoring cache partition.\n\n");
 			__system(exe);
 			ui_print_overwrite("....Done.\n\n");
+			ensure_path_unmounted("/cache");
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
 		}
@@ -1026,7 +1043,7 @@ nandroid_rest_exe()
 		{
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_wimax);
-			sprintf(exe,"dd bs=2048 if=%s of=%s", tmp_file, wim.dev);
+			sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, tmp_file, wim.dev);
 			LOGI("=> %s\n", exe);
 			ui_print("...Restoring wimax partition.\n");
 			__system(exe);
@@ -1073,6 +1090,7 @@ nandroid_rest_exe()
 			ui_print("...Restoring sd-ext partition.\n\n");
 			__system(exe);
 			ui_print_overwrite("....Done.\n\n");
+			ensure_path_unmounted(sde.mnt);
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n");
 		}
