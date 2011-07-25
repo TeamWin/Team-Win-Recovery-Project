@@ -497,7 +497,7 @@ void ui_print_overwrite(const char *fmt, ...)
     va_start(ap, fmt);
     vsnprintf(buf, (text_cols - 1), fmt, ap);
     va_end(ap);
-	LOGI("ui_print_overwrite - starting text row %i\n", text_row);
+    //LOGI("ui_print_overwrite - starting text row %i\n", text_row);
     fputs(buf, stdout);
 	text_col = 0;
     // This can get called before ui_init(), so be careful.

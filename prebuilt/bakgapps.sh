@@ -19,12 +19,12 @@ if [ "$task" == "backup" ]; then
 			echo "$file"
 		fi
 	
-	done | xargs tar -zcf ${bkpath}gappsbackup.tgz
+	done | xargs tar -czpf ${bkpath}gappsbackup.win
 
 elif [ "$task" == "restore" ]; then
 
 	cd /
-	tar -xzf ${bkpath}gappsbackup.tgz
+	tar -xzpf ${bkpath}gappsbackup.win
 
 else
 	echo "command line arg $task unknown, options are [backup|restore]"

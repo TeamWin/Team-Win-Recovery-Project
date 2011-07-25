@@ -1,6 +1,6 @@
 static const char backup_folder[] = "/sdcard/TWRP/BACKUPS";
 static const char gapps_backup_folder[] = "/sdcard/TWRP/GAPPS";
-static const char gapps_backup_file[] = "gappsbackup.tgz";
+static const char gapps_backup_file[] = "gappsbackup.win";
 static const char tw_nan_system[] = "system.win";
 static const char tw_nan_data[] = "data.win";
 static const char tw_nan_cache[] = "cache.win";
@@ -35,6 +35,7 @@ void nan_restore_menu(int pIdx);
 void nandroid_rest_exe();
 void create_gapps_backup();
 void restore_gapps_backup();
+char* nan_compress();
 
 int makeMD5(char *imgDir, const char *imgFile);
 int checkMD5(char *imgDir, const char *imgFile);

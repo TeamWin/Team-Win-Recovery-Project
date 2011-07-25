@@ -38,10 +38,11 @@ tw_set_defaults() {
 	strcpy(tw_nan_wimax_val, "0");
 	strcpy(tw_nan_andsec_val, "0");
 	strcpy(tw_nan_sdext_val, "0");
-    strcpy(tw_time_zone_val, "CST6CDT");
 	strcpy(tw_reboot_after_flash_option, "0");
 	strcpy(tw_signed_zip_val, "0");
 	strcpy(tw_color_theme_val, "0");
+	strcpy(tw_use_compression_val, "0");
+    strcpy(tw_time_zone_val, "CST6CDT");
 	strcpy(tw_zip_location_val, "/sdcard");
 }
 
@@ -97,14 +98,16 @@ write_s_file() {
 						fputs(tw_nan_andsec_val, fp);
 					} else if (i == TW_NAN_SDEXT) {
 						fputs(tw_nan_sdext_val, fp);
-					} else if (i == TW_TIME_ZONE) {
-						fputs(tw_time_zone_val, fp);
 					} else if (i == TW_REBOOT_AFTER_FLASH) {
 						fputs(tw_reboot_after_flash_option, fp);
 					} else if (i == TW_SIGNED_ZIP) {
 						fputs(tw_signed_zip_val, fp);
 					} else if (i == TW_COLOR_THEME) {
 						fputs(tw_color_theme_val, fp);
+					} else if (i == TW_USE_COMPRESSION) {
+						fputs(tw_use_compression_val, fp);
+					} else if (i == TW_TIME_ZONE) {
+						fputs(tw_time_zone_val, fp);
 					} else if (i == TW_ZIP_LOCATION) {
 						fputs(tw_zip_location_val, fp);
 					} 
@@ -162,15 +165,17 @@ read_s_file() {
 			    	strcpy(tw_nan_andsec_val, s_line);
 				} else if (i == TW_NAN_SDEXT) {
 			    	strcpy(tw_nan_sdext_val, s_line);
-				} else if (i == TW_TIME_ZONE) {
-			    	strcpy(tw_time_zone_val, s_line);
 				} else if (i == TW_REBOOT_AFTER_FLASH) {
 			    	strcpy(tw_reboot_after_flash_option, s_line);
 				} else if (i == TW_SIGNED_ZIP) {
 			    	strcpy(tw_signed_zip_val, s_line);
 			    } else if (i == TW_COLOR_THEME) {
 			    	strcpy(tw_color_theme_val, s_line);
-			    } else if (i == TW_ZIP_LOCATION) {
+			    } else if (i == TW_USE_COMPRESSION) {
+			    	strcpy(tw_use_compression_val, s_line);
+				} else if (i == TW_TIME_ZONE) {
+			    	strcpy(tw_time_zone_val, s_line);
+				} else if (i == TW_ZIP_LOCATION) {
 			    	strcpy(tw_zip_location_val, s_line);
 				} 
 				i++; // increment loop
