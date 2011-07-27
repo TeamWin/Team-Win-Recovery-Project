@@ -10,6 +10,8 @@ static const char tw_nan_recovery[] = "recovery.win";
 static const char tw_nan_andsec[] = "and-sec.win";
 static const char tw_nan_sdext[] = "sd-ext.win";
 
+static const char bs_size[] = "4096";
+
 int tw_nan_system_x;
 int tw_nan_data_x;
 int tw_nan_cache_x;

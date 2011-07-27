@@ -30,12 +30,6 @@
 #include "roots.h"
 #include "settings_file.h"
 
-#ifdef BOARD_KERNEL_PAGE_SIZE_4096
-	const char bs_size[] = "4096";
-#else
-	const char bs_size[] = "2048";
-#endif
-
 void
 nandroid_menu()
 {	
