@@ -397,7 +397,7 @@ copy_sideloaded_package(const char* original_path) {
 
 char**
 prepend_title(const char** headers) {
-    char* title[] = { "Team Win Recovery Project (twrp) v1.0.0",
+    char* title[] = { "Team Win Recovery Project (twrp) v1.0.1",
                       "Based on Android System Recovery <"
                       EXPAND(RECOVERY_API_VERSION) "e>",
                       "", //
@@ -683,9 +683,22 @@ wipe_data(int confirm) {
     device_wipe_data();
     erase_volume("/data");
     erase_volume("/cache");
-    erase_volume("/sd-ext");
-    erase_volume("/sdcard/.android_secure");
-    ui_print("Data wipe complete.\n");
+    struct stat st;
+    if (0 == stat("/dev/block/mmcblk0p2", &st))
+    {
+        erase_volume("/sd-ext");
+    } else {
+        ui_print("/sd-ext not found, skipping...\n");
+    }
+    if (0 == stat("/sdcard/.android_secure", &st))
+    {
+        __system("rm -rf /sdcard/.android_secure/*");
+        ui_print("Formatting /sdcard/.android_secure...\n");
+    } else {
+        ui_print("/sdcard/.android_secure not found, skipping...\n");
+    }
+	ui_reset_progress();
+    ui_print("-- Data wipe complete.\n");
 }
 
 
@@ -700,7 +713,7 @@ prompt_and_wait() {
 	#define ITEM_MOUNT_MENU       	 4
 	#define ITEM_USB_TOGGLE          5
 	#define ITEM_REBOOT              6
-	#define ITEM_SHUTDOWN		 7
+	#define ITEM_SHUTDOWN		7
 
 
     finish_recovery(NULL);
@@ -719,7 +732,7 @@ prompt_and_wait() {
                             "Mount Menu",
                             "USB Storage Toggle",
                             "Reboot system now",
-			    "Power down system",
+                            "Power down system",
                             NULL };
 	
     for (;;) {
@@ -727,6 +740,7 @@ prompt_and_wait() {
         go_home = 0;
         go_menu = 0;
         menu_loc_idx = 0;
+		ui_reset_progress();
     	
         int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
 

@@ -463,7 +463,7 @@ nan_restore_menu(int pIdx)
         		tw_total--;
 			}
 			break;
-		case ITEM_NAN_BACK:
+		case ITEM_NAN_BACK - 1:
         	dec_menu_loc();
 			return;
 		}
@@ -547,7 +547,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 			}
 			break;
 		case ITEM_NAN_ANDSEC:
-			strcpy(tmp_set, "[ ] .android-secure");
+			strcpy(tmp_set, "[ ] .android_secure");
 			if (tw_backstore)
 			{
 				isTrue = tw_nan_andsec_x;
@@ -594,7 +594,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 void 
 nandroid_back_exe()
 {
-	__system("mount /sdcard");
+	ensure_path_mounted(SDCARD_ROOT);
 	FILE *fp;
 	int isContinue = 1;
 	int progTime;
@@ -668,7 +668,7 @@ nandroid_back_exe()
 	ui_print("\nStarting Backup...\n\n");
 	nan_ttime = time(0);
 	if (is_true(tw_nan_system_val)) {
-		__system("mount /system");
+		ensure_path_mounted("/system");
 		fp = __popen("du -sk /system", "r");
 	    fscanf(fp,"%lu %*s",&imgSpace);
 		progTime = imgSpace / 500;
@@ -709,7 +709,7 @@ nandroid_back_exe()
 	if (isContinue)
 	{
 		if (is_true(tw_nan_data_val)) {
-			__system("mount /data");
+			ensure_path_mounted("/data");
 			fp = __popen("du -sk /data", "r");
 		    fscanf(fp,"%lu %*s",&imgSpace);
 			progTime = imgSpace / 500;
@@ -811,7 +811,7 @@ nandroid_back_exe()
 	if (isContinue)
 	{
 		if (is_true(tw_nan_cache_val)) {
-			__system("mount /cache");
+			ensure_path_mounted("/cache");
 			fp = __popen("du -sk /cache", "r");
 		    fscanf(fp,"%lu %*s",&imgSpace);
 			progTime = imgSpace / 500;
@@ -924,7 +924,7 @@ nandroid_back_exe()
 	if (isContinue)
 	{
 		if (is_true(tw_nan_sdext_val)) {
-			__system("mount /sd-ext");
+			ensure_path_mounted("/sd-ext");
 			fp = __popen("du -sk /sd-ext", "r");
 		    fscanf(fp,"%lu %*s",&imgSpace);
 			progTime = imgSpace / 500;
@@ -973,7 +973,7 @@ nandroid_back_exe()
 void 
 nandroid_rest_exe()
 {
-	__system("mount /sdcard");
+	ensure_path_mounted(SDCARD_ROOT);
 	FILE *fp;
 	char tmpOutput[255];
 	char exe[255];
@@ -988,7 +988,7 @@ nandroid_rest_exe()
 		nan_ctime = time(0);
 		if(checkMD5(nan_dir,tw_nan_system))
 		{
-			__system("mount /system");
+			ensure_path_mounted("/system");
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_system);
 			ui_print("...Wiping %s.\n",sys.mnt);
@@ -1012,7 +1012,7 @@ nandroid_rest_exe()
 		nan_ctime = time(0);
 		if(checkMD5(nan_dir,tw_nan_data))
 		{
-			__system("mount /data");
+			ensure_path_mounted("/data");
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_data);
 			ui_print("...Wiping %s.\n",dat.mnt);
@@ -1074,7 +1074,7 @@ nandroid_rest_exe()
 		nan_ctime = time(0);
 		if(checkMD5(nan_dir,tw_nan_cache))
 		{
-			__system("mount /cache");
+			ensure_path_mounted("/cache");
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_cache);
 			ui_print("...Wiping %s.\n",cac.mnt);
@@ -1142,7 +1142,7 @@ nandroid_rest_exe()
 		nan_ctime = time(0);
 		if(checkMD5(nan_dir,tw_nan_sdext))
 		{
-			__system("mount /sd-ext");
+			ensure_path_mounted("/sd-ext");
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_sdext);
 			ui_print("...Wiping %s.\n",sde.mnt);
@@ -1171,8 +1171,8 @@ static int compare_string(const void* a, const void* b) {
 }
 
 void create_gapps_backup() {
-    __system("mount /sdcard");
-    __system("mount /system");
+    ensure_path_mounted(SDCARD_ROOT);
+    ensure_path_mounted("/system");
     
 	FILE *fp;
 	unsigned long sdSpace;
@@ -1240,8 +1240,8 @@ void create_gapps_backup() {
 }
 
 void restore_gapps_backup() {
-    __system("mount /sdcard");
-    __system("mount /system");
+    ensure_path_mounted(SDCARD_ROOT);
+    ensure_path_mounted("/system");
     
 	char tw_image_folder[255];
 	
