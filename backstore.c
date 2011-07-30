@@ -481,6 +481,7 @@ nan_restore_menu(int pIdx)
 char* 
 nan_img_set(int tw_setting, int tw_backstore)
 {
+	ensure_path_mounted("/sdcard");
 	int isTrue = 0;
 	char* tmp_set = (char*)malloc(25);
 	struct stat st;
