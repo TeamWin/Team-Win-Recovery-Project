@@ -538,7 +538,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 			{
 				isTrue = tw_nan_wimax_x;
 			} else {
-				if (strcmp(wim.mnt,"wimax") != 0)
+				if (strcmp(wim.mnt,"wimax") != 0 && strcmp(wim.mnt,"efs") != 0)
 				{
 					tw_nan_wimax_x = -1;
 					isTrue = -1;

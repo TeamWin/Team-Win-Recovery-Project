@@ -82,7 +82,7 @@ void getLocations()
 				strcpy(cac.dev,tmp.dev);
 				strcpy(cac.blk,tmp.blk);
 			}
-			if (strcmp(tmp.mnt,"wimax") == 0) {
+			if (strcmp(tmp.mnt,"wimax") == 0 || strcmp(tmp.mnt,"efs") == 0) {
 				strcpy(wim.mnt,tmp.mnt);
 				strcpy(wim.dev,tmp.dev);
 				strcpy(wim.blk,tmp.blk);
