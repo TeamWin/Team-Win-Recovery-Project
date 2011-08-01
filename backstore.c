@@ -528,12 +528,12 @@ nan_img_set(int tw_setting, int tw_backstore)
 			{
 				isTrue = tw_nan_wimax_x;
 			} else {
-				if (strcmp(wim.mnt,"wimax") != 0 && strcmp(wim.mnt,"efs") != 0)
+				if (strcmp(wim.mnt,"wimax") == 0 || strcmp(wim.mnt,"efs") == 0)
 				{
+					isTrue = is_true(tw_nan_wimax_val);
+				} else {
 					tw_nan_wimax_x = -1;
 					isTrue = -1;
-				} else {
-					isTrue = is_true(tw_nan_wimax_val);
 				}
 			}
 			break;
