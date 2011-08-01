@@ -2,8 +2,6 @@ int __system(const char *command);
 FILE * __popen(const char *program, const char *type);
 int __pclose(FILE *iop);
 
-static int tw_gapps_auto_backup_restore_option = 0; // option to backup / restore gapps before and after a zip flash - not saved in settings, defaults to off
-
 // Device ID variable / function
 char device_id[15];
 void get_device_id();
@@ -31,7 +29,6 @@ int get_menu_selection(char** headers, char** items, int menu_only, int initial_
 
 char* zip_verify();
 char* reboot_after_flash();
-char* backup_restore_gapps();
 
 char* save_reboot_setting();
 void all_settings_menu(int pIdx);
@@ -61,3 +58,4 @@ int sdeIsMounted;
 int get_new_zip_dir;
 
 char* checkTheme(int tw_theme);
+void tw_reboot();

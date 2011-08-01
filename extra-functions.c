@@ -318,23 +318,21 @@ char* reboot_after_flash()
 	return tmp_set;
 }
 
-char* backup_restore_gapps_menu_option()
+void tw_reboot()
 {
-	char* tmp_set = (char*)malloc(40);
-	strcpy(tmp_set, "[ ] Auto Backup/Restore GAPPS on Flash");
-	if (tw_gapps_auto_backup_restore_option == 1) {
-		tmp_set[1] = 'x';
-	}
-	return tmp_set;
+    ui_print("Rebooting...\n");
+    sync();
+    finish_recovery("s");
+    reboot(RB_AUTOBOOT);
 }
 
 void install_zip_menu(int pIdx)
 {
 	// INSTALL ZIP MENU
 	#define ITEM_CHOOSE_ZIP           0
-	#define ITEM_BACKREST_GAPPS       1 // auto backup and restore gapps
-	#define ITEM_REBOOT_AFTER_FLASH   2
-	#define ITEM_TOGGLE_SIG           3
+	#define ITEM_REBOOT_AFTER_FLASH   1
+	#define ITEM_TOGGLE_SIG           2
+	#define ITEM_ZIP_RBOOT			  3
 	#define ITEM_ZIP_BACK		      4
 	
     ui_set_background(BACKGROUND_ICON_FLASH_ZIP);
@@ -343,9 +341,9 @@ void install_zip_menu(int pIdx)
                                           NULL };
 
 	char* MENU_INSTALL_ZIP[] = {  "--> Choose Zip To Flash",
-			  	  	  	  	  	  backup_restore_gapps_menu_option(),
-	                              reboot_after_flash(),
+			  	  	  	  	  	  reboot_after_flash(),
 								  zip_verify(),
+								  "--> Reboot To System",
 	                              "<-- Back To Main Menu",
 	                              NULL };
 
@@ -360,9 +358,6 @@ void install_zip_menu(int pIdx)
         {
             case ITEM_CHOOSE_ZIP:
             	;
-				if (tw_gapps_auto_backup_restore_option == 1) {
-				    create_gapps_backup();
-				}
 				int status = sdcard_directory(tw_zip_location_val);
 				ui_reset_progress();  // reset status bar so it doesnt run off the screen 
 				if (status != INSTALL_SUCCESS) {
@@ -373,12 +368,8 @@ void install_zip_menu(int pIdx)
 				} else if (!ui_text_visible()) {
 					return;  // reboot if logs aren't visible
 				} else {
-					if (tw_gapps_auto_backup_restore_option == 1) {
-						restore_gapps_backup();
-					}
 					if (is_true(tw_reboot_after_flash_option)) {
-						ui_print("\nRebooting phone.\n");
-						reboot(RB_AUTOBOOT);
+						tw_reboot();
 						return;
 					}
 					if (go_home != 1) {
@@ -386,13 +377,6 @@ void install_zip_menu(int pIdx)
 					}
 				}
                 break;
-			case ITEM_BACKREST_GAPPS:
-			    if (tw_gapps_auto_backup_restore_option == 0) {
-				    tw_gapps_auto_backup_restore_option = 1;
-				} else {
-				    tw_gapps_auto_backup_restore_option = 0;
-				}
-				break;
 			case ITEM_REBOOT_AFTER_FLASH:
 				if (is_true(tw_reboot_after_flash_option)) {
             		strcpy(tw_reboot_after_flash_option, "0");
@@ -408,6 +392,9 @@ void install_zip_menu(int pIdx)
             		strcpy(tw_signed_zip_val, "1");
             	}
                 write_s_file();
+                break;
+			case ITEM_ZIP_RBOOT:
+				tw_reboot();
                 break;
             case ITEM_ZIP_BACK:
     	        dec_menu_loc();
@@ -439,19 +426,20 @@ void wipe_dalvik_cache()
         ui_print("Cleaned: /cache/dc\n");
 
         struct stat st;
-        if (0 != stat("/dev/block/mmcblk0p2", &st))
+        if (0 != stat(sde.blk, &st))
         {
-            ui_print("sd-ext not present, skipping\n");
+            ui_print("/sd-ext not present, skipping\n");
         } else {
-            if (ensure_path_mounted("/sd-ext") == 0) {
+        	__system("mount /sd-ext");
+    	    LOGI("Mounting /sd-ext\n");
+    	    if (stat("/sd-ext/dalvik-cache",&st) == 0)
+    	    {
                 __system("rm -rf /sd-ext/dalvik-cache");
         	    ui_print("Cleaned: /sd-ext/dalvik-cache...\n");
-            } else {
-                ui_print("/dev/block/mmcblk0p2 exists but sd-ext not present, skipping\n");
-            }
+    	    }
         }
         ensure_path_unmounted("/data");
-        ui_print("-- Dalvik Cache Directories Wipe Complete!\n");
+        ui_print("-- Dalvik Cache Directories Wipe Complete!\n\n");
         ui_set_background(BACKGROUND_ICON_MAIN);
         if (!ui_text_visible()) return;
 }
@@ -488,7 +476,7 @@ void reboot_menu()
         switch (chosen_item)
         {
             case ITEM_RECOVERY:
-		ensure_path_unmounted("/sdcard");
+            	ensure_path_unmounted("/sdcard");
                 __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
                 break;
 
@@ -501,7 +489,7 @@ void reboot_menu()
                 break;
 
             case ITEM_SYSTEM:
-                reboot(RB_AUTOBOOT);
+            	tw_reboot();
                 break;
 
             case ITEM_BACKK:
@@ -610,20 +598,22 @@ erase_volume(const char *volume) {
 void
 format_menu()
 {
-	#define ITEM_FORMAT_CACHE       0
+	#define ITEM_FORMAT_SYSTEM      0
 	#define ITEM_FORMAT_DATA        1
-	#define ITEM_FORMAT_SDCARD      2
-	#define ITEM_FORMAT_SYSTEM      3
-	#define ITEM_FORMAT_BACK        4
+	#define ITEM_FORMAT_CACHE       2
+	#define ITEM_FORMAT_SDCARD      3
+	#define ITEM_FORMAT_SDEXT		4
+	#define ITEM_FORMAT_BACK        5
 	
 	char* part_headers[] = {    "Format Menu",
                                 "Choose a Partition to Format: ",
                                 NULL };
 	
-    char* part_items[] = {  "Format CACHE (/cache)",
+    char* part_items[] = { 	"Format SYSTEM (/system)",
                             "Format DATA (/data)",
+            				"Format CACHE (/cache)",
                             "Format SDCARD (/sdcard)",
-                            "Format SYSTEM (/system)",
+                            "Format SD-EXT (/sd-ext)",
 						    "<-- Back To Advanced Menu",
 						    NULL };
 
@@ -636,18 +626,22 @@ format_menu()
 		int chosen_item = get_menu_selection(headers, part_items, 0, 0);
 		switch (chosen_item)
 		{
-			case ITEM_FORMAT_CACHE:
-                confirm_format("CACHE", "/cache");
-                break;
+			case ITEM_FORMAT_SYSTEM:
+				confirm_format("SYSTEM", "/system");
+				break;
 			case ITEM_FORMAT_DATA:
                 confirm_format("DATA", "/data");
+                break;
+			case ITEM_FORMAT_CACHE:
+                confirm_format("CACHE", "/cache");
                 break;
 			case ITEM_FORMAT_SDCARD:
                 confirm_format("SDCARD", "/sdcard");
                 break;
-			case ITEM_FORMAT_SYSTEM:
-                confirm_format("SYSTEM", "/system");
-                break;
+            case ITEM_FORMAT_SDEXT:
+            	__system("mount /sd-ext");
+                confirm_format("SD-EXT", "/sd-ext");
+            	break;
 			case ITEM_FORMAT_BACK:
             	dec_menu_loc();
                 ui_set_background(BACKGROUND_ICON_MAIN);
@@ -681,11 +675,16 @@ confirm_format(char* volume_name, char* volume_path) {
     if (chosen_item != 1) {
         dec_menu_loc();
         return;
-    }
-    else {
+    } else {
         ui_set_background(BACKGROUND_ICON_WIPE);
         ui_print("\n-- Wiping %s Partition...\n", volume_name);
-        erase_volume(volume_path);
+        if (strcmp(volume_name,"SD-EXT") == 0)
+        {
+        	ui_print("Formatting /sd-ext...");
+            __system("rm -rf /sd-ext/*");
+        } else {
+            erase_volume(volume_path);
+        }
         ui_print("-- %s Partition Wipe Complete!\n", volume_name);
         dec_menu_loc();
     }
@@ -1012,6 +1011,14 @@ void main_wipe_menu()
 	                           NULL };
 
     char** headers = prepend_title(MENU_MAIN_WIPE_HEADERS);
+
+    int isSdExt = 0;
+    struct stat st;
+    if (stat("/sd-ext",&st) == 0)
+    {
+    	__system("mount /sd-ext");
+    	isSdExt = 1;
+    }
     
     inc_menu_loc(MAIN_WIPE_BACK);
     for (;;)

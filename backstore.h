@@ -1,6 +1,4 @@
 static const char backup_folder[] = "/sdcard/TWRP/BACKUPS";
-static const char gapps_backup_folder[] = "/sdcard/TWRP/GAPPS";
-static const char gapps_backup_file[] = "gappsbackup.win";
 static const char tw_nan_system[] = "system.win";
 static const char tw_nan_data[] = "data.win";
 static const char tw_nan_cache[] = "cache.win";

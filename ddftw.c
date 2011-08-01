@@ -112,7 +112,7 @@ void readRecFstab()
 				strcpy(sys.fst,tmp.fst);
 				if (strcmp(sys.mnt,"system") != 0)
 				{
-					strcpy(sys.mnt,"system");
+					strcpy(sys.mnt,tmp.mnt);
 					strcpy(sys.blk,tmp.blk);
 					strcpy(sys.dev,tmp.blk);
 				}
@@ -122,7 +122,7 @@ void readRecFstab()
 				strcpy(dat.fst,tmp.fst);
 				if (strcmp(dat.mnt,"data") != 0)
 				{
-					strcpy(dat.mnt,"data");
+					strcpy(dat.mnt,tmp.mnt);
 					strcpy(dat.blk,tmp.blk);
 					strcpy(dat.dev,tmp.blk);
 				}
@@ -132,7 +132,7 @@ void readRecFstab()
 				strcpy(cac.fst,tmp.fst);
 				if (strcmp(cac.mnt,"cache") != 0)
 				{
-					strcpy(cac.mnt,"cache");
+					strcpy(cac.mnt,tmp.mnt);
 					strcpy(cac.blk,tmp.blk);
 					strcpy(cac.dev,tmp.blk);
 				}
@@ -142,25 +142,34 @@ void readRecFstab()
 				strcpy(sdc.fst,tmp.fst);
 				if (strcmp(sdc.mnt,"sdcard") != 0)
 				{
-					strcpy(sdc.mnt,"sdcard");
+					strcpy(sdc.mnt,tmp.mnt);
 					strcpy(sdc.blk,tmp.blk);
 					strcpy(sdc.dev,tmp.dev);
 				}
+			}
+			if (strcmp(tmp.mnt,"sd-ext") == 0)
+			{
+				strcpy(sde.mnt,tmp.mnt);
+				strcpy(sde.fst,tmp.fst);
+				strcpy(sde.blk,tmp.blk);
+				strcpy(sde.dev,tmp.dev);
 			}
 		}
 	}
 	fclose(fp);
 	strcpy(ase.dev,"/sdcard/.android_secure");
 	strcpy(ase.mnt,".android_secure");
-	strcpy(sde.mnt,"sd-ext");
-	int tmpInt;
-	char tmpBase[50];
-	char tmpWildCard[50];
-	strcpy(tmpBase,sdc.blk);
-	tmpBase[strlen(tmpBase)-1] = '\0';
-	sprintf(tmpWildCard,"%s%%d",tmpBase);
-	sscanf(sdc.blk,tmpWildCard,&tmpInt);
-	sprintf(sde.blk,"%s%d",tmpBase,tmpInt+1);
+	if (strcmp(sde.mnt,"sd-ext") != 0)
+	{
+		int tmpInt;
+		char tmpBase[50];
+		char tmpWildCard[50];
+		strcpy(tmpBase,sdc.blk);
+		tmpBase[strlen(tmpBase)-1] = '\0';
+		sprintf(tmpWildCard,"%s%%d",tmpBase);
+		sscanf(sdc.blk,tmpWildCard,&tmpInt);
+		sprintf(sde.blk,"%s%d",tmpBase,tmpInt+1);
+	}
 	createFstab();
 }
 
@@ -184,8 +193,20 @@ void createFstab()
 		fputs(tmpString, fp);
 		if (stat(sde.blk,&st) == 0)
 		{
+			strcpy(sde.mnt,"sd-ext");
+			strcpy(sde.fst,"ext4");
+			strcpy(sde.dev,sde.blk);
 			sprintf(tmpString,"%s /%s %s rw\n",sde.blk,sde.mnt,sde.fst);
 			fputs(tmpString, fp);
+			if (stat("/sd-ext",&st) != 0)
+			{
+				if(mkdir("/sd-ext",0777) == -1)
+				{
+					LOGI("=> Can not create /sd-ext folder.\n");
+				} else {
+					LOGI("=> Created /sd-ext folder.\n");
+				}
+			}
 		}
 	}
 	fclose(fp);

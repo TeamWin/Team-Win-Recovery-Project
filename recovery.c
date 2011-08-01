@@ -397,7 +397,7 @@ copy_sideloaded_package(const char* original_path) {
 
 char**
 prepend_title(const char** headers) {
-    char* title[] = { "Team Win Recovery Project (twrp) v1.0.1",
+    char* title[] = { "Team Win Recovery Project (twrp) v1.0.2",
                       "Based on Android System Recovery <"
                       EXPAND(RECOVERY_API_VERSION) "e>",
                       "", //
@@ -684,9 +684,10 @@ wipe_data(int confirm) {
     erase_volume("/data");
     erase_volume("/cache");
     struct stat st;
-    if (0 == stat("/dev/block/mmcblk0p2", &st))
+    if (stat("/sd-ext",&st) == 0)
     {
-        erase_volume("/sd-ext");
+        ui_print("Formatting /sd-ext...\n");
+        __system("rm -rf /sd-ext/*");
     } else {
         ui_print("/sd-ext not found, skipping...\n");
     }

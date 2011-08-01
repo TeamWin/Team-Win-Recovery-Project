@@ -36,10 +36,8 @@ nandroid_menu()
 	// define constants for menu selection
 #define ITEM_BACKUP_MENU         0
 #define ITEM_RESTORE_MENU        1
-#define ITEM_GAPPS_BACKUP        2
-#define ITEM_GAPPS_RESTORE       3
-#define ITEM_MENU_RBOOT 	     4
-#define ITEM_MENU_BACK           5
+#define ITEM_MENU_RBOOT 	     2
+#define ITEM_MENU_BACK           3
 	
 	// build headers and items in menu
 	char* nan_headers[] = { "Nandroid Menu",
@@ -48,8 +46,6 @@ nandroid_menu()
 	
 	char* nan_items[] = { "Backup Partitions",
 						  "Restore Partitions",
-						  "Backup Google Apps",
-						  "Restore Google Apps",
 						  "--> Reboot System",
 						  "<-- Back To Main Menu",
 						  NULL };
@@ -70,14 +66,8 @@ nandroid_menu()
 			case ITEM_RESTORE_MENU:
                 choose_backup_folder();
 				break;
-			case ITEM_GAPPS_BACKUP:
-			    create_gapps_backup();
-			    break;
-			case ITEM_GAPPS_RESTORE:
-				restore_gapps_backup();
-			    break;
 			case ITEM_MENU_RBOOT:
-                reboot(RB_AUTOBOOT);
+				tw_reboot();
                 break;
 			case ITEM_MENU_BACK:
 				dec_menu_loc();
@@ -704,7 +694,6 @@ nandroid_back_exe()
 			ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
 			isContinue = 0;
 		}
-		ensure_path_unmounted("/system");
 		sdSpace -= imgSpace;
 	}
 	if (isContinue)
@@ -745,7 +734,6 @@ nandroid_back_exe()
 				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
 				isContinue = 0;
 			}
-			ensure_path_unmounted("/data");
 			sdSpace -= imgSpace;
 		}
 	}
@@ -847,7 +835,6 @@ nandroid_back_exe()
 				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
 				isContinue = 0;
 			}
-			ensure_path_unmounted("/cache");
 			sdSpace -= imgSpace;
 		}
 	}
@@ -925,7 +912,7 @@ nandroid_back_exe()
 	if (isContinue)
 	{
 		if (is_true(tw_nan_sdext_val)) {
-			ensure_path_mounted("/sd-ext");
+			__system("mount /sd-ext");
 			fp = __popen("du -sk /sd-ext", "r");
 		    fscanf(fp,"%lu %*s",&imgSpace);
 			progTime = imgSpace / 500;
@@ -960,7 +947,6 @@ nandroid_back_exe()
 				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
 				isContinue = 0;
 			}
-			ensure_path_unmounted("/sd-ext");
 			sdSpace -= imgSpace;
 		}
 	}
@@ -1143,20 +1129,19 @@ nandroid_rest_exe()
 		nan_ctime = time(0);
 		if(checkMD5(nan_dir,tw_nan_sdext))
 		{
-			ensure_path_mounted("/sd-ext");
+			__system("mount /sd-ext");
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_sdext);
 			ui_print("...Wiping %s.\n",sde.mnt);
-			sprintf(exe,"rm -rf %s/* 2>/dev/null", sde.mnt);
+			sprintf(exe,"rm -rf /%s/* 2>/dev/null", sde.mnt);
 			__system(exe);
 			ui_print("....Done.\n");
-			sprintf(exe,"cd %s && tar xzpf %s", sde.dev, tmp_file);
+			sprintf(exe,"cd /%s && tar xzpf %s", sde.mnt, tmp_file);
 			LOGI("=> %s\n", exe);
 			ui_print("...Restoring sd-ext partition.\n");
 			__system(exe);
 			ui_print("....Done.\n");
 			ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
-			ensure_path_unmounted(sde.mnt);
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
 		}
@@ -1171,102 +1156,32 @@ static int compare_string(const void* a, const void* b) {
     return strcmp(*(const char**)a, *(const char**)b);
 }
 
-void create_gapps_backup() {
-    ensure_path_mounted(SDCARD_ROOT);
-    ensure_path_mounted("/system");
-    
-	FILE *fp;
-	unsigned long sdSpace;
-	char tw_image_folder[255];
-	char tmpString[15];
-	char tmpChar;
-	struct stat st;
-    
-	// make sure we have the gapps folder in the nandroid folder
-	if (stat(gapps_backup_folder,&st) != 0) {
-		if(mkdir(gapps_backup_folder,0777) == -1) {
-			LOGI("=> Can not create directory: %s\n", gapps_backup_folder);
-		} else {
-			LOGI("=> Created directory: %s\n", gapps_backup_folder);
-		}
-	}
-	
-	// make sure we have the device_id folder inside the nandroid/gapps folder
-	sprintf(tw_image_folder, "%s/%s/", gapps_backup_folder, device_id);
-	if (stat(tw_image_folder,&st) != 0) {
-		if(mkdir(tw_image_folder,0777) == -1) {
-			LOGI("=> Can not create directory: %s\n", tw_image_folder);
-		} else {
-			LOGI("=> Created directory: %s\n", tw_image_folder);
-		}
-	}
-
-	ui_print("Checking for Disk Space on /sdcard\n");
-	fp = __popen("df -k /sdcard| grep sdcard | awk '{ print $4 }'", "r");
-	LOGI("=> Checking SDCARD Disk Space.\n");
-	while (fgets(tmpString,15,fp) != NULL)
-	{
-		tmpChar = tmpString[strlen(tmpString)-2];
-	}
-	__pclose(fp);
-	if(tmpChar == '%')
-	{
-		fp = __popen("df -k /sdcard| grep sdcard | awk '{ print $3 }'", "r");
-		LOGI("=> Not the response we were looking for, trying again.\n");
-		fgets(tmpString,15,fp);
-		__pclose(fp);
-	}
-	sscanf(tmpString,"%lu",&sdSpace);
-	LOGI("=> SDCARD Space Left: %lu\n\n",sdSpace);
-
-	if (sdSpace > 20000)
-	{
-		// removed disk space check cause it was screwing up nandroid. If you aint got 10mb for gapps, you're too cheap!
-		ui_print("[Google Apps Backup]\n");
-		sprintf(tw_image_folder, "%s/%s/", gapps_backup_folder, device_id); // location of the gapps backup folder
-		ui_print("...Backing up Google Apps.\n");
-		ui_show_progress(1,10);
-		__system("bakgapps.sh backup");
-		ui_print("...Done.\n");
-		ui_print("...Generating md5.\n");
-		makeMD5(tw_image_folder,gapps_backup_file);
-		ui_print("...Done.\n");
-		ui_print("...Verifying md5\n");
-		checkMD5(tw_image_folder,gapps_backup_file);
-		ui_print("...Done backing up Google Apps.\n\n");
-		ui_reset_progress();
-	} else {
-		ui_print("Not Enough Disk Space on /sdcard\n");
-	}
-}
-
-void restore_gapps_backup() {
-    ensure_path_mounted(SDCARD_ROOT);
-    ensure_path_mounted("/system");
-    
-	char tw_image_folder[255];
-	
-	ui_print("[Google Apps Restore]\n");
-	sprintf(tw_image_folder, "%s/%s/", gapps_backup_folder, device_id); // location of the gapps backup folder
-	ui_print("...Verifying md5 hash for gappsbackup.win\n");
-	ui_show_progress(1,10);
-	if(checkMD5(tw_image_folder,gapps_backup_file))
-	{
-		ui_print("...Restoring Google Apps.\n");
-		__system("bakgapps.sh restore");
-		ui_print("....Done restoring Google Apps.\n\n");
-	} else {
-		ui_print("...Failed md5 check. Aborted.\n");
-	}
-	ui_reset_progress();
-}
-
 void choose_backup_folder() 
 {
     ensure_path_mounted(SDCARD_ROOT);
 
+	struct stat st;
     char tw_dir[255];
     sprintf(tw_dir, "%s/%s/", backup_folder, device_id);
+    if (stat(backup_folder,&st) != 1)
+    {
+    	if (mkdir(backup_folder, 0777) != 0)
+    	{
+    		LOGI("=> Can not create %s\n", tw_dir);
+    	} else {
+    		LOGI("=> Created folder %s\n", tw_dir);
+    	}
+    }
+    if (stat(tw_dir,&st) != 1)
+    {
+    	if (mkdir(tw_dir, 0777) != 0)
+    	{
+    		LOGI("=> Can not create %s\n", tw_dir);
+    	} else {
+    		LOGI("=> Created folder %s\n", tw_dir);
+    	}
+    }
+    
     const char* MENU_HEADERS[] = { "Choose a Nandroid Folder:",
     							   tw_dir,
                                    NULL };

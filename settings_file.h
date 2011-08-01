@@ -20,7 +20,7 @@ static const int TW_USE_COMPRESSION = 12;
 static const int TW_TIME_ZONE = 13;
 static const int TW_ZIP_LOCATION = 14; // Last location zip flashed from (remembers last folder) (Constant number corresponds to line number in file .twrs)
 
-static const char tw_version_val[] = "1.0.0.0"; // Variable Holding Version
+static const char tw_version_val[] = "1.0.2"; // Variable Holding Version
 char tw_nan_system_val[TW_MIN_SETTINGS_CHARS]; //
 char tw_nan_data_val[TW_MIN_SETTINGS_CHARS]; //
 char tw_nan_boot_val[TW_MIN_SETTINGS_CHARS];
