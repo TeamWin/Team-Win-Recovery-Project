@@ -1142,13 +1142,13 @@ nandroid_rest_exe()
 			__system(exe);
 			ui_print("....Done.\n");
 			ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
+			__system("umount /sd-ext");
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
 		}
 		ui_reset_progress();
 	}
 	ui_print("[ RESTORE COMPLETED IN %d SECONDS ]\n\n", time(0) - nan_ttime);
-	__system("sync");
 	free(tmp_file);
 }
 
