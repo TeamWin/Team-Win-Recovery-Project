@@ -523,7 +523,8 @@ nan_img_set(int tw_setting, int tw_backstore)
 			}
 			break;
 		case ITEM_NAN_WIMAX:
-			strcpy(tmp_set, "[ ] wimax");
+			strcpy(tmp_set, "[ ] ");
+			strcat(tmp_set,wim.mnt);
 			if (tw_backstore)
 			{
 				isTrue = tw_nan_wimax_x;
@@ -841,14 +842,19 @@ nandroid_back_exe()
 	if (isContinue)
 	{
 		if (is_true(tw_nan_wimax_val)) {
-			ui_print("[WIMAX (<15MB)]\n");
+			if (strcmp(wim.mnt,"wimax") == 0)
+			{
+				ui_print("[WIMAX (<20MB)]\n");
+			} else {
+				ui_print("[EFS (<20MB)]\n");
+			}
 			if (sdSpace > 20000)
 			{
 				nan_ctime = time(0);
 				strcpy(tw_image,tw_image_base);
 				strcat(tw_image,tw_nan_wimax);
 				sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, wim.dev, tw_image);
-				ui_print("...Backing up wimax partition.\n");
+				ui_print("...Backing up %s partition.\n", wim.mnt);
 				ui_show_progress(1,5);
 				__system(exe);
 				LOGI("=> %s\n", exe);

@@ -22,6 +22,7 @@
 #include "common.h"
 #include "extra-functions.h"
 #include "bootloader.h"
+#include "backstore.h"
 
 // get locations from our device.info
 void getLocations()
@@ -82,10 +83,17 @@ void getLocations()
 				strcpy(cac.dev,tmp.dev);
 				strcpy(cac.blk,tmp.blk);
 			}
-			if (strcmp(tmp.mnt,"wimax") == 0 || strcmp(tmp.mnt,"efs") == 0) {
+			if (strcmp(tmp.mnt,"wimax") == 0) {
 				strcpy(wim.mnt,tmp.mnt);
 				strcpy(wim.dev,tmp.dev);
 				strcpy(wim.blk,tmp.blk);
+				strcpy(tw_nan_wimax,"wimax.win");
+			}
+			if (strcmp(tmp.mnt,"efs") == 0) {
+				strcpy(wim.mnt,tmp.mnt);
+				strcpy(wim.dev,tmp.dev);
+				strcpy(wim.blk,tmp.blk);
+				strcpy(tw_nan_wimax,"efs.win");
 			}
 		}
 		pclose(fp);

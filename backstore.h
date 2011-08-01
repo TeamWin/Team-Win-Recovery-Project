@@ -3,10 +3,10 @@ static const char tw_nan_system[] = "system.win";
 static const char tw_nan_data[] = "data.win";
 static const char tw_nan_cache[] = "cache.win";
 static const char tw_nan_boot[] = "boot.win";
-static const char tw_nan_wimax[] = "wimax.win";
 static const char tw_nan_recovery[] = "recovery.win";
 static const char tw_nan_andsec[] = "and-sec.win";
 static const char tw_nan_sdext[] = "sd-ext.win";
+char tw_nan_wimax[10];
 
 static const char bs_size[] = "4096";
 
