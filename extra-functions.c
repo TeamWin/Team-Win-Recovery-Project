@@ -530,14 +530,34 @@ void wipe_rotate_data()
     ensure_path_unmounted("/data");
 }   
 
+void fix_perms()
+{
+	FILE *fp;
+	char exe[255];
+	char tmpOutput[100];
+	char tmpProcess[10];
+	sprintf(exe,"fix_permissions.sh");
+	ui_show_progress(1,30);
+	fp = __popen(exe, "r");
+    ui_print("\n-- Fixing Permissions\n");
+	while (fgets(tmpOutput,100,fp) != NULL)
+	{
+		tmpOutput[strlen(tmpOutput)-1] = '\0';
+		ui_print_overwrite("%s",tmpOutput);
+	}
+	ui_print_overwrite("-- Done.\n\n");
+	ui_reset_progress();
+	__pclose(fp);
+}
 
 void advanced_menu()
 {
 	// ADVANCED MENU
 	#define ITEM_REBOOT_MENU       0
 	#define ITEM_FORMAT_MENU       1
-	#define ITEM_ALL_SETTINGS      2
-	#define ADVANCED_MENU_BACK     3
+	#define ITEM_FIX_PERM          2
+	#define ITEM_ALL_SETTINGS      3
+	#define ADVANCED_MENU_BACK     4
 
     static char* MENU_ADVANCED_HEADERS[] = { "Advanced Menu",
     										 "Reboot, Format, or twrp!",
@@ -545,6 +565,7 @@ void advanced_menu()
     
 	char* MENU_ADVANCED[] = { "Reboot Menu",
 	                          "Format Menu",
+	                          "Fix Permissions",
 	                          "Change twrp Settings",
 	                          "<-- Back To Main Menu",
 	                          NULL };
@@ -563,6 +584,9 @@ void advanced_menu()
                 break;
             case ITEM_FORMAT_MENU:
                 format_menu();
+                break;
+            case ITEM_FIX_PERM:
+            	fix_perms();
                 break;
             case ITEM_ALL_SETTINGS:
 			    all_settings_menu(0);

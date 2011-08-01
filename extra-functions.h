@@ -59,3 +59,5 @@ int get_new_zip_dir;
 
 char* checkTheme(int tw_theme);
 void tw_reboot();
+
+void fix_perms();
