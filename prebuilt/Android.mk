@@ -21,6 +21,9 @@ include $(BUILD_PREBUILT)
 #dump_image
 include $(CLEAR_VARS)
 LOCAL_MODULE := dump_image
+#md5check.sh
+include $(CLEAR_VARS)
+LOCAL_MODULE := md5check.sh
 LOCAL_MODULE_TAGS := eng
 LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
 LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin

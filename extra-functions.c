@@ -1544,3 +1544,36 @@ void all_settings_menu(int pIdx)
     dec_menu_loc();
 	all_settings_menu(pIdx);
 }
+
+/*
+    Checks md5 for a path
+    Return values:
+        -3 : Different file name in MD5 than provided
+        -2 : Zip does not exist
+        -1 : MD5 does not exist
+        0 : Failed
+        1 : Success
+*/
+int check_md5(char* path) {
+    char cmd[PATH_MAX + 30];
+    sprintf(cmd, "/sbin/md5check.sh %s", path);
+    FILE * cs = popen(cmd, "r");
+    char cs_s[7];
+    fgets(cs_s, 7, cs);
+    pclose(cs);
+
+    int o = 0;
+    if (strncmp(cs_s, "OK", 2) == 0)
+        o = 1;
+    else if (strncmp(cs_s, "FAILURE", 7) == 0)
+        o = 0;
+    else if (strncmp(cs_s, "NO5", 3) == 0)
+        o = -1;
+    else if (strncmp(cs_s, "NOZ", 3) == 0)
+        o = -2;
+    else if (strncmp(cs_s, "DF", 2) == 0)
+        o = -3;
+
+    return o;
+}
+
