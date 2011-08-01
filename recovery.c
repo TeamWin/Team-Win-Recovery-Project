@@ -632,18 +632,42 @@ sdcard_directory(const char* path) {
                 strlcat(new_path, "/", PATH_MAX);
                 strlcat(new_path, item, PATH_MAX);
 
-                ui_print("\n-- Install %s ...\n", path);
-                set_sdcard_update_bootloader_message();
-                char* copy = copy_sideloaded_package(new_path);
-                ensure_path_unmounted(SDCARD_ROOT);
-                if (copy) {
-                    result = install_package(copy);
-                    free(copy);
-                } else {
+                ui_print("\n-- Verify md5 for %s", path);
+                int md5chk = check_md5(path);
+                if (md5chk > 0 || md5chk == -1) {
+                    if (md5chk == -1)
+                        ui_print("\n-- md5 file not found");
+                    ui_print("\n-- Install %s ...\n", path);
+                    set_sdcard_update_bootloader_message();
+                    char* copy = copy_sideloaded_package(new_path);
+                    ensure_path_unmounted(SDCARD_ROOT);
+                    if (copy) {
+                        result = install_package(copy);
+                        free(copy);
+                    } else {
+                        result = INSTALL_ERROR;
+                    }
+                }
+                else {
+                    // MD5 check failed for some reason
+                    switch (md5chk) {
+                        case 0:
+                            ui_print("\n-- md5 did not match");
+                            break;
+                        case -1:
+                            ui_print("\n-- md5 file not found");
+                            break;
+                        case -2:
+                            ui_print("\n-- Zip file not found");
+                            break;
+                        case -3:
+                            ui_print("\n-- Filename in md5 and zip do not match");
+                            break;
+                    }
+
                     result = INSTALL_ERROR;
                 }
-                break;
-        	}
+            break;
         }
     } while (true);
     
