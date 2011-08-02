@@ -318,6 +318,16 @@ char* reboot_after_flash()
 	return tmp_set;
 }
 
+char* force_md5_check()
+{
+    char* tmp_set = (char*)malloc(40);
+    strcpy(tmp_set, "[ ] Force md5 verification");
+    if (is_true(tw_force_md5_check_val) == 1) {
+        tmp_set[1] = 'x';
+    }
+    return tmp_set;
+}
+
 void tw_reboot()
 {
     ui_print("Rebooting...\n");
@@ -332,8 +342,9 @@ void install_zip_menu(int pIdx)
 	#define ITEM_CHOOSE_ZIP           0
 	#define ITEM_REBOOT_AFTER_FLASH   1
 	#define ITEM_TOGGLE_SIG           2
-	#define ITEM_ZIP_RBOOT			  3
-	#define ITEM_ZIP_BACK		      4
+	#define ITEM_TOGGLE_FORCE_MD5	  3
+	#define ITEM_ZIP_RBOOT			  4
+	#define ITEM_ZIP_BACK		      5
 	
     ui_set_background(BACKGROUND_ICON_FLASH_ZIP);
     static char* MENU_FLASH_HEADERS[] = { "Install Zip Menu",
@@ -343,7 +354,8 @@ void install_zip_menu(int pIdx)
 	char* MENU_INSTALL_ZIP[] = {  "--> Choose Zip To Flash",
 			  	  	  	  	  	  reboot_after_flash(),
 								  zip_verify(),
-								  "--> Reboot To System",
+								  force_md5_check(),
+                                  "--> Reboot To System",
 	                              "<-- Back To Main Menu",
 	                              NULL };
 
@@ -393,7 +405,15 @@ void install_zip_menu(int pIdx)
             	}
                 write_s_file();
                 break;
-			case ITEM_ZIP_RBOOT:
+			case ITEM_TOGGLE_FORCE_MD5:
+                if (is_true(tw_force_md5_check_val)) {
+                    strcpy(tw_force_md5_check_val, "0");
+                } else {
+                    strcpy(tw_force_md5_check_val, "1");
+                }
+                write_s_file();
+                break;            
+            case ITEM_ZIP_RBOOT:
 				tw_reboot();
                 break;
             case ITEM_ZIP_BACK:
@@ -1101,13 +1121,14 @@ void main_wipe_menu()
 void all_settings_menu(int pIdx)
 {
 	// ALL SETTINGS MENU (ALLS for ALL Settings)
-	#define ALLS_SIG_TOGGLE           0
-	#define ALLS_REBOOT_AFTER_FLASH   1
-	#define ALLS_TIME_ZONE            2
-	#define ALLS_ZIP_LOCATION   	  3
-	#define ALLS_THEMES               4
-	#define ALLS_DEFAULT              5
-	#define ALLS_MENU_BACK            6
+	#define ALLS_SIG_TOGGLE             0
+	#define ALLS_REBOOT_AFTER_FLASH     1
+    #define ALLS_FORCE_MD5_CHECK        2
+    #define ALLS_TIME_ZONE              3
+	#define ALLS_ZIP_LOCATION   	    4
+	#define ALLS_THEMES                 5
+	#define ALLS_DEFAULT                6
+	#define ALLS_MENU_BACK              7
 
     static char* MENU_ALLS_HEADERS[] = { "Change twrp Settings",
     									 "twrp or gtfo:",
@@ -1115,6 +1136,7 @@ void all_settings_menu(int pIdx)
     
 	char* MENU_ALLS[] =     { zip_verify(),
 	                          reboot_after_flash(),
+                              force_md5_check(),
 	                          "Change Time Zone",
 	                          "Change Zip Default Folder",
 	                          "Change twrp Color Theme",
@@ -1146,7 +1168,15 @@ void all_settings_menu(int pIdx)
             		strcpy(tw_reboot_after_flash_option, "1");
             	}
                 write_s_file();
+             case ALLS_FORCE_MD5_CHECK:
+                if (is_true(tw_force_md5_check_val)) {
+            		strcpy(tw_force_md5_check_val, "0");
+            	} else {
+            		strcpy(tw_force_md5_check_val, "1");
+            	}
+                write_s_file();
                 break;
+			   break;
 			case ALLS_THEMES:
 			    twrp_themes_menu();
 				break;
