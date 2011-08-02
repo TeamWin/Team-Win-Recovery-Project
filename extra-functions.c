@@ -1189,11 +1189,16 @@ void all_settings_menu(int pIdx)
 int check_md5(char* path) {
     char cmd[PATH_MAX + 30];
     sprintf(cmd, "/sbin/md5check.sh %s", path);
-    FILE * cs = popen(cmd, "r");
+    
+    //ui_print("\nMD5 Command: %s", cmd);
+    
+    FILE * cs = __popen(cmd, "r");
     char cs_s[7];
     fgets(cs_s, 7, cs);
-    pclose(cs);
 
+    //ui_print("\nMD5 Message: %s", cs_);
+    __pclose(cs);
+    
     int o = 0;
     if (strncmp(cs_s, "OK", 2) == 0)
         o = 1;

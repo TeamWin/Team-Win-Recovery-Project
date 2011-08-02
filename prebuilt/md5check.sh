@@ -1,4 +1,5 @@
-#! /bin/bash
+#! /sbin/sh
+
 # Changes to directory listed in first arguement and then 
 # checks the sum against the list in the second arguement
 # Created by ViViDboarder #TeamWin for checksum verification
