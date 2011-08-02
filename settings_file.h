@@ -20,8 +20,9 @@ static const char* TW_USE_COMPRESSION = "NAN_USE_COMPRESSION";
 static const char* TW_SHOW_SPAM = "SHOW_SPAM";
 static const char* TW_TIME_ZONE = "TIME_ZONE";
 static const char* TW_ZIP_LOCATION = "ZIP_LOCATION"; // Last location zip flashed from (remembers last folder) (Constant number corresponds to line number in file .twrs)
+static const char* TW_FORCE_MD5_CHECK = "FORCE_MD5";
 
-static const char tw_version_val[] = "1.0.3"; // Variable Holding Version
+static const char tw_version_val[] = "1.1.0"; // Variable Holding Version
 char tw_nan_system_val[TW_MIN_SETTINGS_CHARS]; //
 char tw_nan_data_val[TW_MIN_SETTINGS_CHARS]; //
 char tw_nan_boot_val[TW_MIN_SETTINGS_CHARS];
@@ -32,6 +33,7 @@ char tw_nan_andsec_val[TW_MIN_SETTINGS_CHARS];
 char tw_nan_sdext_val[TW_MIN_SETTINGS_CHARS];
 char tw_reboot_after_flash_option[TW_MIN_SETTINGS_CHARS];
 char tw_signed_zip_val[TW_MIN_SETTINGS_CHARS];
+char tw_force_md5_check_val[TW_MIN_SETTINGS_CHARS];
 char tw_color_theme_val[TW_MIN_SETTINGS_CHARS];
 char tw_use_compression_val[20];
 char tw_show_spam_val[20];

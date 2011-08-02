@@ -632,7 +632,7 @@ sdcard_directory(const char* path) {
 
             ui_print("\n-- Verify md5 for %s", new_path);
             int md5chk = check_md5(new_path);
-            bool md5_req = false; // TODO: Use to foce check from settings
+            bool md5_req = is_true(tw_force_md5_check_val);
             if (md5chk > 0 || (!md5_req && md5chk == -1)) {
                 if (md5chk == 1)
                     ui_print("\n-- Md5 verified, continue");
@@ -661,10 +661,12 @@ sdcard_directory(const char* path) {
                         ui_print("\n-- Zip file not found");
                         break;
                     case -3:
+                        ui_print("\n-- Invalid md5");
                         ui_print("\n-- Filename in md5 and zip do not match");
                         break;
                 }
-
+                
+                ui_print("\n-- Aborting install");
                 result = INSTALL_ERROR;
             }
             

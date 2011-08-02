@@ -39,7 +39,8 @@ tw_set_defaults() {
 	strcpy(tw_nan_andsec_val, "0");
 	strcpy(tw_nan_sdext_val, "0");
 	strcpy(tw_reboot_after_flash_option, "0");
-	strcpy(tw_signed_zip_val, "0");
+    strcpy(tw_signed_zip_val, "0");
+	strcpy(tw_force_md5_check_val, "0");
 	strcpy(tw_color_theme_val, "0");
 	strcpy(tw_use_compression_val, "0");
 	strcpy(tw_show_spam_val, "0");
@@ -96,6 +97,7 @@ write_s_file() {
                 fprintf(fp, "%s:%s\n", TW_SHOW_SPAM, tw_show_spam_val);
                 fprintf(fp, "%s:%s\n", TW_TIME_ZONE, tw_time_zone_val);
                 fprintf(fp, "%s:%s\n", TW_ZIP_LOCATION, tw_zip_location_val);
+                fprintf(fp, "%s:%s\n", TW_FORCE_MD5_CHECK, tw_force_md5_check_val);
 				fclose(fp); // close file
 				//LOGI("=> Wrote to configuration file: %s\n", TW_SETTINGS_FILE); // log
 			}
@@ -157,6 +159,8 @@ read_s_file() {
 			    	strcpy(tw_time_zone_val, s_value);
 				} else if (strcmp(s_key, TW_ZIP_LOCATION) == 0 ) {
 			    	strcpy(tw_zip_location_val, s_value);
+                } else if (strcmp(s_key, TW_FORCE_MD5_CHECK) == 0) {
+                    strcpy(tw_force_md5_check_val, s_value);
 				} 
 			}
 			fclose(fp); // close file
