@@ -723,10 +723,12 @@ print_batt_cap()  {
 	fgets(cap_s, 4, cap);
 	fclose(cap);
 	
-	int len = strlen(cap_s);
-	if (cap_s[len-1] == '\n') {
-		cap_s[len-1] = 0;
-	}
+	int cap_i = atoi(cap_s);
+    
+    //int len = strlen(cap_s);
+	//if (cap_s[len-1] == '\n') {
+	//	cap_s[len-1] = 0;
+	//}
 	
 	// Get a usable time
 	struct tm *current;
@@ -734,7 +736,7 @@ print_batt_cap()  {
 	now = time(0);
 	current = localtime(&now);
 	
-	sprintf(full_cap_a, "Battery Level: %s%% @ %02D:%02D", cap_s, current->tm_hour, current->tm_min);
+	sprintf(full_cap_a, "Battery Level: %i%% @ %02D:%02D", cap_i, current->tm_hour, current->tm_min);
 	strcpy(full_cap_s, full_cap_a);
 	
 	return full_cap_s;
