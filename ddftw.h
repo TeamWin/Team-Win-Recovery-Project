@@ -9,6 +9,7 @@ struct dInfo {
 	char blk[100];
 	char dev[100];
 	char fst[10];
+	int sze;
 };
 struct dInfo tmp, sys, dat, boo, rec, wim, cac, sdc, ase, sde;
 

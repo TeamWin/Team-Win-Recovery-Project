@@ -1176,4 +1176,3 @@ void all_settings_menu(int pIdx)
     dec_menu_loc();
 	all_settings_menu(pIdx);
 }
-

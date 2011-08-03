@@ -590,7 +590,6 @@ nandroid_back_exe()
 	FILE *fp;
 	int isContinue = 1;
 	int progTime;
-	int tmpSize;
 	unsigned long sdSpace;
 	unsigned long sdSpaceFinal;
 	unsigned long imgSpace;
@@ -651,10 +650,13 @@ nandroid_back_exe()
 	sdSpaceFinal = sdSpace;
 	LOGI("=> SDCARD Space Left: %lu\n\n",sdSpaceFinal);
 	
+	int div;
 	if (is_true(tw_use_compression_val) == 1) {
 		strcpy(tar_arg,"czvpf");
+		div = 500;
 	} else {
 		strcpy(tar_arg,"cvpf");
+		div = 1000;
 	}
 	
 	ui_print("\nStarting Backup...\n\n");
@@ -663,9 +665,8 @@ nandroid_back_exe()
 		ensure_path_mounted("/system");
 		fp = __popen("du -sk /system", "r");
 	    fscanf(fp,"%lu %*s",&imgSpace);
-		progTime = imgSpace / 500;
-		tmpSize = imgSpace / 1024;
-		ui_print("[SYSTEM (%dMB)]\n",tmpSize);
+		progTime = imgSpace / div;
+		ui_print("[SYSTEM (%d MB)]\n",imgSpace/1024);
 		__pclose(fp);
 		if (sdSpace > imgSpace)
 		{
@@ -703,9 +704,8 @@ nandroid_back_exe()
 			ensure_path_mounted("/data");
 			fp = __popen("du -sk /data", "r");
 		    fscanf(fp,"%lu %*s",&imgSpace);
-			progTime = imgSpace / 500;
-			tmpSize = imgSpace / 1024;
-			ui_print("[DATA (%dMB)]\n",tmpSize);
+			progTime = imgSpace / div;
+			ui_print("[DATA (%d MB)]\n",imgSpace/1024);
 			__pclose(fp);
 			if (sdSpace > imgSpace)
 			{
@@ -741,8 +741,9 @@ nandroid_back_exe()
 	if (isContinue)
 	{
 		if (is_true(tw_nan_boot_val)) {
-			ui_print("[BOOT (<10MB)]\n");
-			if (sdSpace > 10000)
+			imgSpace = boo.sze / 1024;
+			ui_print("[BOOT (%i MB)]\n",imgSpace/1024);
+			if (sdSpace > imgSpace)
 			{
 				nan_ctime = time(0);
 				strcpy(tw_image,tw_image_base);
@@ -765,14 +766,15 @@ nandroid_back_exe()
 				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
 				isContinue = 0;
 			}
-			sdSpace -= 10000;
+			sdSpace -= imgSpace;
 		}
 	}
 	if (isContinue)
 	{
 		if (is_true(tw_nan_recovery_val)) {
-			ui_print("[RECOVERY (<10MB)]\n");
-			if (sdSpace > 10000)
+			imgSpace = rec.sze / 1024;
+			ui_print("[RECOVERY (%i MB)]\n",imgSpace/1024);
+			if (sdSpace > imgSpace)
 			{
 				nan_ctime = time(0);
 				strcpy(tw_image,tw_image_base);
@@ -795,7 +797,7 @@ nandroid_back_exe()
 				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
 				isContinue = 0;
 			}
-			sdSpace -= 10000;
+			sdSpace -= imgSpace;
 		}
 	}
 	if (isContinue)
@@ -804,9 +806,8 @@ nandroid_back_exe()
 			ensure_path_mounted("/cache");
 			fp = __popen("du -sk /cache", "r");
 		    fscanf(fp,"%lu %*s",&imgSpace);
-			progTime = imgSpace / 500;
-			tmpSize = imgSpace / 1024;
-			ui_print("[CACHE (%dMB)]\n",tmpSize);
+			progTime = imgSpace / div;
+			ui_print("[CACHE (%d MB)]\n",imgSpace/1024);
 			__pclose(fp);
 			if (sdSpace > imgSpace)
 			{
@@ -844,16 +845,25 @@ nandroid_back_exe()
 		if (is_true(tw_nan_wimax_val)) {
 			if (strcmp(wim.mnt,"wimax") == 0)
 			{
-				ui_print("[WIMAX (<20MB)]\n");
+				imgSpace = wim.sze / 1024;
+				ui_print("[WIMAX (%d MB)]\n",imgSpace/1024);
 			} else {
-				ui_print("[EFS (<20MB)]\n");
+				fp = __popen("du -sk /efs", "r");
+			    fscanf(fp,"%lu %*s",&imgSpace);
+				ui_print("[EFS (%d MB)]\n",imgSpace/1024);
+				__pclose(fp);
 			}
-			if (sdSpace > 20000)
+			if (sdSpace > imgSpace)
 			{
 				nan_ctime = time(0);
 				strcpy(tw_image,tw_image_base);
 				strcat(tw_image,tw_nan_wimax);
-				sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, wim.dev, tw_image);
+				if (strcmp(wim.mnt,"efs") == 0)
+				{
+					sprintf(exe,"cd /%s && tar -%s %s ./*", wim.mnt, tar_arg, tw_image);
+				} else {
+					sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, wim.dev, tw_image);
+				}
 				ui_print("...Backing up %s partition.\n", wim.mnt);
 				ui_show_progress(1,5);
 				__system(exe);
@@ -871,7 +881,7 @@ nandroid_back_exe()
 				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
 				isContinue = 0;
 			}
-			sdSpace -= 20000;
+			sdSpace -= imgSpace;
 		}
 	}
 	if (isContinue)
@@ -880,9 +890,8 @@ nandroid_back_exe()
 			ensure_path_mounted(ase.dev);
 			fp = __popen("du -sk /sdcard/.android_secure", "r");
 		    fscanf(fp,"%lu %*s",&imgSpace);
-			progTime = imgSpace / 500;
-			tmpSize = imgSpace / 1024;
-			ui_print("[ANDROID_SECURE (%dMB)]\n",tmpSize);
+			progTime = imgSpace / div;
+			ui_print("[ANDROID_SECURE (%d MB)]\n",imgSpace/1024);
 			__pclose(fp);
 			if (sdSpace > imgSpace)
 			{
@@ -921,9 +930,8 @@ nandroid_back_exe()
 			__system("mount /sd-ext");
 			fp = __popen("du -sk /sd-ext", "r");
 		    fscanf(fp,"%lu %*s",&imgSpace);
-			progTime = imgSpace / 500;
-			tmpSize = imgSpace / 1024;
-			ui_print("[SD-EXT (%dMB)]\n",tmpSize);
+			progTime = imgSpace / div;
+			ui_print("[SD-EXT (%d MB)]\n",imgSpace/1024);
 			__pclose(fp);
 			if (sdSpace > imgSpace)
 			{
@@ -957,10 +965,21 @@ nandroid_back_exe()
 		}
 	}
 	fp = __popen("df -k /sdcard| grep sdcard | awk '{ print $4 }'", "r");
-    fscanf(fp,"%lu",&sdSpace);
-    int totalBackedUp = (int)(sdSpaceFinal - sdSpace) / 1024;
+	while (fgets(tmpString,15,fp) != NULL)
+	{
+		tmpChar = tmpString[strlen(tmpString)-2];
+	}
 	__pclose(fp);
-	ui_print("[ %dMB TOTAL BACKED UP TO SDCARD ]\n[ BACKUP COMPLETED IN %d SECONDS ]\n\n", totalBackedUp, time(0) - nan_ttime);
+	if(tmpChar == '%')
+	{
+		fp = __popen("df -k /sdcard| grep sdcard | awk '{ print $3 }'", "r");
+		LOGI("=> Not the response we were looking for, trying again.\n");
+		fgets(tmpString,15,fp);
+		__pclose(fp);
+	}
+	sscanf(tmpString,"%lu",&sdSpace);
+    int totalBackedUp = (int)(sdSpaceFinal - sdSpace) / 1024;
+	ui_print("[ %d MB TOTAL BACKED UP TO SDCARD ]\n[ BACKUP COMPLETED IN %d SECONDS ]\n\n", totalBackedUp, time(0) - nan_ttime);
 }
 
 void 
@@ -968,6 +987,8 @@ nandroid_rest_exe()
 {
 	ensure_path_mounted(SDCARD_ROOT);
 	FILE *fp;
+	int tmpSize;
+	int numErrors = 0;
 	char tmpOutput[255];
 	char exe[255];
 	char* tmp_file = (char*)malloc(255);
@@ -977,7 +998,7 @@ nandroid_rest_exe()
 	nan_ttime = time(0);
 	if (tw_nan_system_x == 1) {
 		ui_print("...Verifying md5 hash for %s.\n",tw_nan_system);
-		ui_show_progress(1,300);
+		ui_show_progress(1,150);
 		nan_ctime = time(0);
 		if(checkMD5(nan_dir,tw_nan_system))
 		{
@@ -996,12 +1017,13 @@ nandroid_rest_exe()
 			ensure_path_unmounted("/system");
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
+			numErrors++;
 		}
 		ui_reset_progress();
 	}
 	if (tw_nan_data_x == 1) {
 		ui_print("...Verifying md5 hash for %s.\n",tw_nan_data);
-		ui_show_progress(1,300);
+		ui_show_progress(1,150);
 		nan_ctime = time(0);
 		if(checkMD5(nan_dir,tw_nan_data))
 		{
@@ -1020,6 +1042,7 @@ nandroid_rest_exe()
 			ensure_path_unmounted("/data");
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
+			numErrors++;
 		}
 		ui_reset_progress();
 	}
@@ -1031,14 +1054,27 @@ nandroid_rest_exe()
 		{
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_boot);
-			sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, tmp_file, boo.dev);
-			LOGI("=> %s\n", exe);
-			ui_print("...Restoring boot partition.\n");
-			__system(exe);
-			ui_print("...Done.\n");
-			ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
+			ui_print("...Double checking, by checking file size.\n");
+			sprintf(exe,"ls -l %s",tmp_file);
+			fp = __popen(exe, "r");
+			fscanf(fp,"%*s %*i %*s %*s %i",&tmpSize);
+			if (tmpSize == boo.sze)
+			{
+				ui_print("....File size matched partition size.\n");
+				sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, tmp_file, boo.dev);
+				LOGI("=> %s\n", exe);
+				ui_print("...Restoring boot partition.\n");
+				__system(exe);
+				ui_print("...Done.\n");
+				ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
+			} else {
+				ui_print("...Failed file size check. Aborted.\n\n");
+				numErrors++;
+			}
+			__pclose(fp);
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
+			numErrors++;
 		}
 		ui_reset_progress();
 	}
@@ -1050,14 +1086,27 @@ nandroid_rest_exe()
 		{
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_recovery);
-			sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, tmp_file, rec.dev);
-			LOGI("=> %s\n", exe);
-			ui_print("...Restoring recovery partition.\n");
-			__system(exe);
-			ui_print("...Done.\n");
-			ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
+			ui_print("...Double checking, by checking file size.\n");
+			sprintf(exe,"ls -l %s",tmp_file);
+			fp = __popen(exe, "r");
+			fscanf(fp,"%*s %*i %*s %*s %i",&tmpSize);
+			if (tmpSize == rec.sze)
+			{
+				ui_print("....File size matched partition size.\n");
+				sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, tmp_file, rec.dev);
+				LOGI("=> %s\n", exe);
+				ui_print("...Restoring recovery partition.\n");
+				__system(exe);
+				ui_print("...Done.\n");
+				ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
+			} else {
+				ui_print("...Failed file size check. Aborted.\n\n");
+				numErrors++;
+			}
+			__pclose(fp);
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
+			numErrors++;
 		}
 		ui_reset_progress();
 	}
@@ -1083,6 +1132,7 @@ nandroid_rest_exe()
 			ensure_path_unmounted("/cache");
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
+			numErrors++;
 		}
 		ui_reset_progress();
 	}
@@ -1094,14 +1144,42 @@ nandroid_rest_exe()
 		{
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_wimax);
-			sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, tmp_file, wim.dev);
-			LOGI("=> %s\n", exe);
-			ui_print("...Restoring wimax partition.\n");
-			__system(exe);
-			ui_print("...Done.\n");
-			ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
+			if (strcmp(wim.mnt,"efs") == 0)
+			{
+				__system("mount /efs");
+				ui_print("...Wiping %s.\n",wim.mnt);
+				sprintf(exe,"rm -rf /%s/* 2>/dev/null", wim.mnt);
+				__system(exe);
+				ui_print("....Done.\n");
+				sprintf(exe,"cd /%s && tar xzpf %s", wim.mnt, tmp_file);
+				LOGI("=> %s\n", exe);
+				ui_print("...Restoring wimax partition.\n");
+				__system(exe);
+				ui_print("...Done.\n");
+				ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
+			} else {
+				ui_print("...Double checking, by checking file size.\n");
+				sprintf(exe,"ls -l %s",tmp_file);
+				fp = __popen(exe, "r");
+				fscanf(fp,"%*s %*i %*s %*s %i",&tmpSize);
+				if (tmpSize == wim.sze)
+				{
+					ui_print("....File size matched partition size.\n");
+					sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, tmp_file, wim.dev);
+					LOGI("=> %s\n", exe);
+					ui_print("...Restoring wimax partition.\n");
+					__system(exe);
+					ui_print("...Done.\n");
+					ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
+				} else {
+					ui_print("...Failed file size check. Aborted.\n\n");
+					numErrors++;
+				}
+				__pclose(fp);
+			}
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
+			numErrors++;
 		}
 		ui_reset_progress();
 	}
@@ -1126,12 +1204,13 @@ nandroid_rest_exe()
 			ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
+			numErrors++;
 		}
 		ui_reset_progress();
 	}
 	if (tw_nan_sdext_x == 1) {
 		ui_print("...Verifying md5 hash for %s.\n",tw_nan_sdext);
-		ui_show_progress(1,30);
+		ui_show_progress(1,100);
 		nan_ctime = time(0);
 		if(checkMD5(nan_dir,tw_nan_sdext))
 		{
@@ -1151,8 +1230,13 @@ nandroid_rest_exe()
 			__system("umount /sd-ext");
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
+			numErrors++;
 		}
 		ui_reset_progress();
+	}
+	if (numErrors > 0)
+	{
+		ui_print("[ %d ERROR(S), PLEASE CHECK LOGS ]\n", numErrors);
 	}
 	ui_print("[ RESTORE COMPLETED IN %d SECONDS ]\n\n", time(0) - nan_ttime);
 	free(tmp_file);

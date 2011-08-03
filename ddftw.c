@@ -40,7 +40,7 @@ void getLocations()
 	{
 		ui_print("\n=> Halp! Could not determine flash type!\n");
 	} else {
-		while (fscanf(fp,"%s %*s %*s %*c%s",tmp.dev,tmp.mnt) != EOF)
+		while (fscanf(fp,"%s %0x %*s %*c%s",tmp.dev,&tmp.sze,tmp.mnt) != EOF)
 		{
 			if (strcmp(tmp.dev,"dev:") != 0)
 			{
@@ -72,11 +72,13 @@ void getLocations()
 				strcpy(boo.mnt,tmp.mnt);
 				strcpy(boo.dev,tmp.dev);
 				strcpy(boo.blk,tmp.blk);
+				boo.sze = tmp.sze;
 			}
 			if (strcmp(tmp.mnt,"recovery") == 0) {
 				strcpy(rec.mnt,tmp.mnt);
 				strcpy(rec.dev,tmp.dev);
 				strcpy(rec.blk,tmp.blk);
+				rec.sze = tmp.sze;
 			}
 			if (strcmp(tmp.mnt,"cache") == 0) {
 				strcpy(cac.mnt,tmp.mnt);
@@ -88,12 +90,15 @@ void getLocations()
 				strcpy(wim.dev,tmp.dev);
 				strcpy(wim.blk,tmp.blk);
 				strcpy(tw_nan_wimax,"wimax.win");
+				wim.sze = tmp.sze;
 			}
 			if (strcmp(tmp.mnt,"efs") == 0) {
 				strcpy(wim.mnt,tmp.mnt);
 				strcpy(wim.dev,tmp.dev);
 				strcpy(wim.blk,tmp.blk);
+				strcpy(wim.fst,"vfat");
 				strcpy(tw_nan_wimax,"efs.win");
+				wim.sze = tmp.sze;
 			}
 		}
 		pclose(fp);
@@ -215,6 +220,11 @@ void createFstab()
 					LOGI("=> Created /sd-ext folder.\n");
 				}
 			}
+		}
+		if (strcmp(wim.mnt,"efs") == 0)
+		{
+			sprintf(tmpString,"%s /%s %s rw\n",wim.blk,wim.mnt,wim.fst);
+			fputs(tmpString, fp);
 		}
 	}
 	fclose(fp);
