@@ -696,6 +696,7 @@ nandroid_back_exe()
 			ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
 			isContinue = 0;
 		}
+		ensure_path_unmounted("/system");
 		sdSpace -= imgSpace;
 	}
 	if (isContinue)
@@ -735,6 +736,7 @@ nandroid_back_exe()
 				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
 				isContinue = 0;
 			}
+			ensure_path_unmounted("/data");
 			sdSpace -= imgSpace;
 		}
 	}
@@ -837,6 +839,7 @@ nandroid_back_exe()
 				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
 				isContinue = 0;
 			}
+			ensure_path_unmounted("/cache");
 			sdSpace -= imgSpace;
 		}
 	}
@@ -848,6 +851,7 @@ nandroid_back_exe()
 				imgSpace = wim.sze / 1024;
 				ui_print("[WIMAX (%d MB)]\n",imgSpace/1024);
 			} else {
+				__system("mount /efs");
 				fp = __popen("du -sk /efs", "r");
 			    fscanf(fp,"%lu %*s",&imgSpace);
 				ui_print("[EFS (%d MB)]\n",imgSpace/1024);
@@ -880,6 +884,10 @@ nandroid_back_exe()
 			} else {
 				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
 				isContinue = 0;
+			}
+			if (strcmp(wim.mnt,"efs") == 0)
+			{
+				__system("umount /efs");
 			}
 			sdSpace -= imgSpace;
 		}
@@ -961,6 +969,7 @@ nandroid_back_exe()
 				ui_print("\nNot enough space left on /sdcard... Aborting.\n\n");
 				isContinue = 0;
 			}
+			__system("umount /sd-ext");
 			sdSpace -= imgSpace;
 		}
 	}
@@ -1157,6 +1166,7 @@ nandroid_rest_exe()
 				__system(exe);
 				ui_print("...Done.\n");
 				ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
+				__system("umount /efs");
 			} else {
 				ui_print("...Double checking, by checking file size.\n");
 				sprintf(exe,"ls -l %s",tmp_file);

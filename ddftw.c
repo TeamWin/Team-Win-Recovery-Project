@@ -96,7 +96,7 @@ void getLocations()
 				strcpy(wim.mnt,tmp.mnt);
 				strcpy(wim.dev,tmp.dev);
 				strcpy(wim.blk,tmp.blk);
-				strcpy(wim.fst,"vfat");
+				strcpy(wim.fst,"yaffs2");
 				strcpy(tw_nan_wimax,"efs.win");
 				wim.sze = tmp.sze;
 			}
@@ -225,6 +225,16 @@ void createFstab()
 		{
 			sprintf(tmpString,"%s /%s %s rw\n",wim.blk,wim.mnt,wim.fst);
 			fputs(tmpString, fp);
+			if (stat("/efs",&st) != 0)
+			{
+				if(mkdir("/efs",0777) == -1)
+				{
+					LOGI("=> Can not create /efs folder.\n");
+				} else {
+					LOGI("=> Created /efs folder.\n");
+					__system("chown radio.radio /efs");
+				}
+			}
 		}
 	}
 	fclose(fp);
