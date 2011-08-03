@@ -233,7 +233,7 @@ void get_device_id()
 		if (device_id[len-1] == '\n') {
 			device_id[len-1] = 0;
 		}
-		LOGI("=> DEVICE_ID: %s\n", device_id);
+		//LOGI("=> DEVICE_ID: %s\n", device_id);
 	}
 	__pclose(fp);
 }
@@ -565,7 +565,8 @@ void advanced_menu()
 	#define ITEM_FORMAT_MENU       1
 	#define ITEM_FIX_PERM          2
 	#define ITEM_ALL_SETTINGS      3
-	#define ADVANCED_MENU_BACK     4
+	#define ITEM_CPY_LOG		   4
+	#define ADVANCED_MENU_BACK     5
 
     static char* MENU_ADVANCED_HEADERS[] = { "Advanced Menu",
     										 "Reboot, Format, or twrp!",
@@ -575,6 +576,7 @@ void advanced_menu()
 	                          "Format Menu",
 	                          "Fix Permissions",
 	                          "Change twrp Settings",
+	                          "Copy recovery log to /sdcard",
 	                          "<-- Back To Main Menu",
 	                          NULL };
 	
@@ -599,6 +601,11 @@ void advanced_menu()
             case ITEM_ALL_SETTINGS:
 			    all_settings_menu(0);
 				break;
+            case ITEM_CPY_LOG:
+                ensure_path_mounted("/sdcard");
+            	__system("cp /tmp/recovery.log /sdcard");
+                ui_print("Copied recovery log to /sdcard.\n");
+            	break;
             case ADVANCED_MENU_BACK:
             	dec_menu_loc();
             	return;

@@ -115,7 +115,7 @@ write_s_file() {
 					i++; // increment loop
 				}
 				fclose(fp); // close file
-				LOGI("=> Wrote to configuration file: %s\n", TW_SETTINGS_FILE); // log
+				//LOGI("=> Wrote to configuration file: %s\n", TW_SETTINGS_FILE); // log
 			}
 		}
 	}

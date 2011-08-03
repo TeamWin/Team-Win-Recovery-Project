@@ -752,7 +752,7 @@ nandroid_back_exe()
 				ui_print("...Backing up boot partition.\n");
 				ui_show_progress(1,5);
 				__system(exe);
-				LOGI("=> %s\n", exe);
+				//LOGI("=> %s\n", exe);
 				ui_print("....Done.\n");
 				ui_print("...Generating %s md5...\n", boo.mnt);
 				makeMD5(tw_image_base,tw_nan_boot);
@@ -783,7 +783,7 @@ nandroid_back_exe()
 				ui_print("...Backing up recovery partition.\n");
 				ui_show_progress(1,5);
 				__system(exe);
-				LOGI("=> %s\n", exe);
+				//LOGI("=> %s\n", exe);
 				ui_print("....Done.\n");
 				ui_print("...Generating %s md5...\n", rec.mnt);
 				makeMD5(tw_image_base,tw_nan_recovery);
@@ -867,7 +867,7 @@ nandroid_back_exe()
 				ui_print("...Backing up %s partition.\n", wim.mnt);
 				ui_show_progress(1,5);
 				__system(exe);
-				LOGI("=> %s\n", exe);
+				//LOGI("=> %s\n", exe);
 				ui_print("....Done.\n");
 				ui_print("...Generating %s md5...\n", wim.mnt);
 				makeMD5(tw_image_base,tw_nan_wimax);
@@ -1062,7 +1062,7 @@ nandroid_rest_exe()
 			{
 				ui_print("....File size matched partition size.\n");
 				sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, tmp_file, boo.dev);
-				LOGI("=> %s\n", exe);
+				//LOGI("=> %s\n", exe);
 				ui_print("...Restoring boot partition.\n");
 				__system(exe);
 				ui_print("...Done.\n");
@@ -1094,7 +1094,7 @@ nandroid_rest_exe()
 			{
 				ui_print("....File size matched partition size.\n");
 				sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, tmp_file, rec.dev);
-				LOGI("=> %s\n", exe);
+				//LOGI("=> %s\n", exe);
 				ui_print("...Restoring recovery partition.\n");
 				__system(exe);
 				ui_print("...Done.\n");
@@ -1124,7 +1124,7 @@ nandroid_rest_exe()
 			__system(exe);
 			ui_print("....Done.\n");
 			sprintf(exe,"cd /%s && tar xzpf %s", cac.mnt, tmp_file);
-			LOGI("=> %s\n", exe);
+			//LOGI("=> %s\n", exe);
 			ui_print("...Restoring cache partition.\n");
 			__system(exe);
 			ui_print("....Done.\n");
@@ -1152,7 +1152,7 @@ nandroid_rest_exe()
 				__system(exe);
 				ui_print("....Done.\n");
 				sprintf(exe,"cd /%s && tar xzpf %s", wim.mnt, tmp_file);
-				LOGI("=> %s\n", exe);
+				//LOGI("=> %s\n", exe);
 				ui_print("...Restoring wimax partition.\n");
 				__system(exe);
 				ui_print("...Done.\n");
@@ -1166,7 +1166,7 @@ nandroid_rest_exe()
 				{
 					ui_print("....File size matched partition size.\n");
 					sprintf(exe,"dd bs=%s if=%s of=%s", bs_size, tmp_file, wim.dev);
-					LOGI("=> %s\n", exe);
+					//LOGI("=> %s\n", exe);
 					ui_print("...Restoring wimax partition.\n");
 					__system(exe);
 					ui_print("...Done.\n");
@@ -1197,7 +1197,7 @@ nandroid_rest_exe()
 			__system(exe);
 			ui_print("....Done.\n");
 			sprintf(exe,"cd %s && tar xzpf %s", ase.dev, tmp_file);
-			LOGI("=> %s\n", exe);
+			//LOGI("=> %s\n", exe);
 			ui_print("...Restoring .android-secure.\n");
 			__system(exe);
 			ui_print("....Done.\n");
@@ -1222,7 +1222,7 @@ nandroid_rest_exe()
 			__system(exe);
 			ui_print("....Done.\n");
 			sprintf(exe,"cd /%s && tar xzpf %s", sde.mnt, tmp_file);
-			LOGI("=> %s\n", exe);
+			//LOGI("=> %s\n", exe);
 			ui_print("...Restoring sd-ext partition.\n");
 			__system(exe);
 			ui_print("....Done.\n");
