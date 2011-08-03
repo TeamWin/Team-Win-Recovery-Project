@@ -330,10 +330,11 @@ void install_zip_menu(int pIdx)
 {
 	// INSTALL ZIP MENU
 	#define ITEM_CHOOSE_ZIP           0
-	#define ITEM_REBOOT_AFTER_FLASH   1
-	#define ITEM_TOGGLE_SIG           2
-	#define ITEM_ZIP_RBOOT			  3
-	#define ITEM_ZIP_BACK		      4
+	#define ITEM_WIPE_CACHE_DALVIK    1
+	#define ITEM_REBOOT_AFTER_FLASH   2
+	#define ITEM_TOGGLE_SIG           3
+	#define ITEM_ZIP_RBOOT			  4
+	#define ITEM_ZIP_BACK		      5
 	
     ui_set_background(BACKGROUND_ICON_FLASH_ZIP);
     static char* MENU_FLASH_HEADERS[] = { "Install Zip Menu",
@@ -341,6 +342,7 @@ void install_zip_menu(int pIdx)
                                           NULL };
 
 	char* MENU_INSTALL_ZIP[] = {  "--> Choose Zip To Flash",
+								  "Wipe Cache and Dalvik Cache",
 			  	  	  	  	  	  reboot_after_flash(),
 								  zip_verify(),
 								  "--> Reboot To System",
@@ -377,6 +379,12 @@ void install_zip_menu(int pIdx)
 					}
 				}
                 break;
+			case ITEM_WIPE_CACHE_DALVIK:
+				ui_print("\n-- Wiping Cache Partition...\n");
+                erase_volume("/cache");
+                ui_print("-- Cache Partition Wipe Complete!\n");
+				wipe_dalvik_cache();
+				break;
 			case ITEM_REBOOT_AFTER_FLASH:
 				if (is_true(tw_reboot_after_flash_option)) {
             		strcpy(tw_reboot_after_flash_option, "0");
