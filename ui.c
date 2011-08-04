@@ -128,7 +128,7 @@ static void draw_progress_locked()
     int height = gr_get_height(gProgressBarEmpty);
 
     int dx = (gr_fb_width() - width)/2;
-    int dy = (3*gr_fb_height() + iconHeight - 2*height)/4;
+    int dy = (3*gr_fb_height() + iconHeight + 425 - 2*height)/4;
 
     // Erase behind the progress bar (in case this was a progress-only update)
     gr_color(0, 0, 0, 255);
@@ -490,36 +490,36 @@ void ui_print(const char *fmt, ...)
     pthread_mutex_unlock(&gUpdateMutex);
 }
 
-void ui_print_overwrite(const char *fmt, ...)
-{
-    char buf[256];
-    va_list ap;
-    va_start(ap, fmt);
-    vsnprintf(buf, (text_cols - 1), fmt, ap);
-    va_end(ap);
-    //LOGI("ui_print_overwrite - starting text row %i\n", text_row);
-    fputs(buf, stdout);
-	text_col = 0;
-    // This can get called before ui_init(), so be careful.
-    pthread_mutex_lock(&gUpdateMutex);
-    if (text_rows > 0 && text_cols > 0) {
-        char *ptr;
-        for (ptr = buf; *ptr != '\0'; ++ptr) {
-            if (*ptr == '\n' || text_col >= text_cols) {
-                text[text_row][text_col] = '\0';
-                text_col = 0;
-                text_row = (text_row + 1) % text_rows;
-                if (text_row == text_top) text_top = (text_top + 1) % text_rows;
-            }
-            if (*ptr != '\n') text[text_row][text_col++] = *ptr;
-        }
-        text[text_row][text_col] = '\0';
-        // had to comment out as it was being thrown into the output
-		//LOGI("ui_print_overwrite - ending text row %i    ending text col%i\n", text_row, text_col); 
-        update_screen_locked();
-    }
-    pthread_mutex_unlock(&gUpdateMutex);
-}
+//void ui_print_overwrite(const char *fmt, ...)
+//{
+//    char buf[256];
+//    va_list ap;
+//    va_start(ap, fmt);
+//    vsnprintf(buf, (text_cols - 1), fmt, ap);
+//    va_end(ap);
+//    //LOGI("ui_print_overwrite - starting text row %i\n", text_row);
+//    fputs(buf, stdout);
+//	text_col = 0;
+//    // This can get called before ui_init(), so be careful.
+//    pthread_mutex_lock(&gUpdateMutex);
+//    if (text_rows > 0 && text_cols > 0) {
+//        char *ptr;
+//        for (ptr = buf; *ptr != '\0'; ++ptr) {
+//            if (*ptr == '\n' || text_col >= text_cols) {
+//                text[text_row][text_col] = '\0';
+//                text_col = 0;
+//                text_row = (text_row + 1) % text_rows;
+//                if (text_row == text_top) text_top = (text_top + 1) % text_rows;
+//            }
+//            if (*ptr != '\n') text[text_row][text_col++] = *ptr;
+//        }
+//        text[text_row][text_col] = '\0';
+//        // had to comment out as it was being thrown into the output
+//		//LOGI("ui_print_overwrite - ending text row %i    ending text col%i\n", text_row, text_col); 
+//        update_screen_locked();
+//    }
+//    pthread_mutex_unlock(&gUpdateMutex);
+//}
 
 void ui_start_menu(char** headers, char** items, int initial_selection) {
     int i;

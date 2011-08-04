@@ -548,12 +548,14 @@ void fix_perms()
 	ui_show_progress(1,30);
 	fp = __popen(exe, "r");
     ui_print("\n-- Fixing Permissions\n");
-	while (fgets(tmpOutput,100,fp) != NULL)
+	while (fscanf(fp,"%s",tmpOutput) != EOF)
 	{
-		tmpOutput[strlen(tmpOutput)-1] = '\0';
-		ui_print_overwrite("%s",tmpOutput);
+		if(is_true(tw_show_spam_val))
+		{
+			ui_print("%s\n",tmpOutput);
+		}
 	}
-	ui_print_overwrite("-- Done.\n\n");
+	ui_print("-- Done.\n\n");
 	ui_reset_progress();
 	__pclose(fp);
 }
@@ -911,7 +913,7 @@ void time_zone_minus()
 	        dec_menu_loc();
 	        return;
 	    } else {
-			ui_print("New time zone: %s", tw_time_zone_val);
+			ui_print("New time zone: %s\n", tw_time_zone_val);
 			time_zone_offset();
 			time_zone_dst();
 			update_tz_environment_variables();
@@ -1046,7 +1048,7 @@ void time_zone_plus()
 	        dec_menu_loc();
 	        return;
 	    } else {
-			ui_print("New time zone: %s", tw_time_zone_val);
+			ui_print("New time zone: %s\n", tw_time_zone_val);
 			time_zone_offset();
 			time_zone_dst();
 			update_tz_environment_variables();
@@ -1105,7 +1107,7 @@ void time_zone_offset() {
 	        return;
 	    } else {
 			dec_menu_loc();
-			ui_print_overwrite("New time zone: %s%s", tw_time_zone_val, time_zone_offset_string);
+			ui_print("New time zone: %s%s\n", tw_time_zone_val, time_zone_offset_string);
 			return;
 		}
     }
@@ -1136,7 +1138,7 @@ void time_zone_dst() {
             case TZ_DST_YES:
             	strcat(tw_time_zone_val, time_zone_offset_string);
 				strcat(tw_time_zone_val, time_zone_dst_string);
-				ui_print_overwrite("New time zone: %s", tw_time_zone_val);
+				ui_print("New time zone: %s\n", tw_time_zone_val);
                 break;
             case TZ_DST_NO:
 				strcat(tw_time_zone_val, time_zone_offset_string);
@@ -1444,16 +1446,27 @@ void main_wipe_menu()
 	main_wipe_menu();
 }
 
+char* toggle_spam()
+{
+	char* tmp_set = (char*)malloc(40);
+	strcpy(tmp_set, "[ ] Toggle twrp Spam");
+	if (is_true(tw_show_spam_val) == 1) {
+		tmp_set[1] = 'x';
+	}
+	return tmp_set;
+}
+
 void all_settings_menu(int pIdx)
 {
 	// ALL SETTINGS MENU (ALLS for ALL Settings)
 	#define ALLS_SIG_TOGGLE           0
 	#define ALLS_REBOOT_AFTER_FLASH   1
-	#define ALLS_TIME_ZONE            2
-	#define ALLS_ZIP_LOCATION   	  3
-	#define ALLS_THEMES               4
-	#define ALLS_DEFAULT              5
-	#define ALLS_MENU_BACK            6
+	#define ALLS_SPAM				  2
+	#define ALLS_TIME_ZONE            3
+	#define ALLS_ZIP_LOCATION   	  4
+	#define ALLS_THEMES               5
+	#define ALLS_DEFAULT              6
+	#define ALLS_MENU_BACK            7
 
     static char* MENU_ALLS_HEADERS[] = { "Change twrp Settings",
     									 "twrp or gtfo:",
@@ -1461,6 +1474,7 @@ void all_settings_menu(int pIdx)
     
 	char* MENU_ALLS[] =     { zip_verify(),
 	                          reboot_after_flash(),
+	                          toggle_spam(),
 	                          "Change Time Zone",
 	                          "Change Zip Default Folder",
 	                          "Change twrp Color Theme",
@@ -1493,6 +1507,14 @@ void all_settings_menu(int pIdx)
             	}
                 write_s_file();
                 break;
+			case ALLS_SPAM:
+                if (is_true(tw_show_spam_val)) {
+            		strcpy(tw_show_spam_val, "0");
+            	} else {
+            		strcpy(tw_show_spam_val, "1");
+            	}
+                write_s_file();
+				break;
 			case ALLS_THEMES:
 			    twrp_themes_menu();
 				break;

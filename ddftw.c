@@ -52,10 +52,12 @@ void getLocations()
 					strcpy(tmp.blk,tmpText);
 					sprintf(tmpText,"%s%s",tw_mtd,tmp.dev);
 					strcpy(tmp.dev,tmpText);
+					strcpy(tmp.fst,"mtd");
 				} else {
 					sprintf(tmpText,"%s%s",tw_block,tmp.dev);
 					strcpy(tmp.dev,tmpText);
 					strcpy(tmp.blk,tmp.dev);
+					strcpy(tmp.fst,"emmc");
 				}
 			}
 			if (strcmp(tmp.mnt,"system") == 0) { // read in system line
@@ -72,12 +74,14 @@ void getLocations()
 				strcpy(boo.mnt,tmp.mnt);
 				strcpy(boo.dev,tmp.dev);
 				strcpy(boo.blk,tmp.blk);
+				strcpy(boo.fst,tmp.fst);
 				boo.sze = tmp.sze;
 			}
 			if (strcmp(tmp.mnt,"recovery") == 0) {
 				strcpy(rec.mnt,tmp.mnt);
 				strcpy(rec.dev,tmp.dev);
 				strcpy(rec.blk,tmp.blk);
+				strcpy(rec.fst,tmp.fst);
 				rec.sze = tmp.sze;
 			}
 			if (strcmp(tmp.mnt,"cache") == 0) {
@@ -89,6 +93,7 @@ void getLocations()
 				strcpy(wim.mnt,tmp.mnt);
 				strcpy(wim.dev,tmp.dev);
 				strcpy(wim.blk,tmp.blk);
+				strcpy(wim.fst,tmp.fst);
 				strcpy(tw_nan_wimax,"wimax.win");
 				wim.sze = tmp.sze;
 			}
@@ -232,7 +237,6 @@ void createFstab()
 					LOGI("=> Can not create /efs folder.\n");
 				} else {
 					LOGI("=> Created /efs folder.\n");
-					__system("chown radio.radio /efs");
 				}
 			}
 		}
