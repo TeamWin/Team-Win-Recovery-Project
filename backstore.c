@@ -730,7 +730,6 @@ nandroid_back_exe()
 				}
 				ui_print("....Done.\n");
 				__pclose(fp);
-				ui_print("....Done.\n");
 				ui_print("...Generating %s md5...\n", dat.mnt);
 				makeMD5(tw_image_base,tw_nan_data);
 				ui_print("....Done.\n");
@@ -847,7 +846,6 @@ nandroid_back_exe()
 				}
 				ui_print("....Done.\n");
 				__pclose(fp);
-				ui_print("....Done.\n");
 				ui_print("...Generating %s md5...\n", cac.mnt);
 				makeMD5(tw_image_base,tw_nan_cache);
 				ui_print("....Done.\n");

@@ -913,7 +913,7 @@ void time_zone_minus()
 	        dec_menu_loc();
 	        return;
 	    } else {
-			ui_print("New time zone: %s\n", tw_time_zone_val);
+			ui_print("New time zone: %s", tw_time_zone_val);
 			time_zone_offset();
 			time_zone_dst();
 			update_tz_environment_variables();
@@ -1048,7 +1048,7 @@ void time_zone_plus()
 	        dec_menu_loc();
 	        return;
 	    } else {
-			ui_print("New time zone: %s\n", tw_time_zone_val);
+			ui_print("New time zone: %s", tw_time_zone_val);
 			time_zone_offset();
 			time_zone_dst();
 			update_tz_environment_variables();
@@ -1107,7 +1107,7 @@ void time_zone_offset() {
 	        return;
 	    } else {
 			dec_menu_loc();
-			ui_print("New time zone: %s%s\n", tw_time_zone_val, time_zone_offset_string);
+			ui_print_overwrite("New time zone: %s%s", tw_time_zone_val, time_zone_offset_string);
 			return;
 		}
     }
@@ -1138,7 +1138,7 @@ void time_zone_dst() {
             case TZ_DST_YES:
             	strcat(tw_time_zone_val, time_zone_offset_string);
 				strcat(tw_time_zone_val, time_zone_dst_string);
-				ui_print("New time zone: %s\n", tw_time_zone_val);
+				ui_print_overwrite("New time zone: %s", tw_time_zone_val);
                 break;
             case TZ_DST_NO:
 				strcat(tw_time_zone_val, time_zone_offset_string);
