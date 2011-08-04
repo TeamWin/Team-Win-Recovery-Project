@@ -683,6 +683,8 @@ nandroid_back_exe()
 				if(is_true(tw_show_spam_val))
 				{
 					ui_print("%s\n",tmpOutput);
+				} else {
+					ui_print_overwrite("%s",tmpOutput);
 				}
 			}
 			ui_print("....Done.\n");
@@ -726,6 +728,8 @@ nandroid_back_exe()
 					if(is_true(tw_show_spam_val))
 					{
 						ui_print("%s\n",tmpOutput);
+					} else {
+						ui_print_overwrite("%s",tmpOutput);
 					}
 				}
 				ui_print("....Done.\n");
@@ -842,6 +846,8 @@ nandroid_back_exe()
 					if(is_true(tw_show_spam_val))
 					{
 						ui_print("%s\n",tmpOutput);
+					} else {
+						ui_print_overwrite("%s",tmpOutput);
 					}
 				}
 				ui_print("....Done.\n");
@@ -897,6 +903,8 @@ nandroid_back_exe()
 							if(is_true(tw_show_spam_val))
 							{
 								ui_print("%s\n",tmpOutput);
+							} else {
+								ui_print_overwrite("%s",tmpOutput);
 							}
 						}
 						__pclose(fp);
@@ -950,6 +958,8 @@ nandroid_back_exe()
 					if(is_true(tw_show_spam_val))
 					{
 						ui_print("%s\n",tmpOutput);
+					} else {
+						ui_print_overwrite("%s",tmpOutput);
 					}
 				}
 				__pclose(fp);
@@ -993,6 +1003,8 @@ nandroid_back_exe()
 					if(is_true(tw_show_spam_val))
 					{
 						ui_print("%s\n",tmpOutput);
+					} else {
+						ui_print_overwrite("%s",tmpOutput);
 					}
 				}
 				__pclose(fp);
@@ -1066,6 +1078,8 @@ nandroid_rest_exe()
 				if(is_true(tw_show_spam_val))
 				{
 					ui_print("%s\n",tmpOutput);
+				} else {
+					ui_print_overwrite("%s",tmpOutput);
 				}
 			}
 			__pclose(fp);
@@ -1099,6 +1113,8 @@ nandroid_rest_exe()
 				if(is_true(tw_show_spam_val))
 				{
 					ui_print("%s\n",tmpOutput);
+				} else {
+					ui_print_overwrite("%s",tmpOutput);
 				}
 			}
 			__pclose(fp);
@@ -1206,6 +1222,8 @@ nandroid_rest_exe()
 				if(is_true(tw_show_spam_val))
 				{
 					ui_print("%s\n",tmpOutput);
+				} else {
+					ui_print_overwrite("%s",tmpOutput);
 				}
 			}
 			__pclose(fp);
@@ -1292,6 +1310,8 @@ nandroid_rest_exe()
 				if(is_true(tw_show_spam_val))
 				{
 					ui_print("%s\n",tmpOutput);
+				} else {
+					ui_print_overwrite("%s",tmpOutput);
 				}
 			}
 			__pclose(fp);
@@ -1324,6 +1344,8 @@ nandroid_rest_exe()
 				if(is_true(tw_show_spam_val))
 				{
 					ui_print("%s\n",tmpOutput);
+				} else {
+					ui_print_overwrite("%s",tmpOutput);
 				}
 			}
 			__pclose(fp);
