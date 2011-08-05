@@ -195,6 +195,18 @@ int ensure_path_unmounted(const char* path) {
 }
 
 int format_volume(const char* volume) {
+    if (strcmp(volume,"/sdcard") == 0) {
+    	__system("rm -rf /sdcard/* && rm -rf /sdcard/.*");
+        return 0;
+    }
+    if (strcmp(volume,"/sd-ext") == 0) {
+    	__system("rm -rf /sd-ext/* && rm -rf /sd-ext/.*");
+        return 0;
+    }
+    if (strcmp(volume,"/efs") == 0) {
+    	__system("rm -rf /efs/* && rm -rf /efs/.*");
+        return 0;
+    }
     Volume* v = volume_for_path(volume);
     if (v == NULL) {
         LOGE("unknown volume \"%s\"\n", volume);

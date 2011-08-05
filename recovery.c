@@ -687,13 +687,13 @@ wipe_data(int confirm) {
     if (stat("/sd-ext",&st) == 0)
     {
         ui_print("Formatting /sd-ext...\n");
-        __system("rm -rf /sd-ext/*");
+        __system("rm -rf /sd-ext/* && rm -rf /sd-ext/.*");
     } else {
         ui_print("/sd-ext not found, skipping...\n");
     }
     if (0 == stat("/sdcard/.android_secure", &st))
     {
-        __system("rm -rf /sdcard/.android_secure/*");
+        __system("rm -rf /sdcard/.android_secure/* && rm -rf /sdcard/.android_secure/.*");
         ui_print("Formatting /sdcard/.android_secure...\n");
     } else {
         ui_print("/sdcard/.android_secure not found, skipping...\n");

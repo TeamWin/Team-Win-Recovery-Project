@@ -622,7 +622,6 @@ void advanced_menu()
 // kang'd this from recovery.c cuz there wasnt a recovery.h!
 int
 erase_volume(const char *volume) {
-    ui_show_indeterminate_progress();
     ui_print("Formatting %s...\n", volume);
 
     if (strcmp(volume, "/cache") == 0) {
@@ -719,13 +718,7 @@ confirm_format(char* volume_name, char* volume_path) {
     } else {
         ui_set_background(BACKGROUND_ICON_WIPE);
         ui_print("\n-- Wiping %s Partition...\n", volume_name);
-        if (strcmp(volume_name,"SD-EXT") == 0)
-        {
-        	ui_print("Formatting /sd-ext...");
-            __system("rm -rf /sd-ext/*");
-        } else {
-            erase_volume(volume_path);
-        }
+        erase_volume(volume_path);
         ui_print("-- %s Partition Wipe Complete!\n", volume_name);
         dec_menu_loc();
     }

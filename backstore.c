@@ -593,7 +593,7 @@ nandroid_back_exe()
 	unsigned long sdSpace;
 	unsigned long sdSpaceFinal;
 	unsigned long imgSpace;
-	char tmpOutput[255];
+	char tmpOutput[150];
 	char tmpString[15];
 	char tmpChar;
 	char exe[255];
@@ -687,7 +687,7 @@ nandroid_back_exe()
 					ui_print_overwrite("%s",tmpOutput);
 				}
 			}
-			ui_print("....Done.\n");
+			ui_print_overwrite("....Done.\n");
 			__pclose(fp);
 			ui_print("...Generating %s md5...\n", sys.mnt);
 			makeMD5(tw_image_base,tw_nan_system);
@@ -732,7 +732,7 @@ nandroid_back_exe()
 						ui_print_overwrite("%s",tmpOutput);
 					}
 				}
-				ui_print("....Done.\n");
+				ui_print_overwrite("....Done.\n");
 				__pclose(fp);
 				ui_print("...Generating %s md5...\n", dat.mnt);
 				makeMD5(tw_image_base,tw_nan_data);
@@ -850,7 +850,7 @@ nandroid_back_exe()
 						ui_print_overwrite("%s",tmpOutput);
 					}
 				}
-				ui_print("....Done.\n");
+				ui_print_overwrite("....Done.\n");
 				__pclose(fp);
 				ui_print("...Generating %s md5...\n", cac.mnt);
 				makeMD5(tw_image_base,tw_nan_cache);
@@ -963,7 +963,7 @@ nandroid_back_exe()
 					}
 				}
 				__pclose(fp);
-				ui_print("....Done.\n");
+				ui_print_overwrite("....Done.\n");
 				ui_print("...Generating %s md5...\n", ase.mnt);
 				makeMD5(tw_image_base,tw_nan_andsec);
 				ui_print("....Done.\n");
@@ -1008,7 +1008,7 @@ nandroid_back_exe()
 					}
 				}
 				__pclose(fp);
-				ui_print("....Done.\n");
+				ui_print_overwrite("....Done.\n");
 				ui_print("...Generating %s md5...\n", sde.mnt);
 				makeMD5(tw_image_base,tw_nan_sdext);
 				ui_print("....Done.\n");
@@ -1050,7 +1050,7 @@ nandroid_rest_exe()
 	FILE *fp;
 	int tmpSize;
 	int numErrors = 0;
-	char tmpOutput[255];
+	char tmpOutput[150];
 	char exe[255];
 	char* tmp_file = (char*)malloc(255);
     time_t nan_ttime;
@@ -1067,7 +1067,7 @@ nandroid_rest_exe()
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_system);
 			ui_print("...Wiping %s.\n",sys.mnt);
-			sprintf(exe,"rm -rf /%s/* 2>/dev/null", sys.mnt);
+			sprintf(exe,"rm -rf /%s/* && rm -rf /%s/.* ", sys.mnt, sys.mnt);
 			__system(exe);
 			ui_print("....Done.\n");
 			sprintf(exe,"cd /%s && tar xzpf %s", sys.mnt, tmp_file);
@@ -1102,7 +1102,7 @@ nandroid_rest_exe()
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_data);
 			ui_print("...Wiping %s.\n",dat.mnt);
-			sprintf(exe,"rm -rf /%s/* 2>/dev/null", dat.mnt);
+			sprintf(exe,"rm -rf /%s/* && rm -rf /%s/.* ", dat.mnt, dat.mnt);
 			__system(exe);
 			ui_print("....Done.\n");
 			sprintf(exe,"cd /%s && tar xzpf %s", dat.mnt, tmp_file);
@@ -1211,7 +1211,7 @@ nandroid_rest_exe()
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_cache);
 			ui_print("...Wiping %s.\n",cac.mnt);
-			sprintf(exe,"rm -rf /%s/* 2>/dev/null", cac.mnt);
+			sprintf(exe,"rm -rf /%s/* && rm -rf /%s/.* ", cac.mnt, cac.mnt);
 			__system(exe);
 			ui_print("....Done.\n");
 			sprintf(exe,"cd /%s && tar xzpf %s", cac.mnt, tmp_file);
@@ -1248,7 +1248,7 @@ nandroid_rest_exe()
 			{
 				__system("mount /efs");
 				ui_print("...Wiping %s.\n",wim.mnt);
-				sprintf(exe,"rm -rf /%s/* 2>/dev/null", wim.mnt);
+				sprintf(exe,"rm -rf /%s/* && rm -rf /%s/.*", wim.mnt);
 				__system(exe);
 				ui_print("....Done.\n");
 				sprintf(exe,"cd /%s && tar xzpf %s", wim.mnt, tmp_file);
@@ -1299,7 +1299,7 @@ nandroid_rest_exe()
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_andsec);
 			ui_print("...Wiping %s.\n",ase.dev);
-			sprintf(exe,"rm -rf %s/* 2>/dev/null", ase.dev);
+			sprintf(exe,"rm -rf %s/* && rm -rf %s/.* ", ase.dev, ase.dev);
 			__system(exe);
 			ui_print("....Done.\n");
 			sprintf(exe,"cd %s && tar xzpf %s", ase.dev, tmp_file);
@@ -1333,7 +1333,7 @@ nandroid_rest_exe()
 			strcpy(tmp_file,nan_dir);
 			strcat(tmp_file,tw_nan_sdext);
 			ui_print("...Wiping %s.\n",sde.mnt);
-			sprintf(exe,"rm -rf /%s/* 2>/dev/null", sde.mnt);
+			sprintf(exe,"rm -rf /%s/* && rm -rf /%s/.* ", sde.mnt, sde.mnt);
 			__system(exe);
 			ui_print("....Done.\n");
 			sprintf(exe,"cd /%s && tar xzpf %s", sde.mnt, tmp_file);
@@ -1363,6 +1363,7 @@ nandroid_rest_exe()
 		ui_print("[ %d ERROR(S), PLEASE CHECK LOGS ]\n", numErrors);
 	}
 	ui_print("[ RESTORE COMPLETED IN %d SECONDS ]\n\n", time(0) - nan_ttime);
+	__system("sync");
 	free(tmp_file);
 }
 
