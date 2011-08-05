@@ -638,6 +638,8 @@ erase_volume(const char *volume) {
 void
 format_menu()
 {
+	struct stat st;
+	
 	#define ITEM_FORMAT_SYSTEM      0
 	#define ITEM_FORMAT_DATA        1
 	#define ITEM_FORMAT_CACHE       2
@@ -679,8 +681,13 @@ format_menu()
                 confirm_format("SDCARD", "/sdcard");
                 break;
             case ITEM_FORMAT_SDEXT:
-            	__system("mount /sd-ext");
-                confirm_format("SD-EXT", "/sd-ext");
+            	if (stat(sde.blk,&st) == 0)
+            	{
+                	__system("mount /sd-ext");
+                    confirm_format("SD-EXT", "/sd-ext");
+            	} else {
+            		ui_print("No /sd-ext detected! Aborting.");
+            	}
             	break;
 			case ITEM_FORMAT_BACK:
             	dec_menu_loc();
