@@ -39,4 +39,3 @@ char* nan_compress();
 
 int makeMD5(char *imgDir, const char *imgFile);
 int checkMD5(char *imgDir, const char *imgFile);
-

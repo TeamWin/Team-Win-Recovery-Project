@@ -1048,9 +1048,10 @@ nandroid_rest_exe()
 {
 	ensure_path_mounted(SDCARD_ROOT);
 	FILE *fp;
+	char tmpBuffer[1024];
+	char *tmpOutput;
 	int tmpSize;
 	int numErrors = 0;
-	char tmpOutput[150];
 	char exe[255];
 	char* tmp_file = (char*)malloc(255);
     time_t nan_ttime;
@@ -1070,12 +1071,13 @@ nandroid_rest_exe()
 			sprintf(exe,"rm -rf /%s/* && rm -rf /%s/.* ", sys.mnt, sys.mnt);
 			__system(exe);
 			ui_print("....Done.\n");
-			sprintf(exe,"cd /%s && tar xzpf %s", sys.mnt, tmp_file);
-			//sprintf(exe,"cd /%s && tar xzvpf %s", sys.mnt, tmp_file);
+			sprintf(exe,"cd /%s && tar xzvpf %s", sys.mnt, tmp_file);
 			ui_print("...Restoring system partition.\n");
 			fp = __popen(exe, "r");
-			while (fscanf(fp,"%s",tmpOutput) != EOF)
+			while (fgets(tmpBuffer,sizeof(tmpBuffer),fp) != NULL)
 			{
+				tmpBuffer[strlen(tmpBuffer)-1] = '\0';
+				tmpOutput = tmpBuffer;
 				if(is_true(tw_show_spam_val))
 				{
 					ui_print("%s\n",tmpOutput);
@@ -1106,12 +1108,13 @@ nandroid_rest_exe()
 			sprintf(exe,"rm -rf /%s/* && rm -rf /%s/.* ", dat.mnt, dat.mnt);
 			__system(exe);
 			ui_print("....Done.\n");
-			sprintf(exe,"cd /%s && tar xzpf %s", dat.mnt, tmp_file);
-			//sprintf(exe,"cd /%s && tar xzvpf %s", dat.mnt, tmp_file);
+			sprintf(exe,"cd /%s && tar xzvpf %s", dat.mnt, tmp_file);
 			ui_print("...Restoring data partition.\n");
 			fp = __popen(exe, "r");
-			while (fscanf(fp,"%s",tmpOutput) != EOF)
+			while (fgets(tmpBuffer,sizeof(tmpBuffer),fp) != NULL)
 			{
+				tmpBuffer[strlen(tmpBuffer)-1] = '\0';
+				tmpOutput = tmpBuffer;
 				if(is_true(tw_show_spam_val))
 				{
 					ui_print("%s\n",tmpOutput);
@@ -1216,12 +1219,13 @@ nandroid_rest_exe()
 			sprintf(exe,"rm -rf /%s/* && rm -rf /%s/.* ", cac.mnt, cac.mnt);
 			__system(exe);
 			ui_print("....Done.\n");
-			sprintf(exe,"cd /%s && tar xzpf %s", cac.mnt, tmp_file);
-			//sprintf(exe,"cd /%s && tar xzvpf %s", cac.mnt, tmp_file);
+			sprintf(exe,"cd /%s && tar xzvpf %s", cac.mnt, tmp_file);
 			ui_print("...Restoring cache partition.\n");
 			fp = __popen(exe, "r");
-			while (fscanf(fp,"%s",tmpOutput) != EOF)
+			while (fgets(tmpBuffer,sizeof(tmpBuffer),fp) != NULL)
 			{
+				tmpBuffer[strlen(tmpBuffer)-1] = '\0';
+				tmpOutput = tmpBuffer;
 				if(is_true(tw_show_spam_val))
 				{
 					ui_print("%s\n",tmpOutput);
@@ -1254,12 +1258,13 @@ nandroid_rest_exe()
 				sprintf(exe,"rm -rf /%s/* && rm -rf /%s/.*", wim.mnt);
 				__system(exe);
 				ui_print("....Done.\n");
-				sprintf(exe,"cd /%s && tar xzpf %s", wim.mnt, tmp_file);
-				//sprintf(exe,"cd /%s && tar xzvpf %s", wim.mnt, tmp_file);
+				sprintf(exe,"cd /%s && tar xzvpf %s", wim.mnt, tmp_file);
 				ui_print("...Restoring efs partition.\n");
 				fp = __popen(exe, "r");
-				while (fscanf(fp,"%s",tmpOutput) != EOF)
+				while (fgets(tmpBuffer,sizeof(tmpBuffer),fp) != NULL)
 				{
+					tmpBuffer[strlen(tmpBuffer)-1] = '\0';
+					tmpOutput = tmpBuffer;
 					if(is_true(tw_show_spam_val))
 					{
 						ui_print("%s\n",tmpOutput);
@@ -1268,7 +1273,7 @@ nandroid_rest_exe()
 					}
 				}
 				__pclose(fp);
-				ui_print_overwrite("...Done.\n");
+				ui_print_overwrite("....Done.\n");
 				ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
 				__system("umount /efs");
 			} else {
@@ -1304,7 +1309,7 @@ nandroid_rest_exe()
 	}
 	if (tw_nan_andsec_x == 1) {
 		ui_print("...Verifying md5 hash for %s.\n",tw_nan_andsec);
-		ui_show_progress(1,30);
+		ui_show_progress(1,25);
 		nan_ctime = time(0);
 		if(checkMD5(nan_dir,tw_nan_andsec))
 		{
@@ -1315,12 +1320,13 @@ nandroid_rest_exe()
 			sprintf(exe,"rm -rf %s/* && rm -rf %s/.* ", ase.dev, ase.dev);
 			__system(exe);
 			ui_print("....Done.\n");
-			sprintf(exe,"cd %s && tar xzpf %s", ase.dev, tmp_file);
-			//sprintf(exe,"cd %s && tar xzvpf %s", ase.dev, tmp_file);
+			sprintf(exe,"cd %s && tar xzvpf %s", ase.dev, tmp_file);
 			ui_print("...Restoring .android-secure.\n");
 			fp = __popen(exe, "r");
-			while (fscanf(fp,"%s",tmpOutput) != EOF)
+			while (fgets(tmpBuffer,sizeof(tmpBuffer),fp) != NULL)
 			{
+				tmpBuffer[strlen(tmpBuffer)-1] = '\0';
+				tmpOutput = tmpBuffer;
 				if(is_true(tw_show_spam_val))
 				{
 					ui_print("%s\n",tmpOutput);
@@ -1339,7 +1345,7 @@ nandroid_rest_exe()
 	}
 	if (tw_nan_sdext_x == 1) {
 		ui_print("...Verifying md5 hash for %s.\n",tw_nan_sdext);
-		ui_show_progress(1,100);
+		ui_show_progress(1,25);
 		nan_ctime = time(0);
 		if(checkMD5(nan_dir,tw_nan_sdext))
 		{
@@ -1350,12 +1356,13 @@ nandroid_rest_exe()
 			sprintf(exe,"rm -rf /%s/* && rm -rf /%s/.* ", sde.mnt, sde.mnt);
 			__system(exe);
 			ui_print("....Done.\n");
-			sprintf(exe,"cd /%s && tar xzpf %s", sde.mnt, tmp_file);
-			//sprintf(exe,"cd /%s && tar xzvpf %s", sde.mnt, tmp_file);
+			sprintf(exe,"cd /%s && tar xzvpf %s", sde.mnt, tmp_file);
 			ui_print("...Restoring sd-ext partition.\n");
 			fp = __popen(exe, "r");
-			while (fscanf(fp,"%s",tmpOutput) != EOF)
+			while (fgets(tmpBuffer,sizeof(tmpBuffer),fp) != NULL)
 			{
+				tmpBuffer[strlen(tmpBuffer)-1] = '\0';
+				tmpOutput = tmpBuffer;
 				if(is_true(tw_show_spam_val))
 				{
 					ui_print("%s\n",tmpOutput);
