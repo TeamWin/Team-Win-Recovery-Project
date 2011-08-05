@@ -914,7 +914,7 @@ nandroid_back_exe()
 						LOGI("=> %s\n", exe);
 					}
 				}
-				ui_print("....Done.\n");
+				ui_print_overwrite("....Done.\n");
 				ui_print("...Generating %s md5...\n", wim.mnt);
 				makeMD5(tw_image_base,tw_nan_wimax);
 				ui_print("....Done.\n");
@@ -1071,6 +1071,7 @@ nandroid_rest_exe()
 			__system(exe);
 			ui_print("....Done.\n");
 			sprintf(exe,"cd /%s && tar xzpf %s", sys.mnt, tmp_file);
+			//sprintf(exe,"cd /%s && tar xzvpf %s", sys.mnt, tmp_file);
 			ui_print("...Restoring system partition.\n");
 			fp = __popen(exe, "r");
 			while (fscanf(fp,"%s",tmpOutput) != EOF)
@@ -1083,7 +1084,7 @@ nandroid_rest_exe()
 				}
 			}
 			__pclose(fp);
-			ui_print("....Done.\n");
+			ui_print_overwrite("....Done.\n");
 			ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
 			ensure_path_unmounted("/system");
 		} else {
@@ -1106,6 +1107,7 @@ nandroid_rest_exe()
 			__system(exe);
 			ui_print("....Done.\n");
 			sprintf(exe,"cd /%s && tar xzpf %s", dat.mnt, tmp_file);
+			//sprintf(exe,"cd /%s && tar xzvpf %s", dat.mnt, tmp_file);
 			ui_print("...Restoring data partition.\n");
 			fp = __popen(exe, "r");
 			while (fscanf(fp,"%s",tmpOutput) != EOF)
@@ -1118,7 +1120,7 @@ nandroid_rest_exe()
 				}
 			}
 			__pclose(fp);
-			ui_print("....Done.\n");
+			ui_print_overwrite("....Done.\n");
 			ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
 			ensure_path_unmounted("/data");
 		} else {
@@ -1215,6 +1217,7 @@ nandroid_rest_exe()
 			__system(exe);
 			ui_print("....Done.\n");
 			sprintf(exe,"cd /%s && tar xzpf %s", cac.mnt, tmp_file);
+			//sprintf(exe,"cd /%s && tar xzvpf %s", cac.mnt, tmp_file);
 			ui_print("...Restoring cache partition.\n");
 			fp = __popen(exe, "r");
 			while (fscanf(fp,"%s",tmpOutput) != EOF)
@@ -1227,7 +1230,7 @@ nandroid_rest_exe()
 				}
 			}
 			__pclose(fp);
-			ui_print("....Done.\n");
+			ui_print_overwrite("....Done.\n");
 			ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
 			ensure_path_unmounted("/cache");
 		} else {
@@ -1252,10 +1255,20 @@ nandroid_rest_exe()
 				__system(exe);
 				ui_print("....Done.\n");
 				sprintf(exe,"cd /%s && tar xzpf %s", wim.mnt, tmp_file);
-				LOGI("=> %s\n", exe);
-				ui_print("...Restoring wimax partition.\n");
-				__system(exe);
-				ui_print("...Done.\n");
+				//sprintf(exe,"cd /%s && tar xzvpf %s", wim.mnt, tmp_file);
+				ui_print("...Restoring efs partition.\n");
+				fp = __popen(exe, "r");
+				while (fscanf(fp,"%s",tmpOutput) != EOF)
+				{
+					if(is_true(tw_show_spam_val))
+					{
+						ui_print("%s\n",tmpOutput);
+					} else {
+						ui_print_overwrite("%s",tmpOutput);
+					}
+				}
+				__pclose(fp);
+				ui_print_overwrite("...Done.\n");
 				ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
 				__system("umount /efs");
 			} else {
@@ -1303,6 +1316,7 @@ nandroid_rest_exe()
 			__system(exe);
 			ui_print("....Done.\n");
 			sprintf(exe,"cd %s && tar xzpf %s", ase.dev, tmp_file);
+			//sprintf(exe,"cd %s && tar xzvpf %s", ase.dev, tmp_file);
 			ui_print("...Restoring .android-secure.\n");
 			fp = __popen(exe, "r");
 			while (fscanf(fp,"%s",tmpOutput) != EOF)
@@ -1315,7 +1329,7 @@ nandroid_rest_exe()
 				}
 			}
 			__pclose(fp);
-			ui_print("....Done.\n");
+			ui_print_overwrite("....Done.\n");
 			ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
 		} else {
 			ui_print("...Failed md5 check. Aborted.\n\n");
@@ -1337,6 +1351,7 @@ nandroid_rest_exe()
 			__system(exe);
 			ui_print("....Done.\n");
 			sprintf(exe,"cd /%s && tar xzpf %s", sde.mnt, tmp_file);
+			//sprintf(exe,"cd /%s && tar xzvpf %s", sde.mnt, tmp_file);
 			ui_print("...Restoring sd-ext partition.\n");
 			fp = __popen(exe, "r");
 			while (fscanf(fp,"%s",tmpOutput) != EOF)
@@ -1349,7 +1364,7 @@ nandroid_rest_exe()
 				}
 			}
 			__pclose(fp);
-			ui_print("....Done.\n");
+			ui_print_overwrite("....Done.\n");
 			ui_print("Restored in %d Seconds\n\n", time(0) - nan_ctime);
 			__system("umount /sd-ext");
 		} else {

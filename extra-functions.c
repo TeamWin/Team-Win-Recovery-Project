@@ -686,7 +686,7 @@ format_menu()
                 	__system("mount /sd-ext");
                     confirm_format("SD-EXT", "/sd-ext");
             	} else {
-            		ui_print("No /sd-ext detected! Aborting.");
+            		ui_print("\n/sd-ext not detected! Aborting.\n");
             	}
             	break;
 			case ITEM_FORMAT_BACK:
