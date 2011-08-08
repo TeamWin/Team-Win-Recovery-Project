@@ -79,44 +79,23 @@ write_s_file() {
 			if (fp == NULL) {
 				LOGI("=> Can not open settings file to write.\n"); // Can't open/create file, default settings still loaded into memory.
 			} else {
-				int i = 0;
-				while(i < TW_MAX_NUM_SETTINGS) {
-					if (i == TW_VERSION) {
-						fputs(tw_version_val, fp);
-					} else if (i == TW_NAN_SYSTEM) {
-						fputs(tw_nan_system_val, fp);
-					} else if (i == TW_NAN_DATA) {
-						fputs(tw_nan_data_val, fp);
-					} else if (i == TW_NAN_BOOT) {
-						fputs(tw_nan_boot_val, fp);
-					} else if (i == TW_NAN_RECOVERY) {
-						fputs(tw_nan_recovery_val, fp);
-					} else if (i == TW_NAN_CACHE) {
-						fputs(tw_nan_cache_val, fp);
-					} else if (i == TW_NAN_WIMAX) {
-						fputs(tw_nan_wimax_val, fp);
-					} else if (i == TW_NAN_ANDSEC) {
-						fputs(tw_nan_andsec_val, fp);
-					} else if (i == TW_NAN_SDEXT) {
-						fputs(tw_nan_sdext_val, fp);
-					} else if (i == TW_REBOOT_AFTER_FLASH) {
-						fputs(tw_reboot_after_flash_option, fp);
-					} else if (i == TW_SIGNED_ZIP) {
-						fputs(tw_signed_zip_val, fp);
-					} else if (i == TW_COLOR_THEME) {
-						fputs(tw_color_theme_val, fp);
-					} else if (i == TW_USE_COMPRESSION) {
-						fputs(tw_use_compression_val, fp);
-					} else if (i == TW_SHOW_SPAM) {
-						fputs(tw_show_spam_val, fp);
-					} else if (i == TW_TIME_ZONE) {
-						fputs(tw_time_zone_val, fp);
-					} else if (i == TW_ZIP_LOCATION) {
-						fputs(tw_zip_location_val, fp);
-					} 
-					fputs("\n", fp); // add a carriage return to finish line
-					i++; // increment loop
-				}
+				// Save all settings info to settings file in format KEY:VALUE
+                fprintf(fp, "%s:%s\n", TW_VERSION, tw_version_val);
+                fprintf(fp, "%s:%s\n", TW_NAN_SYSTEM, tw_nan_system_val);
+                fprintf(fp, "%s:%s\n", TW_NAN_DATA, tw_nan_data_val);
+                fprintf(fp, "%s:%s\n", TW_NAN_BOOT, tw_nan_boot_val);
+                fprintf(fp, "%s:%s\n", TW_NAN_RECOVERY, tw_nan_recovery_val);
+                fprintf(fp, "%s:%s\n", TW_NAN_CACHE, tw_nan_cache_val);
+                fprintf(fp, "%s:%s\n", TW_NAN_WIMAX, tw_nan_wimax_val);
+                fprintf(fp, "%s:%s\n", TW_NAN_ANDSEC, tw_nan_andsec_val);
+                fprintf(fp, "%s:%s\n", TW_NAN_SDEXT, tw_nan_sdext_val);
+                fprintf(fp, "%s:%s\n", TW_REBOOT_AFTER_FLASH, tw_reboot_after_flash_option);
+                fprintf(fp, "%s:%s\n", TW_SIGNED_ZIP, tw_signed_zip_val);
+                fprintf(fp, "%s:%s\n", TW_COLOR_THEME, tw_color_theme_val);
+                fprintf(fp, "%s:%s\n", TW_USE_COMPRESSION, tw_use_compression_val);
+                fprintf(fp, "%s:%s\n", TW_SHOW_SPAM, tw_show_spam_val);
+                fprintf(fp, "%s:%s\n", TW_TIME_ZONE, tw_time_zone_val);
+                fprintf(fp, "%s:%s\n", TW_ZIP_LOCATION, tw_zip_location_val);
 				fclose(fp); // close file
 				//LOGI("=> Wrote to configuration file: %s\n", TW_SETTINGS_FILE); // log
 			}
@@ -136,54 +115,49 @@ read_s_file() {
 			LOGI("=> Can not open settings file, will try to create file.\n"); // Can't open file, default settings should be unchanged.
 			write_s_file(); // call save settings function if settings file doesn't exist
 		} else {
-			int i = 0;
-			int len;
-			char s_line[TW_MAX_SETTINGS_CHARS+2]; // Set max characters + 2 (because of terminating and carriage return)
-			while(i < TW_MAX_NUM_SETTINGS) {
-				fgets(s_line, TW_MAX_SETTINGS_CHARS+2, fp); // Read a line from file
-				len = strlen(s_line); // get length of line
-				if (s_line[len-1] == '\n') { // if last char is carriage return
-					s_line[len-1] = 0; // remove it by setting it to 0
-				}
-				if (i == TW_VERSION) {
-					if (strcmp(s_line,tw_version_val) != 0) {
+			tw_set_defaults(); // Set defaults to unwritten settings will be present as well
+			char s_buffer[2 * TW_MAX_SETTINGS_CHARS];
+            char s_key[TW_MAX_SETTINGS_CHARS];
+            char s_value[TW_MAX_SETTINGS_CHARS]; // Set max characters + 2 (because of terminating and carriage return)
+			while(fgets(s_buffer, 2 * TW_MAX_SETTINGS_CHARS, fp)) {
+			    // Parse the line
+			    sscanf(s_buffer, "%[^:] %*c %s", s_key, s_value);
+			
+				if (strcmp(s_key, TW_VERSION) == 0) {
+					if (strcmp(s_value, tw_version_val) != 0) {
 						LOGI("=> Wrong recoverywin version detected, default settings applied.\n"); //
-						tw_set_defaults();
-						write_s_file();
-						break;
 					}
-				} else if (i == TW_NAN_SYSTEM) {
-			    	strcpy(tw_nan_system_val, s_line);
-                } else if (i == TW_NAN_DATA) {
-			    	strcpy(tw_nan_data_val, s_line);
-				} else if (i == TW_NAN_BOOT) {
-			    	strcpy(tw_nan_boot_val, s_line);
-				} else if (i == TW_NAN_RECOVERY) {
-			    	strcpy(tw_nan_recovery_val, s_line);
-				} else if (i == TW_NAN_CACHE) {
-			    	strcpy(tw_nan_cache_val, s_line);
-				} else if (i == TW_NAN_WIMAX) {
-			    	strcpy(tw_nan_wimax_val, s_line);
-				} else if (i == TW_NAN_ANDSEC) {
-			    	strcpy(tw_nan_andsec_val, s_line);
-				} else if (i == TW_NAN_SDEXT) {
-			    	strcpy(tw_nan_sdext_val, s_line);
-				} else if (i == TW_REBOOT_AFTER_FLASH) {
-			    	strcpy(tw_reboot_after_flash_option, s_line);
-				} else if (i == TW_SIGNED_ZIP) {
-			    	strcpy(tw_signed_zip_val, s_line);
-			    } else if (i == TW_COLOR_THEME) {
-			    	strcpy(tw_color_theme_val, s_line);
-			    } else if (i == TW_USE_COMPRESSION) {
-			    	strcpy(tw_use_compression_val, s_line);
-				} else if (i == TW_SHOW_SPAM) {
-			    	strcpy(tw_show_spam_val, s_line);
-				} else if (i == TW_TIME_ZONE) {
-			    	strcpy(tw_time_zone_val, s_line);
-				} else if (i == TW_ZIP_LOCATION) {
-			    	strcpy(tw_zip_location_val, s_line);
+				} else if (strcmp(s_key, TW_NAN_SYSTEM) == 0 ) {
+			    	strcpy(tw_nan_system_val, s_value);
+                } else if (strcmp(s_key, TW_NAN_DATA) == 0 ) {
+			    	strcpy(tw_nan_data_val, s_value);
+				} else if (strcmp(s_key, TW_NAN_BOOT) == 0 ) {
+			    	strcpy(tw_nan_boot_val, s_value);
+				} else if (strcmp(s_key, TW_NAN_RECOVERY) == 0 ) {
+			    	strcpy(tw_nan_recovery_val, s_value);
+				} else if (strcmp(s_key, TW_NAN_CACHE) == 0 ) {
+			    	strcpy(tw_nan_cache_val, s_value);
+				} else if (strcmp(s_key, TW_NAN_WIMAX) == 0 ) {
+			    	strcpy(tw_nan_wimax_val, s_value);
+				} else if (strcmp(s_key, TW_NAN_ANDSEC) == 0 ) {
+			    	strcpy(tw_nan_andsec_val, s_value);
+				} else if (strcmp(s_key, TW_NAN_SDEXT) == 0 ) {
+			    	strcpy(tw_nan_sdext_val, s_value);
+				} else if (strcmp(s_key, TW_REBOOT_AFTER_FLASH) == 0 ) {
+			    	strcpy(tw_reboot_after_flash_option, s_value);
+				} else if (strcmp(s_key, TW_SIGNED_ZIP) == 0 ) {
+			    	strcpy(tw_signed_zip_val, s_value);
+			    } else if (strcmp(s_key, TW_COLOR_THEME) == 0 ) {
+			    	strcpy(tw_color_theme_val, s_value);
+			    } else if (strcmp(s_key, TW_USE_COMPRESSION) == 0 ) {
+			    	strcpy(tw_use_compression_val, s_value);
+				} else if (strcmp(s_key, TW_SHOW_SPAM) == 0 ) {
+			    	strcpy(tw_show_spam_val, s_value);
+				} else if (strcmp(s_key, TW_TIME_ZONE) == 0 ) {
+			    	strcpy(tw_time_zone_val, s_value);
+				} else if (strcmp(s_key, TW_ZIP_LOCATION) == 0 ) {
+			    	strcpy(tw_zip_location_val, s_value);
 				} 
-				i++; // increment loop
 			}
 			fclose(fp); // close file
 		}

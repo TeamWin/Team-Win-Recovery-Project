@@ -4,22 +4,22 @@
 #define TW_MAX_NUM_SETTINGS 16 // Total Number of Settings (Change this as we add more settings)
 
 static const char* TW_SETTINGS_FILE = "/sdcard/TWRP/.twrps"; // Actual File
-static const int TW_VERSION = 0; // Used to make sure of settings compatability
-static const int TW_NAN_SYSTEM = 1; // system is backed up during nandroid (Constant number corresponds to line number in file .twrs)
-static const int TW_NAN_DATA = 2; // data is backed up during nandroid (Constant number corresponds to line number in file .twrs)
-static const int TW_NAN_BOOT = 3;
-static const int TW_NAN_RECOVERY = 4;
-static const int TW_NAN_CACHE = 5;
-static const int TW_NAN_WIMAX = 6;
-static const int TW_NAN_ANDSEC = 7;
-static const int TW_NAN_SDEXT = 8;
-static const int TW_REBOOT_AFTER_FLASH = 9;
-static const int TW_SIGNED_ZIP = 10; // Zip Signed Toggle (Constant number corresponds to line number in file .twrs)
-static const int TW_COLOR_THEME = 11;
-static const int TW_USE_COMPRESSION = 12;
-static const int TW_SHOW_SPAM = 13;
-static const int TW_TIME_ZONE = 14;
-static const int TW_ZIP_LOCATION = 15; // Last location zip flashed from (remembers last folder) (Constant number corresponds to line number in file .twrs)
+static const char* TW_VERSION = "VERSION"; // Used to make sure of settings compatability
+static const char* TW_NAN_SYSTEM = "NAN_SYSTEM"; // system is backed up during nandroid (Constant number corresponds to line number in file .twrs)
+static const char* TW_NAN_DATA = "NAN_DATA"; // data is backed up during nandroid (Constant number corresponds to line number in file .twrs)
+static const char* TW_NAN_BOOT = "NAN_BOOT";
+static const char* TW_NAN_RECOVERY = "NAN_RECOVERY";
+static const char* TW_NAN_CACHE = "NAN_CACHE";
+static const char* TW_NAN_WIMAX = "NAN_WIMAX";
+static const char* TW_NAN_ANDSEC = "NAN_ANDSEC";
+static const char* TW_NAN_SDEXT = "NAND_SDEXT";
+static const char* TW_REBOOT_AFTER_FLASH = "REBOOT_AFTER_FLASH";
+static const char* TW_SIGNED_ZIP = "SIGNED_ZIP"; // Zip Signed Toggle (Constant number corresponds to line number in file .twrs)
+static const char* TW_COLOR_THEME = "COLOR_THEME";
+static const char* TW_USE_COMPRESSION = "NAN_USE_COMPRESSION";
+static const char* TW_SHOW_SPAM = "SHOW_SPAM";
+static const char* TW_TIME_ZONE = "TIME_ZONE";
+static const char* TW_ZIP_LOCATION = "ZIP_LOCATION"; // Last location zip flashed from (remembers last folder) (Constant number corresponds to line number in file .twrs)
 
 static const char tw_version_val[] = "1.0.3"; // Variable Holding Version
 char tw_nan_system_val[TW_MIN_SETTINGS_CHARS]; //
