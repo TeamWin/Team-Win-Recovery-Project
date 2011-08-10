@@ -893,6 +893,17 @@ nandroid_back_exe()
 				if (strcmp(wim.mnt,"efs") == 0)
 				{
 					sprintf(exe,"cd /%s && tar -%s %s ./*", wim.mnt, tar_arg, tw_image);
+					fp = __popen(exe, "r");
+					while (fscanf(fp,"%s",tmpOutput) != EOF)
+					{
+						if(is_true(tw_show_spam_val))
+						{
+							ui_print("%s\n",tmpOutput);
+						} else {
+							ui_print_overwrite("%s",tmpOutput);
+						}
+					}
+					__pclose(fp);
 				} else {
 					if (strcmp(wim.fst,"mtd") == 0)
 					{
