@@ -559,24 +559,33 @@ sdcard_directory(const char* path) {
 
     notError = 0;
 	
-	if (get_newest_zip == 1) {
-		int zip_index, max_date, max_date_loc;
+	if (get_newest_zip == 1) { // this section locates the newest zip in the current folder and copies it to newest_zip_name then exits - used for nightly flash mode
+		if (z_size == 0) { // there are no zips in the current folder
+			newest_zip_name[0] = 255;
+			return 0;
+		}
+		int zip_index, max_date_loc;
+		time_t curr_date, max_date;
 		struct stat read_file;
 		char file_path_name[PATH_MAX];
-		for (zip_index = 0, zip_index < z_size; zip_index--;) {
+		max_date = 0;
+		max_date_loc = 0;
+		for (zip_index = 0; zip_index < z_size; zip_index++) {
 			strcpy(file_path_name, path);
+			strcat(file_path_name, "/");
 			strcat(file_path_name, zips[zip_index]);
 			stat(file_path_name, &read_file);
-			ui_print("file %s date %i\n", zips[zip_index], read_file.st_mtime);
-			if (read_file.st_mtime > max_date) {
-				max_date = read_file.st_mtime;
+			curr_date = read_file.st_mtime;
+			if (curr_date > max_date) {
+				max_date = curr_date;
 				max_date_loc = zip_index;
 			}
 		}
-		strcpy(newest_zip_name, zips[zip_index]);
+		strcpy(newest_zip_name, zips[max_date_loc]);
 		free(zips);
 		free(sele);
 		free(headers);
+		LOGI("return file %s\n", newest_zip_name);
 		return 0;
 	} // end if get_newest_zip
 	
@@ -675,6 +684,23 @@ sdcard_directory(const char* path) {
 
     //ensure_path_unmounted(SDCARD_ROOT);
     return result;
+}
+
+int install_zip_package(const char* zip_path_filename) {
+	int result;
+	
+    ensure_path_mounted(SDCARD_ROOT);
+	ui_print("\n-- Install %s ...\n", zip_path_filename);
+	set_sdcard_update_bootloader_message();
+	char* copy = copy_sideloaded_package(zip_path_filename);
+	ensure_path_unmounted(SDCARD_ROOT);
+	if (copy) {
+		result = install_package(copy);
+		free(copy);
+	} else {
+		result = INSTALL_ERROR;
+	}
+	return result;
 }
 
 void

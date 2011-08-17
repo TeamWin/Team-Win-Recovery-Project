@@ -12,7 +12,6 @@ void advanced_menu();
 
 void flash_nightly();
 void flash_all_zips();
-int find_zips_dees(const char* path);
 
 void usb_storage_toggle();
 void wipe_dalvik_cache();
