@@ -518,7 +518,7 @@ sdcard_directory(const char* path) {
     int z_size = 0;
     int z_alloc = 10;
     char** zips = malloc(z_alloc * sizeof(char*));
-    if (get_new_zip_dir == 1)
+    if (get_new_zip_dir > 0)
     {
     	sele[0] = strdup("[SELECT CURRENT FOLDER]");
     	s_size++;
@@ -558,6 +558,28 @@ sdcard_directory(const char* path) {
     closedir(d);
 
     notError = 0;
+	
+	if (get_newest_zip == 1) {
+		int zip_index, max_date, max_date_loc;
+		struct stat read_file;
+		char file_path_name[PATH_MAX];
+		for (zip_index = 0, zip_index < z_size; zip_index--;) {
+			strcpy(file_path_name, path);
+			strcat(file_path_name, zips[zip_index]);
+			stat(file_path_name, &read_file);
+			ui_print("file %s date %i\n", zips[zip_index], read_file.st_mtime);
+			if (read_file.st_mtime > max_date) {
+				max_date = read_file.st_mtime;
+				max_date_loc = zip_index;
+			}
+		}
+		strcpy(newest_zip_name, zips[zip_index]);
+		free(zips);
+		free(sele);
+		free(headers);
+		return 0;
+	} // end if get_newest_zip
+	
     qsort(dirs, d_size, sizeof(char*), compare_string);
     qsort(zips, z_size, sizeof(char*), compare_string);
     
@@ -589,7 +611,7 @@ sdcard_directory(const char* path) {
 
         if (chosen_item == 0) {          // item 0 is always "../"
             // go up but continue browsing (if the caller is sdcard_directory)
-        	if (get_new_zip_dir == 1)
+        	if (get_new_zip_dir > 0)
         	{
         		strcpy(tw_zip_location_val,path);
                 write_s_file();
@@ -599,7 +621,7 @@ sdcard_directory(const char* path) {
                 result = -1;
                 break;
         	}
-        } else if (chosen_item == 1 && get_new_zip_dir == 1) {
+        } else if (chosen_item == 1 && get_new_zip_dir > 0) {
         	dec_menu_loc();
             result = -1;
             break;
@@ -614,7 +636,7 @@ sdcard_directory(const char* path) {
     	    if (go_home) { 
     	    	notError = 1;
     	        dec_menu_loc();
-    	        if (get_new_zip_dir == 1)
+    	        if (get_new_zip_dir > 0)
     	        {
         	        return 1;
     	        } else {
@@ -622,54 +644,56 @@ sdcard_directory(const char* path) {
     	        }
     	    }
             if (result >= 0) break;
-        } else if (get_new_zip_dir != 1) {
-            // selected a zip file:  attempt to install it, and return
-            // the status to the caller.
-            char new_path[PATH_MAX];
-            strlcpy(new_path, path, PATH_MAX);
-            strlcat(new_path, "/", PATH_MAX);
-            strlcat(new_path, item, PATH_MAX);
+        } else {
+        	if (get_new_zip_dir < 1)
+        	{
+                // selected a zip file:  attempt to install it, and return
+                // the status to the caller.
+                char new_path[PATH_MAX];
+                strlcpy(new_path, path, PATH_MAX);
+                strlcat(new_path, "/", PATH_MAX);
+                strlcat(new_path, item, PATH_MAX);
 
-            ui_print("\n-- Verify md5 for %s", new_path);
-            int md5chk = check_md5(new_path);
-            bool md5_req = is_true(tw_force_md5_check_val);
-            if (md5chk > 0 || (!md5_req && md5chk == -1)) {
-                if (md5chk == 1)
-                    ui_print("\n-- Md5 verified, continue");
-                else if (md5chk == -1)
-                    ui_print("\n-- No md5 file found, ignoring");
-                ui_print("\n-- Install %s ...\n", new_path);
-                set_sdcard_update_bootloader_message();
-                char* copy = copy_sideloaded_package(new_path);
-                ensure_path_unmounted(SDCARD_ROOT);
-                if (copy) {
-                    result = install_package(copy);
-                    free(copy);
-                } else {
-                    result = INSTALL_ERROR;
-                }
-            } else {
+                ui_print("\n-- Verify md5 for %s", new_path);
+				int md5chk = check_md5(new_path);
+				bool md5_req = is_true(tw_force_md5_check_val);
+				if (md5chk > 0 || (!md5_req && md5chk == -1)) {
+					if (md5chk == 1)
+						ui_print("\n-- Md5 verified, continue");
+					else if (md5chk == -1)
+						ui_print("\n-- No md5 file found, ignoring");
+					ui_print("\n-- Install %s ...\n", new_path);
+					set_sdcard_update_bootloader_message();
+					char* copy = copy_sideloaded_package(new_path);
+					ensure_path_unmounted(SDCARD_ROOT);
+					if (copy) {
+						result = install_package(copy);
+						free(copy);
+					} else {
+						result = INSTALL_ERROR;
+					}
+				} else {
                 // MD5 check failed for some reason
-                switch (md5chk) {
-                    case 0:
-                        ui_print("\n-- Md5 did not match");
-                        break;
-                    case -1:
-                        ui_print("\n-- Md5 file not found");
-                        break;
-                    case -2:
-                        ui_print("\n-- Zip file not found");
-                        break;
-                    case -3:
-                        ui_print("\n-- Invalid md5");
-                        ui_print("\n-- Filename in md5 and zip do not match");
-                        break;
-                }
+					switch (md5chk) {
+						case 0:
+							ui_print("\n-- Md5 did not match");
+							break;
+						case -1:
+							ui_print("\n-- Md5 file not found");
+							break;
+						case -2:
+							ui_print("\n-- Zip file not found");
+							break;
+						case -3:
+							ui_print("\n-- Invalid md5");
+							ui_print("\n-- Filename in md5 and zip do not match");
+							break;
+					}
                 
-                ui_print("\n-- Aborting install");
-                result = INSTALL_ERROR;
+					ui_print("\n-- Aborting install");
+					result = INSTALL_ERROR;
+				}
             }
-            
             break;
         }
     } while (true);
