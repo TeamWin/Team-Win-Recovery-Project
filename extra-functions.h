@@ -10,6 +10,10 @@ void get_device_id();
 void install_zip_menu(int pIdx);
 void advanced_menu();
 
+void flash_nightly();
+void flash_all_zips();
+int find_zips_dees(const char* path);
+
 void usb_storage_toggle();
 void wipe_dalvik_cache();
 
@@ -62,6 +66,8 @@ int sdcIsMounted;
 int sdeIsMounted;
 
 int get_new_zip_dir;
+int get_newest_zip;
+char* newest_zip_name[];
 
 char* checkTheme(int tw_theme);
 void tw_reboot();
