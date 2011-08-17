@@ -548,7 +548,7 @@ sdcard_directory(const char* path) {
         } else if (de->d_type == DT_REG &&
                    name_len >= 4 &&
                    strncasecmp(de->d_name + (name_len-4), ".zip", 4) == 0 &&
-				   get_new_zip_dir < 1) {
+				   get_new_zip_dir < 1) { // no zips will be added to the array if we're getting a new zip dir
             if (z_size >= z_alloc) {
                 z_alloc *= 2;
                 zips = realloc(zips, z_alloc * sizeof(char*));
@@ -560,17 +560,17 @@ sdcard_directory(const char* path) {
 
     notError = 0;
 	
-	if (get_newest_zip == 1) { // this section locates the newest zip in the current folder and copies it to newest_zip_name then exits - used for nightly flash mode
-		if (z_size == 0) { // there are no zips in the current folder
-			newest_zip_name[0] = 255;
-			return 0;
-		}
-		int zip_index, max_date_loc;
-		time_t curr_date, max_date;
-		struct stat read_file;
-		char file_path_name[PATH_MAX];
-		max_date = 0;
-		max_date_loc = 0;
+	// this section locates the newest zip in the current folder and copies it to newest_zip_name then exits - used for nightly flash mode
+	int zip_index, max_date_loc;
+	time_t curr_date, max_date;
+	struct stat read_file;
+	char file_path_name[PATH_MAX];
+	max_date = 0;
+	max_date_loc = 0;
+	if (z_size == 0 && get_newest_zip == 1) { // there are no zips in the current folder
+		newest_zip_name[0] = 255;
+		return 0;
+	} else {
 		for (zip_index = 0; zip_index < z_size; zip_index++) {
 			strcpy(file_path_name, path);
 			strcat(file_path_name, "/");
@@ -582,13 +582,14 @@ sdcard_directory(const char* path) {
 				max_date_loc = zip_index;
 			}
 		}
-		strcpy(newest_zip_name, zips[max_date_loc]);
-		free(zips);
-		free(sele);
-		free(headers);
-		LOGI("return file %s\n", newest_zip_name);
-		return 0;
-	} // end if get_newest_zip
+		if (get_newest_zip == 1) {
+			strcpy(newest_zip_name, zips[max_date_loc]);
+			free(zips);
+			free(sele);
+			free(headers);
+			return 0;
+		}
+	}
 	
     qsort(dirs, d_size, sizeof(char*), compare_string);
     qsort(zips, z_size, sizeof(char*), compare_string);
@@ -613,6 +614,7 @@ sdcard_directory(const char* path) {
     
     int result;
     int chosen_item = 0;
+	if (max_date != 0) chosen_item = max_date_loc + 1; // should automatically highlight the most recent zip
     do {
         chosen_item = get_menu_selection(headers, sele, 1, chosen_item);
 
