@@ -42,6 +42,7 @@
 #include "bootloader.h"
 #include "common.h"
 #include "extra-functions.h"
+#include "cutils/properties.h"
 #include "install.h"
 #include "minui/minui.h"
 #include "minzip/DirUtil.h"
@@ -650,14 +651,15 @@ void advanced_menu()
 }
 
 void flash_nightly() {
-	// ADVANCED MENU
+	// FLASH NIGHTLY MENU
 	#define ITEM_FLASH_NIGHTLY_ZIP       0
 	#define ITEM_CHOOSE_NIGHTLY_FOLDER   1
 	#define ITEM_NIGHTLY_BACK            2
 	
+	int result;
     static char* MENU_NIGHTLY_HEADER[] = { "Flash Nightly Mode",
 	                                       "Wipes cache/dalvik then",
-    									   "Flashes newest zip in the folder",
+    									   "Flashes newest zip in the folder & reboot",
                                               NULL };
     
 	char* MENU_NIGHTLY[] = { "Flash Zip",
@@ -670,8 +672,12 @@ void flash_nightly() {
     
 	ui_print("Nightly folder: %s\n", tw_zip_location_val);
 	get_newest_zip = 1;
-	find_zips_dees(tw_zip_location_val);
-	ui_print("Newest zip: %s\n", newest_zip_name);
+	sdcard_directory(tw_zip_location_val);
+	if (newest_zip_name[0] != 255) {
+		ui_print("Newest zip: %s\n", newest_zip_name);
+	} else {
+		ui_print("Newest zip: No zips in folder\n");
+	}
 	get_newest_zip = 0;
 	
     inc_menu_loc(ITEM_NIGHTLY_BACK);
@@ -681,20 +687,44 @@ void flash_nightly() {
         switch (chosen_item)
         {
 			case ITEM_FLASH_NIGHTLY_ZIP:
-				ui_print("\n-- Wiping Cache Partition...\n");
-                erase_volume("/cache");
-                ui_print("-- Cache Partition Wipe Complete!\n");
-				wipe_dalvik_cache();
-				// flash the newest zip
+				if (newest_zip_name[0] != 255) {
+					// flash the newest zip
+					char new_path[PATH_MAX];
+					strlcpy(new_path, tw_zip_location_val, PATH_MAX);
+					strlcat(new_path, "/", PATH_MAX);
+					strlcat(new_path, newest_zip_name, PATH_MAX);
+					result = install_zip_package(new_path);
+					if (result != INSTALL_SUCCESS) {
+						if (notError == 1) {
+							ui_set_background(BACKGROUND_ICON_ERROR);
+							ui_print("Installation aborted due to an error.\n");  
+						}
+					} else {
+						// install was successful - proceed with cache wipes & reboot
+						ui_print("\n-- Wiping Cache Partition...\n");
+						erase_volume("/cache");
+						ui_print("-- Cache Partition Wipe Complete!\n");
+						wipe_dalvik_cache();
+						ui_print("Install Complete...");
+						tw_reboot();
+					} // end if (result != INSTALL_SUCCESS)
+				} else {
+					ui_print("No zips in folder to flash\n");
+				} // end if (newest_zip_name[0] != 255)
 				break;
 			case ITEM_CHOOSE_NIGHTLY_FOLDER:
 				get_new_zip_dir = 2;
             	sdcard_directory(SDCARD_ROOT);
             	get_new_zip_dir = 0;
+				ui_print("\nNightly folder: %s\n", tw_zip_location_val);
 				get_newest_zip = 1;
-	find_zips_dees(tw_zip_location_val);
-	ui_print("Newest zip: %s\n", newest_zip_name);
-	get_newest_zip = 0;
+				sdcard_directory(tw_zip_location_val);
+				if (newest_zip_name[0] != 255) {
+					ui_print("Newest zip: %s\n", newest_zip_name);
+				} else {
+					ui_print("Newest zip: No zips in folder\n");
+				}
+				get_newest_zip = 0;
 				break;
             case ITEM_NIGHTLY_BACK:
             	dec_menu_loc();
@@ -705,99 +735,6 @@ void flash_nightly() {
 	        return;
 	    }
     }
-}
-
-int find_zips_dees(const char* path) {
-    ensure_path_mounted(SDCARD_ROOT);
-
-    const char* MENU_HEADERS[] = { "Choose a package to install:",
-                                   path,
-                                   NULL };
-    DIR* d;
-    struct dirent* de;
-    d = opendir(path);
-    if (d == NULL) {
-        LOGE("error opening %s: %s\n", path, strerror(errno));
-        ensure_path_unmounted(SDCARD_ROOT);
-        return 0;
-    }
-
-    char** headers = prepend_title(MENU_HEADERS);
-
-    int s_size = 0;
-    int s_alloc = 10;
-    char** sele = malloc(s_alloc * sizeof(char*));
-    int d_size = 0;
-    int d_alloc = 10;
-    char** dirs = malloc(d_alloc * sizeof(char*));
-    int z_size = 0;
-    int z_alloc = 10;
-    char** zips = malloc(z_alloc * sizeof(char*));
-    if (get_new_zip_dir > 0)
-    {
-    	sele[0] = strdup("[SELECT CURRENT FOLDER]");
-    	s_size++;
-    }
-	sele[s_size] = strdup("../");
-    inc_menu_loc(s_size);
-	s_size++;
-    
-    while ((de = readdir(d)) != NULL) {
-        int name_len = strlen(de->d_name);
-
-        if (de->d_type == DT_DIR) {
-            // skip "." and ".." entries
-            if (name_len == 1 && de->d_name[0] == '.') continue;
-            if (name_len == 2 && de->d_name[0] == '.' &&
-                de->d_name[1] == '.') continue;
-
-            if (d_size >= d_alloc) {
-                d_alloc *= 2;
-                dirs = realloc(dirs, d_alloc * sizeof(char*));
-            }
-            dirs[d_size] = malloc(name_len + 2);
-            strcpy(dirs[d_size], de->d_name);
-            dirs[d_size][name_len] = '/';
-            dirs[d_size][name_len+1] = '\0';
-            ++d_size;
-        } else if (de->d_type == DT_REG &&
-                   name_len >= 4 &&
-                   strncasecmp(de->d_name + (name_len-4), ".zip", 4) == 0) {
-            if (z_size >= z_alloc) {
-                z_alloc *= 2;
-                zips = realloc(zips, z_alloc * sizeof(char*));
-            }
-            zips[z_size++] = strdup(de->d_name);
-        }
-    }
-    closedir(d);
-
-    notError = 0;
-	
-	if (get_newest_zip == 1) {
-		int zip_index, max_date_loc;
-		time_t curr_date, max_date;
-		struct stat read_file;
-		char file_path_name[PATH_MAX];
-		
-		for (zip_index = 0; zip_index < z_size; zip_index++) {
-			strcpy(file_path_name, path);
-			strcat(file_path_name, zips[zip_index]);
-			stat(file_path_name, &read_file);
-			curr_date = read_file.st_mtime;
-			ui_print("---file %s date %i\n", zips[zip_index], curr_date);
-			if (curr_date > max_date) {
-				max_date = curr_date;
-				max_date_loc = zip_index;
-			}
-		}
-		strcpy(newest_zip_name, zips[max_date_loc]);
-		free(zips);
-		free(sele);
-		free(headers);
-		return 0;
-	} // end if get_newest_zip
-	return 0;
 }
 
 void flash_all_zips() {
