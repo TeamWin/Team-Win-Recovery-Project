@@ -584,22 +584,18 @@ void fix_perms()
 void advanced_menu()
 {
 	// ADVANCED MENU
-	#define ITEM_FLASH_NIGHTLY     0
-	#define ITEM_FLASH_ALL         1
-	#define ITEM_REBOOT_MENU       2
-	#define ITEM_FORMAT_MENU       3
-	#define ITEM_FIX_PERM          4
-	#define ITEM_ALL_SETTINGS      5
-	#define ITEM_CPY_LOG		   6
-	#define ADVANCED_MENU_BACK     7
+	#define ITEM_REBOOT_MENU       0
+	#define ITEM_FORMAT_MENU       1
+	#define ITEM_FIX_PERM          2
+	#define ITEM_ALL_SETTINGS      3
+	#define ITEM_CPY_LOG		   4
+	#define ADVANCED_MENU_BACK     5
 
     static char* MENU_ADVANCED_HEADERS[] = { "Advanced Menu",
     										 "Reboot, Format, or twrp!",
                                               NULL };
     
-	char* MENU_ADVANCED[] = { "Flash Newest Zip",
-	                          "Flash All Zips",
-	                          "Reboot Menu",
+	char* MENU_ADVANCED[] = { "Reboot Menu",
 	                          "Format Menu",
 	                          "Fix Permissions",
 	                          "Change twrp Settings",
@@ -616,12 +612,6 @@ void advanced_menu()
         int chosen_item = get_menu_selection(headers, MENU_ADVANCED, 0, 0);
         switch (chosen_item)
         {
-			case ITEM_FLASH_NIGHTLY:
-				flash_nightly();
-				break;
-			case ITEM_FLASH_ALL:
-				flash_all_zips();
-				break;
             case ITEM_REBOOT_MENU:
                 reboot_menu();
                 break;
@@ -648,99 +638,6 @@ void advanced_menu()
 	        return;
 	    }
     }
-}
-
-void flash_nightly() {
-	// FLASH NIGHTLY MENU
-	#define ITEM_FLASH_NIGHTLY_ZIP       0
-	#define ITEM_CHOOSE_NIGHTLY_FOLDER   1
-	#define ITEM_NIGHTLY_BACK            2
-	
-	int result;
-    static char* MENU_NIGHTLY_HEADER[] = { "Flash Nightly Mode",
-	                                       "Wipes cache/dalvik then",
-    									   "Flashes newest zip in the folder & reboot",
-                                              NULL };
-    
-	char* MENU_NIGHTLY[] = { "Flash Zip",
-	                         "Choose Folder",
-	                         "<-- Back To Advanced Menu",
-	                         NULL };
-	
-
-    char** headers = prepend_title(MENU_NIGHTLY_HEADER);
-    
-	ui_print("Nightly folder: %s\n", tw_zip_location_val);
-	get_newest_zip = 1;
-	sdcard_directory(tw_zip_location_val);
-	if (newest_zip_name[0] != 255) {
-		ui_print("Newest zip: %s\n", newest_zip_name);
-	} else {
-		ui_print("Newest zip: No zips in folder\n");
-	}
-	get_newest_zip = 0;
-	
-    inc_menu_loc(ITEM_NIGHTLY_BACK);
-    for (;;)
-    {
-        int chosen_item = get_menu_selection(headers, MENU_NIGHTLY, 0, 0);
-        switch (chosen_item)
-        {
-			case ITEM_FLASH_NIGHTLY_ZIP:
-				if (newest_zip_name[0] != 255) {
-					// flash the newest zip
-					char new_path[PATH_MAX];
-					strlcpy(new_path, tw_zip_location_val, PATH_MAX);
-					strlcat(new_path, "/", PATH_MAX);
-					strlcat(new_path, newest_zip_name, PATH_MAX);
-					result = install_zip_package(new_path);
-					if (result != INSTALL_SUCCESS) {
-						if (notError == 1) {
-							ui_set_background(BACKGROUND_ICON_ERROR);
-							ui_print("Installation aborted due to an error.\n");  
-						}
-					} else {
-						// install was successful - proceed with cache wipes & reboot
-						ui_print("\n-- Wiping Cache Partition...\n");
-						erase_volume("/cache");
-						ui_print("-- Cache Partition Wipe Complete!\n");
-						wipe_dalvik_cache();
-						ui_print("Install Complete...");
-						tw_reboot();
-					} // end if (result != INSTALL_SUCCESS)
-				} else {
-					ui_print("No zips in folder to flash\n");
-				} // end if (newest_zip_name[0] != 255)
-				break;
-			case ITEM_CHOOSE_NIGHTLY_FOLDER:
-				get_new_zip_dir = 2;
-            	sdcard_directory(SDCARD_ROOT);
-            	get_new_zip_dir = 0;
-				ui_print("\nNightly folder: %s\n", tw_zip_location_val);
-				get_newest_zip = 1;
-				sdcard_directory(tw_zip_location_val);
-				if (newest_zip_name[0] != 255) {
-					ui_print("Newest zip: %s\n", newest_zip_name);
-				} else {
-					ui_print("Newest zip: No zips in folder\n");
-				}
-				get_newest_zip = 0;
-				break;
-            case ITEM_NIGHTLY_BACK:
-            	dec_menu_loc();
-            	return;
-        }
-	    if (go_home) { 
-	        dec_menu_loc();
-	        return;
-	    }
-    }
-}
-
-void flash_all_zips() {
-	int i;
-	for (i = 0; i < 50000; i++)
-	return;
 }
 
 // kang'd this from recovery.c cuz there wasnt a recovery.h!
