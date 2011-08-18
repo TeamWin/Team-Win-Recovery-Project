@@ -488,7 +488,7 @@ get_menu_selection(char** headers, char** items, int menu_only,
 }
 
 static int compare_string(const void* a, const void* b) {
-    return strcmp(*(const char**)a, *(const char**)b);
+    return strcasecmp(*(const char**)a, *(const char**)b);
 }
 
 int
@@ -547,8 +547,8 @@ sdcard_directory(const char* path) {
             ++d_size;
         } else if (de->d_type == DT_REG &&
                    name_len >= 4 &&
-                   strncasecmp(de->d_name + (name_len-4), ".zip", 4) == 0 &&
-				   get_new_zip_dir < 1) { // no zips will be added to the array if we're getting a new zip dir
+                   strncasecmp(de->d_name + (name_len-4), ".zip", 4) == 0 /* &&
+				   get_new_zip_dir < 1 */) { // this commented out section would remove zips from the list if we're picking a default folder and not a zip
             if (z_size >= z_alloc) {
                 z_alloc *= 2;
                 zips = realloc(zips, z_alloc * sizeof(char*));
