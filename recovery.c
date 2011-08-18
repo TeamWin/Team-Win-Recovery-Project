@@ -567,10 +567,7 @@ sdcard_directory(const char* path) {
 	char file_path_name[PATH_MAX];
 	max_date = 0;
 	max_date_loc = 0;
-	if (z_size == 0 && get_newest_zip == 1) { // there are no zips in the current folder
-		newest_zip_name[0] = 255;
-		return 0;
-	} else {
+	if (z_size != 0) {
 		for (zip_index = 0; zip_index < z_size; zip_index++) {
 			strcpy(file_path_name, path);
 			strcat(file_path_name, "/");
@@ -581,13 +578,6 @@ sdcard_directory(const char* path) {
 				max_date = curr_date;
 				max_date_loc = zip_index;
 			}
-		}
-		if (get_newest_zip == 1) {
-			strcpy(newest_zip_name, zips[max_date_loc]);
-			free(zips);
-			free(sele);
-			free(headers);
-			return 0;
 		}
 	}
 	
