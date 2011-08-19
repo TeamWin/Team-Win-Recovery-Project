@@ -143,7 +143,6 @@ static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
 
 static const int MAX_ARG_LENGTH = 4096;
 static const int MAX_ARGS = 100;
-static int need_to_read_settings_file = 1;
 
 // open a given path, mounting partitions as necessary
 static FILE*
@@ -560,8 +559,8 @@ sdcard_directory(const char* path) {
 
     notError = 0;
 	
-	// this section locates the newest zip in the current folder and copies it to newest_zip_name then exits - used for nightly flash mode
-	int zip_index, max_date_loc;
+	// this section locates the newest zip in the current folder
+	/*int zip_index, max_date_loc;
 	time_t curr_date, max_date;
 	struct stat read_file;
 	char file_path_name[PATH_MAX];
@@ -579,10 +578,40 @@ sdcard_directory(const char* path) {
 				max_date_loc = zip_index;
 			}
 		}
-	}
+	}*/
 	
-    qsort(dirs, d_size, sizeof(char*), compare_string);
-    qsort(zips, z_size, sizeof(char*), compare_string);
+	qsort(dirs, d_size, sizeof(char*), compare_string);
+	if (is_true(tw_show_spam_val)) {
+		qsort(zips, z_size, sizeof(char*), compare_string);
+	} else {
+		char* tempzip = malloc(z_alloc * sizeof(char*));
+		char file_path_name[PATH_MAX];
+		int bubble1, bubble2, swap_flag = 1;
+		struct stat read_file;
+		time_t file1, file2;
+		
+		for (bubble1 = 0; bubble1 < z_size && swap_flag; bubble1++) {
+			swap_flag = 0;
+			for (bubble2 = 0; bubble2 < z_size - 1; bubble2++) {
+				strcpy(file_path_name, path);
+				strcat(file_path_name, "/");
+				strcat(file_path_name, zips[bubble2]);
+				stat(file_path_name, &read_file);
+				file1 = read_file.st_mtime;
+				strcpy(file_path_name, path);
+				strcat(file_path_name, "/");
+				strcat(file_path_name, zips[bubble2 + 1]);
+				stat(file_path_name, &read_file);
+				file2 = read_file.st_mtime;
+				if (file1 < file2) {
+					swap_flag = 1;
+					tempzip = strdup(zips[bubble2]);
+					zips[bubble2] = strdup(zips[bubble2 + 1]);
+					zips[bubble2 + 1] = strdup(tempzip);
+				}
+			}
+		}
+	}
     
     // append dirs to the zips list
     if (d_size + z_size + 1 > z_alloc) {
@@ -604,7 +633,6 @@ sdcard_directory(const char* path) {
     
     int result;
     int chosen_item = 0;
-	if (max_date != 0) chosen_item = max_date_loc + 1; // should automatically highlight the most recent zip
     do {
         chosen_item = get_menu_selection(headers, sele, 1, chosen_item);
 
@@ -777,16 +805,10 @@ void
 prompt_and_wait() {
 
 	// Main Menu
-	#define ITEM_APPLY_SDCARD        0
-	#define ITEM_NANDROID_MENU     	 1
-	#define ITEM_MAIN_WIPE_MENU      2
-	#define ITEM_ADVANCED_MENU       3
-	#define ITEM_MOUNT_MENU       	 4
-	#define ITEM_USB_TOGGLE          5
-	#define ITEM_REBOOT              6
-	#define ITEM_SHUTDOWN		7
+	#define START_FAKE_MAIN          0
+	#define REALMENU_REBOOT     	 1
 
-
+	go_reboot = 0;
     finish_recovery(NULL);
     ui_reset_progress();
 
@@ -796,14 +818,8 @@ prompt_and_wait() {
     read_s_file();
     
 	char** headers = prepend_title((const char**)MENU_HEADERS);
-    char* MENU_ITEMS[] = {  "Install Zip",
-                            "Nandroid Menu",
-                            "Wipe Menu",
-                            "Advanced Menu",
-                            "Mount Menu",
-                            "USB Storage Toggle",
-                            "Reboot system now",
-                            "Power down system",
+    char* MENU_ITEMS[] = {  "Start Recovery",
+                            "Reboot",
                             NULL };
 	
     for (;;) {
@@ -813,54 +829,17 @@ prompt_and_wait() {
         menu_loc_idx = 0;
 		ui_reset_progress();
     	
-        int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
+        //int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
 
         // device-specific code may take some action here.  It may
         // return one of the core actions handled in the switch
         // statement below.
-        chosen_item = device_perform_action(chosen_item);
+        //chosen_item = device_perform_action(chosen_item);
 
-        // delay reading settings during boot due to timings issues with sdcard not being available
-        // read settings file once and only once after the user makes a menu selection
-        if (need_to_read_settings_file) {
-        	need_to_read_settings_file = 0;
-        }
-        
-        switch (chosen_item) {
-            case ITEM_APPLY_SDCARD:
-                install_zip_menu(0);
-                break;
-
-            case ITEM_NANDROID_MENU:
-            	nandroid_menu();
-            	break;
-            	
-            case ITEM_MAIN_WIPE_MENU:
-                main_wipe_menu();
-                break;
-
-            case ITEM_ADVANCED_MENU:
-            	advanced_menu();
-                break;
-
-            case ITEM_MOUNT_MENU:
-            	mount_menu(0);
-                break;
-                
-            case ITEM_USB_TOGGLE:
-            	usb_storage_toggle();
-                break;
-
-            case ITEM_REBOOT:
-                return;
-
-	    case ITEM_SHUTDOWN:
-	        __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
-		break;
-        }
-        if (go_menu) {
-        	advanced_menu();
-        }
+        if (go_reboot) {
+			return;
+		}
+		show_fake_main_menu();
     }
 }
 

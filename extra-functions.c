@@ -59,6 +59,7 @@
 #define _PATH_BSHELL "/sbin/sh"
 
 extern char **environ;
+static int need_to_read_settings_file = 1;
 
 int
 __system(const char *command)
@@ -238,6 +239,95 @@ void get_device_id()
 	}
 	__pclose(fp);
 }
+
+void show_fake_main_menu() {
+	// Main Menu
+	#define ITEM_APPLY_SDCARD        0
+	#define ITEM_NANDROID_MENU     	 1
+	#define ITEM_MAIN_WIPE_MENU      2
+	#define ITEM_ADVANCED_MENU       3
+	#define ITEM_MOUNT_MENU       	 4
+	#define ITEM_USB_TOGGLE          5
+	#define ITEM_REBOOT              6
+	#define ITEM_SHUTDOWN		     7
+    
+	char** headers = prepend_title((const char**)MENU_HEADERS);
+    char* MENU_ITEMS[] = {  "Install Zip",
+                            "Nandroid Menu",
+                            "Wipe Menu",
+                            "Advanced Menu",
+                            "Mount Menu",
+                            "USB Storage Toggle",
+                            "Reboot system now",
+                            "Power down system",
+                            NULL };
+	
+    for (;;) {
+
+        go_home = 0;
+        go_menu = 0;
+        menu_loc_idx = 0;
+		ui_reset_progress();
+    	
+        int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
+
+        // device-specific code may take some action here.  It may
+        // return one of the core actions handled in the switch
+        // statement below.
+        chosen_item = device_perform_action(chosen_item);
+
+        // delay reading settings during boot due to timings issues with sdcard not being available
+        // read settings file once and only once after the user makes a menu selection
+        if (need_to_read_settings_file) {
+        	need_to_read_settings_file = 0;
+        }
+        
+        switch (chosen_item) {
+            case ITEM_APPLY_SDCARD:
+                install_zip_menu(0);
+                break;
+
+            case ITEM_NANDROID_MENU:
+            	nandroid_menu();
+            	break;
+            	
+            case ITEM_MAIN_WIPE_MENU:
+                main_wipe_menu();
+                break;
+
+            case ITEM_ADVANCED_MENU:
+            	advanced_menu();
+                break;
+
+            case ITEM_MOUNT_MENU:
+            	mount_menu(0);
+                break;
+                
+            case ITEM_USB_TOGGLE:
+            	usb_storage_toggle();
+                break;
+
+            case ITEM_REBOOT:
+				go_reboot = 1;
+                return;
+
+	    case ITEM_SHUTDOWN:
+	        __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
+		break;
+        }
+        if (go_menu) {
+        	advanced_menu();
+        }
+		if (go_restart || go_home) {
+			go_restart = 0;
+			go_home = 0;
+			ui_end_menu();
+			return;
+		}
+    }
+}
+
+
 
 /*partial kangbang from system/vold
 TODO: Currently only one mount is supported, defaulting
@@ -809,8 +899,10 @@ void time_zone_menu()
         switch (chosen_item)
         {
 			case TZ_REBOOT:
-				ensure_path_unmounted("/sdcard");
-				__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
+				go_home = 1;
+				go_restart = 1;
+				//ensure_path_unmounted("/sdcard");
+				//__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
 				break;
             case TZ_MINUS:
             	time_zone_minus();
