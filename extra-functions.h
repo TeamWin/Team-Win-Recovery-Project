@@ -64,6 +64,8 @@ int datIsMounted;
 int cacIsMounted;
 int sdcIsMounted;
 int sdeIsMounted;
+char* multi_zip_array[10][255];
+int multi_zip_index;
 
 int get_new_zip_dir;
 
