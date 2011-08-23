@@ -559,27 +559,6 @@ sdcard_directory(const char* path) {
 
     notError = 0;
 	
-	// this section locates the newest zip in the current folder
-	/*int zip_index, max_date_loc;
-	time_t curr_date, max_date;
-	struct stat read_file;
-	char file_path_name[PATH_MAX];
-	max_date = 0;
-	max_date_loc = 0;
-	if (z_size != 0) {
-		for (zip_index = 0; zip_index < z_size; zip_index++) {
-			strcpy(file_path_name, path);
-			strcat(file_path_name, "/");
-			strcat(file_path_name, zips[zip_index]);
-			stat(file_path_name, &read_file);
-			curr_date = read_file.st_mtime;
-			if (curr_date > max_date) {
-				max_date = curr_date;
-				max_date_loc = zip_index;
-			}
-		}
-	}*/
-	
 	qsort(dirs, d_size, sizeof(char*), compare_string);
 	if (is_true(tw_show_spam_val)) {
 		qsort(zips, z_size, sizeof(char*), compare_string);
@@ -677,25 +656,18 @@ sdcard_directory(const char* path) {
         } else {
         	if (get_new_zip_dir < 1)
         	{
-                // selected a zip file:  attempt to install it, and return
+                // selected a zip file
                 // the status to the caller.
                 char new_path[PATH_MAX];
-                strlcpy(new_path, path, PATH_MAX);
-                strlcat(new_path, "/", PATH_MAX);
-                strlcat(new_path, item, PATH_MAX);
-
-                ui_print("\n-- Install %s ...\n", path);
-                set_sdcard_update_bootloader_message();
-                char* copy = copy_sideloaded_package(new_path);
-                ensure_path_unmounted(SDCARD_ROOT);
-                if (copy) {
-                    result = install_package(copy);
-                    free(copy);
-                } else {
-                    result = INSTALL_ERROR;
-                }
-                break;
-        	}
+                strlcpy(multi_zip_array[multi_zip_index], path, PATH_MAX);
+                strlcat(multi_zip_array[multi_zip_index], "/", PATH_MAX);
+                strlcat(multi_zip_array[multi_zip_index], item, PATH_MAX);
+				
+                ui_print("Added %s\n", multi_zip_array[multi_zip_index]);
+				multi_zip_index++;
+				result = 1;
+				break;
+			}
         }
     } while (true);
     
@@ -800,12 +772,22 @@ prompt_and_wait() {
         menu_loc_idx = 0;
 		ui_reset_progress();
     	
-        //int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
+        /*int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
 
         // device-specific code may take some action here.  It may
         // return one of the core actions handled in the switch
         // statement below.
-        //chosen_item = device_perform_action(chosen_item);
+        chosen_item = device_perform_action(chosen_item);
+		
+		switch (chosen_item) {
+            case START_FAKE_MAIN:
+                show_fake_main_menu();
+                break;
+			
+            case REALMENU_REBOOT:
+                return;
+		break;
+        }*/
 
         if (go_reboot) {
 			return;

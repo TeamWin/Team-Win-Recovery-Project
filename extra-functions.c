@@ -421,11 +421,13 @@ void install_zip_menu(int pIdx)
 {
 	// INSTALL ZIP MENU
 	#define ITEM_CHOOSE_ZIP           0
-	#define ITEM_WIPE_CACHE_DALVIK    1
-	#define ITEM_REBOOT_AFTER_FLASH   2
-	#define ITEM_TOGGLE_SIG           3
-	#define ITEM_ZIP_RBOOT			  4
-	#define ITEM_ZIP_BACK		      5
+	#define ITEM_FLASH_ZIPS           1
+	#define ITEM_CLEAR_ZIPS           2
+	#define ITEM_WIPE_CACHE_DALVIK    3
+	#define ITEM_REBOOT_AFTER_FLASH   4
+	#define ITEM_TOGGLE_SIG           5
+	#define ITEM_ZIP_RBOOT			  6
+	#define ITEM_ZIP_BACK		      7
 	
     ui_set_background(BACKGROUND_ICON_FLASH_ZIP);
     static char* MENU_FLASH_HEADERS[] = { "Install Zip Menu",
@@ -433,6 +435,8 @@ void install_zip_menu(int pIdx)
                                           NULL };
 
 	char* MENU_INSTALL_ZIP[] = {  "--> Choose Zip To Flash",
+	                              "Flash Zips Now",
+								  "Clear Zip Queue",
 								  "Wipe Cache and Dalvik Cache",
 			  	  	  	  	  	  reboot_after_flash(),
 								  zip_verify(),
@@ -441,7 +445,8 @@ void install_zip_menu(int pIdx)
 	                              NULL };
 
 	char** headers = prepend_title(MENU_FLASH_HEADERS);
-
+	int zip_loop_index, status;
+	
     inc_menu_loc(ITEM_ZIP_BACK);
     for (;;)
     {
@@ -450,26 +455,48 @@ void install_zip_menu(int pIdx)
         switch (chosen_item)
         {
             case ITEM_CHOOSE_ZIP:
-            	;
-				int status = sdcard_directory(tw_zip_location_val);
-				ui_reset_progress();  // reset status bar so it doesnt run off the screen 
-				if (status != INSTALL_SUCCESS) {
-					if (notError == 1) {
-						ui_set_background(BACKGROUND_ICON_ERROR);
-						ui_print("Installation aborted due to an error.\n");  
-					}
-				} else if (!ui_text_visible()) {
-					return;  // reboot if logs aren't visible
+				if (multi_zip_index < 10) {
+					status = sdcard_directory(tw_zip_location_val);
 				} else {
-					if (is_true(tw_reboot_after_flash_option)) {
-						tw_reboot();
-						return;
-					}
-					if (go_home != 1) {
-						ui_print("\nInstall from sdcard complete.\n");
-					}
+					ui_print("Maximum of %i zips queued.\n", multi_zip_index);
 				}
-                break;
+				break;
+			case ITEM_FLASH_ZIPS:
+				if (multi_zip_index == 0) {
+					ui_print("No zips selected to install.\n");
+				} else {
+					for (zip_loop_index; zip_loop_index < multi_zip_index; zip_loop_index++) {
+						LOGI("Installing %s\n", multi_zip_array[zip_loop_index]);
+						status = install_zip_package(multi_zip_array[zip_loop_index]);
+						ui_reset_progress();  // reset status bar so it doesnt run off the screen 
+						if (status != INSTALL_SUCCESS) {
+							if (notError == 1) {
+								ui_set_background(BACKGROUND_ICON_ERROR);
+								ui_print("Installation aborted due to an error.\n");
+								multi_zip_index = 0; // clear zip queue
+								break;
+							}
+						} // end if (status != INSTALL_SUCCESS)
+					} // end for loop
+					if (!ui_text_visible()) {
+						multi_zip_index = 0; // clear zip queue
+						return;  // reboot if logs aren't visible
+					} else {
+						if (is_true(tw_reboot_after_flash_option)) {
+							tw_reboot();
+							return;
+						}
+						if (go_home != 1) {
+							ui_print("\nInstall from sdcard complete.\n");
+						}
+						multi_zip_index = 0; // clear zip queue
+					} // end if (!ui_text_visible())
+				} // end if (multi_zip_index == 0)
+				break;
+			case ITEM_CLEAR_ZIPS:
+				multi_zip_index = 0;
+				ui_print("\nZip Queue Cleared\n\n");
+				break;
 			case ITEM_WIPE_CACHE_DALVIK:
 				ui_print("\n-- Wiping Cache Partition...\n");
                 erase_volume("/cache");
