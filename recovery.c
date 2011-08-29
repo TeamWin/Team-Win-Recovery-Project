@@ -622,17 +622,23 @@ sdcard_directory(const char* path) {
     	        }
     	    }
             if (result >= 0) break;
-        } else {
-        	if (get_new_zip_dir != 1)
-        	{
-                // selected a zip file:  attempt to install it, and return
-                // the status to the caller.
-                char new_path[PATH_MAX];
-                strlcpy(new_path, path, PATH_MAX);
-                strlcat(new_path, "/", PATH_MAX);
-                strlcat(new_path, item, PATH_MAX);
+        } else if (get_new_zip_dir != 1) {
+            // selected a zip file:  attempt to install it, and return
+            // the status to the caller.
+            char new_path[PATH_MAX];
+            strlcpy(new_path, path, PATH_MAX);
+            strlcat(new_path, "/", PATH_MAX);
+            strlcat(new_path, item, PATH_MAX);
 
-                ui_print("\n-- Install %s ...\n", path);
+            ui_print("\n-- Verify md5 for %s", new_path);
+            int md5chk = check_md5(new_path);
+            bool md5_req = is_true(tw_force_md5_check_val);
+            if (md5chk > 0 || (!md5_req && md5chk == -1)) {
+                if (md5chk == 1)
+                    ui_print("\n-- Md5 verified, continue");
+                else if (md5chk == -1)
+                    ui_print("\n-- No md5 file found, ignoring");
+                ui_print("\n-- Install %s ...\n", new_path);
                 set_sdcard_update_bootloader_message();
                 char* copy = copy_sideloaded_package(new_path);
                 ensure_path_unmounted(SDCARD_ROOT);
@@ -642,8 +648,29 @@ sdcard_directory(const char* path) {
                 } else {
                     result = INSTALL_ERROR;
                 }
-                break;
-        	}
+            } else {
+                // MD5 check failed for some reason
+                switch (md5chk) {
+                    case 0:
+                        ui_print("\n-- Md5 did not match");
+                        break;
+                    case -1:
+                        ui_print("\n-- Md5 file not found");
+                        break;
+                    case -2:
+                        ui_print("\n-- Zip file not found");
+                        break;
+                    case -3:
+                        ui_print("\n-- Invalid md5");
+                        ui_print("\n-- Filename in md5 and zip do not match");
+                        break;
+                }
+                
+                ui_print("\n-- Aborting install");
+                result = INSTALL_ERROR;
+            }
+            
+            break;
         }
     } while (true);
     
