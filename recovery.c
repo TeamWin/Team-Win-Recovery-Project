@@ -751,28 +751,24 @@ wipe_data(int confirm) {
             return;
         }
     }
+    ui_print("\n-- Factory reset started.\n");
     ui_set_background(BACKGROUND_ICON_WIPE);
-    ui_print("\n-- Wiping data...\n");
-    device_wipe_data();
+    ui_print("Formatting /data...\n");
+    //device_wipe_data(); // ??
     erase_volume("/data");
+    ui_print("Formatting /cache...\n");
     erase_volume("/cache");
     struct stat st;
-    if (stat("/sd-ext",&st) == 0)
-    {
+    if (stat(sde.blk,&st) == 0) {
         ui_print("Formatting /sd-ext...\n");
-        __system("rm -rf /sd-ext/* && rm -rf /sd-ext/.*");
-    } else {
-        ui_print("/sd-ext not found, skipping...\n");
+        tw_format(sde.fst,sde.blk);
     }
-    if (0 == stat("/sdcard/.android_secure", &st))
-    {
-        __system("rm -rf /sdcard/.android_secure/* && rm -rf /sdcard/.android_secure/.*");
+    if (stat("/sdcard/.android_secure", &st) == 0) {
         ui_print("Formatting /sdcard/.android_secure...\n");
-    } else {
-        ui_print("/sdcard/.android_secure not found, skipping...\n");
+        __system("rm -rf /sdcard/.android_secure/* && rm -rf /sdcard/.android_secure/.*");
     }
 	ui_reset_progress();
-    ui_print("-- Data wipe complete.\n");
+    ui_print("-- Factory reset complete.\n");
 }
 
 
@@ -788,7 +784,6 @@ prompt_and_wait() {
     ui_reset_progress();
 
     // buying a split second for mmc driver to load to avoid error on some devices
-    getLocations();
     tw_set_defaults();
     read_s_file();
     
@@ -841,12 +836,19 @@ main(int argc, char **argv) {
     freopen(TEMPORARY_LOG_FILE, "a", stdout); setbuf(stdout, NULL);
     freopen(TEMPORARY_LOG_FILE, "a", stderr); setbuf(stderr, NULL);
     printf("Starting recovery on %s", ctime(&start));
-
+    
     ui_init();
     ui_set_background(BACKGROUND_ICON_INSTALLING);
     load_volume_table();
     get_args(&argc, &argv);
 
+    LOGI("=> Installing busybox into /sbin\n");
+	__system("/sbin/busybox --install -s /sbin"); // Let's install busybox
+	LOGI("=> Linking mtab\n");
+	__system("ln -s /proc/mounts /etc/mtab"); // And link mtab for mke2fs
+	LOGI("=> Getting locations\n");
+    getLocations();
+    
     int previous_runs = 0;
     const char *send_intent = NULL;
     const char *update_package = NULL;
@@ -952,7 +954,7 @@ main(int argc, char **argv) {
     }
 
     if (status != INSTALL_SUCCESS) ui_set_background(BACKGROUND_ICON_ERROR);
-    if (status != INSTALL_SUCCESS || ui_text_visible()) {
+    if (status != INSTALL_SUCCESS && ui_text_visible()) { // We only want to show menu if error && visible
         //assume we want to be here and its not an error - give us the pretty icon!
         ui_set_background(BACKGROUND_ICON_MAIN);
         prompt_and_wait();

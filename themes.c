@@ -15,11 +15,14 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/reboot.h>
 
 #include "themes.h"
 #include "settings_file.h"
 #include "extra-functions.h"
+#include "common.h"
 
 #define THEME_REBOOT_RECOVERY 0
 #define TW_THEME              1

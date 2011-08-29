@@ -19,7 +19,8 @@ LOCAL_SRC_FILES := \
     ddftw.c \
     backstore.c \
     settings_file.c \
-    themes.c
+    themes.c \
+    format.c
 
 LOCAL_MODULE := recovery
 
@@ -41,12 +42,9 @@ ifeq ($(TARGET_RECOVERY_UI_LIB),)
 else
   LOCAL_STATIC_LIBRARIES += $(TARGET_RECOVERY_UI_LIB)
 endif
-LOCAL_STATIC_LIBRARIES += libext4_utils libz
-LOCAL_STATIC_LIBRARIES += libminzip libunz libmtdutils libmincrypt
+LOCAL_STATIC_LIBRARIES += libz libminzip libunz libmtdutils libmincrypt
 LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libcutils
 LOCAL_STATIC_LIBRARIES += libstdc++ libc
-
-LOCAL_C_INCLUDES += system/extras/ext4_utils
 
 include $(BUILD_EXECUTABLE)
 

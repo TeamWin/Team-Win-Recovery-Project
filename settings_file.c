@@ -26,6 +26,7 @@
 #include "common.h"
 #include "roots.h"
 #include "themes.h"
+#include "extra-functions.h"
 
 // Default Settings
 void
