@@ -42,6 +42,7 @@
 #include "bootloader.h"
 #include "common.h"
 #include "extra-functions.h"
+#include "cutils/properties.h"
 #include "install.h"
 #include "minui/minui.h"
 #include "minzip/DirUtil.h"
@@ -58,6 +59,7 @@
 #define _PATH_BSHELL "/sbin/sh"
 
 extern char **environ;
+static int need_to_read_settings_file = 1;
 
 int
 __system(const char *command)
@@ -238,6 +240,95 @@ void get_device_id()
 	__pclose(fp);
 }
 
+void show_fake_main_menu() {
+	// Main Menu
+	#define ITEM_APPLY_SDCARD        0
+	#define ITEM_NANDROID_MENU     	 1
+	#define ITEM_MAIN_WIPE_MENU      2
+	#define ITEM_ADVANCED_MENU       3
+	#define ITEM_MOUNT_MENU       	 4
+	#define ITEM_USB_TOGGLE          5
+	#define ITEM_REBOOT              6
+	#define ITEM_SHUTDOWN		     7
+    
+	char** headers = prepend_title((const char**)MENU_HEADERS);
+    char* MENU_ITEMS[] = {  "Install Zip",
+                            "Nandroid Menu",
+                            "Wipe Menu",
+                            "Advanced Menu",
+                            "Mount Menu",
+                            "USB Storage Toggle",
+                            "Reboot system now",
+                            "Power down system",
+                            NULL };
+	
+    for (;;) {
+
+        go_home = 0;
+        go_menu = 0;
+        menu_loc_idx = 0;
+		ui_reset_progress();
+    	
+        int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
+
+        // device-specific code may take some action here.  It may
+        // return one of the core actions handled in the switch
+        // statement below.
+        chosen_item = device_perform_action(chosen_item);
+
+        // delay reading settings during boot due to timings issues with sdcard not being available
+        // read settings file once and only once after the user makes a menu selection
+        if (need_to_read_settings_file) {
+        	need_to_read_settings_file = 0;
+        }
+        
+        switch (chosen_item) {
+            case ITEM_APPLY_SDCARD:
+                install_zip_menu(0);
+                break;
+
+            case ITEM_NANDROID_MENU:
+            	nandroid_menu();
+            	break;
+            	
+            case ITEM_MAIN_WIPE_MENU:
+                main_wipe_menu();
+                break;
+
+            case ITEM_ADVANCED_MENU:
+            	advanced_menu();
+                break;
+
+            case ITEM_MOUNT_MENU:
+            	mount_menu(0);
+                break;
+                
+            case ITEM_USB_TOGGLE:
+            	usb_storage_toggle();
+                break;
+
+            case ITEM_REBOOT:
+				go_reboot = 1;
+                return;
+
+	    case ITEM_SHUTDOWN:
+	        __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
+		break;
+        }
+        if (go_menu) {
+        	advanced_menu();
+        }
+		if (go_restart || go_home) {
+			go_restart = 0;
+			go_home = 0;
+			ui_end_menu();
+			return;
+		}
+    }
+}
+
+
+
 /*partial kangbang from system/vold
 TODO: Currently only one mount is supported, defaulting
 /mnt/sdcard to lun0 and anything else gets no love. Fix this.
@@ -328,6 +419,16 @@ char* force_md5_check()
     return tmp_set;
 }
 
+char* sort_by_date_option()
+{
+    char* tmp_set = (char*)malloc(40);
+    strcpy(tmp_set, "[ ] Sort Zips by Date");
+    if (is_true(tw_sort_files_by_date_val) == 1) {
+        tmp_set[1] = 'x';
+    }
+    return tmp_set;
+}
+
 void tw_reboot()
 {
     ui_print("Rebooting...\n");
@@ -340,12 +441,15 @@ void install_zip_menu(int pIdx)
 {
 	// INSTALL ZIP MENU
 	#define ITEM_CHOOSE_ZIP           0
-	#define ITEM_WIPE_CACHE_DALVIK    1
-	#define ITEM_REBOOT_AFTER_FLASH   2
-	#define ITEM_TOGGLE_SIG           3
-	#define ITEM_TOGGLE_FORCE_MD5	  4
-	#define ITEM_ZIP_RBOOT			  5
-	#define ITEM_ZIP_BACK		      6
+	#define ITEM_FLASH_ZIPS           1
+	#define ITEM_CLEAR_ZIPS           2
+	#define ITEM_WIPE_CACHE_DALVIK    3
+	#define ITEM_SORT_BY_DATE         4
+	#define ITEM_REBOOT_AFTER_FLASH   5
+	#define ITEM_TOGGLE_SIG           6
+	#define ITEM_TOGGLE_FORCE_MD5	  7
+	#define ITEM_ZIP_RBOOT			  8
+	#define ITEM_ZIP_BACK		      9
 	
     ui_set_background(BACKGROUND_ICON_FLASH_ZIP);
     static char* MENU_FLASH_HEADERS[] = { "Install Zip Menu",
@@ -353,7 +457,10 @@ void install_zip_menu(int pIdx)
                                           NULL };
 
 	char* MENU_INSTALL_ZIP[] = {  "--> Choose Zip To Flash",
+	                              "Flash Zips Now",
+								  "Clear Zip Queue",
 								  "Wipe Cache and Dalvik Cache",
+								  sort_by_date_option(),
 			  	  	  	  	  	  reboot_after_flash(),
 								  zip_verify(),
 								  force_md5_check(),
@@ -362,7 +469,8 @@ void install_zip_menu(int pIdx)
 	                              NULL };
 
 	char** headers = prepend_title(MENU_FLASH_HEADERS);
-
+	int zip_loop_index, status;
+	
     inc_menu_loc(ITEM_ZIP_BACK);
     for (;;)
     {
@@ -371,26 +479,48 @@ void install_zip_menu(int pIdx)
         switch (chosen_item)
         {
             case ITEM_CHOOSE_ZIP:
-            	;
-				int status = sdcard_directory(tw_zip_location_val);
-				ui_reset_progress();  // reset status bar so it doesnt run off the screen 
-				if (status != INSTALL_SUCCESS) {
-					if (notError == 1) {
-						ui_set_background(BACKGROUND_ICON_ERROR);
-						ui_print("Installation aborted due to an error.\n");  
-					}
-				} else if (!ui_text_visible()) {
-					return;  // reboot if logs aren't visible
+				if (multi_zip_index < 10) {
+					status = sdcard_directory(tw_zip_location_val);
 				} else {
-					if (is_true(tw_reboot_after_flash_option)) {
-						tw_reboot();
-						return;
-					}
-					if (go_home != 1) {
-						ui_print("\nInstall from sdcard complete.\n");
-					}
+					ui_print("Maximum of %i zips queued.\n", multi_zip_index);
 				}
-                break;
+				break;
+			case ITEM_FLASH_ZIPS:
+				if (multi_zip_index == 0) {
+					ui_print("No zips selected to install.\n");
+				} else {
+					for (zip_loop_index; zip_loop_index < multi_zip_index; zip_loop_index++) {
+						LOGI("Installing %s\n", multi_zip_array[zip_loop_index]);
+						status = install_zip_package(multi_zip_array[zip_loop_index]);
+						ui_reset_progress();  // reset status bar so it doesnt run off the screen 
+						if (status != INSTALL_SUCCESS) {
+							if (notError == 1) {
+								ui_set_background(BACKGROUND_ICON_ERROR);
+								ui_print("Installation aborted due to an error.\n");
+								multi_zip_index = 0; // clear zip queue
+								break;
+							}
+						} // end if (status != INSTALL_SUCCESS)
+					} // end for loop
+					if (!ui_text_visible()) {
+						multi_zip_index = 0; // clear zip queue
+						return;  // reboot if logs aren't visible
+					} else {
+						if (is_true(tw_reboot_after_flash_option)) {
+							tw_reboot();
+							return;
+						}
+						if (go_home != 1) {
+							ui_print("\nInstall from sdcard complete.\n");
+						}
+						multi_zip_index = 0; // clear zip queue
+					} // end if (!ui_text_visible())
+				} // end if (multi_zip_index == 0)
+				break;
+			case ITEM_CLEAR_ZIPS:
+				multi_zip_index = 0;
+				ui_print("\nZip Queue Cleared\n\n");
+				break;
 			case ITEM_WIPE_CACHE_DALVIK:
 				ui_print("\n-- Wiping Cache Partition...\n");
                 erase_volume("/cache");
@@ -402,6 +532,14 @@ void install_zip_menu(int pIdx)
             		strcpy(tw_reboot_after_flash_option, "0");
             	} else {
             		strcpy(tw_reboot_after_flash_option, "1");
+            	}
+                write_s_file();
+                break;
+			case ITEM_SORT_BY_DATE:
+				if (is_true(tw_sort_files_by_date_val)) {
+            		strcpy(tw_sort_files_by_date_val, "0");
+            	} else {
+            		strcpy(tw_sort_files_by_date_val, "1");
             	}
                 write_s_file();
                 break;
@@ -790,7 +928,7 @@ void time_zone_menu()
     								   "Select Region:",
                                               NULL };
     
-	char* MENU_TZ[] =       { "[REBOOT AND APPLY TIME ZONE]",
+	char* MENU_TZ[] =       { "[RESTART MENU AND APPLY TIME ZONE]",
             				  "Minus (GMT 0 to -11)",
 							  "Plus  (GMT +1 to +12)",
 							  "<-- Back To twrp Settings",
@@ -808,8 +946,10 @@ void time_zone_menu()
         switch (chosen_item)
         {
 			case TZ_REBOOT:
-				ensure_path_unmounted("/sdcard");
-				__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
+				go_home = 1;
+				go_restart = 1;
+				//ensure_path_unmounted("/sdcard");
+				//__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
 				break;
             case TZ_MINUS:
             	time_zone_minus();
@@ -1483,11 +1623,12 @@ void all_settings_menu(int pIdx)
 	#define ALLS_REBOOT_AFTER_FLASH     1
 	#define ALLS_SPAM				    2
     #define ALLS_FORCE_MD5_CHECK        3
-    #define ALLS_TIME_ZONE              4
-	#define ALLS_ZIP_LOCATION   	    5
-	#define ALLS_THEMES                 6
-	#define ALLS_DEFAULT                7
-	#define ALLS_MENU_BACK              8
+	#define ALLS_SORT_BY_DATE           4
+    #define ALLS_TIME_ZONE              5
+	#define ALLS_ZIP_LOCATION   	    6
+	#define ALLS_THEMES                 7
+	#define ALLS_DEFAULT                8
+	#define ALLS_MENU_BACK              9
 
     static char* MENU_ALLS_HEADERS[] = { "Change twrp Settings",
     									 "twrp or gtfo:",
@@ -1497,6 +1638,7 @@ void all_settings_menu(int pIdx)
 	                          reboot_after_flash(),
 	                          toggle_spam(),
                               force_md5_check(),
+							  sort_by_date_option(),
 	                          "Change Time Zone",
 	                          "Change Zip Default Folder",
 	                          "Change twrp Color Theme",
@@ -1533,6 +1675,14 @@ void all_settings_menu(int pIdx)
             		strcpy(tw_force_md5_check_val, "0");
             	} else {
             		strcpy(tw_force_md5_check_val, "1");
+            	}
+                write_s_file();
+                break;
+			case ALLS_SORT_BY_DATE:
+                if (is_true(tw_sort_files_by_date_val)) {
+            		strcpy(tw_sort_files_by_date_val, "0");
+            	} else {
+            		strcpy(tw_sort_files_by_date_val, "1");
             	}
                 write_s_file();
                 break;

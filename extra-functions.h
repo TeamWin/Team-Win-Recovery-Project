@@ -10,6 +10,8 @@ void get_device_id();
 void install_zip_menu(int pIdx);
 void advanced_menu();
 
+void show_fake_main_menu();
+
 void usb_storage_toggle();
 void wipe_dalvik_cache();
 
@@ -46,6 +48,8 @@ void update_tz_environment_variables();
 
 int go_home;
 int go_menu;
+int go_restart;
+int go_reboot;
 int menu_loc_idx;
 int menu_loc[255];
 
@@ -60,6 +64,8 @@ int datIsMounted;
 int cacIsMounted;
 int sdcIsMounted;
 int sdeIsMounted;
+char* multi_zip_array[10][255];
+int multi_zip_index;
 
 int get_new_zip_dir;
 
