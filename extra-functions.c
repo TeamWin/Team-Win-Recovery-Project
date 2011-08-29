@@ -375,6 +375,10 @@ void install_zip_menu(int pIdx)
 						return;
 					}
 					if (go_home != 1) {
+						LOGI("=> Let's update filesystem types.\n");
+						verifyFst();
+						LOGI("=> And update our fstab also.\n");
+						createFstab();
 						ui_print("\nInstall from sdcard complete.\n");
 					}
 				}
@@ -434,12 +438,8 @@ void wipe_dalvik_cache()
         ui_print("Cleaned: /cache/dc\n");
 
         struct stat st;
-        if (0 != stat(sde.blk, &st))
-        {
-            ui_print("/sd-ext not present, skipping\n");
-        } else {
+        if (stat(sde.blk, &st) == 0) {
         	__system("mount /sd-ext");
-    	    LOGI("Mounting /sd-ext\n");
     	    if (stat("/sd-ext/dalvik-cache",&st) == 0)
     	    {
                 __system("rm -rf /sd-ext/dalvik-cache");
@@ -447,6 +447,7 @@ void wipe_dalvik_cache()
     	    }
         }
         ensure_path_unmounted("/data");
+        ensure_path_unmounted("/cache");
         ui_print("-- Dalvik Cache Directories Wipe Complete!\n\n");
         ui_set_background(BACKGROUND_ICON_MAIN);
         if (!ui_text_visible()) return;
@@ -622,15 +623,12 @@ void advanced_menu()
 // kang'd this from recovery.c cuz there wasnt a recovery.h!
 int
 erase_volume(const char *volume) {
-    ui_print("Formatting %s...\n", volume);
-
     if (strcmp(volume, "/cache") == 0) {
         // Any part of the log we'd copied to cache is now gone.
         // Reset the pointer so we copy from the beginning of the temp
         // log.
         tmplog_offset = 0;
     }
-
     return format_volume(volume);
 }
 
@@ -724,9 +722,26 @@ confirm_format(char* volume_name, char* volume_path) {
         return;
     } else {
         ui_set_background(BACKGROUND_ICON_WIPE);
-        ui_print("\n-- Wiping %s Partition...\n", volume_name);
-        erase_volume(volume_path);
-        ui_print("-- %s Partition Wipe Complete!\n", volume_name);
+        ui_print("\n-- Formatting %s Partition.\n", volume_name);
+        if (strcmp(volume_path,"/system") == 0 && strcmp(sys.fst,"yaffs2") != 0) {
+        	LOGI("=> Formatting %s filesystem %s\n",volume_name,sys.fst);
+        	tw_format(sys.fst,sys.blk);
+        } else if (strcmp(volume_path,"/data") == 0 && strcmp(dat.fst,"yaffs2") != 0) {
+        	LOGI("=> Formatting %s filesystem %s\n",volume_name,dat.fst);
+        	tw_format(dat.fst,dat.blk);
+        } else if (strcmp(volume_path,"/cache") == 0 && strcmp(cac.fst,"yaffs2") != 0) {
+        	LOGI("=> Formatting %s filesystem %s\n",volume_name,cac.fst);
+        	tw_format(cac.fst,cac.blk);
+        } else if (strcmp(volume_path,"/sdcard") == 0) {
+        	LOGI("=> Formatting %s filesystem %s\n",volume_name,sdc.fst);
+        	tw_format(sdc.fst,sdc.blk);
+        } else if (strcmp(volume_path,"/sd-ext") == 0) {
+        	LOGI("=> Formatting %s filesystem %s\n",volume_name,sde.fst);
+        	tw_format(sde.fst,sde.blk);
+        } else {
+            erase_volume(volume_path);
+        }
+        ui_print("-- %s Format Complete!\n", volume_name);
         dec_menu_loc();
     }
 }
@@ -1191,27 +1206,21 @@ void chkMounts()
 	sdcIsMounted = 0;
 	sdeIsMounted = 0;
 	fp = __popen("cat /proc/mounts", "r");
-	while (fgets(tmpOutput,255,fp) != NULL)
-	{
+	while (fgets(tmpOutput,255,fp) != NULL) {
 	    sscanf(tmpOutput,"%s %*s %*s %*s %*d %*d",tmp.blk);
-	    if (strcmp(tmp.blk,sys.blk) == 0)
-	    {
+	    if (strcmp(tmp.blk,sys.blk) == 0) {
 	    	sysIsMounted = 1;
 	    }
-	    if (strcmp(tmp.blk,dat.blk) == 0)
-	    {
+	    if (strcmp(tmp.blk,dat.blk) == 0) {
 	    	datIsMounted = 1;
 	    }
-	    if (strcmp(tmp.blk,cac.blk) == 0)
-	    {
+	    if (strcmp(tmp.blk,cac.blk) == 0) {
 	    	cacIsMounted = 1;
 	    }
-	    if (strcmp(tmp.blk,sdc.blk) == 0)
-	    {
+	    if (strcmp(tmp.blk,sdc.blk) == 0) {
 	    	sdcIsMounted = 1;
 	    }
-	    if (strcmp(tmp.blk,sde.blk) == 0)
-	    {
+	    if (strcmp(tmp.blk,sde.blk) == 0) {
 	    	sdeIsMounted = 1;
 	    }
 	}
@@ -1223,8 +1232,7 @@ char* isMounted(int mInt)
 	int isTrue = 0;
 	struct stat st;
 	char* tmp_set = (char*)malloc(25);
-	if (mInt == MNT_SYSTEM)
-	{
+	if (mInt == MNT_SYSTEM) {
 	    if (sysIsMounted == 1) {
 			strcpy(tmp_set, "unmount");
 	    } else {
@@ -1232,8 +1240,7 @@ char* isMounted(int mInt)
 	    }
 		strcat(tmp_set, " /system");
 	}
-	if (mInt == MNT_DATA)
-	{
+	if (mInt == MNT_DATA) {
 	    if (datIsMounted == 1) {
 			strcpy(tmp_set, "unmount");
 	    } else {
@@ -1241,8 +1248,7 @@ char* isMounted(int mInt)
 	    }
 		strcat(tmp_set, " /data");
 	}
-	if (mInt == MNT_CACHE)
-	{
+	if (mInt == MNT_CACHE) {
 	    if (cacIsMounted == 1) {
 			strcpy(tmp_set, "unmount");
 	    } else {
@@ -1250,8 +1256,7 @@ char* isMounted(int mInt)
 	    }
 		strcat(tmp_set, " /cache");
 	}
-	if (mInt == MNT_SDCARD)
-	{
+	if (mInt == MNT_SDCARD) {
 	    if (sdcIsMounted == 1) {
 			strcpy(tmp_set, "unmount");
 	    } else {
@@ -1259,10 +1264,8 @@ char* isMounted(int mInt)
 	    }
 		strcat(tmp_set, " /sdcard");
 	}
-	if (mInt == MNT_SDEXT)
-	{
-		if (stat(sde.blk,&st) != 0)
-		{
+	if (mInt == MNT_SDEXT) {
+		if (stat(sde.blk,&st) != 0) {
 			strcpy(tmp_set, "-------");
 			sdeIsMounted = -1;
 		} else {
@@ -1388,8 +1391,7 @@ void main_wipe_menu()
 
     int isSdExt = 0;
     struct stat st;
-    if (stat("/sd-ext",&st) == 0)
-    {
+    if (stat(sde.blk,&st) == 0) {
     	__system("mount /sd-ext");
     	isSdExt = 1;
     }

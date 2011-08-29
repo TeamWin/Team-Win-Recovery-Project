@@ -51,7 +51,6 @@ static gr_surface gProgressBarFill;
 static const struct { gr_surface* surface; const char *name; } BITMAPS[] = {
     { &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
     { &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
-    { &gBackgroundIcon[BACKGROUND_ICON_ERROR2],     "icon_error2" },
     { &gBackgroundIcon[BACKGROUND_ICON_MAIN],       "icon_main" },
     { &gBackgroundIcon[BACKGROUND_ICON_WIPE],       "icon_wipe" },
     { &gBackgroundIcon[BACKGROUND_ICON_WIPE_CHOOSE],"icon_wipe_choose" },
@@ -358,14 +357,6 @@ static void *input_thread(void *cookie)
 
         if (ev.value > 0 && device_reboot_now(key_pressed, ev.code)) {
             reboot(RB_AUTOBOOT);
-        }
-        
-        if (ev.code == KEY_VOLUMEDOWN && key_pressed[KEY_VOLUMEUP]) {
-        	ui_set_background(BACKGROUND_ICON_ERROR2);
-        	pthread_mutex_lock(&gUpdateMutex);
-        	show_text = !show_text;
-        	update_screen_locked();
-        	pthread_mutex_unlock(&gUpdateMutex);
         }
     }
     return NULL;

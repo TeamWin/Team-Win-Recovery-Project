@@ -16,6 +16,7 @@
 
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -26,7 +27,8 @@
 #include "mtdutils/mounts.h"
 #include "roots.h"
 #include "common.h"
-#include "make_ext4fs.h"
+#include "ddftw.h"
+#include "format.h"
 
 static int num_volumes = 0;
 static Volume* device_volumes = NULL;
@@ -145,6 +147,7 @@ int ensure_path_mounted(const char* path) {
         return mtd_mount_partition(partition, v->mount_point, v->fs_type, 0);
     } else if (strcmp(v->fs_type, "ext4") == 0 ||
                strcmp(v->fs_type, "ext3") == 0 ||
+               strcmp(v->fs_type, "ext2") == 0 ||
                strcmp(v->fs_type, "vfat") == 0) {
         result = mount(v->device, v->mount_point, v->fs_type,
                        MS_NOATIME | MS_NODEV | MS_NODIRATIME, "");
@@ -195,18 +198,6 @@ int ensure_path_unmounted(const char* path) {
 }
 
 int format_volume(const char* volume) {
-    if (strcmp(volume,"/sdcard") == 0) {
-    	__system("rm -rf /sdcard/* && rm -rf /sdcard/.*");
-        return 0;
-    }
-    if (strcmp(volume,"/sd-ext") == 0) {
-    	__system("rm -rf /sd-ext/* && rm -rf /sd-ext/.*");
-        return 0;
-    }
-    if (strcmp(volume,"/efs") == 0) {
-    	__system("rm -rf /efs/* && rm -rf /efs/.*");
-        return 0;
-    }
     Volume* v = volume_for_path(volume);
     if (v == NULL) {
         LOGE("unknown volume \"%s\"\n", volume);
@@ -250,16 +241,19 @@ int format_volume(const char* volume) {
         return 0;
     }
 
-    if (strcmp(v->fs_type, "ext4") == 0) {
-        reset_ext4fs_info();
-        int result = make_ext4fs(v->device, NULL, NULL, 0, 0, 0);
-        if (result != 0) {
-            LOGE("format_volume: make_extf4fs failed on %s\n", v->device);
-            return -1;
-        }
-        return 0;
+    if (v->fs_type[0] == 'e' && v->fs_type[1] == 'x' && v->fs_type[2] == 't') {
+    	char fst[10];
+    	if (strcmp(v->mount_point,"/system") == 0) {
+    		strcpy(fst,sys.fst);
+    	} else if (strcmp(v->mount_point,"/data") == 0) {
+    		strcpy(fst,dat.fst);
+    	} else if (strcmp(v->mount_point,"/cache") == 0) {
+    		strcpy(fst,cac.fst);
+    	}
+    	tw_format(fst,v->device);
+    	return 0;
     }
-
+    
     LOGE("format_volume: fs_type \"%s\" unsupported\n", v->fs_type);
     return -1;
 }
