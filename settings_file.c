@@ -58,6 +58,13 @@ int is_true(char* tw_setting) {
 	}
 }
 
+void toggle_svalue(char* tw_setting) {
+    if (is_true(tw_setting))
+        strcpy(tw_setting, "0");
+    else
+        strcpy(tw_setting, "1");
+    write_s_file();
+}
 // Write Settings to file Function
 void
 write_s_file() {
@@ -101,6 +108,7 @@ write_s_file() {
                 fprintf(fp, "%s:%s\n", TW_ZIP_LOCATION, tw_zip_location_val);
                 fprintf(fp, "%s:%s\n", TW_FORCE_MD5_CHECK, tw_force_md5_check_val);
 				fprintf(fp, "%s:%s\n", TW_SORT_FILES_BY_DATE, tw_sort_files_by_date_val);
+				fprintf(fp, "%s:%s\n", TW_SINGLE_ZIP_MODE, tw_single_zip_mode_val);
 				fclose(fp); // close file
 				//LOGI("=> Wrote to configuration file: %s\n", TW_SETTINGS_FILE); // log
 			}
@@ -164,6 +172,8 @@ read_s_file() {
 			    	strcpy(tw_zip_location_val, s_value);
                 } else if (strcmp(s_key, TW_FORCE_MD5_CHECK) == 0) {
                     strcpy(tw_force_md5_check_val, s_value);
+				} else if (strcmp(s_key, TW_SINGLE_ZIP_MODE) == 0) {
+                    strcpy(tw_single_zip_mode_val, s_value);
 				} else if (strcmp(s_key, TW_SORT_FILES_BY_DATE) == 0) {
                     strcpy(tw_sort_files_by_date_val, s_value);
 				} 

@@ -440,30 +440,30 @@ void tw_reboot()
 void install_zip_menu(int pIdx)
 {
 	// INSTALL ZIP MENU
-	#define ITEM_CHOOSE_ZIP           0
-	#define ITEM_FLASH_ZIPS           1
-	#define ITEM_CLEAR_ZIPS           2
-	#define ITEM_WIPE_CACHE_DALVIK    3
-	#define ITEM_SORT_BY_DATE         4
-	#define ITEM_REBOOT_AFTER_FLASH   5
-	#define ITEM_TOGGLE_SIG           6
-	#define ITEM_TOGGLE_FORCE_MD5	  7
-	#define ITEM_ZIP_RBOOT			  8
-	#define ITEM_ZIP_BACK		      9
-	
+	#define ITEM_CHOOSE_ZIP             0
+	#define ITEM_FLASH_ZIPS             1
+	#define ITEM_CLEAR_ZIPS             2
+	#define ITEM_WIPE_CACHE_DALVIK      3
+	#define ITEM_REBOOT_AFTER_FLASH     4
+	#define ITEM_TOGGLE_SIG             5
+	#define ITEM_TOGGLE_FORCE_MD5	    6
+    #define ITEM_MORE_SETTINGS          7	
+	#define ITEM_ZIP_RBOOT			    8
+	#define ITEM_ZIP_BACK		        9
+    
     ui_set_background(BACKGROUND_ICON_FLASH_ZIP);
     static char* MENU_FLASH_HEADERS[] = { "Install Zip Menu",
     									  "Flash Zip From SD Card:",
                                           NULL };
 
 	char* MENU_INSTALL_ZIP[] = {  "--> Choose Zip To Flash",
-	                              "Flash Zips Now",
-								  "Clear Zip Queue",
+	                              "    Flash Zips Now",
+								  "    Clear Zip Queue",
 								  "Wipe Cache and Dalvik Cache",
-								  sort_by_date_option(),
 			  	  	  	  	  	  reboot_after_flash(),
 								  zip_verify(),
 								  force_md5_check(),
+                                  "--> More Options",
                                   "--> Reboot To System",
 	                              "<-- Back To Main Menu",
 	                              NULL };
@@ -481,6 +481,11 @@ void install_zip_menu(int pIdx)
             case ITEM_CHOOSE_ZIP:
 				if (multi_zip_index < 10) {
 					status = sdcard_directory(tw_zip_location_val);
+                    if (is_true(tw_single_zip_mode_val))
+                    {
+                        // TODO: Flash Zip Here
+                        install_zip_menu(ITEM_FLASH_ZIPS);
+                    }
 				} else {
 					ui_print("Maximum of %i zips queued.\n", multi_zip_index);
 				}
@@ -539,13 +544,8 @@ void install_zip_menu(int pIdx)
             	}
                 write_s_file();
                 break;
-			case ITEM_SORT_BY_DATE:
-				if (is_true(tw_sort_files_by_date_val)) {
-            		strcpy(tw_sort_files_by_date_val, "0");
-            	} else {
-            		strcpy(tw_sort_files_by_date_val, "1");
-            	}
-                write_s_file();
+			case ITEM_MORE_SETTINGS:
+				all_settings_menu(0);
                 break;
             case ITEM_TOGGLE_SIG:
             	if (is_true(tw_signed_zip_val)) {
@@ -1618,6 +1618,16 @@ char* toggle_spam()
 	return tmp_set;
 }
 
+char* single_zip_mode_option()
+{
+	char* tmp_set = (char*)malloc(40);
+	strcpy(tmp_set, "[ ] Single Zip Mode");
+	if (is_true(tw_single_zip_mode_val) == 1) {
+		tmp_set[1] = 'x';
+	}
+	return tmp_set;
+}
+
 void all_settings_menu(int pIdx)
 {
 	// ALL SETTINGS MENU (ALLS for ALL Settings)
@@ -1626,11 +1636,12 @@ void all_settings_menu(int pIdx)
 	#define ALLS_SPAM				    2
     #define ALLS_FORCE_MD5_CHECK        3
 	#define ALLS_SORT_BY_DATE           4
-    #define ALLS_TIME_ZONE              5
-	#define ALLS_ZIP_LOCATION   	    6
-	#define ALLS_THEMES                 7
-	#define ALLS_DEFAULT                8
-	#define ALLS_MENU_BACK              9
+	#define ALLS_SINGLE_ZIP_MODE        5
+    #define ALLS_TIME_ZONE              6
+	#define ALLS_ZIP_LOCATION   	    7
+	#define ALLS_THEMES                 8
+	#define ALLS_DEFAULT                9
+	#define ALLS_MENU_BACK              10 
 
     static char* MENU_ALLS_HEADERS[] = { "Change twrp Settings",
     									 "twrp or gtfo:",
@@ -1641,7 +1652,8 @@ void all_settings_menu(int pIdx)
 	                          toggle_spam(),
                               force_md5_check(),
 							  sort_by_date_option(),
-	                          "Change Time Zone",
+	                          single_zip_mode_option(),
+                              "Change Time Zone",
 	                          "Change Zip Default Folder",
 	                          "Change twrp Color Theme",
 	                          "Reset Settings to Defaults",
@@ -1696,6 +1708,9 @@ void all_settings_menu(int pIdx)
             	}
                 write_s_file();
 				break;
+            case ALLS_SINGLE_ZIP_MODE:
+                toggle_svalue(tw_single_zip_mode_val);
+                break;
 			case ALLS_THEMES:
 			    twrp_themes_menu();
 				break;
