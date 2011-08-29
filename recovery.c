@@ -397,7 +397,10 @@ copy_sideloaded_package(const char* original_path) {
 
 char**
 prepend_title(const char** headers) {
-    char* title[] = { "Team Win Recovery Project (twrp) v1.0.3",
+    char* title1 = (char*)malloc(40);
+    strcpy(title1, "Team Win Recovery Project (twrp) v");
+    char* header1 = strcat(title1, tw_version_val);
+    char* title[] = { header1,
                       "Based on Android System Recovery <"
                       EXPAND(RECOVERY_API_VERSION) "e>",
                       "", //
