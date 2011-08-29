@@ -419,6 +419,16 @@ char* force_md5_check()
     return tmp_set;
 }
 
+char* sort_by_date_option()
+{
+    char* tmp_set = (char*)malloc(40);
+    strcpy(tmp_set, "[ ] Sort Zips by Date");
+    if (is_true(tw_sort_files_by_date_val) == 1) {
+        tmp_set[1] = 'x';
+    }
+    return tmp_set;
+}
+
 void tw_reboot()
 {
     ui_print("Rebooting...\n");
@@ -431,22 +441,15 @@ void install_zip_menu(int pIdx)
 {
 	// INSTALL ZIP MENU
 	#define ITEM_CHOOSE_ZIP           0
-<<<<<<< HEAD
-	#define ITEM_WIPE_CACHE_DALVIK    1
-	#define ITEM_REBOOT_AFTER_FLASH   2
-	#define ITEM_TOGGLE_SIG           3
-	#define ITEM_TOGGLE_FORCE_MD5	  4
-	#define ITEM_ZIP_RBOOT			  5
-	#define ITEM_ZIP_BACK		      6
-=======
 	#define ITEM_FLASH_ZIPS           1
 	#define ITEM_CLEAR_ZIPS           2
 	#define ITEM_WIPE_CACHE_DALVIK    3
-	#define ITEM_REBOOT_AFTER_FLASH   4
-	#define ITEM_TOGGLE_SIG           5
-	#define ITEM_ZIP_RBOOT			  6
-	#define ITEM_ZIP_BACK		      7
->>>>>>> added multi zip selection functionality
+	#define ITEM_SORT_BY_DATE         4
+	#define ITEM_REBOOT_AFTER_FLASH   5
+	#define ITEM_TOGGLE_SIG           6
+	#define ITEM_TOGGLE_FORCE_MD5	  7
+	#define ITEM_ZIP_RBOOT			  8
+	#define ITEM_ZIP_BACK		      9
 	
     ui_set_background(BACKGROUND_ICON_FLASH_ZIP);
     static char* MENU_FLASH_HEADERS[] = { "Install Zip Menu",
@@ -457,6 +460,7 @@ void install_zip_menu(int pIdx)
 	                              "Flash Zips Now",
 								  "Clear Zip Queue",
 								  "Wipe Cache and Dalvik Cache",
+								  sort_by_date_option(),
 			  	  	  	  	  	  reboot_after_flash(),
 								  zip_verify(),
 								  force_md5_check(),
@@ -528,6 +532,14 @@ void install_zip_menu(int pIdx)
             		strcpy(tw_reboot_after_flash_option, "0");
             	} else {
             		strcpy(tw_reboot_after_flash_option, "1");
+            	}
+                write_s_file();
+                break;
+			case ITEM_SORT_BY_DATE:
+				if (is_true(tw_sort_files_by_date_val)) {
+            		strcpy(tw_sort_files_by_date_val, "0");
+            	} else {
+            		strcpy(tw_sort_files_by_date_val, "1");
             	}
                 write_s_file();
                 break;
@@ -916,7 +928,7 @@ void time_zone_menu()
     								   "Select Region:",
                                               NULL };
     
-	char* MENU_TZ[] =       { "[REBOOT AND APPLY TIME ZONE]",
+	char* MENU_TZ[] =       { "[RESTART MENU AND APPLY TIME ZONE]",
             				  "Minus (GMT 0 to -11)",
 							  "Plus  (GMT +1 to +12)",
 							  "<-- Back To twrp Settings",
@@ -1611,11 +1623,12 @@ void all_settings_menu(int pIdx)
 	#define ALLS_REBOOT_AFTER_FLASH     1
 	#define ALLS_SPAM				    2
     #define ALLS_FORCE_MD5_CHECK        3
-    #define ALLS_TIME_ZONE              4
-	#define ALLS_ZIP_LOCATION   	    5
-	#define ALLS_THEMES                 6
-	#define ALLS_DEFAULT                7
-	#define ALLS_MENU_BACK              8
+	#define ALLS_SORT_BY_DATE           4
+    #define ALLS_TIME_ZONE              5
+	#define ALLS_ZIP_LOCATION   	    6
+	#define ALLS_THEMES                 7
+	#define ALLS_DEFAULT                8
+	#define ALLS_MENU_BACK              9
 
     static char* MENU_ALLS_HEADERS[] = { "Change twrp Settings",
     									 "twrp or gtfo:",
@@ -1625,6 +1638,7 @@ void all_settings_menu(int pIdx)
 	                          reboot_after_flash(),
 	                          toggle_spam(),
                               force_md5_check(),
+							  sort_by_date_option(),
 	                          "Change Time Zone",
 	                          "Change Zip Default Folder",
 	                          "Change twrp Color Theme",
@@ -1661,6 +1675,14 @@ void all_settings_menu(int pIdx)
             		strcpy(tw_force_md5_check_val, "0");
             	} else {
             		strcpy(tw_force_md5_check_val, "1");
+            	}
+                write_s_file();
+                break;
+			case ALLS_SORT_BY_DATE:
+                if (is_true(tw_sort_files_by_date_val)) {
+            		strcpy(tw_sort_files_by_date_val, "0");
+            	} else {
+            		strcpy(tw_sort_files_by_date_val, "1");
             	}
                 write_s_file();
                 break;

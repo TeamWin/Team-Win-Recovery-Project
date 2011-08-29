@@ -560,10 +560,8 @@ sdcard_directory(const char* path) {
     notError = 0;
 	
 	qsort(dirs, d_size, sizeof(char*), compare_string);
-	if (is_true(tw_show_spam_val)) {
-		qsort(zips, z_size, sizeof(char*), compare_string);
-	} else {
-		char* tempzip = malloc(z_alloc * sizeof(char*));
+	if (is_true(tw_sort_files_by_date_val)) {
+		char* tempzip = malloc(z_alloc * sizeof(char*)); // sort zips by last modified date
 		char file_path_name[PATH_MAX];
 		int bubble1, bubble2, swap_flag = 1;
 		struct stat read_file;
@@ -590,6 +588,8 @@ sdcard_directory(const char* path) {
 				}
 			}
 		}
+	} else {
+		qsort(zips, z_size, sizeof(char*), compare_string); // sort zips by filename
 	}
     
     // append dirs to the zips list

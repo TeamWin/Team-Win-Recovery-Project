@@ -21,6 +21,7 @@ static const char* TW_SHOW_SPAM = "SHOW_SPAM";
 static const char* TW_TIME_ZONE = "TIME_ZONE";
 static const char* TW_ZIP_LOCATION = "ZIP_LOCATION"; // Last location zip flashed from (remembers last folder) (Constant number corresponds to line number in file .twrs)
 static const char* TW_FORCE_MD5_CHECK = "FORCE_MD5";
+static const char* TW_SORT_FILES_BY_DATE = "SORT_BY_DATE"; // sort zips by file date instead of file name
 
 static const char tw_version_val[] = "1.1.0"; // Variable Holding Version
 char tw_nan_system_val[TW_MIN_SETTINGS_CHARS]; //
@@ -39,6 +40,7 @@ char tw_use_compression_val[20];
 char tw_show_spam_val[20];
 char tw_time_zone_val[20];
 char tw_zip_location_val[TW_MAX_SETTINGS_CHARS];
+char tw_sort_files_by_date_val[TW_MIN_SETTINGS_CHARS];
 
 // Read Settings Function
 int is_true(char* tw_setting);

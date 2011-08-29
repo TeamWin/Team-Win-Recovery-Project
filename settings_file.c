@@ -46,6 +46,7 @@ tw_set_defaults() {
 	strcpy(tw_show_spam_val, "0");
     strcpy(tw_time_zone_val, "CST6CDT");
 	strcpy(tw_zip_location_val, "/sdcard");
+	strcpy(tw_sort_files_by_date_val, "0");
 }
 
 int is_true(char* tw_setting) {
@@ -98,6 +99,7 @@ write_s_file() {
                 fprintf(fp, "%s:%s\n", TW_TIME_ZONE, tw_time_zone_val);
                 fprintf(fp, "%s:%s\n", TW_ZIP_LOCATION, tw_zip_location_val);
                 fprintf(fp, "%s:%s\n", TW_FORCE_MD5_CHECK, tw_force_md5_check_val);
+				fprintf(fp, "%s:%s\n", TW_SORT_FILES_BY_DATE, tw_sort_files_by_date_val);
 				fclose(fp); // close file
 				//LOGI("=> Wrote to configuration file: %s\n", TW_SETTINGS_FILE); // log
 			}
@@ -161,6 +163,8 @@ read_s_file() {
 			    	strcpy(tw_zip_location_val, s_value);
                 } else if (strcmp(s_key, TW_FORCE_MD5_CHECK) == 0) {
                     strcpy(tw_force_md5_check_val, s_value);
+				} else if (strcmp(s_key, TW_SORT_FILES_BY_DATE) == 0) {
+                    strcpy(tw_sort_files_by_date_val, s_value);
 				} 
 			}
 			fclose(fp); // close file
