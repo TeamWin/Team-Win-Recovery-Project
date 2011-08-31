@@ -440,30 +440,30 @@ void tw_reboot()
 void install_zip_menu(int pIdx)
 {
 	// INSTALL ZIP MENU
-	#define ITEM_CHOOSE_ZIP             0
-	#define ITEM_FLASH_ZIPS             1
-	#define ITEM_CLEAR_ZIPS             2
-	#define ITEM_WIPE_CACHE_DALVIK      3
-	#define ITEM_REBOOT_AFTER_FLASH     4
-	#define ITEM_TOGGLE_SIG             5
-	#define ITEM_TOGGLE_FORCE_MD5	    6
-    #define ITEM_MORE_SETTINGS          7	
-	#define ITEM_ZIP_RBOOT			    8
-	#define ITEM_ZIP_BACK		        9
-    
+	#define ITEM_CHOOSE_ZIP           0
+	#define ITEM_FLASH_ZIPS           1
+	#define ITEM_CLEAR_ZIPS           2
+	#define ITEM_WIPE_CACHE_DALVIK    3
+	#define ITEM_SORT_BY_DATE         4
+	#define ITEM_REBOOT_AFTER_FLASH   5
+	#define ITEM_TOGGLE_SIG           6
+	#define ITEM_TOGGLE_FORCE_MD5	  7
+	#define ITEM_ZIP_RBOOT			  8
+	#define ITEM_ZIP_BACK		      9
+	
     ui_set_background(BACKGROUND_ICON_FLASH_ZIP);
     static char* MENU_FLASH_HEADERS[] = { "Install Zip Menu",
     									  "Flash Zip From SD Card:",
                                           NULL };
 
 	char* MENU_INSTALL_ZIP[] = {  "--> Choose Zip To Flash",
-	                              "    Flash Zips Now",
-								  "    Clear Zip Queue",
+	                              "Flash Zips Now",
+								  "Clear Zip Queue",
 								  "Wipe Cache and Dalvik Cache",
+								  sort_by_date_option(),
 			  	  	  	  	  	  reboot_after_flash(),
 								  zip_verify(),
 								  force_md5_check(),
-                                  "--> More Options",
                                   "--> Reboot To System",
 	                              "<-- Back To Main Menu",
 	                              NULL };
@@ -481,11 +481,6 @@ void install_zip_menu(int pIdx)
             case ITEM_CHOOSE_ZIP:
 				if (multi_zip_index < 10) {
 					status = sdcard_directory(tw_zip_location_val);
-                    if (is_true(tw_single_zip_mode_val))
-                    {
-                        // TODO: Flash Zip Here
-                        install_zip_menu(ITEM_FLASH_ZIPS);
-                    }
 				} else {
 					ui_print("Maximum of %i zips queued.\n", multi_zip_index);
 				}
@@ -516,11 +511,7 @@ void install_zip_menu(int pIdx)
 							return;
 						}
 						if (go_home != 1) {
-							LOGI("=> Let's update filesystem types.\n");
-						    verifyFst();
-						    LOGI("=> And update our fstab also.\n");
-						    createFstab();
-						    ui_print("\nInstall from sdcard complete.\n");
+							ui_print("\nInstall from sdcard complete.\n");
 						}
 						multi_zip_index = 0; // clear zip queue
 					} // end if (!ui_text_visible())
@@ -544,8 +535,13 @@ void install_zip_menu(int pIdx)
             	}
                 write_s_file();
                 break;
-			case ITEM_MORE_SETTINGS:
-				all_settings_menu(0);
+			case ITEM_SORT_BY_DATE:
+				if (is_true(tw_sort_files_by_date_val)) {
+            		strcpy(tw_sort_files_by_date_val, "0");
+            	} else {
+            		strcpy(tw_sort_files_by_date_val, "1");
+            	}
+                write_s_file();
                 break;
             case ITEM_TOGGLE_SIG:
             	if (is_true(tw_signed_zip_val)) {
@@ -596,8 +592,12 @@ void wipe_dalvik_cache()
         ui_print("Cleaned: /cache/dc\n");
 
         struct stat st;
-        if (stat(sde.blk, &st) == 0) {
+        if (0 != stat(sde.blk, &st))
+        {
+            ui_print("/sd-ext not present, skipping\n");
+        } else {
         	__system("mount /sd-ext");
+    	    LOGI("Mounting /sd-ext\n");
     	    if (stat("/sd-ext/dalvik-cache",&st) == 0)
     	    {
                 __system("rm -rf /sd-ext/dalvik-cache");
@@ -605,7 +605,6 @@ void wipe_dalvik_cache()
     	    }
         }
         ensure_path_unmounted("/data");
-        ensure_path_unmounted("/cache");
         ui_print("-- Dalvik Cache Directories Wipe Complete!\n\n");
         ui_set_background(BACKGROUND_ICON_MAIN);
         if (!ui_text_visible()) return;
@@ -781,12 +780,15 @@ void advanced_menu()
 // kang'd this from recovery.c cuz there wasnt a recovery.h!
 int
 erase_volume(const char *volume) {
+    ui_print("Formatting %s...\n", volume);
+
     if (strcmp(volume, "/cache") == 0) {
         // Any part of the log we'd copied to cache is now gone.
         // Reset the pointer so we copy from the beginning of the temp
         // log.
         tmplog_offset = 0;
     }
+
     return format_volume(volume);
 }
 
@@ -880,26 +882,9 @@ confirm_format(char* volume_name, char* volume_path) {
         return;
     } else {
         ui_set_background(BACKGROUND_ICON_WIPE);
-        ui_print("\n-- Formatting %s Partition.\n", volume_name);
-        if (strcmp(volume_path,"/system") == 0 && strcmp(sys.fst,"yaffs2") != 0) {
-        	LOGI("=> Formatting %s filesystem %s\n",volume_name,sys.fst);
-        	tw_format(sys.fst,sys.blk);
-        } else if (strcmp(volume_path,"/data") == 0 && strcmp(dat.fst,"yaffs2") != 0) {
-        	LOGI("=> Formatting %s filesystem %s\n",volume_name,dat.fst);
-        	tw_format(dat.fst,dat.blk);
-        } else if (strcmp(volume_path,"/cache") == 0 && strcmp(cac.fst,"yaffs2") != 0) {
-        	LOGI("=> Formatting %s filesystem %s\n",volume_name,cac.fst);
-        	tw_format(cac.fst,cac.blk);
-        } else if (strcmp(volume_path,"/sdcard") == 0) {
-        	LOGI("=> Formatting %s filesystem %s\n",volume_name,sdc.fst);
-        	tw_format(sdc.fst,sdc.blk);
-        } else if (strcmp(volume_path,"/sd-ext") == 0) {
-        	LOGI("=> Formatting %s filesystem %s\n",volume_name,sde.fst);
-        	tw_format(sde.fst,sde.blk);
-        } else {
-            erase_volume(volume_path);
-        }
-        ui_print("-- %s Format Complete!\n", volume_name);
+        ui_print("\n-- Wiping %s Partition...\n", volume_name);
+        erase_volume(volume_path);
+        ui_print("-- %s Partition Wipe Complete!\n", volume_name);
         dec_menu_loc();
     }
 }
@@ -963,8 +948,6 @@ void time_zone_menu()
 			case TZ_REBOOT:
 				go_home = 1;
 				go_restart = 1;
-				//ensure_path_unmounted("/sdcard");
-				//__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
 				break;
             case TZ_MINUS:
             	time_zone_minus();
@@ -1366,21 +1349,27 @@ void chkMounts()
 	sdcIsMounted = 0;
 	sdeIsMounted = 0;
 	fp = __popen("cat /proc/mounts", "r");
-	while (fgets(tmpOutput,255,fp) != NULL) {
+	while (fgets(tmpOutput,255,fp) != NULL)
+	{
 	    sscanf(tmpOutput,"%s %*s %*s %*s %*d %*d",tmp.blk);
-	    if (strcmp(tmp.blk,sys.blk) == 0) {
+	    if (strcmp(tmp.blk,sys.blk) == 0)
+	    {
 	    	sysIsMounted = 1;
 	    }
-	    if (strcmp(tmp.blk,dat.blk) == 0) {
+	    if (strcmp(tmp.blk,dat.blk) == 0)
+	    {
 	    	datIsMounted = 1;
 	    }
-	    if (strcmp(tmp.blk,cac.blk) == 0) {
+	    if (strcmp(tmp.blk,cac.blk) == 0)
+	    {
 	    	cacIsMounted = 1;
 	    }
-	    if (strcmp(tmp.blk,sdc.blk) == 0) {
+	    if (strcmp(tmp.blk,sdc.blk) == 0)
+	    {
 	    	sdcIsMounted = 1;
 	    }
-	    if (strcmp(tmp.blk,sde.blk) == 0) {
+	    if (strcmp(tmp.blk,sde.blk) == 0)
+	    {
 	    	sdeIsMounted = 1;
 	    }
 	}
@@ -1392,7 +1381,8 @@ char* isMounted(int mInt)
 	int isTrue = 0;
 	struct stat st;
 	char* tmp_set = (char*)malloc(25);
-	if (mInt == MNT_SYSTEM) {
+	if (mInt == MNT_SYSTEM)
+	{
 	    if (sysIsMounted == 1) {
 			strcpy(tmp_set, "unmount");
 	    } else {
@@ -1400,7 +1390,8 @@ char* isMounted(int mInt)
 	    }
 		strcat(tmp_set, " /system");
 	}
-	if (mInt == MNT_DATA) {
+	if (mInt == MNT_DATA)
+	{
 	    if (datIsMounted == 1) {
 			strcpy(tmp_set, "unmount");
 	    } else {
@@ -1408,7 +1399,8 @@ char* isMounted(int mInt)
 	    }
 		strcat(tmp_set, " /data");
 	}
-	if (mInt == MNT_CACHE) {
+	if (mInt == MNT_CACHE)
+	{
 	    if (cacIsMounted == 1) {
 			strcpy(tmp_set, "unmount");
 	    } else {
@@ -1416,7 +1408,8 @@ char* isMounted(int mInt)
 	    }
 		strcat(tmp_set, " /cache");
 	}
-	if (mInt == MNT_SDCARD) {
+	if (mInt == MNT_SDCARD)
+	{
 	    if (sdcIsMounted == 1) {
 			strcpy(tmp_set, "unmount");
 	    } else {
@@ -1424,8 +1417,10 @@ char* isMounted(int mInt)
 	    }
 		strcat(tmp_set, " /sdcard");
 	}
-	if (mInt == MNT_SDEXT) {
-		if (stat(sde.blk,&st) != 0) {
+	if (mInt == MNT_SDEXT)
+	{
+		if (stat(sde.blk,&st) != 0)
+		{
 			strcpy(tmp_set, "-------");
 			sdeIsMounted = -1;
 		} else {
@@ -1551,7 +1546,8 @@ void main_wipe_menu()
 
     int isSdExt = 0;
     struct stat st;
-    if (stat(sde.blk,&st) == 0) {
+    if (stat("/sd-ext",&st) == 0)
+    {
     	__system("mount /sd-ext");
     	isSdExt = 1;
     }
@@ -1618,16 +1614,6 @@ char* toggle_spam()
 	return tmp_set;
 }
 
-char* single_zip_mode_option()
-{
-	char* tmp_set = (char*)malloc(40);
-	strcpy(tmp_set, "[ ] Single Zip Mode");
-	if (is_true(tw_single_zip_mode_val) == 1) {
-		tmp_set[1] = 'x';
-	}
-	return tmp_set;
-}
-
 void all_settings_menu(int pIdx)
 {
 	// ALL SETTINGS MENU (ALLS for ALL Settings)
@@ -1636,12 +1622,11 @@ void all_settings_menu(int pIdx)
 	#define ALLS_SPAM				    2
     #define ALLS_FORCE_MD5_CHECK        3
 	#define ALLS_SORT_BY_DATE           4
-	#define ALLS_SINGLE_ZIP_MODE        5
-    #define ALLS_TIME_ZONE              6
-	#define ALLS_ZIP_LOCATION   	    7
-	#define ALLS_THEMES                 8
-	#define ALLS_DEFAULT                9
-	#define ALLS_MENU_BACK              10 
+    #define ALLS_TIME_ZONE              5
+	#define ALLS_ZIP_LOCATION   	    6
+	#define ALLS_THEMES                 7
+	#define ALLS_DEFAULT                8
+	#define ALLS_MENU_BACK              9
 
     static char* MENU_ALLS_HEADERS[] = { "Change twrp Settings",
     									 "twrp or gtfo:",
@@ -1652,8 +1637,7 @@ void all_settings_menu(int pIdx)
 	                          toggle_spam(),
                               force_md5_check(),
 							  sort_by_date_option(),
-	                          single_zip_mode_option(),
-                              "Change Time Zone",
+	                          "Change Time Zone",
 	                          "Change Zip Default Folder",
 	                          "Change twrp Color Theme",
 	                          "Reset Settings to Defaults",
@@ -1708,9 +1692,6 @@ void all_settings_menu(int pIdx)
             	}
                 write_s_file();
 				break;
-            case ALLS_SINGLE_ZIP_MODE:
-                toggle_svalue(tw_single_zip_mode_val);
-                break;
 			case ALLS_THEMES:
 			    twrp_themes_menu();
 				break;

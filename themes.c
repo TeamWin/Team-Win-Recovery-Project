@@ -15,14 +15,11 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/reboot.h>
 
 #include "themes.h"
 #include "settings_file.h"
 #include "extra-functions.h"
-#include "common.h"
 
 #define THEME_REBOOT_RECOVERY 0
 #define TW_THEME              1
@@ -122,10 +119,9 @@ void twrp_themes_menu()
         switch (chosen_item)
         {
             case THEME_REBOOT_RECOVERY:
-				//go_home = 1;
-				//go_restart = 1;
-            	ensure_path_unmounted("/sdcard");
-                __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
+				set_theme(tw_color_theme_val);
+				go_home = 1;
+				go_restart = 1;
                 break;
             case TW_THEME:
             	strcpy(tw_color_theme_val,"0");
