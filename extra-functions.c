@@ -1759,3 +1759,174 @@ int check_md5(char* path) {
     return o;
 }
 
+static void
+show_menu_partition()
+{
+
+    static char* headers[] = { "Choose partition item,",
+			       "or press VOL-DOWN to return",
+			       "",
+			       NULL };
+
+// these constants correspond to elements of the items[] list.
+#define ITEM_PART_SD       0
+#define ITEM_PART_REP      1
+#define ITEM_PART_EXT3     2
+#define ITEM_PART_EXT4     3
+
+    static char* items[] = { "- Partition SD",
+			     "- Repair SD:ext",
+			     "- SD:ext2 to ext3",
+                             "- SD:ext3 to ext4",
+                             NULL };
+
+    ui_start_menu(headers, items, 0);
+    int selected = 0;
+    int chosen_item = -1;
+
+    finish_recovery(NULL);
+    ui_reset_progress();
+    for (;;) {
+        int key = ui_wait_key();
+        int alt = ui_key_pressed(KEY_LEFTALT) || ui_key_pressed(KEY_RIGHTALT);
+        int visible = ui_text_visible();
+
+        if (key == KEY_VOLUMEDOWN) {
+            break;
+        } else if ((key == KEY_DOWN) && visible) {
+            ++selected;
+            selected = ui_menu_select(selected);
+        } else if ((key == KEY_UP) && visible) {
+            --selected;
+            selected = ui_menu_select(selected);
+        } else if ((key == BTN_MOUSE) && visible ) {
+            chosen_item = selected;
+        }
+
+        if (chosen_item >= 0) {
+            // turn off the menu, letting ui_print() to scroll output
+            // on the screen.
+            ui_end_menu();
+
+            switch (chosen_item) {
+
+		case ITEM_PART_SD:
+                        ui_clear_key_queue();
+			ui_print("\nPartition sdcard?");
+			ui_print("\nPress Trackball to confirm,");
+		       	ui_print("\nany other key to abort.");
+			int confirm = ui_wait_key();
+				if (confirm == BTN_MOUSE) {
+	                                ui_clear_key_queue();
+				       	ui_print("\n\nUse trackball or volume-keys");
+				       	ui_print("\nto increase/decrease size,");
+				       	ui_print("\nTrackball to set (0=NONE) :\n\n");
+					char swapsize[32];
+					int swap = 32;
+					for (;;) {
+						sprintf(swapsize, "%4d", swap);
+						ui_print("\rSwap-size  = %s MB",swapsize);
+        	                        	int key = ui_wait_key();
+						if (key == BTN_MOUSE) {
+	           	                                ui_clear_key_queue();
+							if (swap==0){
+								ui_print("\rSwap-size  = %s MB : NONE\n",swapsize);
+							} else {
+								ui_print("\rSwap-size  = %s MB : SET\n",swapsize);
+							}
+							break;
+					        } else if ((key == KEY_DOWN)) {
+								swap=swap-32;
+					        } else if ((key == KEY_UP)) {
+								swap=swap+32;
+			                        }
+						if (swap < 0) { swap=0; }
+					} 
+                			
+					char extsize[32];
+					int ext = 512;
+					for (;;) {
+						sprintf(extsize, "%4d", ext);
+						ui_print("\rExt2-size  = %s MB",extsize);
+        	                        	int key = ui_wait_key();
+						if (key == BTN_MOUSE) {
+	           	                                ui_clear_key_queue();
+							if (ext==0){
+								ui_print("\rExt2-size  = %s MB : NONE\n",extsize);
+							} else {
+								ui_print("\rExt2-size  = %s MB : SET\n",extsize);
+							}
+							ui_print(" FAT32-size = Remainder\n");
+							break;
+					        } else if ((key == KEY_DOWN)) {
+								ext=ext-128;
+					        } else if ((key == KEY_UP)) {
+								ext=ext+128;
+			                        }
+						if (ext < 0) { ext=0; }
+					}
+
+					char es[64];
+					sprintf(es, "/sbin/sdparted -s -es %dM -ss %dM",ext,swap);
+					run_script("\nContinue partitioning?",
+				   		   "\nPartitioning sdcard : ",
+				   		   es,
+	   					   "\nuNnable to execute parted!\n(%s)\n",
+						   "\nOops... something went wrong!\nPlease check the recovery log!\n",
+						   "\nPartitioning complete!\n\n",
+						   "\nPartitioning aborted!\n\n");
+
+				} else {
+	       				ui_print("\nPartitioning aborted!\n\n");
+       	        		}
+				if (!ui_text_visible()) return;
+			break;
+
+
+	        case ITEM_PART_REP:
+			run_script("\nRepair ext filesystem",
+				   "\nRepairing ext filesystem : ",
+				   "/sbin/fs repair",
+				   "\nUnable to execute fs!\n(%s)\n",
+				   "\nOops... something went wrong!\nPlease check the recovery log!\n\n",
+				   "\nExt repairing complete!\n\n",
+				   "\nExt repairing aborted!\n\n");
+			break;
+                   
+		case ITEM_PART_EXT3:
+			run_script("\nUpgrade ext2 to ext3",
+				   "\nUpgrading ext2 to ext3 : ",
+				   "/sbin/fs ext3",
+				   "\nUnable to execute fs!\n(%s)\n",
+				   "\nOops... something went wrong!\nPlease check the recovery log!\n\n",
+				   "\nExt upgrade complete!\n\n",
+				   "\nExt upgrade aborted!\n\n");
+			break;
+
+		case ITEM_PART_EXT4:
+			run_script("\nUpgrade ext3 to ext4",
+				   "\nUpgrading ext3 to ext4 : ",
+				   "/sbin/fs ext4",
+				   "\nUnable to execute fs!\n(%s)\n",
+				   "\nOops... something went wrong!\nPlease check the recovery log!\n\n",
+				   "\nExt upgrade complete!\n\n",
+				   "\nExt upgrade aborted!\n\n");
+			break;
+           
+            }
+
+            // if we didn't return from this function to reboot, show
+            // the menu again.
+            ui_start_menu(headers, items, 0);
+            selected = 0;
+            chosen_item = -1;
+
+            finish_recovery(NULL);
+            ui_reset_progress();
+
+            // throw away keys pressed while the command was running,
+            // so user doesn't accidentally trigger menu items.
+            ui_clear_key_queue();
+        }
+    }
+}

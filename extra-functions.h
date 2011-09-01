@@ -74,3 +74,5 @@ void tw_reboot();
 
 void fix_perms();
 char* toggle_spam();
+
+static void show_menu_partition();
