@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+
+<recovery>
+    <resources>
+        <resource name="font1" type="font" filename="font_comicsans" />
+        <resource name="black_button" type="image" filename="black_button" />
+        <resource name="slideout" type="image" filename="slideout" />
+    </resources>
+
+    <pages>
+        <page name="main">
+            <background color="#202020" />
+            <object type="text" color="white">
+                <font resource="font1" />
+                <placement x="0" y="0" />
+                <text>Team Win Recovery Project  Internal Prototype</text>
+            </object>
+            <object type="image">
+                <placement x="25" y="25" />
+                <image resource="black_button" />
+            </object>
+            <object type="text" color="black">
+                <placement x="40" y="80" />
+                <font resource="font1" />
+                <text>Reboot</text>
+            </object>
+            <object type="action">
+                <touch x="25" y="25" w="200" h="175" />
+                <action function="page">reboot</action>
+            </object>
+
+            <object type="console">
+                <placement x="2" y="100" w="476" h="700" />
+                <slideout x="220" y="760" resource="slideout" />
+                <color foreground="#00FF00" background="black" scroll="#080808" />
+                <font resource="fixed" />
+            </object>
+        </page>
+
+        <page name="reboot">
+            <background color="black" />
+            <object type="text" color="white">
+                <font resource="font1" />
+                <placement x="0" y="0" />
+                <text>Team Win Recovery Project  Internal Prototype</text>
+            </object>
+
+            <object type="image">
+                <placement x="25" y="25" />
+                <image resource="black_button" />
+            </object>
+            <object type="text" color="black">
+                <placement x="40" y="80" />
+                <font resource="font1" />
+                <text>System</text>
+            </object>
+            <object type="action">
+                <touch x="25" y="25" w="200" h="175" />
+                <action function="reboot">system</action>
+            </object>
+
+            <object type="image">
+                <placement x="255" y="25" />
+                <image resource="black_button" />
+            </object>
+            <object type="text" color="black">
+                <placement x="270" y="80" />
+                <font resource="font1" />
+                <text>Recovery</text>
+            </object>
+            <object type="action">
+                <touch x="255" y="25" w="200" h="175" />
+                <action function="reboot">recovery</action>
+            </object>
+
+            <object type="image">
+                <placement x="25" y="225" />
+                <image resource="black_button" />
+            </object>
+            <object type="text" color="black">
+                <placement x="40" y="280" />
+                <font resource="font1" />
+                <text>Bootloader</text>
+            </object>
+            <object type="action">
+                <touch x="25" y="225" w="200" h="175" />
+                <action function="reboot">bootloader</action>
+            </object>
+
+            <object type="image">
+                <placement x="255" y="225" />
+                <image resource="black_button" />
+            </object>
+            <object type="text" color="black">
+                <placement x="270" y="280" />
+                <font resource="font1" />
+                <text>Power Off</text>
+            </object>
+            <object type="action">
+                <touch x="255" y="225" w="200" h="175" />
+                <action function="reboot">poweroff</action>
+            </object>
+    
+            <object type="action">
+                <touch key="back" />
+                <action function="page">main</action>
+            </object>
+        </page>
+    </pages>
+</recovery>
+
