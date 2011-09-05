@@ -193,7 +193,7 @@ static void draw_screen_locked(void)
             //menu line item selection highlight draws
             gr_color(mihc.r, mihc.g, mihc.b, mihc.a);
             gr_fill(0, (menu_top + menu_sel - menu_show_start+1) * CHAR_HEIGHT,
-                    gr_fb_width(), (menu_top + menu_sel - menu_show_start + 2)*CHAR_HEIGHT+1);
+                    gr_fb_width(), CHAR_HEIGHT+1);
 
             //draw semi-static headers
             for (i = 0; i < menu_top; ++i) {
@@ -206,7 +206,7 @@ static void draw_screen_locked(void)
             gr_color(mhebc.r, mhebc.g, mhebc.b, mhebc.a);
             //draws horizontal line at bottom of the menu
             gr_fill(0, (k-1)*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
-                    gr_fb_width(), (k-1)*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
+                    gr_fb_width(), 2);
 
             //adjust counter for current position of selection and menu display starting point
             if (menu_items - menu_show_start + menu_top >= text_rows){
@@ -236,7 +236,7 @@ static void draw_screen_locked(void)
             gr_color(mhebc.r, mhebc.g, mhebc.b, mhebc.a);
             //draws horizontal line at bottom of the menu
             gr_fill(0, k*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
-                    gr_fb_width(), k*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
+                    gr_fb_width(), 2);
         }
 
         k++; //keep ui_print below menu items display
