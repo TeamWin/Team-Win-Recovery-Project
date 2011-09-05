@@ -42,11 +42,15 @@
 #define PROGRESSBAR_INDETERMINATE_STATES 6
 #define PROGRESSBAR_INDETERMINATE_FPS 15
 
+void gui_print(const char *fmt, ...);
+void gui_print_overwrite(const char *fmt, ...);
+
 static pthread_mutex_t gUpdateMutex = PTHREAD_MUTEX_INITIALIZER;
 static gr_surface gBackgroundIcon[NUM_BACKGROUND_ICONS];
 static gr_surface gProgressBarIndeterminate[PROGRESSBAR_INDETERMINATE_STATES];
 static gr_surface gProgressBarEmpty;
 static gr_surface gProgressBarFill;
+static int gUiInitialized = 0;
 
 static const struct { gr_surface* surface; const char *name; } BITMAPS[] = {
     { &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
@@ -154,7 +158,7 @@ static void draw_progress_locked()
 
 static void draw_text_line(int row, const char* t) {
   if (t[0] != '\0') {
-    gr_text(0, (row+1)*CHAR_HEIGHT-1, t);
+    gr_text(0, row*CHAR_HEIGHT+1, t, NULL);
   }
 }
 
@@ -247,6 +251,7 @@ static void draw_screen_locked(void)
 // Should only be called with gUpdateMutex locked.
 static void update_screen_locked(void)
 {
+    if (!gUiInitialized)    return;
     draw_screen_locked();
     gr_flip();
 }
@@ -255,6 +260,8 @@ static void update_screen_locked(void)
 // Should only be called with gUpdateMutex locked.
 static void update_progress_locked(void)
 {
+    if (!gUiInitialized)    return;
+
     if (show_text || !gPagesIdentical) {
         draw_screen_locked();    // Must redraw the whole screen
         gPagesIdentical = 1;
@@ -391,6 +398,8 @@ void ui_init(void)
     pthread_t t;
     pthread_create(&t, NULL, progress_thread, NULL);
     pthread_create(&t, NULL, input_thread, NULL);
+
+    gUiInitialized = 1;
 }
 
 void ui_set_background(int icon)
@@ -454,13 +463,15 @@ void ui_reset_progress()
 
 void ui_print(const char *fmt, ...)
 {
-    char buf[256];
+    char buf[512];
     va_list ap;
     va_start(ap, fmt);
-    vsnprintf(buf, 256, fmt, ap);
+    vsnprintf(buf, 512, fmt, ap);
     va_end(ap);
 
     fputs(buf, stdout);
+
+    gui_print("%s", buf);
 
     // This can get called before ui_init(), so be careful.
     pthread_mutex_lock(&gUpdateMutex);
@@ -490,7 +501,10 @@ void ui_print_overwrite(const char *fmt, ...)
     va_end(ap);
     //LOGI("ui_print_overwrite - starting text row %i\n", text_row);
     fputs(buf, stdout);
-	text_col = 0;
+
+    gui_print_overwrite("%s", buf);
+
+    text_col = 0;
     // This can get called before ui_init(), so be careful.
     pthread_mutex_lock(&gUpdateMutex);
     if (text_rows > 0 && text_cols > 0) {

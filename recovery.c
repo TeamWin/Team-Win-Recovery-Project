@@ -45,6 +45,11 @@
 #include "ddftw.h"
 #include "backstore.h"
 
+int notError;
+
+int gui_init(void);
+int gui_start(void);
+
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
   { "update_package", required_argument, NULL, 'u' },
@@ -836,9 +841,13 @@ main(int argc, char **argv) {
     freopen(TEMPORARY_LOG_FILE, "a", stdout); setbuf(stdout, NULL);
     freopen(TEMPORARY_LOG_FILE, "a", stderr); setbuf(stderr, NULL);
     printf("Starting recovery on %s", ctime(&start));
-    
-    ui_init();
-    ui_set_background(BACKGROUND_ICON_INSTALLING);
+
+    // Fire up the UI engine
+    if (gui_init())
+    {
+        ui_init();
+        ui_set_background(BACKGROUND_ICON_INSTALLING);
+    }
     load_volume_table();
     get_args(&argc, &argv);
 
@@ -957,7 +966,10 @@ main(int argc, char **argv) {
     if (status != INSTALL_SUCCESS && ui_text_visible()) { // We only want to show menu if error && visible
         //assume we want to be here and its not an error - give us the pretty icon!
         ui_set_background(BACKGROUND_ICON_MAIN);
-        prompt_and_wait();
+        if (gui_start())
+        {
+            prompt_and_wait();
+        }
     }
 
     // Otherwise, get ready to boot the main system...

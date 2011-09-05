@@ -253,88 +253,133 @@ static int vk_tp_to_screen(struct position *p, int *x, int *y)
 /* Returns non-zero when the event should be consumed */
 static int vk_modify(struct ev *e, struct input_event *ev)
 {
+    static int downX = -1, downY = -1;
+    static int discard = 0;
+    static int lastWasSynReport = 0;
     int i;
     int x, y;
 
-    if (ev->type == EV_KEY) {
-        if (ev->code == BTN_TOUCH && !ev->value)
-            e->down = DOWN_RELEASED;
-        return 0;
+    // This will clear the flag for any message that isn't a syn report.
+    // Otherwise, any of the other return statements could beat us to clearing
+    // the flag
+    if (lastWasSynReport && (ev->type != EV_SYN || ev->code != SYN_REPORT))
+    {
+        lastWasSynReport = 0;
     }
 
     if (ev->type == EV_ABS) {
         switch (ev->code) {
         case ABS_X:
-            e->p.synced = 1;
+            e->p.synced |= 0x01;
             e->p.x = ev->value;
-            return !vk_inside_display(e->p.x, &e->p.xi, gr_fb_width());
+            break;
         case ABS_Y:
-            e->p.synced = 1;
+            e->p.synced |= 0x02;
             e->p.y = ev->value;
-            return !vk_inside_display(e->p.y, &e->p.yi, gr_fb_height());
+            break;
         case ABS_MT_POSITION_X:
-            if (e->mt_p.synced & 2) return 1;
-            e->mt_p.synced = 1;
+            e->mt_p.synced |= 0x01;
             e->mt_p.x = ev->value;
-            return !vk_inside_display(e->mt_p.x, &e->mt_p.xi, gr_fb_width());
+            break;
         case ABS_MT_POSITION_Y:
-            if (e->mt_p.synced & 2) return 1;
-            e->mt_p.synced = 1;
+            e->mt_p.synced |= 0x02;
             e->mt_p.y = ev->value;
-            return !vk_inside_display(e->mt_p.y, &e->mt_p.yi, gr_fb_height());
+            break;
         case ABS_MT_TOUCH_MAJOR:
-            if (e->mt_p.synced & 2) return 1;
-            if (!ev->value) e->down = DOWN_RELEASED;
-            return 0;
+            if (ev->value == 0)
+            {
+                // We're going to get a final syn-report for no touch
+                lastWasSynReport = 1;
+            }
+            break;
         }
+        return 1;
+    }
+    if (ev->type != EV_SYN || ev->code != SYN_REPORT)
+        return 0;
 
+    if (lastWasSynReport == 1)
+    {
+        // We are a finger-up state
+        if (!discard)
+        {
+            // Report the key up
+            ev->type = EV_ABS;
+            ev->code = 0;
+            ev->value = (downX << 16) | downY;
+        }
+        downX = -1;
+        downY = -1;
+        if (discard)
+        {
+            discard = 0;
+            return 1;
+        }
         return 0;
     }
+    lastWasSynReport = 1;
 
-    if (ev->type != EV_SYN)
-        return 0;
-
-    if (ev->code == SYN_MT_REPORT) {
-        /* Ignore the rest of the points */
-        e->mt_p.synced |= 2;
-        return 0;
+    // Retrieve where the x,y position is
+    if (e->p.synced & 0x03)
+    {
+        vk_tp_to_screen(&e->p, &x, &y);
     }
-    if (ev->code != SYN_REPORT)
-        return 0;
-
-    if (e->down == DOWN_RELEASED) {
-        e->down = DOWN_NOT;
-        /* TODO: Send emulated key release? */
+    else if (e->mt_p.synced & 0x03)
+    {
+        vk_tp_to_screen(&e->mt_p, &x, &y);
+    }
+    else
+    {
+        // We don't have useful information to convey
         return 1;
     }
 
-    if (!(e->p.synced && vk_tp_to_screen(&e->p, &x, &y)) &&
-            !((e->mt_p.synced & 1) && vk_tp_to_screen(&e->mt_p, &x, &y))) {
-        return 0;
-    }
-
+    // Clear the current sync states
     e->p.synced = e->mt_p.synced = 0;
 
-    if (e->down)
-        return 1;
+    // If we have nothing useful to report, skip it
+    if (x == -1 || y == -1)     return 1;
 
-    for (i = 0; i < e->vk_count; ++i) {
-        int xd = ABS(e->vks[i].centerx - x);
-        int yd = ABS(e->vks[i].centery - y);
-        if (xd < e->vks[i].width/2 && yd < e->vks[i].height/2) {
-            /* Fake a key event */
-            e->down = DOWN_SENT;
+    // On first touch, see if we're at a virtual key
+    if (downX == -1)
+    {
+        // Attempt mapping to virtual key
+        for (i = 0; i < e->vk_count; ++i)
+        {
+            int xd = ABS(e->vks[i].centerx - x);
+            int yd = ABS(e->vks[i].centery - y);
 
-            ev->type = EV_KEY;
-            ev->code = e->vks[i].scancode;
-            ev->value = 1;
-            
-            vibrate(VIBRATOR_TIME_MS);
-            return 0;
+            if (xd < e->vks[i].width/2 && yd < e->vks[i].height/2)
+            {
+                ev->type = EV_KEY;
+                ev->code = e->vks[i].scancode;
+                ev->value = 1;
+
+                vibrate(VIBRATOR_TIME_MS);
+
+                // Mark that all further movement until lift is discard, 
+                // and make sure we don't come back into this area
+                discard = 1;
+                downX = 0;
+                return 0;
+            }
         }
     }
 
-    return 1;
+    // If we were originally a button press, discard this event
+    if (discard)
+    {
+        return 1;
+    }
+
+    // Record where we started the touch for deciding if this is a key or a scroll
+    downX = x;
+    downY = y;
+
+    ev->type = EV_ABS;
+    ev->code = 1;
+    ev->value = (x << 16) | y;
+    return 0;
 }
 
 int ev_get(struct input_event *ev, unsigned dont_wait)
