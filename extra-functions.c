@@ -1814,6 +1814,7 @@ show_menu_partition()
 				
 				char es[64];
 				sprintf(es, "/sbin/sdparted -s -es %dM -ss %dM",ext,swap);
+				LOGI("\nrunning script: %s\n", es);
 				run_script("\nContinue partitioning?",
 					   "\nPartitioning sdcard : ",
 					   es,
@@ -1883,7 +1884,7 @@ void choose_swap_size(int pIdx) {
 	sprintf(swapsize, "%4d", swap);
 	ui_print_overwrite("Swap-size  = %s MB",swapsize);
 	if (swap == 0) ui_print(" - NONE");
-	LOGI("s0\n");
+	
     inc_menu_loc(SWAP_BACK);
     for (;;)
     {
@@ -1897,7 +1898,7 @@ void choose_swap_size(int pIdx) {
 				return;
             case SWAP_INCREASE:
             	swap = swap + 32;
-				LOGI("s1\n");
+				
                 break;
             case SWAP_DECREASE:
 				swap = swap - 32;
@@ -1908,17 +1909,14 @@ void choose_swap_size(int pIdx) {
             	dec_menu_loc();
             	return;
         }
-		LOGI("s2\n");
 	    if (go_home) { 
 	        dec_menu_loc();
 	        return;
 	    }
-		LOGI("s3\n");
 		break;
     }
 	ui_end_menu();
 	dec_menu_loc();
-	LOGI("s4\n");
 	choose_swap_size(pIdx);
 }
 

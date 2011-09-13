@@ -545,20 +545,20 @@ TTISMSDOS=
 
 SDSIZE=
 SDSIZEMB=
-SDPATH="/dev/block/mmcblk0"
+SDPATH="/dev/block/mmcblk1"
 
 FATSIZE=
 FATTYPE="fat32"
-FATPATH="/dev/block/mmcblk0p1"
+FATPATH="/dev/block/mmcblk1p1"
 
 EXTSIZE=512
 EXTFS="ext2"
-EXTPATH="/dev/block/mmcblk0p2"
+EXTPATH="/dev/block/mmcblk1p2"
 EXTEND=
 
 SWAPSIZE=32
 SWAPTYPE="linux-swap"
-SWAPPATH="/dev/block/mmcblk0p3"
+SWAPPATH="/dev/block/mmcblk1p3"
 SWAPEND=
 
 CMPARTED="/sbin/parted"
