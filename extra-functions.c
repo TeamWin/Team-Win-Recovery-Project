@@ -1812,13 +1812,20 @@ show_menu_partition()
 				choose_ext_size(1);
 				if (ext == -1) break; // ext size was cancelled, abort
 				
+                // Below seen in Koush's recovery
+                char sddevice[256];
+                Volume *vol = volume_for_path("/sdcard");
+                strcpy(sddevice, vol->device);
+                // Just need block not whole partition
+                sddevice[strlen("/dev/block/mmcblkX")] = NULL;
+
 				char es[64];
-				sprintf(es, "/sbin/sdparted -s -es %dM -ss %dM",ext,swap);
+				sprintf(es, "/sbin/sdparted -s -es %dM -ss %dM -d %s",ext,swap,sddevice);
 				LOGI("\nrunning script: %s\n", es);
 				run_script("\nContinue partitioning?",
 					   "\nPartitioning sdcard : ",
 					   es,
-					   "\nuNnable to execute parted!\n(%s)\n",
+					   "\nunable to execute parted!\n(%s)\n",
 					   "\nOops... something went wrong!\nPlease check the recovery log!\n",
 					   "\nPartitioning complete!\n\n",
 					   "\nPartitioning aborted!\n\n");
