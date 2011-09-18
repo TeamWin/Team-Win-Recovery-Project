@@ -1,0 +1,198 @@
+<?xml version="1.0"?>
+
+<recovery>
+    <resources>
+        <resource name="header" type="font" filename="bluehighway-80" />
+        <resource name="UItext" type="font" filename="bluehighway-25" />
+        <resource name="android" type="animation" filename="Scribble_00" />
+        <resource name="main_button" type="image" filename="main_button" />
+        <resource name="progress" type="animation" filename="indeterminate" />
+        <resource name="progress_empty" type="image" filename="progress_empty" />
+        <resource name="progress_full" type="image" filename="progress_fill" />
+    </resources>
+
+    <pages>
+        <page name="main">
+            <background color="black" />
+
+            <object type="animation">
+                <placement x="100" y="150" />
+                <resource name="android" />
+                <speed fps="15" render="1" />
+                <loop frame="63" />
+            </object>
+
+            <object type="text">
+                <placement x="386" y="205" />
+                <font resource="header" color="white" />
+                <text>#blameshift</text>
+            </object>
+
+            <object type="text">
+                <placement x="386" y="370" />
+                <font resource="UItext" color="white" />
+                <text>Installing boot image...</text>
+            </object>
+
+            <object type="progressbar">
+                <placement x="386" y="400" />
+                <resource  empty="progress_empty" full="progress_full" />
+                <data name="ui_progress" />
+            </object>
+
+            <object type="animation">
+                <placement x="386" y="400" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+
+            <object type="action">
+                <data name="ui_progress" value="13" op=">" />
+                <action function="page">step1</action>
+            </object>
+        </page>
+
+        <page name="step1">
+            <background color="black" />
+
+            <object type="animation">
+                <placement x="100" y="150" />
+                <resource name="android" />
+                <speed fps="15" render="1" />
+                <loop frame="63" />
+            </object>
+
+            <object type="text">
+                <placement x="386" y="205" />
+                <font resource="header" color="white" />
+                <text>#blameshift</text>
+            </object>
+
+            <object type="text">
+                <placement x="386" y="370" />
+                <font resource="UItext" color="white" />
+                <text>Formatting system...</text>
+            </object>
+
+            <object type="progressbar">
+                <placement x="386" y="400" />
+                <resource  empty="progress_empty" full="progress_full" />
+                <data name="ui_progress" />
+            </object>
+
+            <object type="animation">
+                <placement x="386" y="400" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+
+            <object type="action">
+                <data name="ui_progress" value="20" op=">" />
+                <action function="page">step2</action>
+            </object>
+        </page>
+
+        <page name="step2">
+            <background color="black" />
+
+            <object type="animation">
+                <placement x="100" y="150" />
+                <resource name="android" />
+                <speed fps="15" render="1" />
+                <loop frame="63" />
+            </object>
+
+            <object type="text">
+                <placement x="386" y="205" />
+                <font resource="header" color="white" />
+                <text>#blameshift</text>
+            </object>
+
+            <object type="text">
+                <placement x="386" y="370" />
+                <font resource="UItext" color="white" />
+                <text>Installing system...</text>
+            </object>
+
+            <object type="progressbar">
+                <placement x="386" y="400" />
+                <resource  empty="progress_empty" full="progress_full" />
+                <data name="ui_progress" />
+            </object>
+
+            <object type="animation">
+                <placement x="386" y="400" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+
+            <object type="action">
+                <data name="ui_progress" value="27" op=">" />
+                <action function="page">step3</action>
+            </object>
+        </page>
+
+        <page name="step3">
+            <background color="black" />
+
+            <object type="animation">
+                <placement x="100" y="150" />
+                <resource name="android" />
+                <speed fps="15" render="1" />
+                <loop frame="63" />
+            </object>
+
+            <object type="text">
+                <placement x="386" y="205" />
+                <font resource="header" color="white" />
+                <text>#blameshift</text>
+            </object>
+
+            <object type="text">
+                <placement x="386" y="370" />
+                <font resource="UItext" color="white" />
+                <text>Configuring System...</text>
+            </object>
+
+            <object type="progressbar">
+                <placement x="386" y="400" />
+                <resource  empty="progress_empty" full="progress_full" />
+                <data name="ui_progress" />
+            </object>
+
+            <object type="animation">
+                <placement x="386" y="400" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+
+            <object type="action">
+                <data name="ui_progress" value="100" />
+                <action function="page">flash_done</action>
+            </object>
+        </page>
+
+        <page name="flash_done">
+            <background color="black" />
+
+            <object type="console">
+                <placement x="0" y="0" w="1024" h="370" />
+                <color foreground="#B0B0B0" background="black" scroll="black" />
+                <font resource="fixed" />
+            </object>
+
+            <object type="button">
+                <placement x="392" y="400" />
+                <font resource="UItext" color="white" />
+                <text>Main Menu</text>
+                <image resource="main_button" />
+                <action function="home">main</action>
+            </object>
+        </page>
+    </pages>
+</recovery>
+
