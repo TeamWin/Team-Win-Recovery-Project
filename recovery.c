@@ -48,7 +48,9 @@
 int notError;
 
 int gui_init(void);
+int gui_loadResources(void);
 int gui_start(void);
+int gui_map_variable(const char* varName, char* value);
 
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
@@ -730,6 +732,7 @@ int install_zip_package(const char* zip_path_filename) {
 		ui_print("\n-- Aborting install");
 		result = INSTALL_ERROR;
 	}
+    ensure_path_mounted(SDCARD_ROOT);
 	return result;
 }
 
@@ -848,7 +851,35 @@ main(int argc, char **argv) {
         ui_init();
         ui_set_background(BACKGROUND_ICON_INSTALLING);
     }
+    else
+    {
+        // Bind variables
+        gui_map_variable("tw_nan_system", tw_nan_system_val);
+        gui_map_variable("tw_nan_data", tw_nan_data_val);
+        gui_map_variable("tw_nan_boot", tw_nan_boot_val);
+        gui_map_variable("tw_nan_recovery", tw_nan_recovery_val);
+        gui_map_variable("tw_nan_cache", tw_nan_cache_val);
+        gui_map_variable("tw_nan_wimax", tw_nan_wimax_val);
+        gui_map_variable("tw_nan_andsec", tw_nan_andsec_val);
+        gui_map_variable("tw_nan_sdext", tw_nan_sdext_val);
+        gui_map_variable("tw_reboot_after_flash_option", tw_reboot_after_flash_option);
+        gui_map_variable("tw_signed_zip", tw_signed_zip_val);
+        gui_map_variable("tw_force_md5_check", tw_force_md5_check_val);
+        gui_map_variable("tw_color_theme", tw_color_theme_val);
+        gui_map_variable("tw_use_compression", tw_use_compression_val);
+        gui_map_variable("tw_show_spam", tw_show_spam_val);
+        gui_map_variable("tw_time_zone", tw_time_zone_val);
+        gui_map_variable("tw_zip_location", tw_zip_location_val);
+        gui_map_variable("tw_sort_files_by_date", tw_sort_files_by_date_val);
+        gui_map_variable("tw_single_zip_mode", tw_single_zip_mode_val);
+    }
+    printf("Loading volume table...\n");
     load_volume_table();
+
+    // Load up all the resources
+    gui_loadResources();
+
+    printf("Processing arguments (%d)...\n", argc);
     get_args(&argc, &argv);
 
     LOGI("=> Installing busybox into /sbin\n");

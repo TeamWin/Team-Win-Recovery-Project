@@ -42,19 +42,23 @@ double pow(double x, double y) {
 }
 
 int res_create_surface(const char* name, gr_surface* pSurface) {
-    char resPath[256];
     GGLSurface* surface = NULL;
     int result = 0;
     unsigned char header[8];
     png_structp png_ptr = NULL;
     png_infop info_ptr = NULL;
 
-    snprintf(resPath, sizeof(resPath)-1, "/res/images/%s.png", name);
-    resPath[sizeof(resPath)-1] = '\0';
-    FILE* fp = fopen(resPath, "rb");
+    FILE* fp = fopen(name, "rb");
     if (fp == NULL) {
-        result = -1;
-        goto exit;
+        char resPath[256];
+
+        snprintf(resPath, sizeof(resPath)-1, "/res/images/%s.png", name);
+        resPath[sizeof(resPath)-1] = '\0';
+        fp = fopen(resPath, "rb");
+        if (fp == NULL) {
+            result = -1;
+            goto exit;
+        }
     }
 
     size_t bytesRead = fread(header, 1, sizeof(header), fp);

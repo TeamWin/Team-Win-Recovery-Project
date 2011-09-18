@@ -236,7 +236,6 @@ unsigned int gr_get_height(gr_surface surface) {
 
 void* gr_loadFont(const char* fontName)
 {
-    char tmp[128];
     int fd;
     GRFont *font = 0;
     GGLSurface *ftex;
@@ -245,11 +244,15 @@ void* gr_loadFont(const char* fontName)
     unsigned width, height;
     unsigned element;
 
-    sprintf(tmp, "/res/fonts/%s.dat", fontName);
-    fd = open(tmp, O_RDONLY);
+    fd = open(fontName, O_RDONLY);
     if (fd == -1)
     {
-        return NULL;
+        char tmp[128];
+
+        sprintf(tmp, "/res/fonts/%s.dat", fontName);
+        fd = open(tmp, O_RDONLY);
+        if (fd == -1)
+            return NULL;
     }
 
     font = calloc(sizeof(*font), 1);
@@ -447,3 +450,7 @@ int gr_free_surface(gr_surface surface)
     return 0;
 }
 
+void gr_write_frame_to_file(int fd)
+{
+    write(fd, gr_mem_surface.data, vi.xres * vi.yres * 2);
+}

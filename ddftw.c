@@ -250,6 +250,11 @@ void verifyFst()
 	char arg3[50];
 	char arg4[50];
 	char fst[10];
+
+    // Do *NOT* do this on MTD devices
+    if (strcmp(get_fstype(),"mtd") == 0)
+        return;
+
 	fp = __popen("blkid","r");
 	while (fgets(blkOutput,sizeof(blkOutput),fp) != NULL) {
 		if (sscanf(blkOutput,"%s %s %s TYPE=\"%s",blk,arg2,arg3,arg4) == 4) {
@@ -272,3 +277,4 @@ void verifyFst()
 	}
 	__pclose(fp);
 }
+

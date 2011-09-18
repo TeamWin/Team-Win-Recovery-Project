@@ -889,16 +889,31 @@ confirm_format(char* volume_name, char* volume_path) {
     }
 }
 
+int get_battery_level(void)
+{
+    static int lastVal = -1;
+    static time_t nextSecCheck = 0;
+
+    struct timeval curTime;
+    gettimeofday(&curTime, NULL);
+    if (curTime.tv_sec > nextSecCheck)
+    {
+        char cap_s[4];
+        FILE * cap = fopen("/sys/class/power_supply/battery/capacity","rt");
+        fgets(cap_s, 4, cap);
+        fclose(cap);
+        lastVal = atoi(cap_s);
+        nextSecCheck = curTime.tv_sec + 60;
+    }
+    return lastVal;
+}
+
 char* 
 print_batt_cap()  {
 	char* full_cap_s = (char*)malloc(30);
-    char cap_s[4];
 	char full_cap_a[30];
-	FILE * cap = fopen("/sys/class/power_supply/battery/capacity","r");
-	fgets(cap_s, 4, cap);
-	fclose(cap);
 	
-	int cap_i = atoi(cap_s);
+	int cap_i = get_battery_level();
     
     //int len = strlen(cap_s);
 	//if (cap_s[len-1] == '\n') {

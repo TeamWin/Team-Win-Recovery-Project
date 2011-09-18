@@ -35,6 +35,7 @@
 #define ABS_MT_POSITION_X 0x35
 #define ABS_MT_POSITION_Y 0x36
 #define ABS_MT_TOUCH_MAJOR 0x30
+#define ABS_MT_WIDTH_MAJOR 0x32
 #define SYN_MT_REPORT 2
 
 enum {
@@ -236,13 +237,19 @@ static int vk_inside_display(__s32 value, struct input_absinfo *info, int screen
 static int vk_tp_to_screen(struct position *p, int *x, int *y)
 {
     if (p->xi.minimum == p->xi.maximum || p->yi.minimum == p->yi.maximum)
+    {
+        // In this case, we assume the screen dimensions are the same.
+        *x = p->x;
+        *y = p->y;
         return 0;
+    }
 
     *x = (p->x - p->xi.minimum) * (gr_fb_width() - 1) / (p->xi.maximum - p->xi.minimum);
     *y = (p->y - p->yi.minimum) * (gr_fb_height() - 1) / (p->yi.maximum - p->yi.minimum);
 
     if (*x >= 0 && *x < gr_fb_width() &&
-           *y >= 0 && *y < gr_fb_height()) {
+           *y >= 0 && *y < gr_fb_height())
+    {
         return 0;
     }
 
@@ -259,13 +266,9 @@ static int vk_modify(struct ev *e, struct input_event *ev)
     int i;
     int x, y;
 
-    // This will clear the flag for any message that isn't a syn report.
-    // Otherwise, any of the other return statements could beat us to clearing
-    // the flag
-    if (lastWasSynReport && (ev->type != EV_SYN || ev->code != SYN_REPORT))
-    {
-        lastWasSynReport = 0;
-    }
+    // Discard key-up messages
+    if (ev->type == EV_KEY && ev->value == 0)
+        return 1;
 
     if (ev->type == EV_ABS) {
         switch (ev->code) {
@@ -285,18 +288,24 @@ static int vk_modify(struct ev *e, struct input_event *ev)
             e->mt_p.synced |= 0x02;
             e->mt_p.y = ev->value;
             break;
-        case ABS_MT_TOUCH_MAJOR:
-            if (ev->value == 0)
-            {
-                // We're going to get a final syn-report for no touch
-                lastWasSynReport = 1;
-            }
-            break;
+        default:
+            // This is an unhandled message, just skip it
+            return 1;
         }
+
+        lastWasSynReport = 0;
         return 1;
     }
-    if (ev->type != EV_SYN || ev->code != SYN_REPORT)
+
+    // Check if we should ignore the message
+    if (ev->type != EV_SYN || (ev->code != SYN_REPORT && ev->code != SYN_MT_REPORT))
+    {
+        lastWasSynReport = 0;
         return 0;
+    }
+
+    // Discard the MT versions
+    if (ev->code == SYN_MT_REPORT)      return 0;
 
     if (lastWasSynReport == 1)
     {
