@@ -90,7 +90,7 @@ UserAbort() {
 
 UnmountAll () {
 
-	# unmount all partitions so we can work with /dev/block/mmcblk0
+	# unmount all partitions so we can work with $SDPATH
 	# i'm assuming no more than 3 partitions
 	# maybe make a little more elegant later
 	echo -n "unmounting all partitions..."
@@ -191,7 +191,7 @@ ValidateSizeArg() {
 CalculatePartitions() {
 
 	# get size of sdcard in MB & do some math
-	SDSIZEMB=`"$CMPARTED" "$SDPATH" unit MB print | grep mmcblk0 | cut -d" " -f3`
+	SDSIZEMB=`"$CMPARTED" "$SDPATH" unit MB print | grep $SDPATH | cut -d" " -f3`
 	SDSIZE=${SDSIZEMB%MB}
 	[ -n "$FATSIZE" ] || FATSIZE=$(($SDSIZE - $EXTSIZE - $SWAPSIZE))
 	EXTEND=$(($FATSIZE + $EXTSIZE))
@@ -292,6 +292,9 @@ ShowActions() {
 
 ShowCardInfo() {
 
+    echo "sddevice located in /sdcard/sddev.log"
+    echo $SDPATH > /sdcard/sddev.log
+
 	CheckTableType
 	
 	echo
@@ -327,6 +330,7 @@ PartitionSdCard() {
 	if [ $EXTSIZE -gt 0 ] ; then
 		echo -n "creating ext2 partition..."
 		"$CMPARTED" -s "$SDPATH" mkpartfs primary ext2 "$FATSIZE"MB "$EXTEND"MB 2>&1 >>"$LOGFILE"
+		"$CMTUNE2FS" -L sd-ext "$EXTPATH" 2>&1 >>"$LOGFILE"
 		echo "done"
 	fi
 	
@@ -545,20 +549,42 @@ TTISMSDOS=
 
 SDSIZE=
 SDSIZEMB=
-SDPATH="/dev/block/mmcblk1"
+SDINFO=$(cat /etc/fstab | grep /sdcard | awk '{print $1}')
+if [ -L "$SDINFO" ]
+then
+	SDPATH=$(ls -l $SDINFO | awk '{print $11}')
+else
+	SDPATH=$SDINFO
+fi
+# we may now have an SDPATH, let's make sure its on mmcblkX or mmcblkXp1
+CHECK_SDPATH1=$(echo $SDPATH | grep mmcblk.$)
+CHECK_SDPATH2=$(echo $SDPATH | grep mmcblk.p1$)
+if [ -z "$CHECK_SDPATH1" ]
+then
+	if [ -z "$CHECK_SDPATH2" ]
+	then
+		echo fail1
+		unset SDPATH
+	else
+		LEN=${#SDPATH}
+		BLKLEN=$(expr $LEN - 2)
+		SDPATH=${SDPATH:0:$BLKLEN}
+	fi
+fi
+
 
 FATSIZE=
 FATTYPE="fat32"
-FATPATH="/dev/block/mmcblk1p1"
+FATPATH=$SDPATH"p1"
 
 EXTSIZE=512
 EXTFS="ext2"
-EXTPATH="/dev/block/mmcblk1p2"
+EXTPATH=$SDPATH"p2"
 EXTEND=
 
 SWAPSIZE=32
 SWAPTYPE="linux-swap"
-SWAPPATH="/dev/block/mmcblk1p3"
+SWAPPATH=$SDPATH"p3"
 SWAPEND=
 
 CMPARTED="/sbin/parted"

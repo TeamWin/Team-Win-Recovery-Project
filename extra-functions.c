@@ -1835,7 +1835,7 @@ show_menu_partition()
                 sddevice[strlen("/dev/block/mmcblkX")] = NULL;
 
 				char es[64];
-				sprintf(es, "/sbin/sdparted -s -es %dM -ss %dM -d %s",ext,swap,sddevice);
+				sprintf(es, "/sbin/sdparted -es %dM -ss %dM -efs ext3 -s > /cache/part.log",ext,swap);
 				LOGI("\nrunning script: %s\n", es);
 				run_script("\nContinue partitioning?",
 					   "\nPartitioning sdcard : ",
