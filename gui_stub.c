@@ -60,5 +60,13 @@ void gui_update_progress(float portion, int seconds)
     return;
 }
 
-int gui_map_variable(const char* varName, char* value);
+int gui_map_variable(const char* varName, char* value)
+{
+    return 0;
+}
+
+int gui_set_variable(const char* varName, const char* value)
+{
+    return 0;
+}
 

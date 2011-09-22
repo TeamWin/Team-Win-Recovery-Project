@@ -851,17 +851,34 @@ main(int argc, char **argv) {
         ui_init();
         ui_set_background(BACKGROUND_ICON_INSTALLING);
     }
-    else
+    printf("Loading volume table...\n");
+    load_volume_table();
+
+    // Load up all the resources
+    if (!gui_loadResources())
     {
+        // sdcard already mounted, so we're good to go
+        tw_set_defaults();
+        read_s_file();
+
         // Bind variables
-        gui_map_variable("tw_nan_system", tw_nan_system_val);
-        gui_map_variable("tw_nan_data", tw_nan_data_val);
-        gui_map_variable("tw_nan_boot", tw_nan_boot_val);
-        gui_map_variable("tw_nan_recovery", tw_nan_recovery_val);
-        gui_map_variable("tw_nan_cache", tw_nan_cache_val);
-        gui_map_variable("tw_nan_wimax", tw_nan_wimax_val);
-        gui_map_variable("tw_nan_andsec", tw_nan_andsec_val);
-        gui_map_variable("tw_nan_sdext", tw_nan_sdext_val);
+        gui_map_variable("tw_backup_system", tw_nan_system_val);
+        gui_map_variable("tw_backup_data", tw_nan_data_val);
+        gui_map_variable("tw_backup_boot", tw_nan_boot_val);
+        gui_map_variable("tw_backup_recovery", tw_nan_recovery_val);
+        gui_map_variable("tw_backup_cache", tw_nan_cache_val);
+        gui_map_variable("tw_backup_wimax", tw_nan_wimax_val);
+        gui_map_variable("tw_backup_andsec", tw_nan_andsec_val);
+        gui_map_variable("tw_backup_sdext", tw_nan_sdext_val);
+        gui_map_variable("tw_restore_folder", nan_dir);
+        gui_map_variable("tw_restore_system", tw_nan_system_x);
+        gui_map_variable("tw_restore_data", tw_nan_data_x);
+        gui_map_variable("tw_restore_cache", tw_nan_cache_x);
+        gui_map_variable("tw_restore_recovery", tw_nan_recovery_x);
+        gui_map_variable("tw_restore_wimax", tw_nan_wimax_x);
+        gui_map_variable("tw_restore_boot", tw_nan_boot_x);
+        gui_map_variable("tw_restore_andsec", tw_nan_andsec_x);
+        gui_map_variable("tw_restore_sdext", tw_nan_sdext_x);
         gui_map_variable("tw_reboot_after_flash_option", tw_reboot_after_flash_option);
         gui_map_variable("tw_signed_zip", tw_signed_zip_val);
         gui_map_variable("tw_force_md5_check", tw_force_md5_check_val);
@@ -873,11 +890,6 @@ main(int argc, char **argv) {
         gui_map_variable("tw_sort_files_by_date", tw_sort_files_by_date_val);
         gui_map_variable("tw_single_zip_mode", tw_single_zip_mode_val);
     }
-    printf("Loading volume table...\n");
-    load_volume_table();
-
-    // Load up all the resources
-    gui_loadResources();
 
     printf("Processing arguments (%d)...\n", argc);
     get_args(&argc, &argv);
@@ -997,10 +1009,10 @@ main(int argc, char **argv) {
     if (status != INSTALL_SUCCESS && ui_text_visible()) { // We only want to show menu if error && visible
         //assume we want to be here and its not an error - give us the pretty icon!
         ui_set_background(BACKGROUND_ICON_MAIN);
-        if (gui_start())
-        {
+        if (!gui_start())
+            write_s_file();
+        else
             prompt_and_wait();
-        }
     }
 
     // Otherwise, get ready to boot the main system...

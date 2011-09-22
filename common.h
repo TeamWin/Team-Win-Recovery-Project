@@ -113,4 +113,6 @@ typedef struct {
 
 void wipe_data(int confirm);
 
+int gui_set_variable(const char*, const char*);
+
 #endif  // RECOVERY_COMMON_H

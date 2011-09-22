@@ -630,7 +630,9 @@ int tw_unmount(struct dInfo uMnt)
 */
 int tw_backup(struct dInfo bMnt, char *bDir)
 {
-	if (ensure_path_mounted(SDCARD_ROOT) != 0) {
+    char str[128];
+
+    if (ensure_path_mounted(SDCARD_ROOT) != 0) {
 		ui_print("-- Could not mount: %s.\n-- Aborting.\n",SDCARD_ROOT);
 		return 1;
 	}
@@ -660,6 +662,8 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 			strcat(bMount,bMnt.mnt);
 			sprintf(bImage,"%s.%s.win",bMnt.mnt,bMnt.fst); // anything else that is mountable, will be partition.filesystem.win
 			ui_print("\n-- Mounting %s, please wait...\n",bMount);
+            sprintf(str, "Preparing %s", bMnt.mnt);
+            gui_set_variable("ui_status", str);
 			if (tw_mount(bMnt)) {
 				ui_print("-- Could not mount: %s\n-- Aborting.\n",bMount);
 				free(bCommand);
@@ -694,6 +698,8 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 		bUppr[i] = toupper(bUppr[i]);
 	}
 	ui_print("[%s (%d MB)]\n",bUppr,bPartSize/1024); // show size in MB
+    sprintf(str, "Backing up %s", bMnt.mnt);
+    gui_set_variable("ui_status", str);
 	int bProgTime;
 	time_t bStart, bStop;
 	char bOutput[512];
@@ -716,6 +722,8 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 		__pclose(bFp);
 		int pFileSize;
 		ui_print("...Double checking backup file size.\n");
+        sprintf(str, "Verifying %s", bMount);
+        gui_set_variable("ui_status", str);
 		sprintf(bCommand,"ls -l %s%s | awk '{ print $5 }'",bDir,bImage); // double checking to make sure we backed up something
 		bFp = __popen(bCommand, "r");
 		fscanf(bFp,"%d",&pFileSize);
@@ -735,9 +743,13 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 				}
 			}
 			ui_print("...Generating %s md5...\n", bMnt.mnt);
+            sprintf(str, "Generating MD5 for %s", bMount);
+            gui_set_variable("ui_status", str);
 			makeMD5(bDir,bImage); // make md5 file
 			ui_print("....Done.\n");
 			ui_print("...Verifying %s md5...\n", bMnt.mnt);
+            sprintf(str, "Verifying %s", bMount);
+            gui_set_variable("ui_status", str);
 			checkMD5(bDir,bImage); // test the md5 we just made, just in case
 			ui_print("....Done.\n");
 			time(&bStop); // stop timer
@@ -774,6 +786,11 @@ nandroid_back_exe()
 		ui_print("-- Could not mount: %s.\n-- Aborting.\n",SDCARD_ROOT);
 		return 1;
 	}
+
+    gui_set_variable("backup_message", "");
+    gui_set_variable("backup_status", "0");
+    gui_set_variable("backup_done", "0");
+
     struct tm *t;
     char timestamp[15];
 	char tw_image_dir[255];
@@ -787,6 +804,9 @@ nandroid_back_exe()
 	sprintf(exe,"mkdir -p %s",tw_image_dir); // make the folder with timestamp
 	if (__system(exe) != 0) {
 		ui_print("-- Could not create: %s.\n-- Aborting.",tw_image_dir);
+        gui_set_variable("backup_message", "Backup failed");
+        gui_set_variable("backup_status", "0");
+        gui_set_variable("backup_done", "1");
 		return 1;
 	} else {
 		LOGI("=> Created folder: %s\n",tw_image_dir);
@@ -801,11 +821,17 @@ nandroid_back_exe()
 	if(pOutput[2] == '%') { // oh o, crespo devices report diskspace on the 3rd argument.
 		if (sscanf(pOutput,"%*s %d",&sdSpaceFinal) != 1) { // is it a number?
 			ui_print("-- Could not determine free space on %s.",SDCARD_ROOT); // oh noes! Can't find sdcard's free space.
+            gui_set_variable("backup_message", "Backup failed");
+            gui_set_variable("backup_status", "0");
+            gui_set_variable("backup_done", "1");
 			return 1;
 		}
 	} else {
 		if (sscanf(pOutput,"%d %*s",&sdSpaceFinal) != 1) { // is it a number?
 			ui_print("-- Could not determine free space on %s.",SDCARD_ROOT); // oh noes! Can't find sdcard's free space.
+            gui_set_variable("backup_message", "Backup failed");
+            gui_set_variable("backup_status", "0");
+            gui_set_variable("backup_done", "1");
 			return 1;
 		}
 	}
@@ -822,6 +848,9 @@ nandroid_back_exe()
 	// SYSTEM
 	if (is_true(tw_nan_system_val)) { // was system backup enabled?
 		if (tw_backup(sys,tw_image_dir) == 1) { // did the backup process return an error ? 0 = no error
+            gui_set_variable("backup_message", "Backup of System failed");
+            gui_set_variable("backup_status", "0");
+            gui_set_variable("backup_done", "1");
 			ui_print("-- Error occured, check recovery.log. Aborting.\n"); //oh noes! abort abort!
 			return 1;
 		}
@@ -829,6 +858,9 @@ nandroid_back_exe()
 	// DATA
 	if (is_true(tw_nan_data_val)) {
 		if (tw_backup(dat,tw_image_dir) == 1) {
+            gui_set_variable("backup_message", "Backup of Data failed");
+            gui_set_variable("backup_status", "0");
+            gui_set_variable("backup_done", "1");
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
 		}
@@ -836,6 +868,9 @@ nandroid_back_exe()
 	// BOOT
 	if (is_true(tw_nan_boot_val)) {
 		if (tw_backup(boo,tw_image_dir) == 1) {
+            gui_set_variable("backup_message", "Backup of Boot failed");
+            gui_set_variable("backup_status", "0");
+            gui_set_variable("backup_done", "1");
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
 		}
@@ -843,6 +878,9 @@ nandroid_back_exe()
 	// RECOVERY
 	if (is_true(tw_nan_recovery_val)) {
 		if (tw_backup(rec,tw_image_dir) == 1) {
+            gui_set_variable("backup_message", "Backup of Recovery failed");
+            gui_set_variable("backup_status", "0");
+            gui_set_variable("backup_done", "1");
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
 		}
@@ -850,6 +888,9 @@ nandroid_back_exe()
 	// CACHE
 	if (is_true(tw_nan_cache_val)) {
 		if (tw_backup(cac,tw_image_dir) == 1) {
+            gui_set_variable("backup_message", "Backup of Cache failed");
+            gui_set_variable("backup_status", "0");
+            gui_set_variable("backup_done", "1");
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
 		}
@@ -857,6 +898,9 @@ nandroid_back_exe()
 	// WIMAX
 	if (is_true(tw_nan_wimax_val)) {
 		if (tw_backup(wim,tw_image_dir) == 1) {
+            gui_set_variable("backup_message", "Backup of WiMAX failed");
+            gui_set_variable("backup_status", "0");
+            gui_set_variable("backup_done", "1");
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
 		}
@@ -864,6 +908,9 @@ nandroid_back_exe()
 	// ANDROID-SECURE
 	if (is_true(tw_nan_andsec_val)) {
 		if (tw_backup(ase,tw_image_dir) == 1) {
+            gui_set_variable("backup_message", "Backup of .android_secure failed");
+            gui_set_variable("backup_status", "0");
+            gui_set_variable("backup_done", "1");
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
 		}
@@ -871,6 +918,9 @@ nandroid_back_exe()
 	// SD-EXT
 	if (is_true(tw_nan_sdext_val)) {
 		if (tw_backup(sde,tw_image_dir) == 1) {
+            gui_set_variable("backup_message", "Backup of SD-EXT failed");
+            gui_set_variable("backup_status", "0");
+            gui_set_variable("backup_done", "1");
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
 		}
@@ -882,10 +932,16 @@ nandroid_back_exe()
 	if(pOutput[2] == '%') {
 		if (sscanf(pOutput,"%*s %d",&sdSpace) != 1) { // is it a number?
 			ui_print("-- Could not determine free space on %s.\n",SDCARD_ROOT); // oh noes! Can't find sdcard's free space.
+            gui_set_variable("backup_message", "Backup failed");
+            gui_set_variable("backup_status", "0");
+            gui_set_variable("backup_done", "1");
 			return 1;
 		}
 	} else {
 		if (sscanf(pOutput,"%d %*s",&sdSpace) != 1) { // is it a number?
+            gui_set_variable("backup_message", "Backup failed");
+            gui_set_variable("backup_status", "0");
+            gui_set_variable("backup_done", "1");
 			ui_print("-- Could not determine free space on %s.\n",SDCARD_ROOT); // oh noes! Can't find sdcard's free space.
 			return 1;
 		}
@@ -893,6 +949,9 @@ nandroid_back_exe()
 	time(&stop);
 	ui_print("[%d MB TOTAL BACKED UP TO SDCARD]\n",(int)(sdSpaceFinal - sdSpace) / 1024);
 	ui_print("[BACKUP COMPLETED IN %d SECONDS]\n\n",(int)difftime(stop, start)); // the end
+    gui_set_variable("backup_message", "Backup completed");
+    gui_set_variable("backup_status", "1");
+    gui_set_variable("backup_done", "1");
 	return 0;
 }
 
