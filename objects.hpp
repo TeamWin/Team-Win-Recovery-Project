@@ -84,7 +84,7 @@ protected:
 
 // Derived Objects
 // GUIText - Used for static text
-class GUIText : public RenderObject
+class GUIText : public RenderObject, ActionObject
 {
 public:
     // w and h may be ignored, in which case, no bounding box is applied
@@ -102,12 +102,16 @@ public:
     // Retrieve the size of the current string (dynamic strings may change per call)
     virtual int GetCurrentBounds(int& w, int& h);
 
+    // Notify of a variable change
+    virtual int NotifyVarChange(std::string varName, std::string value);
+
 protected:
     std::string mText;
     std::string mLastValue;
     COLOR mColor;
     Resource* mFont;
     int mIsStatic;
+    int mVarChanged;
     int mFontHeight;
 
 protected:

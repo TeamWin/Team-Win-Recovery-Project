@@ -28,6 +28,9 @@ extern "C" {
 int install_zip_package(const char* zip_path_filename);
 int erase_volume(const char* path);
 void wipe_dalvik_cache(void);
+int nandroid_back_exe(void);
+void set_restore_files(void);
+int nandroid_rest_exe(void);
 }
 
 
@@ -128,12 +131,18 @@ int GUIAction::NotifyKey(int key)
 
 int GUIAction::NotifyVarChange(std::string varName, std::string value)
 {
-    if (varName.empty() && !mVariable.empty())
+    if (varName.empty())
     {
-        // An empty varChange is sent when a page goes active to allow pre-existing conditions to occur
-        varName = mVariable;
-        DataManager::GetValue(mVariable, value);
+        if (!mVariable.empty())
+        {
+            // An empty varChange is sent when a page goes active to allow pre-existing conditions to occur
+            varName = mVariable;
+            DataManager::GetValue(mVariable, value);
+        }
+        else if (!mKey && mActionW == 0)
+            doAction();
     }
+
     if (!mVariable.empty() && varName == mVariable)
     {
         if (mVarValue.empty())
@@ -253,27 +262,47 @@ int GUIAction::doAction(int isThreaded)
     }
 
     if (mFunction == "page")
+        return gui_changePage(mArg);
+
+    if (mFunction == "reload")
+        return PageManager::ReloadPackage("TWRP", "/sdcard/TWRP/theme/ui.zip");
+
+    if (mFunction == "readBackup")
     {
-        gui_changePage(mArg);
+        set_restore_files();
         return 0;
     }
-    if (mFunction == "reload")
-    {
-        return PageManager::ReloadPackage("TWRP", "/sdcard/TWRP/theme/ui.zip");
-    }
 
-    if (mFunction == "wipe")
-    {
-        erase_volume(mArg.c_str());
-        wipe_dalvik_cache();
-    }
     if (isThreaded)
     {
         if (mFunction == "flash")
         {
             std::string filename;
-            DataManager::GetValue("filename", filename);
+            DataManager::GetValue("tw_filename", filename);
             flash_zip(filename);
+        }
+        if (mFunction == "wipe")
+        {
+            if (mArg != "dalvik")
+                erase_volume(mArg.c_str());
+            else
+                wipe_dalvik_cache();
+            return 0;
+        }
+        if (mFunction == "nandroid")
+        {
+            DataManager::SetValue("ui_progress", 0);
+
+            if (mArg == "backup")
+                nandroid_back_exe();
+            else if (mArg == "restore")
+                nandroid_rest_exe();
+            else
+                return -1;
+
+            DataManager::SetValue("ui_progress", 100);
+            DataManager::SetValue("ui_progress", 0);
+            return 0;
         }
     }
     else

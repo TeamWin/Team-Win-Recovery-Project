@@ -35,9 +35,9 @@ GUICheckbox::GUICheckbox(xml_node<>* node)
     mUnchecked = NULL;
     mLabel = NULL;
 
-    if (!node)  return;
-
     mLastState = 0;
+
+    if (!node)  return;
 
     // The label can be loaded directly
     mLabel = new GUIText(node);
@@ -91,11 +91,10 @@ GUICheckbox::~GUICheckbox()
 int GUICheckbox::Render(void)
 {
     int ret = 0;
+    int lastState = 0;
+    DataManager::GetValue(mVarName, lastState);
 
-    // TODO
-    //  Get new mLastState
-
-    if (mLastState)
+    if (lastState)
     {
         if (mChecked && mChecked->GetResource())
             gr_blit(mChecked->GetResource(), 0, 0, mCheckW, mCheckH, mRenderX, mRenderY);
@@ -106,13 +105,16 @@ int GUICheckbox::Render(void)
             gr_blit(mUnchecked->GetResource(), 0, 0, mCheckW, mCheckH, mRenderX, mRenderY);
     }
     if (mLabel)     ret = mLabel->Render();
+    mLastState = lastState;
     return ret;
 }
 
 int GUICheckbox::Update(void)
 {
-    // TODO
-    if (mLastState != 0)
+    int lastState = 0;
+    DataManager::GetValue(mVarName, lastState);
+
+    if (lastState != mLastState)
         return 2;
     return 0;
 }
@@ -143,7 +145,10 @@ int GUICheckbox::NotifyTouch(TOUCH_STATE state, int x, int y)
 {
     if (state == TOUCH_RELEASE)
     {
-        mLastState = (mLastState == 0) ? 1 : 0;
+        int lastState;
+        DataManager::GetValue(mVarName, lastState);
+        lastState = (lastState == 0) ? 1 : 0;
+        DataManager::SetValue(mVarName, lastState);
     }
     return 0;
 }

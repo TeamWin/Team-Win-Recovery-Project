@@ -8,6 +8,7 @@ class DataManager
 public:
     static int LoadValues(void);
     static int GetValue(const std::string varName, std::string& value);
+    static int GetValue(const std::string varName, int& value);
     static int SetValue(const std::string varName, std::string value, int persist = 0);
     static int SetValue(const std::string varName, int value, int persist = 0);
     static int SetValue(const std::string varName, float value, int persist = 0);

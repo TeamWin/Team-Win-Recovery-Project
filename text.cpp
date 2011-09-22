@@ -33,6 +33,7 @@ GUIText::GUIText(xml_node<>* node)
 
     mFont = NULL;
     mIsStatic = 1;
+    mVarChanged = 0;
     mFontHeight = 0;
 
     if (!node)
@@ -104,6 +105,7 @@ int GUIText::Render(void)
     if (mFont)  fontResource = mFont->GetResource();
 
     mLastValue = parseText();
+    mVarChanged = 0;
 
     // TODO: width and height aren't bounded.
     gr_color(mColor.red, mColor.green, mColor.blue, mColor.alpha);
@@ -113,10 +115,20 @@ int GUIText::Render(void)
 
 int GUIText::Update(void)
 {
-    if (mIsStatic)                   return 0;
+    static int updateCounter = 15;
+
+    // This hack just makes sure we update at least once a minute for things like clock and battery
+    if (updateCounter)  updateCounter--;
+    else
+    {
+        mVarChanged = 1;
+        updateCounter = 15;
+    }
+
+    if (mIsStatic || !mVarChanged)      return 0;
 
     std::string newValue = parseText();
-    if (mLastValue == newValue)     return 0;
+    if (mLastValue == newValue)         return 0;
     return 2;
 }
 
@@ -162,5 +174,11 @@ std::string GUIText::parseText(void)
 
         pos = next + 1;
     }
+}
+
+int GUIText::NotifyVarChange(std::string varName, std::string value)
+{
+    mVarChanged = 1;
+    return 0;
 }
 

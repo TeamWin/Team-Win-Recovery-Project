@@ -70,7 +70,10 @@ FontResource::FontResource(xml_node<>* node, ZipArchive* pZip)
 {
     std::string file;
 
-    if (node && node->first_attribute("filename"))
+    mFont = NULL;
+    if (!node)  return;
+
+    if (node->first_attribute("filename"))
         file = node->first_attribute("filename")->value();
 
     if (ExtractResource(pZip, "fonts", file, "dat", TMP_RESOURCE_NAME) == 0)
@@ -93,20 +96,19 @@ ImageResource::ImageResource(xml_node<>* node, ZipArchive* pZip)
 {
     std::string file;
 
-    if (node && node->first_attribute("filename"))
+    mSurface = NULL;
+    if (!node)  return;
+
+    if (node->first_attribute("filename"))
         file = node->first_attribute("filename")->value();
 
     if (ExtractResource(pZip, "images", file, "png", TMP_RESOURCE_NAME) == 0)
     {
-        if (res_create_surface(TMP_RESOURCE_NAME, &mSurface))
-            mSurface = NULL;
+        res_create_surface(TMP_RESOURCE_NAME, &mSurface);
         unlink(TMP_RESOURCE_NAME);
     }
     else
-    {
-        if (res_create_surface(file.c_str(), &mSurface))
-            mSurface = NULL;
-    }
+        res_create_surface(file.c_str(), &mSurface);
 }
 
 ImageResource::~ImageResource()
@@ -121,24 +123,33 @@ AnimationResource::AnimationResource(xml_node<>* node, ZipArchive* pZip)
     std::string file;
     int fileNum = 1;
 
-    if (node && node->first_attribute("filename"))
+    if (!node)  return;
+
+    if (node->first_attribute("filename"))
         file = node->first_attribute("filename")->value();
 
     for ( ; ; )
     {
         std::ostringstream fileName;
-
         fileName << file << std::setfill ('0') << std::setw (3) << fileNum;
-        if (ExtractResource(pZip, "images", fileName.str(), "png", TMP_RESOURCE_NAME) != 0)
-            break;
 
         gr_surface surface;
-        if (res_create_surface(TMP_RESOURCE_NAME, &surface))
-            break;
+        if (pZip)
+        {
+            if (ExtractResource(pZip, "images", fileName.str(), "png", TMP_RESOURCE_NAME) != 0)
+                break;
+    
+            if (res_create_surface(TMP_RESOURCE_NAME, &surface))
+                break;
 
+            unlink(TMP_RESOURCE_NAME);
+        }
+        else
+        {
+            if (res_create_surface(fileName.str().c_str(), &surface))
+                break;
+        }
         mSurfaces.push_back(surface);
-
-        unlink(TMP_RESOURCE_NAME);
         fileNum++;
     }
 }

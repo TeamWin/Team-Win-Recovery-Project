@@ -62,6 +62,7 @@ int DataManager::LoadValues(void)
 int DataManager::GetValue(const std::string varName, std::string& value)
 {
     std::map<std::string, std::string>::iterator it;
+    std::map<std::string, char*>::iterator it2;
 
     // Handle special dynamic cases
     if (varName == "time")
@@ -90,9 +91,38 @@ int DataManager::GetValue(const std::string varName, std::string& value)
         return 0;
     }
 
-    it = mValues.find(varName);
-    if (it == mValues.end()) return -1;
-    value = it->second;
+    it2 = mMappedValues.find(varName);
+    if (it2 != mMappedValues.end())
+    {
+        value = it2->second;
+    }
+    else
+    {
+        it = mValues.find(varName);
+        if (it == mValues.end()) return -1;
+        value = it->second;
+    }
+    return 0;
+}
+
+int DataManager::GetValue(const std::string varName, int& value)
+{
+    std::map<std::string, std::string>::iterator it;
+    std::map<std::string, char*>::iterator it2;
+    std::string val;
+
+    it2 = mMappedValues.find(varName);
+    if (it2 != mMappedValues.end())
+    {
+        val = it2->second;
+    }
+    else
+    {
+        it = mValues.find(varName);
+        if (it == mValues.end()) return -1;
+        val = it->second;
+    }
+    value = atoi(val.c_str());
     return 0;
 }
 
@@ -162,5 +192,11 @@ extern "C" void gui_update_progress(float portion, int seconds)
 extern "C" int gui_map_variable(const char* varName, char* value)
 {
     return DataManager::MapValue(varName, value);
+}
+
+extern "C" int gui_set_variable(const char* varName, const char* value)
+{
+//    LOGI("Setting %s to %s\n", varName, value);
+    return DataManager::SetValue(varName, value);
 }
 

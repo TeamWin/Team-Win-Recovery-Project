@@ -116,6 +116,7 @@ Page::Page(xml_node<>* page)
         {
             GUIText* element = new GUIText(child);
             mRenders.push_back(element);
+            mActions.push_back(element);
         }
         else if (type == "image")
         {

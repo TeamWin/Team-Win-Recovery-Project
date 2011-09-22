@@ -39,6 +39,8 @@ GUIAnimation::GUIAnimation(xml_node<>* node)
     mRender = 1;
     mUpdateCount = 0;
 
+    if (!node)  return;
+
     child = node->first_node("resource");
     if (child)
     {
@@ -75,6 +77,9 @@ GUIAnimation::GUIAnimation(xml_node<>* node)
         attr = child->first_attribute("frame");
         if (attr)
             mLoop = atoi(attr->value()) - 1;
+        attr = child->first_attribute("start");
+        if (attr)
+            mFrame = atoi(attr->value());
     }
 
     // Fetch the render sizes
@@ -95,6 +100,8 @@ int GUIAnimation::Render(void)
 
 int GUIAnimation::Update(void)
 {
+    if (!mAnimation)        return -1;
+
     // Handle the "end-of-animation" state
     if (mLoop == -2)        return 0;
 
