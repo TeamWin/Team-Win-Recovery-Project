@@ -61,6 +61,12 @@
 extern char **environ;
 static int need_to_read_settings_file = 1;
 
+// sdcard partitioning variables
+char swapsize[32];
+int swap;
+char extsize[32];
+int ext;
+
 int
 __system(const char *command)
 {
@@ -725,8 +731,9 @@ void advanced_menu()
 	#define ITEM_FORMAT_MENU       1
 	#define ITEM_FIX_PERM          2
 	#define ITEM_ALL_SETTINGS      3
-	#define ITEM_CPY_LOG		   4
-	#define ADVANCED_MENU_BACK     5
+	#define ITEM_SDCARD_PART       4
+	#define ITEM_CPY_LOG		   5
+	#define ADVANCED_MENU_BACK     6
 
     static char* MENU_ADVANCED_HEADERS[] = { "Advanced Menu",
     										 "Reboot, Format, or twrp!",
@@ -736,6 +743,7 @@ void advanced_menu()
 	                          "Format Menu",
 	                          "Fix Permissions",
 	                          "Change twrp Settings",
+							  "Partition SD Card",
 	                          "Copy recovery log to /sdcard",
 	                          "<-- Back To Main Menu",
 	                          NULL };
@@ -760,6 +768,9 @@ void advanced_menu()
                 break;
             case ITEM_ALL_SETTINGS:
 			    all_settings_menu(0);
+				break;
+			case ITEM_SDCARD_PART:
+				show_menu_partition();
 				break;
             case ITEM_CPY_LOG:
                 ensure_path_mounted("/sdcard");
@@ -1774,3 +1785,248 @@ int check_md5(char* path) {
     return o;
 }
 
+static void
+show_menu_partition()
+{
+
+    static char* SDheaders[] = { "Choose partition item,",
+			       "",
+			       "",
+			       NULL };
+
+// these constants correspond to elements of the items[] list.
+#define ITEM_PART_SD       0
+#define ITEM_PART_REP      1
+#define ITEM_PART_EXT3     2
+#define ITEM_PART_EXT4     3
+#define ITEM_PART_BACK     4
+
+    static char* items[] = { "Partition SD Card",
+			                 "Repair SD:ext",
+			                 "Convert SD:ext2 to ext3",
+                             "Convert SD:ext3 to ext4",
+							 "<-- Back to Advanced Menu",
+                             NULL };
+
+    char** headers = prepend_title(SDheaders);
+    
+    inc_menu_loc(ITEM_PART_BACK);
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, items, 0, 0);
+        switch (chosen_item)
+        {
+			case ITEM_PART_SD:
+				swap = 32;
+				ui_print("\n");
+				choose_swap_size(1);
+				if (swap == -1) break; // swap size was cancelled, abort
+				
+				ext = 512;
+				ui_print("\n");
+				choose_ext_size(1);
+				if (ext == -1) break; // ext size was cancelled, abort
+				
+                // Below seen in Koush's recovery
+                char sddevice[256];
+                Volume *vol = volume_for_path("/sdcard");
+                strcpy(sddevice, vol->device);
+                // Just need block not whole partition
+                sddevice[strlen("/dev/block/mmcblkX")] = NULL;
+
+				char es[64];
+				sprintf(es, "/sbin/sdparted -s -es %dM -ss %dM -d %s",ext,swap,sddevice);
+				LOGI("\nrunning script: %s\n", es);
+				run_script("\nContinue partitioning?",
+					   "\nPartitioning sdcard : ",
+					   es,
+					   "\nunable to execute parted!\n(%s)\n",
+					   "\nOops... something went wrong!\nPlease check the recovery log!\n",
+					   "\nPartitioning complete!\n\n",
+					   "\nPartitioning aborted!\n\n");
+				break;
+			case ITEM_PART_REP:
+				run_script("\nRepair ext filesystem",
+					   "\nRepairing ext filesystem : ",
+					   "/sbin/fs repair",
+					   "\nUnable to execute fs!\n(%s)\n",
+					   "\nOops... something went wrong!\nPlease check the recovery log!\n\n",
+					   "\nExt repairing complete!\n\n",
+					   "\nExt repairing aborted!\n\n");
+				break;
+					   
+			case ITEM_PART_EXT3:
+				run_script("\nUpgrade ext2 to ext3",
+					   "\nUpgrading ext2 to ext3 : ",
+					   "/sbin/fs ext3",
+					   "\nUnable to execute fs!\n(%s)\n",
+					   "\nOops... something went wrong!\nPlease check the recovery log!\n\n",
+					   "\nExt upgrade complete!\n\n",
+					   "\nExt upgrade aborted!\n\n");
+				break;
+
+			case ITEM_PART_EXT4:
+				run_script("\nUpgrade ext3 to ext4",
+					   "\nUpgrading ext3 to ext4 : ",
+					   "/sbin/fs ext4",
+					   "\nUnable to execute fs!\n(%s)\n",
+					   "\nOops... something went wrong!\nPlease check the recovery log!\n\n",
+					   "\nExt upgrade complete!\n\n",
+					   "\nExt upgrade aborted!\n\n");
+				break;
+			case ITEM_PART_BACK:
+				dec_menu_loc();
+				return;
+        } // end switch
+	} // end for
+    if (go_home) { 
+		dec_menu_loc();
+		return;
+	}
+}
+
+void choose_swap_size(int pIdx) {
+	#define SWAP_SET                0
+	#define SWAP_INCREASE           1
+	#define SWAP_DECREASE           2
+	#define SWAP_BACK               3
+
+    static char* MENU_SWAP_HEADERS[] = { "Swap Partition",
+    								     "Please select size for swap partition:",
+                                              NULL };
+    
+	char* MENU_SWAP[] =        { "Save Swap Size",
+								 "Increase",
+							     "Decrease",
+	                             "<-- Back To SD Card Partition, Cancel",
+	                             NULL };
+	
+    char** headers = prepend_title(MENU_SWAP_HEADERS);
+    
+	sprintf(swapsize, "%4d", swap);
+	ui_print_overwrite("Swap-size  = %s MB",swapsize);
+	if (swap == 0) ui_print(" - NONE");
+	
+    inc_menu_loc(SWAP_BACK);
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, MENU_SWAP, 0, pIdx);
+		pIdx = chosen_item;
+        switch (chosen_item)
+        {
+			case SWAP_SET:
+				sprintf(swapsize, "%4d", swap);
+				dec_menu_loc();
+				return;
+            case SWAP_INCREASE:
+            	swap = swap + 32;
+				
+                break;
+            case SWAP_DECREASE:
+				swap = swap - 32;
+				if (swap < 0) swap = 0;
+                break;
+            case SWAP_BACK:
+				swap = -1;
+            	dec_menu_loc();
+            	return;
+        }
+	    if (go_home) { 
+	        dec_menu_loc();
+	        return;
+	    }
+		break;
+    }
+	ui_end_menu();
+	dec_menu_loc();
+	choose_swap_size(pIdx);
+}
+
+void choose_ext_size(int pIdx) {
+	#define EXT_SET                0
+	#define EXT_INCREASE           1
+	#define EXT_DECREASE           2
+	#define EXT_BACK               3
+
+    static char* MENU_EXT_HEADERS[] = { "EXT Partition",
+    								     "Please select size for EXT partition:",
+                                              NULL };
+    
+	char* MENU_EXT[] =         { "Save EXT Size & Commit Changes",
+								 "Increase",
+							     "Decrease",
+	                             "<-- Back To SD Card Partition, Cancel",
+	                             NULL };
+	
+    char** headers = prepend_title(MENU_EXT_HEADERS);
+    
+	sprintf(extsize, "%4d", ext);
+	ui_print_overwrite("EXT-size  = %s MB",extsize);
+	if (ext == 0) ui_print(" - NONE");
+	
+    inc_menu_loc(EXT_BACK);
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, MENU_EXT, 0, pIdx);
+		pIdx = chosen_item;
+        switch (chosen_item)
+        {
+			case EXT_SET:
+				sprintf(extsize, "%4d", ext);
+				dec_menu_loc();
+				return;
+            case EXT_INCREASE:
+            	ext = ext + 128;
+                break;
+            case EXT_DECREASE:
+				ext = ext - 128;
+				if (ext < 0) ext = 0;
+                break;
+            case EXT_BACK:
+				ext = -1;
+            	dec_menu_loc();
+            	return;
+        }
+	    if (go_home) { 
+	        dec_menu_loc();
+	        return;
+	    }
+		break;
+    }
+	ui_end_menu();
+	dec_menu_loc();
+	choose_ext_size(pIdx);
+}
+
+void run_script(char *str1,char *str2,char *str3,char *str4,char *str5,char *str6,char *str7)
+{
+	ui_print("%s", str1);
+        ui_clear_key_queue();
+	ui_print("\nPress Power to confirm,");
+       	ui_print("\nany other key to abort.\n");
+	int confirm = ui_wait_key();
+		if (confirm == BTN_MOUSE || confirm == KEY_POWER || confirm == SELECT_ITEM) {
+                	ui_print("%s", str2);
+		        pid_t pid = fork();
+                	if (pid == 0) {
+                		char *args[] = { "/sbin/sh", "-c", str3, "1>&2", NULL };
+                	        execv("/sbin/sh", args);
+                	        fprintf(stderr, str4, strerror(errno));
+                	        _exit(-1);
+                	}
+			int status;
+			while (waitpid(pid, &status, WNOHANG) == 0) {
+				ui_print(".");
+               		        sleep(1);
+			}
+                	ui_print("\n");
+			if (!WIFEXITED(status) || (WEXITSTATUS(status) != 0)) {
+                		ui_print("%s", str5);
+                	} else {
+                		ui_print("%s", str6);
+                	}
+		} else {
+	       		ui_print("%s", str7);
+       	        }
+		if (!ui_text_visible()) return;
+}
