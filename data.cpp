@@ -37,10 +37,9 @@
 #include <fstream>
 #include <sstream>
 
-#include "common.h"
-
 extern "C"
 {
+    #include "common.h"
     #include "data.h"
 }
 
@@ -116,7 +115,10 @@ int DataManager::LoadValues(const string filename)
 
     int file_version;
     in >> file_version;
-    if (file_version != FILE_VERSION)   return -1;
+    if (file_version != FILE_VERSION)
+    {
+        return -1;
+    }
 
     while (!in.eof())
     {
@@ -127,7 +129,18 @@ int DataManager::LoadValues(const string filename)
         in >> Value;
 
         if (!Name.empty())
-            mValues.insert(TNameValuePair(Name, TStrIntPair(Value, 1)));
+        {
+            map<string, TStrIntPair>::iterator pos;
+
+            pos = mValues.find(Name);
+            if (pos == mValues.end())
+                mValues.insert(TNameValuePair(Name, TStrIntPair(Value, 1)));
+            else
+            {
+                pos->second.first = Value;
+                pos->second.second = 1;
+            }
+        }
     }
     return 0;
 }
@@ -138,7 +151,7 @@ int DataManager::SaveValues()
 
     ofstream out(mBackingFile.c_str(), ios_base::out);
     int file_version = FILE_VERSION;
-    out << file_version;
+    out << file_version << endl;
 
     map<string, TStrIntPair>::iterator iter;
     for (iter = mValues.begin(); iter != mValues.end(); ++iter)
@@ -146,8 +159,8 @@ int DataManager::SaveValues()
         // Save only the persisted data
         if (iter->second.second != 0)
         {
-            out << iter->first;
-            out << iter->second.first;
+            out << iter->first << endl;
+            out << iter->second.first << endl;
         }
     }
     return 0;

@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <sys/reboot.h>
 
+#include "common.h"
 #include "themes.h"
 #include "extra-functions.h"
 
@@ -118,7 +119,7 @@ void twrp_themes_menu()
         switch (chosen_item)
         {
             case THEME_REBOOT_RECOVERY:
-				set_theme(DataManager_GetIntValue("tw_color_theme_val"));
+				set_theme(DataManager_GetStrValue("tw_color_theme_val"));
 				go_home = 1;
 				go_restart = 1;
                 break;

@@ -950,17 +950,24 @@ main(int argc, char **argv) {
 
     if (status != INSTALL_SUCCESS) ui_set_background(BACKGROUND_ICON_ERROR);
 
-    // Load up the values for TWRP
-    DataManager_LoadValues("/sdcard/TWRP/.twrps");
-
-    // Update some of the main data
-    update_tz_environment_variables();
-    set_theme(DataManager_GetStrValue("tw_color_theme_val"));
-    
-
     if (status != INSTALL_SUCCESS && ui_text_visible()) { // We only want to show menu if error && visible
         //assume we want to be here and its not an error - give us the pretty icon!
         ui_set_background(BACKGROUND_ICON_MAIN);
+
+        // Load up the values for TWRP - Sleep to let the card be ready
+        usleep(500000);
+        if (ensure_path_mounted("/sdcard") < 0)
+        {
+            usleep(500000);
+            if (ensure_path_mounted("/sdcard") < 0)
+                LOGE("Unable to mount sdcard\n");
+        }
+        DataManager_LoadValues("/sdcard/TWRP/.twrps");
+
+        // Update some of the main data
+        update_tz_environment_variables();
+        set_theme(DataManager_GetStrValue("tw_color_theme_val"));
+
         prompt_and_wait();
     }
 
