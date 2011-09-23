@@ -18,7 +18,6 @@
 #include <sys/reboot.h>
 
 #include "themes.h"
-#include "settings_file.h"
 #include "extra-functions.h"
 
 #define THEME_REBOOT_RECOVERY 0
@@ -80,7 +79,7 @@ char* checkTheme(int tw_theme)
 			strcpy(tmp_set, "[ ] Myn's Warm");
 			break;
 	}
-	sscanf(tw_color_theme_val,"%d",&isVal);
+	isVal = DataManager_GetIntValue("tw_color_theme_val");
 	if (isVal == tw_theme - 1)
 	{
 		tmp_set[1] = 'x';
@@ -119,45 +118,45 @@ void twrp_themes_menu()
         switch (chosen_item)
         {
             case THEME_REBOOT_RECOVERY:
-				set_theme(tw_color_theme_val);
+				set_theme(DataManager_GetIntValue("tw_color_theme_val"));
 				go_home = 1;
 				go_restart = 1;
                 break;
             case TW_THEME:
-            	strcpy(tw_color_theme_val,"0");
+            	DataManager_SetIntValue("tw_color_theme_val", 0);
                 break;
             case CM_THEME:
-            	strcpy(tw_color_theme_val,"1");
+                DataManager_SetIntValue("tw_color_theme_val", 1);
                 break;
             case RED_THEME:
-            	strcpy(tw_color_theme_val,"2");
+                DataManager_SetIntValue("tw_color_theme_val", 2);
                 break;
             case GOOGLE_THEME:
-            	strcpy(tw_color_theme_val,"3");
+                DataManager_SetIntValue("tw_color_theme_val", 3);
                 break;
             case JF_THEME:
-            	strcpy(tw_color_theme_val,"4");
+                DataManager_SetIntValue("tw_color_theme_val", 4);
                 break;
             case HTC_THEME:
-            	strcpy(tw_color_theme_val,"5");
+                DataManager_SetIntValue("tw_color_theme_val", 5);
                 break;
             case FABULOUS_THEME:
-            	strcpy(tw_color_theme_val,"6");
+                DataManager_SetIntValue("tw_color_theme_val", 6);
                 break;
 			case PURPLE_SHIFT:
-				strcpy(tw_color_theme_val,"7");
+                DataManager_SetIntValue("tw_color_theme_val", 7);
                 break;
 			case GREYBALLER_THEME:
-				strcpy(tw_color_theme_val,"8");
+                DataManager_SetIntValue("tw_color_theme_val", 8);
                 break;
 			case TRIPPY_THEME:
-				strcpy(tw_color_theme_val,"9");
+                DataManager_SetIntValue("tw_color_theme_val", 9);
                 break;
 			case SHIFTY_BASTARD:
-				strcpy(tw_color_theme_val,"10");
+                DataManager_SetIntValue("tw_color_theme_val", 10);
                 break;
 			case MYN_WARM:
-				strcpy(tw_color_theme_val,"11");
+                DataManager_SetIntValue("tw_color_theme_val", 11);
                 break;
             case THEMES_BACK:
             	dec_menu_loc();
@@ -167,7 +166,6 @@ void twrp_themes_menu()
         	dec_menu_loc();
 	        return;
 	    }
-        write_s_file();
         break;
     }
 	ui_end_menu();

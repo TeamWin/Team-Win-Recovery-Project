@@ -41,7 +41,7 @@
 #include "encryptedfs_provisioning.h"
 
 #include "extra-functions.h"
-#include "settings_file.h"
+#include "data.h"
 #include "ddftw.h"
 #include "backstore.h"
 
@@ -398,7 +398,7 @@ char**
 prepend_title(const char** headers) {
     char* title1 = (char*)malloc(40);
     strcpy(title1, "Team Win Recovery Project (twrp) v");
-    char* header1 = strcat(title1, tw_version_val);
+    char* header1 = strcat(title1, DataManager_GetStrValue("tw_version_val"));
     char* title[] = { header1,
                       "Based on Android System Recovery <"
                       EXPAND(RECOVERY_API_VERSION) "e>",
@@ -563,7 +563,7 @@ sdcard_directory(const char* path) {
     notError = 0;
 	
 	qsort(dirs, d_size, sizeof(char*), compare_string);
-	if (is_true(tw_sort_files_by_date_val)) {
+	if (DataManager_GetIntValue("tw_sort_files_by_date_val")) {
 		char* tempzip = malloc(z_alloc * sizeof(char*)); // sort zips by last modified date
 		char file_path_name[PATH_MAX];
 		int bubble1, bubble2, swap_flag = 1;
@@ -625,8 +625,7 @@ sdcard_directory(const char* path) {
             // go up but continue browsing (if the caller is sdcard_directory)
         	if (get_new_zip_dir > 0)
         	{
-        		strcpy(tw_zip_location_val,path);
-                write_s_file();
+        		DataManager_SetStrValue("tw_zip_location_val", path);
                 return 1;
         	} else {
             	dec_menu_loc();
@@ -689,7 +688,7 @@ int install_zip_package(const char* zip_path_filename) {
     ensure_path_mounted(SDCARD_ROOT);
 	ui_print("\n-- Verify md5 for %s", zip_path_filename);
 	int md5chk = check_md5(zip_path_filename);
-	bool md5_req = is_true(tw_force_md5_check_val);
+	bool md5_req = DataManager_GetIntValue("tw_force_md5_check_val");
 	if (md5chk > 0 || (!md5_req && md5chk == -1)) {
 		if (md5chk == 1)
 			ui_print("\n-- Md5 verified, continue");
@@ -783,10 +782,6 @@ prompt_and_wait() {
     finish_recovery(NULL);
     ui_reset_progress();
 
-    // buying a split second for mmc driver to load to avoid error on some devices
-    tw_set_defaults();
-    read_s_file();
-    
 	char** headers = prepend_title((const char**)MENU_HEADERS);
     char* MENU_ITEMS[] = {  "Start Recovery",
                             "Reboot",
@@ -954,6 +949,15 @@ main(int argc, char **argv) {
     }
 
     if (status != INSTALL_SUCCESS) ui_set_background(BACKGROUND_ICON_ERROR);
+
+    // Load up the values for TWRP
+    DataManager_LoadValues("/sdcard/TWRP/.twrps");
+
+    // Update some of the main data
+    update_tz_environment_variables();
+    set_theme(DataManager_GetStrValue("tw_color_theme_val"));
+    
+
     if (status != INSTALL_SUCCESS && ui_text_visible()) { // We only want to show menu if error && visible
         //assume we want to be here and its not an error - give us the pretty icon!
         ui_set_background(BACKGROUND_ICON_MAIN);
