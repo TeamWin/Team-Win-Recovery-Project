@@ -44,8 +44,6 @@
 
 void gui_print(const char *fmt, ...);
 void gui_print_overwrite(const char *fmt, ...);
-void gui_set_progress(float fraction);
-void gui_update_progress(float portion, int seconds);
 
 static pthread_mutex_t gUpdateMutex = PTHREAD_MUTEX_INITIALIZER;
 static gr_surface gBackgroundIcon[NUM_BACKGROUND_ICONS];
@@ -424,7 +422,8 @@ void ui_show_indeterminate_progress()
 
 void ui_show_progress(float portion, int seconds)
 {
-    gui_update_progress(portion, seconds);
+    DataManager_SetFloatValue("ui_progress_portion", (float) (portion * 100.0));
+    DataManager_SetIntValue("ui_progress_frames", seconds * 30);
 
     pthread_mutex_lock(&gUpdateMutex);
     gProgressBarType = PROGRESSBAR_TYPE_NORMAL;
@@ -439,7 +438,7 @@ void ui_show_progress(float portion, int seconds)
 
 void ui_set_progress(float fraction)
 {
-    gui_set_progress(fraction);
+    DataManager_SetFloatValue("ui_progress", (float) (fraction * 100.0));
 
     pthread_mutex_lock(&gUpdateMutex);
     if (fraction < 0.0) fraction = 0.0;

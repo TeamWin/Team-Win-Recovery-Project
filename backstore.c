@@ -29,8 +29,15 @@
 #include "ddftw.h"
 #include "extra-functions.h"
 #include "roots.h"
-#include "settings_file.h"
 #include "format.h"
+
+void SetDataState(char* operation, char* partition, int errorCode, int done)
+{
+    DataManager_SetStrValue("tw_operation", operation);
+    DataManager_SetStrValue("tw_partition", partition);
+    DataManager_SetIntValue("tw_operation_status", errorCode);
+    DataManager_SetIntValue("tw_operation_state", done);
+}
 
 void
 nandroid_menu()
@@ -98,7 +105,7 @@ char* nan_compress()
 {
 	char* tmp_set = (char*)malloc(40);
 	strcpy(tmp_set, "[ ] Compress Backup (slow but saves space)");
-	if (is_true(tw_use_compression_val) == 1) {
+	if (DataManager_GetIntValue("tw_use_compression_val") == 1) {
 		tmp_set[1] = 'x';
 	}
 	return tmp_set;
@@ -140,98 +147,85 @@ nan_backup_menu(int pIdx)
 				}
 				break;
 			case ITEM_NAN_SYSTEM:
-            	if (is_true(tw_nan_system_val)) {
-            		strcpy(tw_nan_system_val, "0"); // toggle's value
+            	if (DataManager_GetIntValue("tw_nan_system_val")) {
+            		DataManager_SetIntValue("tw_nan_system_val", 0); // toggle's value
             		tw_total--; // keeps count of how many selected
             	} else {
-            		strcpy(tw_nan_system_val, "1");
+            		DataManager_SetIntValue("tw_nan_system_val", 1);
             		tw_total++;
             	}
-                write_s_file(); // writes to settings file
                 break;
 			case ITEM_NAN_DATA:
-            	if (is_true(tw_nan_data_val)) {
-            		strcpy(tw_nan_data_val, "0");
+            	if (DataManager_GetIntValue("tw_nan_data_val")) {
+            		DataManager_SetIntValue("tw_nan_data_val", 0);
             		tw_total--;
             	} else {
-            		strcpy(tw_nan_data_val, "1");
+            		DataManager_SetIntValue("tw_nan_data_val", 1);
             		tw_total++;
             	}
-                write_s_file();
 				break;
 			case ITEM_NAN_BOOT:
-            	if (is_true(tw_nan_boot_val)) {
-            		strcpy(tw_nan_boot_val, "0");
+            	if (DataManager_GetIntValue("tw_nan_boot_val")) {
+            		DataManager_SetIntValue("tw_nan_boot_val", 0);
             		tw_total--;
             	} else {
-            		strcpy(tw_nan_boot_val, "1");
+            		DataManager_SetIntValue("tw_nan_boot_val", 1);
             		tw_total++;
             	}
-                write_s_file();
 				break;
 			case ITEM_NAN_RECOVERY:
-            	if (is_true(tw_nan_recovery_val)) {
-            		strcpy(tw_nan_recovery_val, "0");
+            	if (DataManager_GetIntValue("tw_nan_recovery_val")) {
+            		DataManager_SetIntValue("tw_nan_recovery_val", 0);
             		tw_total--;
             	} else {
-            		strcpy(tw_nan_recovery_val, "1");
+            		DataManager_SetIntValue("tw_nan_recovery_val", 1);
             		tw_total++;
             	}
-                write_s_file();
 				break;
 			case ITEM_NAN_CACHE:
-            	if (is_true(tw_nan_cache_val)) {
-            		strcpy(tw_nan_cache_val, "0");
+            	if (DataManager_GetIntValue("tw_nan_cache_val")) {
+            		DataManager_SetIntValue("tw_nan_cache_val", 0);
             		tw_total--;
             	} else {
-            		strcpy(tw_nan_cache_val, "1");
+            		DataManager_SetIntValue("tw_nan_cache_val", 1);
             		tw_total++;
             	}
-                write_s_file();
 				break;
 			case ITEM_NAN_WIMAX:
 				if (tw_nan_wimax_x != -1) {
-	            	if (is_true(tw_nan_wimax_val)) {
-	            		strcpy(tw_nan_wimax_val, "0");
+	            	if (DataManager_GetIntValue("tw_nan_wimax_val")) {
+	            		DataManager_SetIntValue("tw_nan_wimax_val", 0);
 	            		tw_total--;
 	            	} else {
-	            		strcpy(tw_nan_wimax_val, "1");
+	            		DataManager_SetIntValue("tw_nan_wimax_val", 1);
 	            		tw_total++;
 	            	}
-	                write_s_file();
 				}
 				break;
 			case ITEM_NAN_ANDSEC:
 				if (tw_nan_andsec_x != -1) {
-	            	if (is_true(tw_nan_andsec_val)) {
-	            		strcpy(tw_nan_andsec_val, "0");
+	            	if (DataManager_GetIntValue("tw_nan_andsec_val")) {
+	            		DataManager_SetIntValue("tw_nan_andsec_val", 0);
 	            		tw_total--;
 	            	} else {
-	            		strcpy(tw_nan_andsec_val, "1");
+	            		DataManager_SetIntValue("tw_nan_andsec_val", 1);
 	            		tw_total++;
 	            	}
-	                write_s_file();
 				}
 				break;
 			case ITEM_NAN_SDEXT:
 				if (tw_nan_sdext_x != -1) {
-	            	if (is_true(tw_nan_sdext_val)) {
-	            		strcpy(tw_nan_sdext_val, "0");
+	            	if (DataManager_GetIntValue("tw_nan_sdext_val")) {
+	            		DataManager_SetIntValue("tw_nan_sdext_val", 0);
 	            		tw_total--;
 	            	} else {
-	            		strcpy(tw_nan_sdext_val, "1");
+	            		DataManager_SetIntValue("tw_nan_sdext_val", 1);
 	            		tw_total++;
 	           		}
-	                write_s_file();
 				}
 				break;
 			case ITEM_NAN_COMPRESS:
-            	if (is_true(tw_use_compression_val)) {
-            		strcpy(tw_use_compression_val, "0");
-            	} else {
-            		strcpy(tw_use_compression_val, "1");
-           		}
-                write_s_file();
+            	DataManager_ToggleIntValue("tw_use_compression_val");
 				break;
 			case ITEM_NAN_BACK:
             	dec_menu_loc();
@@ -465,7 +459,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 			if (tw_backstore) {
 				isTrue = tw_nan_system_x;
 			} else {
-				isTrue = is_true(tw_nan_system_val);
+				isTrue = DataManager_GetIntValue("tw_nan_system_val");
 			}
 			break;
 		case ITEM_NAN_DATA:
@@ -473,7 +467,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 			if (tw_backstore) {
 				isTrue = tw_nan_data_x;
 			} else {
-				isTrue = is_true(tw_nan_data_val);
+				isTrue = DataManager_GetIntValue("tw_nan_data_val");
 			}
 			break;
 		case ITEM_NAN_BOOT:
@@ -481,7 +475,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 			if (tw_backstore) {
 				isTrue = tw_nan_boot_x;
 			} else {
-				isTrue = is_true(tw_nan_boot_val);
+				isTrue = DataManager_GetIntValue("tw_nan_boot_val");
 			}
 			break;
 		case ITEM_NAN_RECOVERY:
@@ -489,7 +483,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 			if (tw_backstore) {
 				isTrue = tw_nan_recovery_x;
 			} else {
-				isTrue = is_true(tw_nan_recovery_val);
+				isTrue = DataManager_GetIntValue("tw_nan_recovery_val");
 			}
 			break;
 		case ITEM_NAN_CACHE:
@@ -497,7 +491,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 			if (tw_backstore) {
 				isTrue = tw_nan_cache_x;
 			} else {
-				isTrue = is_true(tw_nan_cache_val);
+				isTrue = DataManager_GetIntValue("tw_nan_cache_val");
 			}
 			break;
 		case ITEM_NAN_WIMAX:
@@ -511,7 +505,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 				isTrue = tw_nan_wimax_x;
 			} else {
 				if (strcmp(wim.mnt,"wimax") == 0 || strcmp(wim.mnt,"efs") == 0) {
-					isTrue = is_true(tw_nan_wimax_val);
+					isTrue = DataManager_GetIntValue("tw_nan_wimax_val");
 				} else {
 					tw_nan_wimax_x = -1;
 					isTrue = -1;
@@ -527,7 +521,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 					tw_nan_andsec_x = -1;
 					isTrue = -1;
 				} else {
-					isTrue = is_true(tw_nan_andsec_val);
+					isTrue = DataManager_GetIntValue("tw_nan_andsec_val");
 				}
 			}
 			break;
@@ -540,7 +534,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 					tw_nan_sdext_x = -1;
 					isTrue = -1;
 				} else {
-					isTrue = is_true(tw_nan_sdext_val);
+					isTrue = DataManager_GetIntValue("tw_nan_sdext_val");
 				}
 			}
 			break;
@@ -630,15 +624,13 @@ int tw_unmount(struct dInfo uMnt)
 */
 int tw_backup(struct dInfo bMnt, char *bDir)
 {
-    char str[128];
-
     if (ensure_path_mounted(SDCARD_ROOT) != 0) {
 		ui_print("-- Could not mount: %s.\n-- Aborting.\n",SDCARD_ROOT);
 		return 1;
 	}
 	int bDiv;
 	char bTarArg[10];
-	if (is_true(tw_use_compression_val)) { // set compression or not
+	if (DataManager_GetIntValue("tw_use_compression_val")) { // set compression or not
 		strcpy(bTarArg,"-czvf");
 		bDiv = 512;
 	} else {
@@ -661,9 +653,7 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 			strcpy(bMount,"/");
 			strcat(bMount,bMnt.mnt);
 			sprintf(bImage,"%s.%s.win",bMnt.mnt,bMnt.fst); // anything else that is mountable, will be partition.filesystem.win
-			ui_print("\n-- Mounting %s, please wait...\n",bMount);
-            sprintf(str, "Preparing %s", bMnt.mnt);
-            gui_set_variable("ui_status", str);
+            SetDataState("Mounting", bMnt.mnt, 0, 0);
 			if (tw_mount(bMnt)) {
 				ui_print("-- Could not mount: %s\n-- Aborting.\n",bMount);
 				free(bCommand);
@@ -698,8 +688,7 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 		bUppr[i] = toupper(bUppr[i]);
 	}
 	ui_print("[%s (%d MB)]\n",bUppr,bPartSize/1024); // show size in MB
-    sprintf(str, "Backing up %s", bMnt.mnt);
-    gui_set_variable("ui_status", str);
+    SetDataState("Backup up", bMnt.mnt, 0, 0);
 	int bProgTime;
 	time_t bStart, bStop;
 	char bOutput[512];
@@ -709,7 +698,7 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 		ui_show_progress(1,bProgTime);
 		ui_print("...Backing up %s partition.\n",bMount);
 		bFp = __popen(bCommand, "r"); // sending backup command formed earlier above
-		if(is_true(tw_show_spam_val)) { // if twrp spam is on, show all lines
+		if(DataManager_GetIntValue("tw_show_spam_val")) { // if twrp spam is on, show all lines
 			while (fgets(bOutput,sizeof(bOutput),bFp) != NULL) {
 				ui_print_overwrite("%s",bOutput);
 			}
@@ -722,8 +711,7 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 		__pclose(bFp);
 		int pFileSize;
 		ui_print("...Double checking backup file size.\n");
-        sprintf(str, "Verifying %s", bMount);
-        gui_set_variable("ui_status", str);
+        SetDataState("Verifying", bMnt.mnt, 0, 0);
 		sprintf(bCommand,"ls -l %s%s | awk '{ print $5 }'",bDir,bImage); // double checking to make sure we backed up something
 		bFp = __popen(bCommand, "r");
 		fscanf(bFp,"%d",&pFileSize);
@@ -743,13 +731,11 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 				}
 			}
 			ui_print("...Generating %s md5...\n", bMnt.mnt);
-            sprintf(str, "Generating MD5 for %s", bMount);
-            gui_set_variable("ui_status", str);
+            SetDataState("Generating MD5", bMnt.mnt, 0, 0);
 			makeMD5(bDir,bImage); // make md5 file
 			ui_print("....Done.\n");
 			ui_print("...Verifying %s md5...\n", bMnt.mnt);
-            sprintf(str, "Verifying %s", bMount);
-            gui_set_variable("ui_status", str);
+            SetDataState("Verifying", bMnt.mnt, 0, 0);
 			checkMD5(bDir,bImage); // test the md5 we just made, just in case
 			ui_print("....Done.\n");
 			time(&bStop); // stop timer
@@ -782,14 +768,13 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 int
 nandroid_back_exe()
 {
-	if (ensure_path_mounted(SDCARD_ROOT) != 0) {
+    SetDataState("", "", 0, 0);
+
+    if (ensure_path_mounted(SDCARD_ROOT) != 0) {
 		ui_print("-- Could not mount: %s.\n-- Aborting.\n",SDCARD_ROOT);
+        SetDataState("Unable to mount", "/sdcard", 1, 1);
 		return 1;
 	}
-
-    gui_set_variable("backup_message", "");
-    gui_set_variable("backup_status", "0");
-    gui_set_variable("backup_done", "0");
 
     struct tm *t;
     char timestamp[15];
@@ -804,9 +789,7 @@ nandroid_back_exe()
 	sprintf(exe,"mkdir -p %s",tw_image_dir); // make the folder with timestamp
 	if (__system(exe) != 0) {
 		ui_print("-- Could not create: %s.\n-- Aborting.",tw_image_dir);
-        gui_set_variable("backup_message", "Backup failed");
-        gui_set_variable("backup_status", "0");
-        gui_set_variable("backup_done", "1");
+        SetDataState("Backup failed", tw_image_dir, 1, 1);
 		return 1;
 	} else {
 		LOGI("=> Created folder: %s\n",tw_image_dir);
@@ -821,17 +804,13 @@ nandroid_back_exe()
 	if(pOutput[2] == '%') { // oh o, crespo devices report diskspace on the 3rd argument.
 		if (sscanf(pOutput,"%*s %d",&sdSpaceFinal) != 1) { // is it a number?
 			ui_print("-- Could not determine free space on %s.",SDCARD_ROOT); // oh noes! Can't find sdcard's free space.
-            gui_set_variable("backup_message", "Backup failed");
-            gui_set_variable("backup_status", "0");
-            gui_set_variable("backup_done", "1");
+            SetDataState("Backup failed", "", 1, 1);
 			return 1;
 		}
 	} else {
 		if (sscanf(pOutput,"%d %*s",&sdSpaceFinal) != 1) { // is it a number?
 			ui_print("-- Could not determine free space on %s.",SDCARD_ROOT); // oh noes! Can't find sdcard's free space.
-            gui_set_variable("backup_message", "Backup failed");
-            gui_set_variable("backup_status", "0");
-            gui_set_variable("backup_done", "1");
+            SetDataState("Backup failed", "", 1, 1);
 			return 1;
 		}
 	}
@@ -846,81 +825,65 @@ nandroid_back_exe()
 	createFstab();
 	ui_print("-- Done.\n");
 	// SYSTEM
-	if (is_true(tw_nan_system_val)) { // was system backup enabled?
+	if (DataManager_GetIntValue("tw_nan_system_val")) { // was system backup enabled?
 		if (tw_backup(sys,tw_image_dir) == 1) { // did the backup process return an error ? 0 = no error
-            gui_set_variable("backup_message", "Backup of System failed");
-            gui_set_variable("backup_status", "0");
-            gui_set_variable("backup_done", "1");
+            SetDataState("Backup failed", "system", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n"); //oh noes! abort abort!
 			return 1;
 		}
 	}
 	// DATA
-	if (is_true(tw_nan_data_val)) {
+	if (DataManager_GetIntValue("tw_nan_data_val")) {
 		if (tw_backup(dat,tw_image_dir) == 1) {
-            gui_set_variable("backup_message", "Backup of Data failed");
-            gui_set_variable("backup_status", "0");
-            gui_set_variable("backup_done", "1");
+            SetDataState("Backup failed", "data", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
 		}
 	}
 	// BOOT
-	if (is_true(tw_nan_boot_val)) {
+	if (DataManager_GetIntValue("tw_nan_boot_val")) {
 		if (tw_backup(boo,tw_image_dir) == 1) {
-            gui_set_variable("backup_message", "Backup of Boot failed");
-            gui_set_variable("backup_status", "0");
-            gui_set_variable("backup_done", "1");
+            SetDataState("Backup failed", "boot", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
 		}
 	}
 	// RECOVERY
-	if (is_true(tw_nan_recovery_val)) {
+	if (DataManager_GetIntValue("tw_nan_recovery_val")) {
 		if (tw_backup(rec,tw_image_dir) == 1) {
-            gui_set_variable("backup_message", "Backup of Recovery failed");
-            gui_set_variable("backup_status", "0");
-            gui_set_variable("backup_done", "1");
+            SetDataState("Backup failed", "recovery", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
 		}
 	}
 	// CACHE
-	if (is_true(tw_nan_cache_val)) {
+	if (DataManager_GetIntValue("tw_nan_cache_val")) {
 		if (tw_backup(cac,tw_image_dir) == 1) {
-            gui_set_variable("backup_message", "Backup of Cache failed");
-            gui_set_variable("backup_status", "0");
-            gui_set_variable("backup_done", "1");
+            SetDataState("Backup failed", "cache", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
 		}
 	}
 	// WIMAX
-	if (is_true(tw_nan_wimax_val)) {
+	if (DataManager_GetIntValue("tw_nan_wimax_val")) {
 		if (tw_backup(wim,tw_image_dir) == 1) {
-            gui_set_variable("backup_message", "Backup of WiMAX failed");
-            gui_set_variable("backup_status", "0");
-            gui_set_variable("backup_done", "1");
+            SetDataState("Backup failed", "wimax", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
 		}
 	}
 	// ANDROID-SECURE
-	if (is_true(tw_nan_andsec_val)) {
+	if (DataManager_GetIntValue("tw_nan_andsec_val")) {
 		if (tw_backup(ase,tw_image_dir) == 1) {
-            gui_set_variable("backup_message", "Backup of .android_secure failed");
-            gui_set_variable("backup_status", "0");
-            gui_set_variable("backup_done", "1");
+            SetDataState("Backup failed", ".android_secure", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
 		}
 	}
 	// SD-EXT
-	if (is_true(tw_nan_sdext_val)) {
+	if (DataManager_GetIntValue("tw_nan_sdext_val")) {
 		if (tw_backup(sde,tw_image_dir) == 1) {
-            gui_set_variable("backup_message", "Backup of SD-EXT failed");
-            gui_set_variable("backup_status", "0");
-            gui_set_variable("backup_done", "1");
+            SetDataState("Backup failed", "sd-ext", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
 		}
@@ -932,16 +895,12 @@ nandroid_back_exe()
 	if(pOutput[2] == '%') {
 		if (sscanf(pOutput,"%*s %d",&sdSpace) != 1) { // is it a number?
 			ui_print("-- Could not determine free space on %s.\n",SDCARD_ROOT); // oh noes! Can't find sdcard's free space.
-            gui_set_variable("backup_message", "Backup failed");
-            gui_set_variable("backup_status", "0");
-            gui_set_variable("backup_done", "1");
+            SetDataState("Backup failed", "", 1, 1);
 			return 1;
 		}
 	} else {
 		if (sscanf(pOutput,"%d %*s",&sdSpace) != 1) { // is it a number?
-            gui_set_variable("backup_message", "Backup failed");
-            gui_set_variable("backup_status", "0");
-            gui_set_variable("backup_done", "1");
+            SetDataState("Backup failed", "", 1, 1);
 			ui_print("-- Could not determine free space on %s.\n",SDCARD_ROOT); // oh noes! Can't find sdcard's free space.
 			return 1;
 		}
@@ -949,9 +908,7 @@ nandroid_back_exe()
 	time(&stop);
 	ui_print("[%d MB TOTAL BACKED UP TO SDCARD]\n",(int)(sdSpaceFinal - sdSpace) / 1024);
 	ui_print("[BACKUP COMPLETED IN %d SECONDS]\n\n",(int)difftime(stop, start)); // the end
-    gui_set_variable("backup_message", "Backup completed");
-    gui_set_variable("backup_status", "1");
-    gui_set_variable("backup_done", "1");
+    SetDataState("Backup failed", "", 0, 1);
 	return 0;
 }
 
@@ -1005,7 +962,7 @@ int tw_restore(struct dInfo rMnt, char *rDir)
 		}
 		ui_print("...Restoring %s\n",rMount);
 		reFp = __popen(rCommand, "r");
-		if(is_true(tw_show_spam_val)) { // twrp spam
+		if(DataManager_GetIntValue("tw_show_spam_val")) { // twrp spam
 			while (fgets(rOutput,sizeof(rOutput),reFp) != NULL) {
 				ui_print_overwrite("%s",rOutput);
 			}

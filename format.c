@@ -22,7 +22,6 @@
 #include "format.h"
 #include "extra-functions.h"
 #include "common.h"
-#include "settings_file.h"
 
 void tw_format(char *fstype, char *fsblock)
 {
