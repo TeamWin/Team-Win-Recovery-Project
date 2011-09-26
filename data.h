@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-// data.h - Base classes for data manager of GUI
-=======
 /*
  * Copyright (C) 2007 The Android Open Source Project
  *
@@ -16,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
->>>>>>> 1.1.x
 
 #ifndef _DATA_HEADER
 #define _DATA_HEADER

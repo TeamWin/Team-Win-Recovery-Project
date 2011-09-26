@@ -105,11 +105,7 @@ char* nan_compress()
 {
 	char* tmp_set = (char*)malloc(40);
 	strcpy(tmp_set, "[ ] Compress Backup (slow but saves space)");
-<<<<<<< HEAD
-	if (DataManager_GetIntValue("tw_use_compression_val") == 1) {
-=======
 	if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR) == 1) {
->>>>>>> 1.1.x
 		tmp_set[1] = 'x';
 	}
 	return tmp_set;
@@ -151,153 +147,85 @@ nan_backup_menu(int pIdx)
 				}
 				break;
 			case ITEM_NAN_SYSTEM:
-<<<<<<< HEAD
-            	if (DataManager_GetIntValue("tw_nan_system_val")) {
-            		DataManager_SetIntValue("tw_nan_system_val", 0); // toggle's value
-            		tw_total--; // keeps count of how many selected
-            	} else {
-            		DataManager_SetIntValue("tw_nan_system_val", 1);
-=======
             	if (DataManager_GetIntValue(TW_NANDROID_SYSTEM_VAR)) {
             		DataManager_SetIntValue(TW_NANDROID_SYSTEM_VAR, 0); // toggle's value
             		tw_total--; // keeps count of how many selected
             	} else {
             		DataManager_SetIntValue(TW_NANDROID_SYSTEM_VAR, 1);
->>>>>>> 1.1.x
             		tw_total++;
             	}
                 break;
 			case ITEM_NAN_DATA:
-<<<<<<< HEAD
-            	if (DataManager_GetIntValue("tw_nan_data_val")) {
-            		DataManager_SetIntValue("tw_nan_data_val", 0);
-            		tw_total--;
-            	} else {
-            		DataManager_SetIntValue("tw_nan_data_val", 1);
-=======
             	if (DataManager_GetIntValue(TW_NANDROID_DATA_VAR)) {
             		DataManager_SetIntValue(TW_NANDROID_DATA_VAR, 0);
             		tw_total--;
             	} else {
             		DataManager_SetIntValue(TW_NANDROID_DATA_VAR, 1);
->>>>>>> 1.1.x
             		tw_total++;
             	}
 				break;
 			case ITEM_NAN_BOOT:
-<<<<<<< HEAD
-            	if (DataManager_GetIntValue("tw_nan_boot_val")) {
-            		DataManager_SetIntValue("tw_nan_boot_val", 0);
-            		tw_total--;
-            	} else {
-            		DataManager_SetIntValue("tw_nan_boot_val", 1);
-=======
             	if (DataManager_GetIntValue(TW_NANDROID_BOOT_VAR)) {
             		DataManager_SetIntValue(TW_NANDROID_BOOT_VAR, 0);
             		tw_total--;
             	} else {
             		DataManager_SetIntValue(TW_NANDROID_BOOT_VAR, 1);
->>>>>>> 1.1.x
             		tw_total++;
             	}
 				break;
 			case ITEM_NAN_RECOVERY:
-<<<<<<< HEAD
-            	if (DataManager_GetIntValue("tw_nan_recovery_val")) {
-            		DataManager_SetIntValue("tw_nan_recovery_val", 0);
-            		tw_total--;
-            	} else {
-            		DataManager_SetIntValue("tw_nan_recovery_val", 1);
-=======
             	if (DataManager_GetIntValue(TW_NANDROID_RECOVERY_VAR)) {
             		DataManager_SetIntValue(TW_NANDROID_RECOVERY_VAR, 0);
             		tw_total--;
             	} else {
             		DataManager_SetIntValue(TW_NANDROID_RECOVERY_VAR, 1);
->>>>>>> 1.1.x
             		tw_total++;
             	}
 				break;
 			case ITEM_NAN_CACHE:
-<<<<<<< HEAD
-            	if (DataManager_GetIntValue("tw_nan_cache_val")) {
-            		DataManager_SetIntValue("tw_nan_cache_val", 0);
-            		tw_total--;
-            	} else {
-            		DataManager_SetIntValue("tw_nan_cache_val", 1);
-=======
             	if (DataManager_GetIntValue(TW_NANDROID_CACHE_VAR)) {
             		DataManager_SetIntValue(TW_NANDROID_CACHE_VAR, 0);
             		tw_total--;
             	} else {
             		DataManager_SetIntValue(TW_NANDROID_CACHE_VAR, 1);
->>>>>>> 1.1.x
             		tw_total++;
             	}
 				break;
 			case ITEM_NAN_WIMAX:
 				if (tw_nan_wimax_x != -1) {
-<<<<<<< HEAD
-	            	if (DataManager_GetIntValue("tw_nan_wimax_val")) {
-	            		DataManager_SetIntValue("tw_nan_wimax_val", 0);
-	            		tw_total--;
-	            	} else {
-	            		DataManager_SetIntValue("tw_nan_wimax_val", 1);
-=======
 	            	if (DataManager_GetIntValue(TW_NANDROID_WIMAX_VAR)) {
 	            		DataManager_SetIntValue(TW_NANDROID_WIMAX_VAR, 0);
 	            		tw_total--;
 	            	} else {
 	            		DataManager_SetIntValue(TW_NANDROID_WIMAX_VAR, 1);
->>>>>>> 1.1.x
 	            		tw_total++;
 	            	}
 				}
 				break;
 			case ITEM_NAN_ANDSEC:
 				if (tw_nan_andsec_x != -1) {
-<<<<<<< HEAD
-	            	if (DataManager_GetIntValue("tw_nan_andsec_val")) {
-	            		DataManager_SetIntValue("tw_nan_andsec_val", 0);
-	            		tw_total--;
-	            	} else {
-	            		DataManager_SetIntValue("tw_nan_andsec_val", 1);
-=======
 	            	if (DataManager_GetIntValue(TW_NANDROID_ANDSEC_VAR)) {
 	            		DataManager_SetIntValue(TW_NANDROID_ANDSEC_VAR, 0);
 	            		tw_total--;
 	            	} else {
 	            		DataManager_SetIntValue(TW_NANDROID_ANDSEC_VAR, 1);
->>>>>>> 1.1.x
 	            		tw_total++;
 	            	}
 				}
 				break;
 			case ITEM_NAN_SDEXT:
 				if (tw_nan_sdext_x != -1) {
-<<<<<<< HEAD
-	            	if (DataManager_GetIntValue("tw_nan_sdext_val")) {
-	            		DataManager_SetIntValue("tw_nan_sdext_val", 0);
-	            		tw_total--;
-	            	} else {
-	            		DataManager_SetIntValue("tw_nan_sdext_val", 1);
-=======
 	            	if (DataManager_GetIntValue(TW_NANDROID_SDEXT_VAR)) {
 	            		DataManager_SetIntValue(TW_NANDROID_SDEXT_VAR, 0);
 	            		tw_total--;
 	            	} else {
 	            		DataManager_SetIntValue(TW_NANDROID_SDEXT_VAR, 1);
->>>>>>> 1.1.x
 	            		tw_total++;
 	           		}
 				}
 				break;
 			case ITEM_NAN_COMPRESS:
-<<<<<<< HEAD
-            	DataManager_ToggleIntValue("tw_use_compression_val");
-=======
             	DataManager_ToggleIntValue(TW_USE_COMPRESSION_VAR);
->>>>>>> 1.1.x
 				break;
 			case ITEM_NAN_BACK:
             	dec_menu_loc();
@@ -531,11 +459,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 			if (tw_backstore) {
 				isTrue = tw_nan_system_x;
 			} else {
-<<<<<<< HEAD
-				isTrue = DataManager_GetIntValue("tw_nan_system_val");
-=======
 				isTrue = DataManager_GetIntValue(TW_NANDROID_SYSTEM_VAR);
->>>>>>> 1.1.x
 			}
 			break;
 		case ITEM_NAN_DATA:
@@ -543,11 +467,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 			if (tw_backstore) {
 				isTrue = tw_nan_data_x;
 			} else {
-<<<<<<< HEAD
-				isTrue = DataManager_GetIntValue("tw_nan_data_val");
-=======
 				isTrue = DataManager_GetIntValue(TW_NANDROID_DATA_VAR);
->>>>>>> 1.1.x
 			}
 			break;
 		case ITEM_NAN_BOOT:
@@ -555,11 +475,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 			if (tw_backstore) {
 				isTrue = tw_nan_boot_x;
 			} else {
-<<<<<<< HEAD
-				isTrue = DataManager_GetIntValue("tw_nan_boot_val");
-=======
 				isTrue = DataManager_GetIntValue(TW_NANDROID_BOOT_VAR);
->>>>>>> 1.1.x
 			}
 			break;
 		case ITEM_NAN_RECOVERY:
@@ -567,11 +483,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 			if (tw_backstore) {
 				isTrue = tw_nan_recovery_x;
 			} else {
-<<<<<<< HEAD
-				isTrue = DataManager_GetIntValue("tw_nan_recovery_val");
-=======
 				isTrue = DataManager_GetIntValue(TW_NANDROID_RECOVERY_VAR);
->>>>>>> 1.1.x
 			}
 			break;
 		case ITEM_NAN_CACHE:
@@ -579,11 +491,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 			if (tw_backstore) {
 				isTrue = tw_nan_cache_x;
 			} else {
-<<<<<<< HEAD
-				isTrue = DataManager_GetIntValue("tw_nan_cache_val");
-=======
 				isTrue = DataManager_GetIntValue(TW_NANDROID_CACHE_VAR);
->>>>>>> 1.1.x
 			}
 			break;
 		case ITEM_NAN_WIMAX:
@@ -597,11 +505,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 				isTrue = tw_nan_wimax_x;
 			} else {
 				if (strcmp(wim.mnt,"wimax") == 0 || strcmp(wim.mnt,"efs") == 0) {
-<<<<<<< HEAD
-					isTrue = DataManager_GetIntValue("tw_nan_wimax_val");
-=======
 					isTrue = DataManager_GetIntValue(TW_NANDROID_WIMAX_VAR);
->>>>>>> 1.1.x
 				} else {
 					tw_nan_wimax_x = -1;
 					isTrue = -1;
@@ -617,11 +521,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 					tw_nan_andsec_x = -1;
 					isTrue = -1;
 				} else {
-<<<<<<< HEAD
-					isTrue = DataManager_GetIntValue("tw_nan_andsec_val");
-=======
 					isTrue = DataManager_GetIntValue(TW_NANDROID_ANDSEC_VAR);
->>>>>>> 1.1.x
 				}
 			}
 			break;
@@ -634,11 +534,7 @@ nan_img_set(int tw_setting, int tw_backstore)
 					tw_nan_sdext_x = -1;
 					isTrue = -1;
 				} else {
-<<<<<<< HEAD
-					isTrue = DataManager_GetIntValue("tw_nan_sdext_val");
-=======
 					isTrue = DataManager_GetIntValue(TW_NANDROID_SDEXT_VAR);
->>>>>>> 1.1.x
 				}
 			}
 			break;
@@ -734,11 +630,7 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 	}
 	int bDiv;
 	char bTarArg[10];
-<<<<<<< HEAD
-	if (DataManager_GetIntValue("tw_use_compression_val")) { // set compression or not
-=======
 	if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR)) { // set compression or not
->>>>>>> 1.1.x
 		strcpy(bTarArg,"-czvf");
 		bDiv = 512;
 	} else {
@@ -806,11 +698,7 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 		ui_show_progress(1,bProgTime);
 		ui_print("...Backing up %s partition.\n",bMount);
 		bFp = __popen(bCommand, "r"); // sending backup command formed earlier above
-<<<<<<< HEAD
-		if(DataManager_GetIntValue("tw_show_spam_val")) { // if twrp spam is on, show all lines
-=======
 		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR)) { // if twrp spam is on, show all lines
->>>>>>> 1.1.x
 			while (fgets(bOutput,sizeof(bOutput),bFp) != NULL) {
 				ui_print_overwrite("%s",bOutput);
 			}
@@ -937,11 +825,7 @@ nandroid_back_exe()
 	createFstab();
 	ui_print("-- Done.\n");
 	// SYSTEM
-<<<<<<< HEAD
-	if (DataManager_GetIntValue("tw_nan_system_val")) { // was system backup enabled?
-=======
 	if (DataManager_GetIntValue(TW_NANDROID_SYSTEM_VAR)) { // was system backup enabled?
->>>>>>> 1.1.x
 		if (tw_backup(sys,tw_image_dir) == 1) { // did the backup process return an error ? 0 = no error
             SetDataState("Backup failed", "system", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n"); //oh noes! abort abort!
@@ -949,11 +833,7 @@ nandroid_back_exe()
 		}
 	}
 	// DATA
-<<<<<<< HEAD
-	if (DataManager_GetIntValue("tw_nan_data_val")) {
-=======
 	if (DataManager_GetIntValue(TW_NANDROID_DATA_VAR)) {
->>>>>>> 1.1.x
 		if (tw_backup(dat,tw_image_dir) == 1) {
             SetDataState("Backup failed", "data", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
@@ -961,11 +841,7 @@ nandroid_back_exe()
 		}
 	}
 	// BOOT
-<<<<<<< HEAD
-	if (DataManager_GetIntValue("tw_nan_boot_val")) {
-=======
 	if (DataManager_GetIntValue(TW_NANDROID_BOOT_VAR)) {
->>>>>>> 1.1.x
 		if (tw_backup(boo,tw_image_dir) == 1) {
             SetDataState("Backup failed", "boot", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
@@ -973,11 +849,7 @@ nandroid_back_exe()
 		}
 	}
 	// RECOVERY
-<<<<<<< HEAD
-	if (DataManager_GetIntValue("tw_nan_recovery_val")) {
-=======
 	if (DataManager_GetIntValue(TW_NANDROID_RECOVERY_VAR)) {
->>>>>>> 1.1.x
 		if (tw_backup(rec,tw_image_dir) == 1) {
             SetDataState("Backup failed", "recovery", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
@@ -985,11 +857,7 @@ nandroid_back_exe()
 		}
 	}
 	// CACHE
-<<<<<<< HEAD
-	if (DataManager_GetIntValue("tw_nan_cache_val")) {
-=======
 	if (DataManager_GetIntValue(TW_NANDROID_CACHE_VAR)) {
->>>>>>> 1.1.x
 		if (tw_backup(cac,tw_image_dir) == 1) {
             SetDataState("Backup failed", "cache", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
@@ -997,11 +865,7 @@ nandroid_back_exe()
 		}
 	}
 	// WIMAX
-<<<<<<< HEAD
-	if (DataManager_GetIntValue("tw_nan_wimax_val")) {
-=======
 	if (DataManager_GetIntValue(TW_NANDROID_WIMAX_VAR)) {
->>>>>>> 1.1.x
 		if (tw_backup(wim,tw_image_dir) == 1) {
             SetDataState("Backup failed", "wimax", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
@@ -1009,11 +873,7 @@ nandroid_back_exe()
 		}
 	}
 	// ANDROID-SECURE
-<<<<<<< HEAD
-	if (DataManager_GetIntValue("tw_nan_andsec_val")) {
-=======
 	if (DataManager_GetIntValue(TW_NANDROID_ANDSEC_VAR)) {
->>>>>>> 1.1.x
 		if (tw_backup(ase,tw_image_dir) == 1) {
             SetDataState("Backup failed", ".android_secure", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
@@ -1021,11 +881,7 @@ nandroid_back_exe()
 		}
 	}
 	// SD-EXT
-<<<<<<< HEAD
-	if (DataManager_GetIntValue("tw_nan_sdext_val")) {
-=======
 	if (DataManager_GetIntValue(TW_NANDROID_SDEXT_VAR)) {
->>>>>>> 1.1.x
 		if (tw_backup(sde,tw_image_dir) == 1) {
             SetDataState("Backup failed", "sd-ext", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
@@ -1106,11 +962,7 @@ int tw_restore(struct dInfo rMnt, char *rDir)
 		}
 		ui_print("...Restoring %s\n",rMount);
 		reFp = __popen(rCommand, "r");
-<<<<<<< HEAD
-		if(DataManager_GetIntValue("tw_show_spam_val")) { // twrp spam
-=======
 		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR)) { // twrp spam
->>>>>>> 1.1.x
 			while (fgets(rOutput,sizeof(rOutput),reFp) != NULL) {
 				ui_print_overwrite("%s",rOutput);
 			}

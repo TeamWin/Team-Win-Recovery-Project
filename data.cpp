@@ -289,47 +289,6 @@ void DataManager::SetDefaultValues()
 {
     mInitialized = 1;
 
-    mConstValues.insert(make_pair("TW_VERSION", "VERSION"));
-    mConstValues.insert(make_pair("TW_NAN_SYSTEM", "NAN_SYSTEM"));
-    mConstValues.insert(make_pair("TW_NAN_DATA", "NAN_DATA"));
-    mConstValues.insert(make_pair("TW_NAN_BOOT", "NAN_BOOT"));
-    mConstValues.insert(make_pair("TW_NAN_RECOVERY", "NAN_RECOVERY"));
-    mConstValues.insert(make_pair("TW_NAN_CACHE", "NAN_CACHE"));
-    mConstValues.insert(make_pair("TW_NAN_WIMAX", "NAN_WIMAX"));
-    mConstValues.insert(make_pair("TW_NAN_ANDSEC", "NAN_ANDSEC"));
-    mConstValues.insert(make_pair("TW_NAN_SDEXT", "NAND_SDEXT"));
-    mConstValues.insert(make_pair("TW_REBOOT_AFTER_FLASH", "REBOOT_AFTER_FLASH"));
-    mConstValues.insert(make_pair("TW_SIGNED_ZIP", "SIGNED_ZIP"));
-    mConstValues.insert(make_pair("TW_COLOR_THEME", "COLOR_THEME"));
-    mConstValues.insert(make_pair("TW_USE_COMPRESSION", "NAN_USE_COMPRESSION"));
-    mConstValues.insert(make_pair("TW_SHOW_SPAM", "SHOW_SPAM"));
-    mConstValues.insert(make_pair("TW_TIME_ZONE", "TIME_ZONE"));
-    mConstValues.insert(make_pair("TW_ZIP_LOCATION", "ZIP_LOCATION"));
-    mConstValues.insert(make_pair("TW_FORCE_MD5_CHECK", "FORCE_MD5"));
-    mConstValues.insert(make_pair("TW_SORT_FILES_BY_DATE", "SORT_BY_DATE"));
-    mConstValues.insert(make_pair("TW_SINGLE_ZIP_MODE", "SINGLE_ZIP_MODE"));
-<<<<<<< HEAD
-    mConstValues.insert(make_pair("tw_version_val", "1.1.0"));
-
-    mValues.insert(make_pair("tw_nan_system_val", make_pair("1", 1)));
-    mValues.insert(make_pair("tw_nan_data_val", make_pair("1", 1)));
-    mValues.insert(make_pair("tw_nan_boot_val", make_pair("1", 1)));
-    mValues.insert(make_pair("tw_nan_recovery_val", make_pair("0", 1)));
-    mValues.insert(make_pair("tw_nan_cache_val", make_pair("0", 1)));
-    mValues.insert(make_pair("tw_nan_wimax_val", make_pair("0", 1)));
-    mValues.insert(make_pair("tw_nan_andsec_val", make_pair("0", 1)));
-    mValues.insert(make_pair("tw_nan_sdext_val", make_pair("0", 1)));
-    mValues.insert(make_pair("tw_reboot_after_flash_option", make_pair("0", 1)));
-    mValues.insert(make_pair("tw_signed_zip_val", make_pair("0", 1)));
-    mValues.insert(make_pair("tw_force_md5_check_val", make_pair("0", 1)));
-    mValues.insert(make_pair("tw_color_theme_val", make_pair("0", 1)));
-    mValues.insert(make_pair("tw_use_compression_val", make_pair("0", 1)));
-    mValues.insert(make_pair("tw_show_spam_val", make_pair("0", 1)));
-    mValues.insert(make_pair("tw_time_zone_val", make_pair("CST6CDT", 1)));
-    mValues.insert(make_pair("tw_zip_location_val", make_pair("/sdcard", 1)));
-    mValues.insert(make_pair("tw_sort_files_by_date_val", make_pair("0", 1)));
-=======
-
     mConstValues.insert(make_pair(TW_VERSION_VAR, "1.1.0"));
     mValues.insert(make_pair(TW_NANDROID_SYSTEM_VAR, make_pair("1", 1)));
     mValues.insert(make_pair(TW_NANDROID_DATA_VAR, make_pair("1", 1)));
@@ -348,7 +307,6 @@ void DataManager::SetDefaultValues()
     mValues.insert(make_pair(TW_TIME_ZONE_VAR, make_pair("CST6CDT", 1)));
     mValues.insert(make_pair(TW_ZIP_LOCATION_VAR, make_pair("/sdcard", 1)));
     mValues.insert(make_pair(TW_SORT_FILES_BY_DATE_VAR, make_pair("0", 1)));
->>>>>>> 1.1.x
 }
 
 extern "C" int DataManager_ResetDefaults()

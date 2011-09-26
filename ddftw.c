@@ -251,11 +251,7 @@ void verifyFst()
 	char arg4[50];
 	char fst[10];
 
-<<<<<<< HEAD
-    // Do *NOT* do this on MTD devices
-=======
     // Do not run this routine on MTD devices. The blkid command hangs.
->>>>>>> 1.1.x
     if (strcmp(get_fstype(),"mtd") == 0)
         return;
 

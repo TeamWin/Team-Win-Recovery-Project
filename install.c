@@ -250,11 +250,7 @@ install_package(const char *path)
 
     ui_print("Opening update package...\n");
 
-<<<<<<< HEAD
-    if (DataManager_GetIntValue("tw_signed_zip_val")) {
-=======
     if (DataManager_GetIntValue(TW_SIGNED_ZIP_VERIFY_VAR)) {
->>>>>>> 1.1.x
         int numKeys;
         RSAPublicKey* loadedKeys = load_keys(PUBLIC_KEYS_FILE, &numKeys);
         if (loadedKeys == NULL) {
