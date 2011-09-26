@@ -56,8 +56,11 @@ endif
 LOCAL_STATIC_LIBRARIES += libz libminzip libunz libmtdutils libmincrypt
 LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libcutils
 LOCAL_STATIC_LIBRARIES += libstlport_static libstdc++ libc
+<<<<<<< HEAD
 
 LOCAL_C_INCLUDES += system/extras/ext4_utils
+=======
+>>>>>>> 1.1.x
 
 include $(BUILD_EXECUTABLE)
 

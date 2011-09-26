@@ -404,7 +404,11 @@ char**
 prepend_title(const char** headers) {
     char* title1 = (char*)malloc(40);
     strcpy(title1, "Team Win Recovery Project (twrp) v");
+<<<<<<< HEAD
     char* header1 = strcat(title1, DataManager_GetStrValue("tw_version_val"));
+=======
+    char* header1 = strcat(title1, DataManager_GetStrValue(TW_VERSION_VAR));
+>>>>>>> 1.1.x
     char* title[] = { header1,
                       "Based on Android System Recovery <"
                       EXPAND(RECOVERY_API_VERSION) "e>",
@@ -569,7 +573,11 @@ sdcard_directory(const char* path) {
     notError = 0;
 	
 	qsort(dirs, d_size, sizeof(char*), compare_string);
+<<<<<<< HEAD
 	if (DataManager_GetIntValue("tw_sort_files_by_date_val")) {
+=======
+	if (DataManager_GetIntValue(TW_SORT_FILES_BY_DATE_VAR)) {
+>>>>>>> 1.1.x
 		char* tempzip = malloc(z_alloc * sizeof(char*)); // sort zips by last modified date
 		char file_path_name[PATH_MAX];
 		int bubble1, bubble2, swap_flag = 1;
@@ -631,7 +639,11 @@ sdcard_directory(const char* path) {
             // go up but continue browsing (if the caller is sdcard_directory)
         	if (get_new_zip_dir > 0)
         	{
+<<<<<<< HEAD
         		DataManager_SetStrValue("tw_zip_location_val", path);
+=======
+        		DataManager_SetStrValue(TW_ZIP_LOCATION_VAR, path);
+>>>>>>> 1.1.x
                 return 1;
         	} else {
             	dec_menu_loc();
@@ -694,7 +706,11 @@ int install_zip_package(const char* zip_path_filename) {
     ensure_path_mounted(SDCARD_ROOT);
 	ui_print("\n-- Verify md5 for %s", zip_path_filename);
 	int md5chk = check_md5(zip_path_filename);
+<<<<<<< HEAD
 	bool md5_req = DataManager_GetIntValue("tw_force_md5_check_val");
+=======
+	bool md5_req = DataManager_GetIntValue(TW_FORCE_MD5_CHECK_VAR);
+>>>>>>> 1.1.x
 	if (md5chk > 0 || (!md5_req && md5chk == -1)) {
 		if (md5chk == 1)
 			ui_print("\n-- Md5 verified, continue");
@@ -983,10 +999,16 @@ main(int argc, char **argv) {
 
         // Update some of the main data
         update_tz_environment_variables();
+<<<<<<< HEAD
         set_theme(DataManager_GetStrValue("tw_color_theme_val"));
 
         if (!gui_start())
             prompt_and_wait();
+=======
+        set_theme(DataManager_GetStrValue(TW_COLOR_THEME_VAR));
+
+        prompt_and_wait();
+>>>>>>> 1.1.x
     }
 
     // Otherwise, get ready to boot the main system...

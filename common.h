@@ -19,6 +19,9 @@
 
 #include <stdio.h>
 
+// These are just the defines for the non-const internal variables
+#include "variables.h"
+
 char** prepend_title(const char** headers);
 static const char *SDCARD_ROOT = "/sdcard";
 

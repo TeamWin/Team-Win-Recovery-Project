@@ -80,7 +80,11 @@ char* checkTheme(int tw_theme)
 			strcpy(tmp_set, "[ ] Myn's Warm");
 			break;
 	}
+<<<<<<< HEAD
 	isVal = DataManager_GetIntValue("tw_color_theme_val");
+=======
+	isVal = DataManager_GetIntValue(TW_COLOR_THEME_VAR);
+>>>>>>> 1.1.x
 	if (isVal == tw_theme - 1)
 	{
 		tmp_set[1] = 'x';
@@ -119,11 +123,16 @@ void twrp_themes_menu()
         switch (chosen_item)
         {
             case THEME_REBOOT_RECOVERY:
+<<<<<<< HEAD
 				set_theme(DataManager_GetStrValue("tw_color_theme_val"));
+=======
+				set_theme(DataManager_GetStrValue(TW_COLOR_THEME_VAR));
+>>>>>>> 1.1.x
 				go_home = 1;
 				go_restart = 1;
                 break;
             case TW_THEME:
+<<<<<<< HEAD
             	DataManager_SetIntValue("tw_color_theme_val", 0);
                 break;
             case CM_THEME:
@@ -158,6 +167,42 @@ void twrp_themes_menu()
                 break;
 			case MYN_WARM:
                 DataManager_SetIntValue("tw_color_theme_val", 11);
+=======
+            	DataManager_SetIntValue(TW_COLOR_THEME_VAR, 0);
+                break;
+            case CM_THEME:
+                DataManager_SetIntValue(TW_COLOR_THEME_VAR, 1);
+                break;
+            case RED_THEME:
+                DataManager_SetIntValue(TW_COLOR_THEME_VAR, 2);
+                break;
+            case GOOGLE_THEME:
+                DataManager_SetIntValue(TW_COLOR_THEME_VAR, 3);
+                break;
+            case JF_THEME:
+                DataManager_SetIntValue(TW_COLOR_THEME_VAR, 4);
+                break;
+            case HTC_THEME:
+                DataManager_SetIntValue(TW_COLOR_THEME_VAR, 5);
+                break;
+            case FABULOUS_THEME:
+                DataManager_SetIntValue(TW_COLOR_THEME_VAR, 6);
+                break;
+			case PURPLE_SHIFT:
+                DataManager_SetIntValue(TW_COLOR_THEME_VAR, 7);
+                break;
+			case GREYBALLER_THEME:
+                DataManager_SetIntValue(TW_COLOR_THEME_VAR, 8);
+                break;
+			case TRIPPY_THEME:
+                DataManager_SetIntValue(TW_COLOR_THEME_VAR, 9);
+                break;
+			case SHIFTY_BASTARD:
+                DataManager_SetIntValue(TW_COLOR_THEME_VAR, 10);
+                break;
+			case MYN_WARM:
+                DataManager_SetIntValue(TW_COLOR_THEME_VAR, 11);
+>>>>>>> 1.1.x
                 break;
             case THEMES_BACK:
             	dec_menu_loc();

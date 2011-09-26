@@ -308,6 +308,7 @@ void DataManager::SetDefaultValues()
     mConstValues.insert(make_pair("TW_FORCE_MD5_CHECK", "FORCE_MD5"));
     mConstValues.insert(make_pair("TW_SORT_FILES_BY_DATE", "SORT_BY_DATE"));
     mConstValues.insert(make_pair("TW_SINGLE_ZIP_MODE", "SINGLE_ZIP_MODE"));
+<<<<<<< HEAD
     mConstValues.insert(make_pair("tw_version_val", "1.1.0"));
 
     mValues.insert(make_pair("tw_nan_system_val", make_pair("1", 1)));
@@ -327,6 +328,27 @@ void DataManager::SetDefaultValues()
     mValues.insert(make_pair("tw_time_zone_val", make_pair("CST6CDT", 1)));
     mValues.insert(make_pair("tw_zip_location_val", make_pair("/sdcard", 1)));
     mValues.insert(make_pair("tw_sort_files_by_date_val", make_pair("0", 1)));
+=======
+
+    mConstValues.insert(make_pair(TW_VERSION_VAR, "1.1.0"));
+    mValues.insert(make_pair(TW_NANDROID_SYSTEM_VAR, make_pair("1", 1)));
+    mValues.insert(make_pair(TW_NANDROID_DATA_VAR, make_pair("1", 1)));
+    mValues.insert(make_pair(TW_NANDROID_BOOT_VAR, make_pair("1", 1)));
+    mValues.insert(make_pair(TW_NANDROID_RECOVERY_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_NANDROID_CACHE_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_NANDROID_WIMAX_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_NANDROID_ANDSEC_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_NANDROID_SDEXT_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_REBOOT_AFTER_FLASH_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_SIGNED_ZIP_VERIFY_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_FORCE_MD5_CHECK_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_COLOR_THEME_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_USE_COMPRESSION_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_SHOW_SPAM_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_TIME_ZONE_VAR, make_pair("CST6CDT", 1)));
+    mValues.insert(make_pair(TW_ZIP_LOCATION_VAR, make_pair("/sdcard", 1)));
+    mValues.insert(make_pair(TW_SORT_FILES_BY_DATE_VAR, make_pair("0", 1)));
+>>>>>>> 1.1.x
 }
 
 extern "C" int DataManager_ResetDefaults()

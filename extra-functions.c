@@ -392,7 +392,11 @@ char* zip_verify()
 {
 	char* tmp_set = (char*)malloc(40);
 	strcpy(tmp_set, "[ ] Zip Signature Verification");
+<<<<<<< HEAD
 	if (DataManager_GetIntValue("tw_signed_zip_val") == 1) {
+=======
+	if (DataManager_GetIntValue(TW_SIGNED_ZIP_VERIFY_VAR) == 1) {
+>>>>>>> 1.1.x
 		tmp_set[1] = 'x';
 	}
 	return tmp_set;
@@ -402,7 +406,11 @@ char* reboot_after_flash()
 {
 	char* tmp_set = (char*)malloc(40);
 	strcpy(tmp_set, "[ ] Reboot After Successful Flash");
+<<<<<<< HEAD
 	if (DataManager_GetIntValue("tw_reboot_after_flash_option") == 1) {
+=======
+	if (DataManager_GetIntValue(TW_REBOOT_AFTER_FLASH_VAR) == 1) {
+>>>>>>> 1.1.x
 		tmp_set[1] = 'x';
 	}
 	return tmp_set;
@@ -412,7 +420,11 @@ char* force_md5_check()
 {
     char* tmp_set = (char*)malloc(40);
     strcpy(tmp_set, "[ ] Force md5 verification");
+<<<<<<< HEAD
     if (DataManager_GetIntValue("tw_force_md5_check_val") == 1) {
+=======
+    if (DataManager_GetIntValue(TW_FORCE_MD5_CHECK_VAR) == 1) {
+>>>>>>> 1.1.x
         tmp_set[1] = 'x';
     }
     return tmp_set;
@@ -422,7 +434,11 @@ char* sort_by_date_option()
 {
     char* tmp_set = (char*)malloc(40);
     strcpy(tmp_set, "[ ] Sort Zips by Date");
+<<<<<<< HEAD
     if (DataManager_GetIntValue("tw_sort_files_by_date_val") == 1) {
+=======
+    if (DataManager_GetIntValue(TW_SORT_FILES_BY_DATE_VAR) == 1) {
+>>>>>>> 1.1.x
         tmp_set[1] = 'x';
     }
     return tmp_set;
@@ -479,7 +495,11 @@ void install_zip_menu(int pIdx)
         {
             case ITEM_CHOOSE_ZIP:
 				if (multi_zip_index < 10) {
+<<<<<<< HEAD
 					status = sdcard_directory(DataManager_GetStrValue("tw_zip_location_val"));
+=======
+					status = sdcard_directory(DataManager_GetStrValue(TW_ZIP_LOCATION_VAR));
+>>>>>>> 1.1.x
 				} else {
 					ui_print("Maximum of %i zips queued.\n", multi_zip_index);
 				}
@@ -505,7 +525,11 @@ void install_zip_menu(int pIdx)
 						multi_zip_index = 0; // clear zip queue
 						return;  // reboot if logs aren't visible
 					} else {
+<<<<<<< HEAD
 						if (DataManager_GetIntValue("tw_reboot_after_flash_option")) {
+=======
+						if (DataManager_GetIntValue(TW_REBOOT_AFTER_FLASH_VAR)) {
+>>>>>>> 1.1.x
 							tw_reboot();
 							return;
 						}
@@ -527,6 +551,7 @@ void install_zip_menu(int pIdx)
 				wipe_dalvik_cache();
 				break;
             case ITEM_REBOOT_AFTER_FLASH:
+<<<<<<< HEAD
                 DataManager_ToggleIntValue("tw_reboot_after_flash_option");
                 break;
 			case ITEM_SORT_BY_DATE:
@@ -537,6 +562,18 @@ void install_zip_menu(int pIdx)
                 break;
 			case ITEM_TOGGLE_FORCE_MD5:
                 DataManager_ToggleIntValue("tw_force_md5_check_val");
+=======
+                DataManager_ToggleIntValue(TW_REBOOT_AFTER_FLASH_VAR);
+                break;
+			case ITEM_SORT_BY_DATE:
+                DataManager_ToggleIntValue(TW_SORT_FILES_BY_DATE_VAR);
+                break;
+            case ITEM_TOGGLE_SIG:
+                DataManager_ToggleIntValue(TW_SIGNED_ZIP_VERIFY_VAR);
+                break;
+			case ITEM_TOGGLE_FORCE_MD5:
+                DataManager_ToggleIntValue(TW_FORCE_MD5_CHECK_VAR);
+>>>>>>> 1.1.x
                 break;            
             case ITEM_ZIP_RBOOT:
 				tw_reboot();
@@ -687,7 +724,11 @@ void fix_perms()
     ui_print("\n-- Fixing Permissions\n");
 	while (fscanf(fp,"%s",tmpOutput) != EOF)
 	{
+<<<<<<< HEAD
 		if(DataManager_GetIntValue("tw_show_spam_val"))
+=======
+		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR))
+>>>>>>> 1.1.x
 		{
 			ui_print("%s\n",tmpOutput);
 		}
@@ -937,7 +978,11 @@ void time_zone_menu()
     
     inc_menu_loc(TZ_MAIN_BACK);
 	
+<<<<<<< HEAD
 	ui_print("Currently selected time zone: %s\n", DataManager_GetStrValue("tw_time_zone_val"));
+=======
+	ui_print("Currently selected time zone: %s\n", DataManager_GetStrValue(TW_TIME_ZONE_VAR));
+>>>>>>> 1.1.x
 	
     for (;;)
     {
@@ -1011,6 +1056,7 @@ void time_zone_minus()
         switch (chosen_item)
         {
             case TZ_GMT_MINUS11:
+<<<<<<< HEAD
             	DataManager_SetStrValue("tw_time_zone_val", "BST11");
 				strcpy(time_zone_dst_string, "BDT");
                 break;
@@ -1060,6 +1106,57 @@ void time_zone_minus()
                 break;
 			case TZ_GMTCUT:
                 DataManager_SetStrValue("tw_time_zone_val", "CUT0");
+=======
+            	DataManager_SetStrValue(TW_TIME_ZONE_VAR, "BST11");
+				strcpy(time_zone_dst_string, "BDT");
+                break;
+			case TZ_GMT_MINUS10:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "HST10");
+				strcpy(time_zone_dst_string, "HDT");
+                break;
+            case TZ_GMT_MINUS09:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "AST9");
+				strcpy(time_zone_dst_string, "ADT");
+                break;
+            case TZ_GMT_MINUS08:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "PST8");
+				strcpy(time_zone_dst_string, "PDT");
+                break;
+            case TZ_GMT_MINUS07:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "MST7");
+				strcpy(time_zone_dst_string, "MDT");
+                break;
+            case TZ_GMT_MINUS06:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "CST6");
+				strcpy(time_zone_dst_string, "CDT");
+                break;
+            case TZ_GMT_MINUS05:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "EST5");
+				strcpy(time_zone_dst_string, "EDT");
+                break;
+            case TZ_GMT_MINUS04:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "AST4");
+				strcpy(time_zone_dst_string, "ADT");
+                break;
+			case TZ_GMT_MINUS03:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "GRNLNDST3");
+				strcpy(time_zone_dst_string, "GRNLNDDT");
+                break;
+			case TZ_GMT_MINUS02:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "FALKST2");
+				strcpy(time_zone_dst_string, "FALKDT");
+                break;
+			case TZ_GMT_MINUS01:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "AZOREST1");
+				strcpy(time_zone_dst_string, "AZOREDT");
+                break;
+			case TZ_GMT:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "GMT0");
+				strcpy(time_zone_dst_string, "BST");
+                break;
+			case TZ_GMTCUT:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "CUT0");
+>>>>>>> 1.1.x
 				strcpy(time_zone_dst_string, "GDT");
                 break;
             case TZ_MINUS_MENU_BACK:
@@ -1070,7 +1167,11 @@ void time_zone_minus()
 	        dec_menu_loc();
 	        return;
 	    } else {
+<<<<<<< HEAD
 			ui_print("New time zone: %s", DataManager_GetStrValue("tw_time_zone_val"));
+=======
+			ui_print("New time zone: %s", DataManager_GetStrValue(TW_TIME_ZONE_VAR));
+>>>>>>> 1.1.x
 			time_zone_offset();
 			time_zone_dst();
 			update_tz_environment_variables();
@@ -1133,6 +1234,7 @@ void time_zone_plus()
         switch (chosen_item)
         {
             case TZ_GMT_PLUS01:
+<<<<<<< HEAD
                 DataManager_SetStrValue("tw_time_zone_val", "NFT-1");
 				strcpy(time_zone_dst_string, "DFT");
                 break;
@@ -1194,6 +1296,69 @@ void time_zone_plus()
                 break;
 			case TZ_GMT_PLUS12:
                 DataManager_SetStrValue("tw_time_zone_val", "NZST-12");
+=======
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "NFT-1");
+				strcpy(time_zone_dst_string, "DFT");
+                break;
+            case TZ_GMT_PLUS02USAST:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "USAST-2");
+				strcpy(time_zone_dst_string, "USADT");
+                break;
+            case TZ_GMT_PLUS02WET:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "WET-2");
+				strcpy(time_zone_dst_string, "WET");
+                break;
+            case TZ_GMT_PLUS03SAUST:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "SAUST-3");
+				strcpy(time_zone_dst_string, "SAUDT");
+                break;
+            case TZ_GMT_PLUS03MEST:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "MEST-3");
+				strcpy(time_zone_dst_string, "MEDT");
+                break;
+            case TZ_GMT_PLUS04:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "WST-4");
+				strcpy(time_zone_dst_string, "WDT");
+                break;
+            case TZ_GMT_PLUS05:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "PAKST-5");
+				strcpy(time_zone_dst_string, "PAKDT");
+                break;
+			case TZ_GMT_PLUS06:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "TASHST-6");
+				strcpy(time_zone_dst_string, "TASHDT");
+                break;
+			case TZ_GMT_PLUS07:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "THAIST-7");
+				strcpy(time_zone_dst_string, "THAIDT");
+                break;
+			case TZ_GMT_PLUS08TAIST:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "TAIST-8");
+				strcpy(time_zone_dst_string, "TAIDT");
+                break;
+			case TZ_GMT_PLUS08WAUST:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "WAUST-8");
+				strcpy(time_zone_dst_string, "WAUDT");
+                break;
+			case TZ_GMT_PLUS09KORST:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "KORST-9");
+				strcpy(time_zone_dst_string, "KORDT");
+                break;
+			case TZ_GMT_PLUS09JST:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "JST-9");
+				strcpy(time_zone_dst_string, "JSTDT");
+                break;
+			case TZ_GMT_PLUS10:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "EET-10");
+				strcpy(time_zone_dst_string, "EETDT");
+                break;
+			case TZ_GMT_PLUS11:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "MET-11");
+				strcpy(time_zone_dst_string, "METDT");
+                break;
+			case TZ_GMT_PLUS12:
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, "NZST-12");
+>>>>>>> 1.1.x
 				strcpy(time_zone_dst_string, "NZDT");
                 break;
             case TZ_PLUS_MENU_BACK:
@@ -1204,7 +1369,11 @@ void time_zone_plus()
 	        dec_menu_loc();
 	        return;
 	    } else {
+<<<<<<< HEAD
             ui_print("New time zone: %s", DataManager_GetStrValue("tw_time_zone_val"));
+=======
+            ui_print("New time zone: %s", DataManager_GetStrValue(TW_TIME_ZONE_VAR));
+>>>>>>> 1.1.x
 			time_zone_offset();
 			time_zone_dst();
 			update_tz_environment_variables();
@@ -1262,7 +1431,11 @@ void time_zone_offset() {
 	        return;
 	    } else {
 			dec_menu_loc();
+<<<<<<< HEAD
 			ui_print_overwrite("New time zone: %s%s", DataManager_GetStrValue("tw_time_zone_val"), time_zone_offset_string);
+=======
+			ui_print_overwrite("New time zone: %s%s", DataManager_GetStrValue(TW_TIME_ZONE_VAR), time_zone_offset_string);
+>>>>>>> 1.1.x
 			return;
 		}
     }
@@ -1287,7 +1460,11 @@ void time_zone_dst() {
     inc_menu_loc(TZ_DST_BACK);
 
     char tmpStr[64];
+<<<<<<< HEAD
     strcpy(tmpStr, DataManager_GetStrValue("tw_time_zone_val"));
+=======
+    strcpy(tmpStr, DataManager_GetStrValue(TW_TIME_ZONE_VAR));
+>>>>>>> 1.1.x
 
     for (;;)
     {
@@ -1297,12 +1474,20 @@ void time_zone_dst() {
             case TZ_DST_YES:
             	strcat(tmpStr, time_zone_offset_string);
 				strcat(tmpStr, time_zone_dst_string);
+<<<<<<< HEAD
                 DataManager_SetStrValue("tw_time_zone_val", tmpStr);
+=======
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, tmpStr);
+>>>>>>> 1.1.x
 				ui_print_overwrite("New time zone: %s", tmpStr);
                 break;
             case TZ_DST_NO:
 				strcat(tmpStr, time_zone_offset_string);
+<<<<<<< HEAD
                 DataManager_SetStrValue("tw_time_zone_val", tmpStr);
+=======
+                DataManager_SetStrValue(TW_TIME_ZONE_VAR, tmpStr);
+>>>>>>> 1.1.x
                 break;
             case TZ_DST_BACK:
             	dec_menu_loc();
@@ -1319,7 +1504,11 @@ void time_zone_dst() {
 }
 
 void update_tz_environment_variables() {
+<<<<<<< HEAD
     setenv("TZ", DataManager_GetStrValue("tw_time_zone_val"), 1);
+=======
+    setenv("TZ", DataManager_GetStrValue(TW_TIME_ZONE_VAR), 1);
+>>>>>>> 1.1.x
     tzset();
 }
 
@@ -1611,7 +1800,11 @@ char* toggle_spam()
 {
 	char* tmp_set = (char*)malloc(40);
 	strcpy(tmp_set, "[ ] Toggle twrp Spam");
+<<<<<<< HEAD
 	if (DataManager_GetIntValue("tw_show_spam_val") == 1) {
+=======
+	if (DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 1) {
+>>>>>>> 1.1.x
 		tmp_set[1] = 'x';
 	}
 	return tmp_set;
@@ -1657,6 +1850,7 @@ void all_settings_menu(int pIdx)
         switch (chosen_item)
         {
             case ALLS_SIG_TOGGLE:
+<<<<<<< HEAD
             	DataManager_ToggleIntValue("tw_signed_zip_val");
                 break;
 			case ALLS_REBOOT_AFTER_FLASH:
@@ -1670,6 +1864,21 @@ void all_settings_menu(int pIdx)
                 break;
 			case ALLS_SPAM:
                 DataManager_ToggleIntValue("tw_show_spam_val");
+=======
+            	DataManager_ToggleIntValue(TW_SIGNED_ZIP_VERIFY_VAR);
+                break;
+			case ALLS_REBOOT_AFTER_FLASH:
+                DataManager_ToggleIntValue(TW_REBOOT_AFTER_FLASH_VAR);
+                break;
+            case ALLS_FORCE_MD5_CHECK:
+                DataManager_ToggleIntValue(TW_FORCE_MD5_CHECK_VAR);
+                break;
+			case ALLS_SORT_BY_DATE:
+                DataManager_ToggleIntValue(TW_SORT_FILES_BY_DATE_VAR);
+                break;
+			case ALLS_SPAM:
+                DataManager_ToggleIntValue(TW_SHOW_SPAM_VAR);
+>>>>>>> 1.1.x
 				break;
 			case ALLS_THEMES:
 			    twrp_themes_menu();
