@@ -613,6 +613,10 @@ void reboot_menu()
 
     
     char** headers = prepend_title(MENU_REBOOT_HEADERS);
+
+    // This is an old, common method for ensuring a flush
+    sync();
+    sync();
     
     inc_menu_loc(ITEM_BACKK);
     for (;;)

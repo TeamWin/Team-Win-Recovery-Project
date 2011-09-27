@@ -52,6 +52,7 @@ class DataManager
 public:
     static int ResetDefaults();
     static int LoadValues(const string filename);
+    static int Flush();
 
     // Core get routines
     static int GetValue(const string varName, string& value);
@@ -145,11 +146,16 @@ int DataManager::LoadValues(const string filename)
     return 0;
 }
 
+int DataManager::Flush()
+{
+    return SaveValues();
+}
+
 int DataManager::SaveValues()
 {
     if (mBackingFile.empty())       return -1;
 
-    ofstream out(mBackingFile.c_str(), ios_base::out);
+    ofstream out(mBackingFile.c_str(), ios::out | ios::trunc);
     int file_version = FILE_VERSION;
     out << file_version << endl;
 
@@ -338,6 +344,11 @@ extern "C" int DataManager_ResetDefaults()
 extern "C" int DataManager_LoadValues(const char* filename)
 {
     return DataManager::LoadValues(filename);
+}
+
+extern "C" int DataManager_Flush()
+{
+    return DataManager::Flush();
 }
 
 extern "C" int DataManager_GetValue(const char* varName, char* value)
