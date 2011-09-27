@@ -18,13 +18,15 @@ LOCAL_SRC_FILES := \
     extra-functions.c \
     ddftw.c \
     backstore.c \
-    settings_file.c \
     themes.c \
-    format.c
+    format.c \
+    data.cpp
 
 LOCAL_MODULE := recovery
 
 LOCAL_FORCE_STATIC_EXECUTABLE := true
+
+LOCAL_C_INCLUDES += bionic external/stlport/stlport
 
 RECOVERY_API_VERSION := 2
 LOCAL_CFLAGS += -DRECOVERY_API_VERSION=$(RECOVERY_API_VERSION)
@@ -44,7 +46,7 @@ else
 endif
 LOCAL_STATIC_LIBRARIES += libz libminzip libunz libmtdutils libmincrypt
 LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libcutils
-LOCAL_STATIC_LIBRARIES += libstdc++ libc
+LOCAL_STATIC_LIBRARIES += libstlport_static libstdc++ libc
 
 include $(BUILD_EXECUTABLE)
 

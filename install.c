@@ -33,8 +33,6 @@
 #include "roots.h"
 #include "verifier.h"
 
-#include "settings_file.h"
-
 #define ASSUMED_UPDATE_BINARY_NAME  "META-INF/com/google/android/update-binary"
 #define PUBLIC_KEYS_FILE "/res/keys"
 
@@ -252,7 +250,7 @@ install_package(const char *path)
 
     ui_print("Opening update package...\n");
 
-    if (is_true(tw_signed_zip_val)) {
+    if (DataManager_GetIntValue(TW_SIGNED_ZIP_VERIFY_VAR)) {
         int numKeys;
         RSAPublicKey* loadedKeys = load_keys(PUBLIC_KEYS_FILE, &numKeys);
         if (loadedKeys == NULL) {
