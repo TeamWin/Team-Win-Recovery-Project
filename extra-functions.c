@@ -64,6 +64,7 @@ char swapsize[32];
 int swap;
 char extsize[32];
 int ext;
+int ext_format; // 3 or 4
 
 int
 __system(const char *command)
@@ -1757,7 +1758,7 @@ int check_md5(char* path) {
 static void
 show_menu_partition()
 {
-
+// I KNOW THAT this menu seems a bit redundant, but it allows us to display the warning message & we're planning to add ext3 to 4 upgrade option and maybe file system error fixing later
     static char* SDheaders[] = { "Choose partition item,",
 			       "",
 			       "",
@@ -1765,19 +1766,17 @@ show_menu_partition()
 
 // these constants correspond to elements of the items[] list.
 #define ITEM_PART_SD       0
-#define ITEM_PART_REP      1
-#define ITEM_PART_EXT3     2
-#define ITEM_PART_EXT4     3
-#define ITEM_PART_BACK     4
+#define ITEM_PART_BACK     1
 
-    static char* items[] = { "Partition SD Card",
-			                 "Repair SD:ext",
-			                 "Convert SD:ext2 to ext3",
-                             "Convert SD:ext3 to ext4",
+    ext_format = 3; // default this to 3
+	
+	static char* items[] = { "Partition SD Card",
 							 "<-- Back to Advanced Menu",
                              NULL };
 
     char** headers = prepend_title(SDheaders);
+	
+	ui_print("\nBack up your sdcard before partitioning!\nAll files will be lost!\n");
     
     inc_menu_loc(ITEM_PART_BACK);
     for (;;)
@@ -1804,7 +1803,7 @@ show_menu_partition()
                 sddevice[strlen("/dev/block/mmcblkX")] = NULL;
 
 				char es[64];
-				sprintf(es, "/sbin/sdparted -es %dM -ss %dM -efs ext3 -s > /cache/part.log",ext,swap);
+				sprintf(es, "/sbin/sdparted -es %dM -ss %dM -efs ext%i -s > /cache/part.log",ext,swap,ext_format);
 				LOGI("\nrunning script: %s\n", es);
 				run_script("\nContinue partitioning?",
 					   "\nPartitioning sdcard : ",
@@ -1813,35 +1812,6 @@ show_menu_partition()
 					   "\nOops... something went wrong!\nPlease check the recovery log!\n",
 					   "\nPartitioning complete!\n\n",
 					   "\nPartitioning aborted!\n\n");
-				break;
-			case ITEM_PART_REP:
-				run_script("\nRepair ext filesystem",
-					   "\nRepairing ext filesystem : ",
-					   "/sbin/fs repair",
-					   "\nUnable to execute fs!\n(%s)\n",
-					   "\nOops... something went wrong!\nPlease check the recovery log!\n\n",
-					   "\nExt repairing complete!\n\n",
-					   "\nExt repairing aborted!\n\n");
-				break;
-					   
-			case ITEM_PART_EXT3:
-				run_script("\nUpgrade ext2 to ext3",
-					   "\nUpgrading ext2 to ext3 : ",
-					   "/sbin/fs ext3",
-					   "\nUnable to execute fs!\n(%s)\n",
-					   "\nOops... something went wrong!\nPlease check the recovery log!\n\n",
-					   "\nExt upgrade complete!\n\n",
-					   "\nExt upgrade aborted!\n\n");
-				break;
-
-			case ITEM_PART_EXT4:
-				run_script("\nUpgrade ext3 to ext4",
-					   "\nUpgrading ext3 to ext4 : ",
-					   "/sbin/fs ext4",
-					   "\nUnable to execute fs!\n(%s)\n",
-					   "\nOops... something went wrong!\nPlease check the recovery log!\n\n",
-					   "\nExt upgrade complete!\n\n",
-					   "\nExt upgrade aborted!\n\n");
 				break;
 			case ITEM_PART_BACK:
 				dec_menu_loc();
@@ -1911,11 +1881,23 @@ void choose_swap_size(int pIdx) {
 	choose_swap_size(pIdx);
 }
 
+char* ext_format_menu_option()
+{
+	char* tmp_set = (char*)malloc(40);
+	strcpy(tmp_set, "[3] SD-EXT File System - EXT3");
+	if (ext_format == 4) {
+		tmp_set[1] = '4';
+		tmp_set[28] = '4';
+	}
+	return tmp_set;
+}
+
 void choose_ext_size(int pIdx) {
 	#define EXT_SET                0
 	#define EXT_INCREASE           1
 	#define EXT_DECREASE           2
-	#define EXT_BACK               3
+	#define EXT_EXT_FORMAT         3
+	#define EXT_BACK               4
 
     static char* MENU_EXT_HEADERS[] = { "EXT Partition",
     								     "Please select size for EXT partition:",
@@ -1924,6 +1906,7 @@ void choose_ext_size(int pIdx) {
 	char* MENU_EXT[] =         { "Save EXT Size & Commit Changes",
 								 "Increase",
 							     "Decrease",
+								 ext_format_menu_option(),
 	                             "<-- Back To SD Card Partition, Cancel",
 	                             NULL };
 	
@@ -1951,6 +1934,13 @@ void choose_ext_size(int pIdx) {
 				ext = ext - 128;
 				if (ext < 0) ext = 0;
                 break;
+			case EXT_EXT_FORMAT:
+				if (ext_format == 3) {
+					ext_format = 4;
+				} else {
+					ext_format = 3;
+				}
+				break;
             case EXT_BACK:
 				ext = -1;
             	dec_menu_loc();
