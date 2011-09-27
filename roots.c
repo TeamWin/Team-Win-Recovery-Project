@@ -170,6 +170,10 @@ int ensure_path_mounted(const char* path) {
 }
 
 int ensure_path_unmounted(const char* path) {
+    // This is an old, common method for ensuring a flush
+    sync();
+    sync();
+
     Volume* v = volume_for_path(path);
     if (v == NULL) {
         LOGE("unknown volume for path [%s]\n", path);
