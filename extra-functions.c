@@ -64,6 +64,7 @@ char swapsize[32];
 int swap;
 char extsize[32];
 int ext;
+int ext_format; // 3 or 4
 
 int
 __system(const char *command)
@@ -265,65 +266,62 @@ void show_fake_main_menu() {
                             "Reboot system now",
                             "Power down system",
                             NULL };
+
+	go_home = 0;
+	go_menu = 0;
+	menu_loc_idx = 0;
+	ui_reset_progress();
 	
-    for (;;) {
+	int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
 
-        go_home = 0;
-        go_menu = 0;
-        menu_loc_idx = 0;
-		ui_reset_progress();
-    	
-        int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
+	// device-specific code may take some action here.  It may
+	// return one of the core actions handled in the switch
+	// statement below.
+	chosen_item = device_perform_action(chosen_item);
 
-        // device-specific code may take some action here.  It may
-        // return one of the core actions handled in the switch
-        // statement below.
-        chosen_item = device_perform_action(chosen_item);
+   
+	switch (chosen_item) {
+		case ITEM_APPLY_SDCARD:
+			install_zip_menu(0);
+			break;
 
-       
-        switch (chosen_item) {
-            case ITEM_APPLY_SDCARD:
-                install_zip_menu(0);
-                break;
+		case ITEM_NANDROID_MENU:
+			nandroid_menu();
+			break;
+			
+		case ITEM_MAIN_WIPE_MENU:
+			main_wipe_menu();
+			break;
 
-            case ITEM_NANDROID_MENU:
-            	nandroid_menu();
-            	break;
-            	
-            case ITEM_MAIN_WIPE_MENU:
-                main_wipe_menu();
-                break;
+		case ITEM_ADVANCED_MENU:
+			advanced_menu();
+			break;
 
-            case ITEM_ADVANCED_MENU:
-            	advanced_menu();
-                break;
+		case ITEM_MOUNT_MENU:
+			mount_menu(0);
+			break;
+			
+		case ITEM_USB_TOGGLE:
+			usb_storage_toggle();
+			break;
 
-            case ITEM_MOUNT_MENU:
-            	mount_menu(0);
-                break;
-                
-            case ITEM_USB_TOGGLE:
-            	usb_storage_toggle();
-                break;
-
-            case ITEM_REBOOT:
-				go_reboot = 1;
-                return;
-
-	    case ITEM_SHUTDOWN:
-	        __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
-		break;
-        }
-        if (go_menu) {
-        	advanced_menu();
-        }
-		if (go_restart || go_home) {
-			go_restart = 0;
-			go_home = 0;
-			ui_end_menu();
+		case ITEM_REBOOT:
+			go_reboot = 1;
 			return;
-		}
-    }
+
+	case ITEM_SHUTDOWN:
+		__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
+	break;
+	}
+	if (go_menu) {
+		advanced_menu();
+	}
+	if (go_restart || go_home) {
+		go_restart = 0;
+		go_home = 0;
+	}
+	ui_end_menu();
+	return;
 }
 
 
@@ -423,6 +421,16 @@ char* sort_by_date_option()
     char* tmp_set = (char*)malloc(40);
     strcpy(tmp_set, "[ ] Sort Zips by Date");
     if (DataManager_GetIntValue(TW_SORT_FILES_BY_DATE_VAR) == 1) {
+        tmp_set[1] = 'x';
+    }
+    return tmp_set;
+}
+
+char* rm_rf_option()
+{
+    char* tmp_set = (char*)malloc(40);
+    strcpy(tmp_set, "[ ] rm -rf Instead of Format");
+    if (DataManager_GetIntValue(TW_RM_RF_VAR) == 1) {
         tmp_set[1] = 'x';
     }
     return tmp_set;
@@ -1598,10 +1606,19 @@ void main_wipe_menu()
 
 char* toggle_spam()
 {
-	char* tmp_set = (char*)malloc(40);
-	strcpy(tmp_set, "[ ] Toggle twrp Spam");
-	if (DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 1) {
-		tmp_set[1] = 'x';
+	char* tmp_set = (char*)malloc(50);
+	
+	switch (DataManager_GetIntValue(TW_SHOW_SPAM_VAR))
+	{
+		case 0:
+			strcpy(tmp_set, "[o] No Filename Display (Fastest)");
+			break;
+		case 1:
+			strcpy(tmp_set, "[s] Single Line Filename Display (Slower)");
+			break;
+		case 2:
+			strcpy(tmp_set, "[m] Multiple Line Filename Display (Slower)");
+			break;
 	}
 	return tmp_set;
 }
@@ -1614,11 +1631,12 @@ void all_settings_menu(int pIdx)
 	#define ALLS_SPAM				    2
     #define ALLS_FORCE_MD5_CHECK        3
 	#define ALLS_SORT_BY_DATE           4
-    #define ALLS_TIME_ZONE              5
-	#define ALLS_ZIP_LOCATION   	    6
-	#define ALLS_THEMES                 7
-	#define ALLS_DEFAULT                8
-	#define ALLS_MENU_BACK              9
+    #define ALLS_RM_RF                  5
+    #define ALLS_TIME_ZONE              6
+	#define ALLS_ZIP_LOCATION   	    7
+	#define ALLS_THEMES                 8
+	#define ALLS_DEFAULT                9
+	#define ALLS_MENU_BACK              10
 
     static char* MENU_ALLS_HEADERS[] = { "Change twrp Settings",
     									 "twrp or gtfo:",
@@ -1629,6 +1647,7 @@ void all_settings_menu(int pIdx)
 	                          toggle_spam(),
                               force_md5_check(),
 							  sort_by_date_option(),
+							  rm_rf_option(),
 	                          "Change Time Zone",
 	                          "Change Zip Default Folder",
 	                          "Change twrp Color Theme",
@@ -1657,8 +1676,22 @@ void all_settings_menu(int pIdx)
 			case ALLS_SORT_BY_DATE:
                 DataManager_ToggleIntValue(TW_SORT_FILES_BY_DATE_VAR);
                 break;
+			case ALLS_RM_RF:
+				DataManager_ToggleIntValue(TW_RM_RF_VAR);
+				break;
 			case ALLS_SPAM:
-                DataManager_ToggleIntValue(TW_SHOW_SPAM_VAR);
+				switch (DataManager_GetIntValue(TW_SHOW_SPAM_VAR))
+				{
+					case 0:
+						DataManager_SetIntValue(TW_SHOW_SPAM_VAR, 1);
+						break;
+					case 1:
+						DataManager_SetIntValue(TW_SHOW_SPAM_VAR, 2);
+						break;
+					case 2:
+						DataManager_SetIntValue(TW_SHOW_SPAM_VAR, 0);
+						break;
+				}
 				break;
 			case ALLS_THEMES:
 			    twrp_themes_menu();
@@ -1729,7 +1762,7 @@ int check_md5(char* path) {
 static void
 show_menu_partition()
 {
-
+// I KNOW THAT this menu seems a bit redundant, but it allows us to display the warning message & we're planning to add ext3 to 4 upgrade option and maybe file system error fixing later
     static char* SDheaders[] = { "Choose partition item,",
 			       "",
 			       "",
@@ -1737,19 +1770,17 @@ show_menu_partition()
 
 // these constants correspond to elements of the items[] list.
 #define ITEM_PART_SD       0
-#define ITEM_PART_REP      1
-#define ITEM_PART_EXT3     2
-#define ITEM_PART_EXT4     3
-#define ITEM_PART_BACK     4
+#define ITEM_PART_BACK     1
 
-    static char* items[] = { "Partition SD Card",
-			                 "Repair SD:ext",
-			                 "Convert SD:ext2 to ext3",
-                             "Convert SD:ext3 to ext4",
+    ext_format = 3; // default this to 3
+	
+	static char* items[] = { "Partition SD Card",
 							 "<-- Back to Advanced Menu",
                              NULL };
 
     char** headers = prepend_title(SDheaders);
+	
+	ui_print("\nBack up your sdcard before partitioning!\nAll files will be lost!\n");
     
     inc_menu_loc(ITEM_PART_BACK);
     for (;;)
@@ -1776,7 +1807,7 @@ show_menu_partition()
                 sddevice[strlen("/dev/block/mmcblkX")] = NULL;
 
 				char es[64];
-				sprintf(es, "/sbin/sdparted -es %dM -ss %dM -efs ext3 -s > /cache/part.log",ext,swap);
+				sprintf(es, "/sbin/sdparted -es %dM -ss %dM -efs ext%i -s > /cache/part.log",ext,swap,ext_format);
 				LOGI("\nrunning script: %s\n", es);
 				run_script("\nContinue partitioning?",
 					   "\nPartitioning sdcard : ",
@@ -1785,35 +1816,6 @@ show_menu_partition()
 					   "\nOops... something went wrong!\nPlease check the recovery log!\n",
 					   "\nPartitioning complete!\n\n",
 					   "\nPartitioning aborted!\n\n");
-				break;
-			case ITEM_PART_REP:
-				run_script("\nRepair ext filesystem",
-					   "\nRepairing ext filesystem : ",
-					   "/sbin/fs repair",
-					   "\nUnable to execute fs!\n(%s)\n",
-					   "\nOops... something went wrong!\nPlease check the recovery log!\n\n",
-					   "\nExt repairing complete!\n\n",
-					   "\nExt repairing aborted!\n\n");
-				break;
-					   
-			case ITEM_PART_EXT3:
-				run_script("\nUpgrade ext2 to ext3",
-					   "\nUpgrading ext2 to ext3 : ",
-					   "/sbin/fs ext3",
-					   "\nUnable to execute fs!\n(%s)\n",
-					   "\nOops... something went wrong!\nPlease check the recovery log!\n\n",
-					   "\nExt upgrade complete!\n\n",
-					   "\nExt upgrade aborted!\n\n");
-				break;
-
-			case ITEM_PART_EXT4:
-				run_script("\nUpgrade ext3 to ext4",
-					   "\nUpgrading ext3 to ext4 : ",
-					   "/sbin/fs ext4",
-					   "\nUnable to execute fs!\n(%s)\n",
-					   "\nOops... something went wrong!\nPlease check the recovery log!\n\n",
-					   "\nExt upgrade complete!\n\n",
-					   "\nExt upgrade aborted!\n\n");
 				break;
 			case ITEM_PART_BACK:
 				dec_menu_loc();
@@ -1883,11 +1885,23 @@ void choose_swap_size(int pIdx) {
 	choose_swap_size(pIdx);
 }
 
+char* ext_format_menu_option()
+{
+	char* tmp_set = (char*)malloc(40);
+	strcpy(tmp_set, "[3] SD-EXT File System - EXT3");
+	if (ext_format == 4) {
+		tmp_set[1] = '4';
+		tmp_set[28] = '4';
+	}
+	return tmp_set;
+}
+
 void choose_ext_size(int pIdx) {
 	#define EXT_SET                0
 	#define EXT_INCREASE           1
 	#define EXT_DECREASE           2
-	#define EXT_BACK               3
+	#define EXT_EXT_FORMAT         3
+	#define EXT_BACK               4
 
     static char* MENU_EXT_HEADERS[] = { "EXT Partition",
     								     "Please select size for EXT partition:",
@@ -1896,6 +1910,7 @@ void choose_ext_size(int pIdx) {
 	char* MENU_EXT[] =         { "Save EXT Size & Commit Changes",
 								 "Increase",
 							     "Decrease",
+								 ext_format_menu_option(),
 	                             "<-- Back To SD Card Partition, Cancel",
 	                             NULL };
 	
@@ -1923,6 +1938,13 @@ void choose_ext_size(int pIdx) {
 				ext = ext - 128;
 				if (ext < 0) ext = 0;
                 break;
+			case EXT_EXT_FORMAT:
+				if (ext_format == 3) {
+					ext_format = 4;
+				} else {
+					ext_format = 3;
+				}
+				break;
             case EXT_BACK:
 				ext = -1;
             	dec_menu_loc();

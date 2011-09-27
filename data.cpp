@@ -314,6 +314,7 @@ void DataManager::SetDefaultValues()
     mConstValues.insert(make_pair("TW_FORCE_MD5_CHECK", "FORCE_MD5"));
     mConstValues.insert(make_pair("TW_SORT_FILES_BY_DATE", "SORT_BY_DATE"));
     mConstValues.insert(make_pair("TW_SINGLE_ZIP_MODE", "SINGLE_ZIP_MODE"));
+	mConstValues.insert(make_pair("TW_RM_RF", "RM_RF"));
 
     mConstValues.insert(make_pair(TW_VERSION_VAR, "1.1.0"));
     mValues.insert(make_pair(TW_NANDROID_SYSTEM_VAR, make_pair("1", 1)));
@@ -333,6 +334,7 @@ void DataManager::SetDefaultValues()
     mValues.insert(make_pair(TW_TIME_ZONE_VAR, make_pair("CST6CDT", 1)));
     mValues.insert(make_pair(TW_ZIP_LOCATION_VAR, make_pair("/sdcard", 1)));
     mValues.insert(make_pair(TW_SORT_FILES_BY_DATE_VAR, make_pair("0", 1)));
+	mValues.insert(make_pair(TW_RM_RF_VAR, make_pair("0", 1)));
 }
 
 extern "C" int DataManager_ResetDefaults()
