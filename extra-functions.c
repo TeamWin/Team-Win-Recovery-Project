@@ -265,65 +265,62 @@ void show_fake_main_menu() {
                             "Reboot system now",
                             "Power down system",
                             NULL };
+
+	go_home = 0;
+	go_menu = 0;
+	menu_loc_idx = 0;
+	ui_reset_progress();
 	
-    for (;;) {
+	int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
 
-        go_home = 0;
-        go_menu = 0;
-        menu_loc_idx = 0;
-		ui_reset_progress();
-    	
-        int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
+	// device-specific code may take some action here.  It may
+	// return one of the core actions handled in the switch
+	// statement below.
+	chosen_item = device_perform_action(chosen_item);
 
-        // device-specific code may take some action here.  It may
-        // return one of the core actions handled in the switch
-        // statement below.
-        chosen_item = device_perform_action(chosen_item);
+   
+	switch (chosen_item) {
+		case ITEM_APPLY_SDCARD:
+			install_zip_menu(0);
+			break;
 
-       
-        switch (chosen_item) {
-            case ITEM_APPLY_SDCARD:
-                install_zip_menu(0);
-                break;
+		case ITEM_NANDROID_MENU:
+			nandroid_menu();
+			break;
+			
+		case ITEM_MAIN_WIPE_MENU:
+			main_wipe_menu();
+			break;
 
-            case ITEM_NANDROID_MENU:
-            	nandroid_menu();
-            	break;
-            	
-            case ITEM_MAIN_WIPE_MENU:
-                main_wipe_menu();
-                break;
+		case ITEM_ADVANCED_MENU:
+			advanced_menu();
+			break;
 
-            case ITEM_ADVANCED_MENU:
-            	advanced_menu();
-                break;
+		case ITEM_MOUNT_MENU:
+			mount_menu(0);
+			break;
+			
+		case ITEM_USB_TOGGLE:
+			usb_storage_toggle();
+			break;
 
-            case ITEM_MOUNT_MENU:
-            	mount_menu(0);
-                break;
-                
-            case ITEM_USB_TOGGLE:
-            	usb_storage_toggle();
-                break;
-
-            case ITEM_REBOOT:
-				go_reboot = 1;
-                return;
-
-	    case ITEM_SHUTDOWN:
-	        __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
-		break;
-        }
-        if (go_menu) {
-        	advanced_menu();
-        }
-		if (go_restart || go_home) {
-			go_restart = 0;
-			go_home = 0;
-			ui_end_menu();
+		case ITEM_REBOOT:
+			go_reboot = 1;
 			return;
-		}
-    }
+
+	case ITEM_SHUTDOWN:
+		__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
+	break;
+	}
+	if (go_menu) {
+		advanced_menu();
+	}
+	if (go_restart || go_home) {
+		go_restart = 0;
+		go_home = 0;
+	}
+	ui_end_menu();
+	return;
 }
 
 
@@ -423,6 +420,16 @@ char* sort_by_date_option()
     char* tmp_set = (char*)malloc(40);
     strcpy(tmp_set, "[ ] Sort Zips by Date");
     if (DataManager_GetIntValue(TW_SORT_FILES_BY_DATE_VAR) == 1) {
+        tmp_set[1] = 'x';
+    }
+    return tmp_set;
+}
+
+char* rm_rf_option()
+{
+    char* tmp_set = (char*)malloc(40);
+    strcpy(tmp_set, "[ ] rm -rf Instead of Format");
+    if (DataManager_GetIntValue(TW_RM_RF_VAR) == 1) {
         tmp_set[1] = 'x';
     }
     return tmp_set;
@@ -1594,10 +1601,19 @@ void main_wipe_menu()
 
 char* toggle_spam()
 {
-	char* tmp_set = (char*)malloc(40);
-	strcpy(tmp_set, "[ ] Toggle twrp Spam");
-	if (DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 1) {
-		tmp_set[1] = 'x';
+	char* tmp_set = (char*)malloc(50);
+	
+	switch (DataManager_GetIntValue(TW_SHOW_SPAM_VAR))
+	{
+		case 0:
+			strcpy(tmp_set, "[o] No Filename Display (Fastest)");
+			break;
+		case 1:
+			strcpy(tmp_set, "[s] Single Line Filename Display (Slower)");
+			break;
+		case 2:
+			strcpy(tmp_set, "[m] Multiple Line Filename Display (Slower)");
+			break;
 	}
 	return tmp_set;
 }
@@ -1610,11 +1626,12 @@ void all_settings_menu(int pIdx)
 	#define ALLS_SPAM				    2
     #define ALLS_FORCE_MD5_CHECK        3
 	#define ALLS_SORT_BY_DATE           4
-    #define ALLS_TIME_ZONE              5
-	#define ALLS_ZIP_LOCATION   	    6
-	#define ALLS_THEMES                 7
-	#define ALLS_DEFAULT                8
-	#define ALLS_MENU_BACK              9
+    #define ALLS_RM_RF                  5
+    #define ALLS_TIME_ZONE              6
+	#define ALLS_ZIP_LOCATION   	    7
+	#define ALLS_THEMES                 8
+	#define ALLS_DEFAULT                9
+	#define ALLS_MENU_BACK              10
 
     static char* MENU_ALLS_HEADERS[] = { "Change twrp Settings",
     									 "twrp or gtfo:",
@@ -1625,6 +1642,7 @@ void all_settings_menu(int pIdx)
 	                          toggle_spam(),
                               force_md5_check(),
 							  sort_by_date_option(),
+							  rm_rf_option(),
 	                          "Change Time Zone",
 	                          "Change Zip Default Folder",
 	                          "Change twrp Color Theme",
@@ -1653,8 +1671,22 @@ void all_settings_menu(int pIdx)
 			case ALLS_SORT_BY_DATE:
                 DataManager_ToggleIntValue(TW_SORT_FILES_BY_DATE_VAR);
                 break;
+			case ALLS_RM_RF:
+				DataManager_ToggleIntValue(TW_RM_RF_VAR);
+				break;
 			case ALLS_SPAM:
-                DataManager_ToggleIntValue(TW_SHOW_SPAM_VAR);
+				switch (DataManager_GetIntValue(TW_SHOW_SPAM_VAR))
+				{
+					case 0:
+						DataManager_SetIntValue(TW_SHOW_SPAM_VAR, 1);
+						break;
+					case 1:
+						DataManager_SetIntValue(TW_SHOW_SPAM_VAR, 2);
+						break;
+					case 2:
+						DataManager_SetIntValue(TW_SHOW_SPAM_VAR, 0);
+						break;
+				}
 				break;
 			case ALLS_THEMES:
 			    twrp_themes_menu();
