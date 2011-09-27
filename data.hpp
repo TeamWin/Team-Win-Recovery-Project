@@ -47,9 +47,6 @@ public:
 
     static void DumpValues();
 
-    // Magic Values
-    static int GetMagicValue(const string varName, string& value);
-
 protected:
     typedef pair<string, int> TStrIntPair;
     typedef pair<string, TStrIntPair> TNameValuePair;
@@ -67,5 +64,5 @@ protected:
 
 };
 
-#endif _DATAMANAGER_HPP_HEADER
+#endif // _DATAMANAGER_HPP_HEADER
 

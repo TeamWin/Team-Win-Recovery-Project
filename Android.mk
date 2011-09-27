@@ -6,7 +6,7 @@ include $(CLEAR_VARS)
 
 commands_recovery_local_path := $(LOCAL_PATH)
 
-# TARGET_RECOVERY_GUI := 1
+TARGET_RECOVERY_GUI := 1
 
 LOCAL_SRC_FILES := \
     recovery.c \

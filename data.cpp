@@ -37,57 +37,19 @@
 #include <fstream>
 #include <sstream>
 
+#include "data.hpp"
+
 extern "C"
 {
     #include "common.h"
     #include "data.h"
 }
 
+extern "C" int get_battery_level(void);
+
 #define FILE_VERSION    0x00010000
 
 using namespace std;
-
-class DataManager
-{
-public:
-    static int ResetDefaults();
-    static int LoadValues(const string filename);
-
-    // Core get routines
-    static int GetValue(const string varName, string& value);
-    static int GetValue(const string varName, int& value);
-
-    // This is a dangerous function. It will create the value if it doesn't exist so it has a valid c_str
-    static string& GetValueRef(const string varName);
-
-    // Helper functions
-    static string GetStrValue(const string varName);
-    static int GetIntValue(const string varName);
-
-    // Core set routines
-    static int SetValue(const string varName, string value, int persist = 0);
-    static int SetValue(const string varName, int value, int persist = 0);
-    static int SetValue(const string varName, float value, int persist = 0);
-
-    static void DumpValues();
-
-protected:
-    typedef pair<string, int> TStrIntPair;
-    typedef pair<string, TStrIntPair> TNameValuePair;
-    static map<string, TStrIntPair> mValues;
-    static string mBackingFile;
-    static int mInitialized;
-
-    static map<string, string> mConstValues;
-
-protected:
-    static int SaveValues();
-    static void SetDefaultValues();
-
-    static int GetMagicValue(string varName, string& value);
-
-};
-
 
 map<string, DataManager::TStrIntPair>   DataManager::mValues;
 map<string, string>                     DataManager::mConstValues;
@@ -170,6 +132,9 @@ int DataManager::GetValue(const string varName, string& value)
 {
     if (!mInitialized)
         SetDefaultValues();
+
+    // Handle magic values
+    if (GetMagicValue(varName, value) == 0)     return 0;
 
     map<string, string>::iterator constPos;
     constPos = mConstValues.find(varName);
@@ -289,7 +254,7 @@ void DataManager::SetDefaultValues()
 {
     mInitialized = 1;
 
-    mConstValues.insert(make_pair(TW_VERSION_VAR, "1.1.0"));
+    mConstValues.insert(make_pair(TW_VERSION_VAR, TW_VERSION_STR));
     mValues.insert(make_pair(TW_NANDROID_SYSTEM_VAR, make_pair("1", 1)));
     mValues.insert(make_pair(TW_NANDROID_DATA_VAR, make_pair("1", 1)));
     mValues.insert(make_pair(TW_NANDROID_BOOT_VAR, make_pair("1", 1)));
@@ -307,6 +272,38 @@ void DataManager::SetDefaultValues()
     mValues.insert(make_pair(TW_TIME_ZONE_VAR, make_pair("CST6CDT", 1)));
     mValues.insert(make_pair(TW_ZIP_LOCATION_VAR, make_pair("/sdcard", 1)));
     mValues.insert(make_pair(TW_SORT_FILES_BY_DATE_VAR, make_pair("0", 1)));
+}
+
+// Magic Values
+int DataManager::GetMagicValue(const string varName, string& value)
+{
+    // Handle special dynamic cases
+    if (varName == "tw_time")
+    {
+        char tmp[32];
+
+        struct tm *current;
+        time_t now;
+        now = time(0);
+        current = localtime(&now);
+
+        if (current->tm_hour > 12)
+            sprintf(tmp, "%d:%02d PM", current->tm_hour - 12, current->tm_min);
+        else
+            sprintf(tmp, "%d:%02d AM", current->tm_hour == 0 ? 12 : current->tm_hour, current->tm_min);
+
+        value = tmp;
+        return 0;
+    }
+    if (varName == "tw_battery")
+    {
+        char tmp[16];
+
+        sprintf(tmp, "%i%%", get_battery_level());
+        value = tmp;
+        return 0;
+    }
+    return -1;
 }
 
 extern "C" int DataManager_ResetDefaults()
