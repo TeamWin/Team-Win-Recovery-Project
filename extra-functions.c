@@ -1816,6 +1816,11 @@ show_menu_partition()
 					   "\nOops... something went wrong!\nPlease check the recovery log!\n",
 					   "\nPartitioning complete!\n\n",
 					   "\nPartitioning aborted!\n\n");
+				
+				// recreate TWRP folder and rewrite settings - these will be gone after sdcard is partitioned
+				ensure_path_mounted(SDCARD_ROOT);
+				mkdir("/sdcard/TWRP", 0777);
+				DataManager_Flush();
 				break;
 			case ITEM_PART_BACK:
 				dec_menu_loc();
