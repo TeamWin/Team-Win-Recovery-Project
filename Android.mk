@@ -12,7 +12,6 @@ LOCAL_SRC_FILES := \
     fill.cpp \
     button.cpp \
     checkbox.cpp \
-    data.cpp \
     fileselector.cpp \
     progressbar.cpp \
     animation.cpp

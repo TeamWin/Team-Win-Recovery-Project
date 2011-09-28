@@ -333,16 +333,13 @@ extern "C" int gui_loadResources()
     // Make sure the sdcard is mounted before we continue
     if (ensure_path_mounted("/sdcard") < 0)
     {
-        usleep(2000000);
+        usleep(500000);
         ensure_path_mounted("/sdcard");
     }
 
 //    unlink("/sdcard/video.last");
 //    rename("/sdcard/video.bin", "/sdcard/video.last");
 //    gRecorder = open("/sdcard/video.bin", O_CREAT | O_WRONLY);
-
-    // Initialize the data manager
-    DataManager::LoadValues();
 
     if (PageManager::LoadPackage("TWRP", "/sdcard/TWRP/theme/ui.zip"))
     {

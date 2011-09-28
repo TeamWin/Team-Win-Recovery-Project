@@ -14,7 +14,7 @@ extern "C" {
 
 using namespace rapidxml;
 
-#include "data.hpp"
+#include "../data.hpp"
 #include "resources.hpp"
 #include "pages.hpp"
 
@@ -84,7 +84,7 @@ protected:
 
 // Derived Objects
 // GUIText - Used for static text
-class GUIText : public RenderObject, ActionObject
+class GUIText : public RenderObject, public ActionObject
 {
 public:
     // w and h may be ignored, in which case, no bounding box is applied
