@@ -18,6 +18,7 @@ using namespace rapidxml;
 #include "resources.hpp"
 #include "pages.hpp"
 
+
 class RenderObject
 {
 public:
@@ -81,6 +82,21 @@ protected:
     int mActionX, mActionY, mActionW, mActionH;
 };
 
+class Conditional
+{
+public:
+    Conditional(xml_node<>* node);
+    virtual ~Conditional();
+
+public:
+    bool isConditionTrue();
+    bool isConditionValid();
+
+protected:
+    std::string mVar1;
+    std::string mVar2;
+    std::string mCompareOp;
+};
 
 // Derived Objects
 // GUIText - Used for static text
@@ -153,7 +169,7 @@ protected:
 };
 
 // GUIAction - Used for standard actions
-class GUIAction : public ActionObject
+class GUIAction : public ActionObject, public Conditional
 {
 public:
     GUIAction(xml_node<>* node);
@@ -172,9 +188,6 @@ protected:
     int mKey;
     std::string mFunction;
     std::string mArg;
-    std::string mVariable;
-    std::string mVarValue;
-    std::string mCompare;
 };
 
 class GUIConsole : public RenderObject, public ActionObject
@@ -258,7 +271,7 @@ protected:
     int mIconX, mIconY, mIconW, mIconH;
 };
 
-class GUICheckbox: public RenderObject, public ActionObject
+class GUICheckbox: public RenderObject, public ActionObject, public Conditional
 {
 public:
     GUICheckbox(xml_node<>* node);

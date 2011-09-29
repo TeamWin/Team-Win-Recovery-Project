@@ -27,6 +27,7 @@ extern "C" {
 #include "objects.hpp"
 
 GUICheckbox::GUICheckbox(xml_node<>* node)
+    : Conditional(node)
 {
     xml_attribute<>* attr;
     xml_node<>* child;
@@ -90,6 +91,8 @@ GUICheckbox::~GUICheckbox()
 
 int GUICheckbox::Render(void)
 {
+    if (!isConditionTrue())     return 0;
+
     int ret = 0;
     int lastState = 0;
     DataManager::GetValue(mVarName, lastState);
@@ -111,6 +114,8 @@ int GUICheckbox::Render(void)
 
 int GUICheckbox::Update(void)
 {
+    if (!isConditionTrue())     return 0;
+
     int lastState = 0;
     DataManager::GetValue(mVarName, lastState);
 
@@ -143,7 +148,7 @@ int GUICheckbox::SetRenderPos(int x, int y, int w, int h)
 
 int GUICheckbox::NotifyTouch(TOUCH_STATE state, int x, int y)
 {
-    if (state == TOUCH_RELEASE)
+    if (isConditionTrue() && state == TOUCH_RELEASE)
     {
         int lastState;
         DataManager::GetValue(mVarName, lastState);

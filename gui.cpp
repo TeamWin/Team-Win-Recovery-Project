@@ -150,7 +150,6 @@ void curtainClose()
             gr_flip();
         }
     }
-//    screenOff();
     return;
 }
 
@@ -176,7 +175,10 @@ static void *input_thread(void *cookie)
             if (ev.code == 0)
             {
                 if (state == 0)
+                {
+                    LOGE("TOUCH_RELEASE: %d,%d\n", x, y);
                     PageManager::NotifyTouch(TOUCH_RELEASE, x, y);
+                }
                 state = 0;
                 drag = 0;
             }
@@ -184,6 +186,7 @@ static void *input_thread(void *cookie)
             {
                 if (!drag)
                 {
+                    LOGE("TOUCH_START: %d,%d\n", x, y);
                     if (PageManager::NotifyTouch(TOUCH_START, x, y) > 0)
                         state = 1;
                     drag = 1;
@@ -192,6 +195,7 @@ static void *input_thread(void *cookie)
                 {
                     if (state == 0)
                     {
+                        LOGE("TOUCH_DRAG: %d,%d\n", x, y);
                         if (PageManager::NotifyTouch(TOUCH_DRAG, x, y) > 0)
                             state = 1;
                     }
@@ -201,6 +205,7 @@ static void *input_thread(void *cookie)
         else if (ev.type == EV_KEY)
         {
             // Handle key-press here
+            LOGE("TOUCH_KEY: %d\n", ev.code);
             PageManager::NotifyKey(ev.code);
         }
     }
@@ -321,7 +326,7 @@ extern "C" int gui_init()
     {
         gNoAnimation = 1;
         if (res_create_surface("bootup", &gCurtain))
-            return -1;
+            return 0;
     }
 
     curtainSet();

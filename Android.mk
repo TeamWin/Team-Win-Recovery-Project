@@ -14,7 +14,8 @@ LOCAL_SRC_FILES := \
     checkbox.cpp \
     fileselector.cpp \
     progressbar.cpp \
-    animation.cpp
+    animation.cpp \
+    conditional.cpp
 
 LOCAL_MODULE := libgui
 

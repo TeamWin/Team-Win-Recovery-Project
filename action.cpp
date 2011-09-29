@@ -41,11 +41,11 @@ int nandroid_rest_exe(void);
 void curtainClose(void);
 
 GUIAction::GUIAction(xml_node<>* node)
+    : Conditional(node)
 {
     xml_node<>* child;
     xml_attribute<>* attr;
 
-    mCompare = "=";
     mKey = 0;
 
     if (!node)  return;
@@ -94,23 +94,6 @@ GUIAction::GUIAction(xml_node<>* node)
             mActionH = atol(attr->value());
         }
     }
-
-    // Check for variable tracking
-    child = node->first_node("data");
-    if (child)
-    {
-        attr = child->first_attribute("name");
-        if (!attr)  return;
-        mVariable = attr->value();
-
-        attr = child->first_attribute("value");
-        if (attr)
-            mVarValue = attr->value();
-
-        attr = child->first_attribute("op");
-        if (attr)
-            mCompare = attr->value();
-    }
 }
 
 int GUIAction::NotifyTouch(TOUCH_STATE state, int x, int y)
@@ -131,29 +114,11 @@ int GUIAction::NotifyKey(int key)
 
 int GUIAction::NotifyVarChange(std::string varName, std::string value)
 {
-    if (varName.empty())
-    {
-        if (!mVariable.empty())
-        {
-            // An empty varChange is sent when a page goes active to allow pre-existing conditions to occur
-            varName = mVariable;
-            DataManager::GetValue(mVariable, value);
-        }
-        else if (!mKey && mActionW == 0)
-            doAction();
-    }
+    if (varName.empty() && !isConditionValid() && !mKey && !mActionW)
+        doAction();
 
-    if (!mVariable.empty() && varName == mVariable)
-    {
-        if (mVarValue.empty())
-            doAction();
-        else if (mCompare == "=" && mVarValue == value)
-            doAction();
-        else if (mCompare == "<" && atoi(mVarValue.c_str()) > atoi(value.c_str()))
-            doAction();
-        else if (mCompare == ">" && atoi(mVarValue.c_str()) < atoi(value.c_str()))
-            doAction();
-    }
+    if (isConditionValid() && isConditionTrue())
+        doAction();
 
     return 0;
 }
