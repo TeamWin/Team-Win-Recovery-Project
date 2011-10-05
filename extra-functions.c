@@ -712,6 +712,23 @@ void fix_perms()
 void advanced_menu()
 {
 	// ADVANCED MENU
+	#ifdef BOARD_HAS_NO_REAL_SDCARD
+	#define ITEM_REBOOT_MENU       0
+	#define ITEM_FORMAT_MENU       1
+	#define ITEM_FIX_PERM          2
+	#define ITEM_ALL_SETTINGS      3
+	#define ITEM_SDCARD_PART       99
+	#define ITEM_CPY_LOG		   4
+	#define ADVANCED_MENU_BACK     5
+    
+	char* MENU_ADVANCED[] = { "Reboot Menu",
+	                          "Format Menu",
+	                          "Fix Permissions",
+	                          "Change twrp Settings",
+	                          "Copy recovery log to /sdcard",
+	                          "<-- Back To Main Menu",
+	                          NULL };
+	#else
 	#define ITEM_REBOOT_MENU       0
 	#define ITEM_FORMAT_MENU       1
 	#define ITEM_FIX_PERM          2
@@ -719,10 +736,6 @@ void advanced_menu()
 	#define ITEM_SDCARD_PART       4
 	#define ITEM_CPY_LOG		   5
 	#define ADVANCED_MENU_BACK     6
-
-    static char* MENU_ADVANCED_HEADERS[] = { "Advanced Menu",
-    										 "Reboot, Format, or twrp!",
-                                              NULL };
     
 	char* MENU_ADVANCED[] = { "Reboot Menu",
 	                          "Format Menu",
@@ -732,7 +745,11 @@ void advanced_menu()
 	                          "Copy recovery log to /sdcard",
 	                          "<-- Back To Main Menu",
 	                          NULL };
+	#endif
 	
+	static char* MENU_ADVANCED_HEADERS[] = { "Advanced Menu",
+    										 "Reboot, Format, or twrp!",
+                                              NULL };
 
     char** headers = prepend_title(MENU_ADVANCED_HEADERS);
     
