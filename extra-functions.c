@@ -689,24 +689,14 @@ void wipe_rotate_data()
 
 void fix_perms()
 {
-	FILE *fp;
-	char exe[255];
-	char tmpOutput[100];
-	char tmpProcess[10];
-	sprintf(exe,"fix_permissions.sh");
+	ensure_path_mounted("/data");
+	ensure_path_mounted("/system");
 	ui_show_progress(1,30);
-	fp = __popen(exe, "r");
     ui_print("\n-- Fixing Permissions\n");
-	while (fscanf(fp,"%s",tmpOutput) != EOF)
-	{
-		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR))
-		{
-			ui_print("%s\n",tmpOutput);
-		}
-	}
+	ui_print("This may take a few minutes.\n");
+	__system("./sbin/fix_permissions.sh");
 	ui_print("-- Done.\n\n");
 	ui_reset_progress();
-	__pclose(fp);
 }
 
 void advanced_menu()
