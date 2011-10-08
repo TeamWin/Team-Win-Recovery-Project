@@ -698,13 +698,13 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 		ui_show_progress(1,bProgTime);
 		ui_print("...Backing up %s partition.\n",bMount);
 		bFp = __popen(bCommand, "r"); // sending backup command formed earlier above
-		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR)) { // if twrp spam is on, show all lines
+		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 2) { // if twrp spam is on, show all lines
 			while (fgets(bOutput,sizeof(bOutput),bFp) != NULL) {
 				ui_print_overwrite("%s",bOutput);
 			}
 		} else { // else just show single line
 			while (fscanf(bFp,"%s",bOutput) == 1) {
-				ui_print_overwrite("%s",bOutput);
+				if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 1) ui_print_overwrite("%s",bOutput);
 			}
 		}
 		ui_print_overwrite("....Done.\n");
@@ -942,8 +942,20 @@ int tw_restore(struct dInfo rMnt, char *rDir)
 			LOGI("=> Filesystem is: %s\n",rFilesystem); // show it off to the world!
 		}
 		__pclose(reFp);
-		ui_print("...Formatting %s\n",rMnt.mnt);
-		tw_format(rFilesystem,rMnt.blk); // let's format block, based on filesystem from filename above
+		if (DataManager_GetIntValue(TW_RM_RF_VAR) == 1 && (strcmp(rMnt.mnt,"system") == 0 || strcmp(rMnt.mnt,"data") == 0 || strcmp(rMnt.mnt,"cache") == 0)) { // we'll use rm -rf instead of formatting for system, data and cache if the option is set
+			ui_print("...using rm -rf to wipe %s\n", rMnt.mnt);
+			tw_mount(rMnt); // mount the partition first
+			sprintf(rCommand,"rm -rf %s%s/*", "/", rMnt.mnt);
+			LOGI("rm rf commad: %s\n", rCommand);
+			reFp = __popen(rCommand, "r");
+			while (fscanf(reFp,"%s",rOutput) == 1) {
+				ui_print_overwrite("%s",rOutput);
+			}
+			__pclose(reFp);
+		} else {
+			ui_print("...Formatting %s\n",rMnt.mnt);
+			tw_format(rFilesystem,rMnt.blk); // let's format block, based on filesystem from filename above
+		}
 		ui_print("....Done.\n");
 		if (strcmp(rFilesystem,"mtd") == 0) { // if filesystem is mtd, we use flash image
 			sprintf(rCommand,"flash_image %s %s",rMnt.mnt,rFilename);
@@ -962,13 +974,13 @@ int tw_restore(struct dInfo rMnt, char *rDir)
 		}
 		ui_print("...Restoring %s\n",rMount);
 		reFp = __popen(rCommand, "r");
-		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR)) { // twrp spam
+		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 2) { // twrp spam
 			while (fgets(rOutput,sizeof(rOutput),reFp) != NULL) {
 				ui_print_overwrite("%s",rOutput);
 			}
 		} else {
 			while (fscanf(reFp,"%s",rOutput) == 1) {
-				ui_print_overwrite("%s",rOutput);
+				if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 1) ui_print_overwrite("%s",rOutput);
 			}
 		}
 		__pclose(reFp);

@@ -4,11 +4,22 @@
 # checks the sum against the list in the second arguement
 # Created by ViViDboarder #TeamWin for checksum verification
 
-ZIPDIR=$(dirname $1)
+FULLNAME=$1
 ZIPNAME=$(basename $1)
 MD5NAME="$ZIPNAME.md5"
 
-cd $ZIPDIR
+if [ -n "$(busybox | grep 'dirname')" ]; then
+    ZIPDIR=$(dirname $1)
+else
+    FULLLEN=${#FULLNAME}
+    ZIPLEN=${#ZIPNAME}
+    DIRLEN=`expr $FULLLEN - $ZIPLEN`
+    ZIPDIR=`expr substr $1 1 $DIRLEN`
+fi
+
+if [ -n "$ZIPDIR" ]; then
+    cd $ZIPDIR
+fi
 
 if [ -f $MD5NAME ]; then
     ZIPNAMEF=$(awk '{print $2}' $MD5NAME)
@@ -24,4 +35,3 @@ if [ -f $MD5NAME ]; then
 else
     echo "NO5"
 fi
-

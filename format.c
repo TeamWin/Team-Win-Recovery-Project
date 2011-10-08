@@ -25,6 +25,7 @@
 
 void tw_format(char *fstype, char *fsblock)
 {
+	char frmt[255];
 	if (strcmp(fstype,"emmc") != 0 && strcmp(fstype,"mtd") != 0) {
 		struct stat st;
 		if (stat(fsblock,&st) == 0) {
@@ -41,8 +42,24 @@ void tw_format(char *fstype, char *fsblock)
 			}
 			__pclose(fp);
 			if (fstype[0] == 'e' && fstype[1] == 'x') { // if it's ext
-				sprintf(exe,"mke2fs -t %s -m 0 %s",fstype,fsblock); // use mke2fs and format block according to fstype
-				__system(exe);
+				sprintf(uCommand,"ls /sbin/mke2fs | grep mke2fs | awk '{ print $1 }'"); // form shell command to search for mke2fs
+				fp = __popen(uCommand, "r");
+				LOGI("=> checking for /sbin/mke2fs\n");
+				if (fscanf(fp,"%s",uOutput) == 1) { // if mke2fs is found
+					sprintf(exe,"mke2fs -t %s -m 0 %s",fstype,fsblock); // use mke2fs and format block according to fstype
+					__system(exe);
+				} else {
+					sprintf(exe,"cat /etc/fstab | grep %s | awk '{ print $2 }'",fsblock); // find volume name in fstab
+					fp = __popen(exe,"r");
+					fscanf(fp,"%s",frmt);
+					__pclose(fp);
+					sprintf(exe, "rm -rf %s/* && rm -rf %s/.*", frmt, frmt);
+					LOGI("rm -rf command: %s\n", exe);
+					__system(exe); // we just rm -rf everything
+				}
+				LOGI("uOutput = %s\n", uOutput);
+				__pclose(fp);
+				
 			} else if (fstype[0] == 'v' && fstype[1] == 'f') { // if it's vfat
 				if (strcmp(fsblock,"/sdcard/.android_secure") == 0) { // if it's android secure, we shouldn't format sdcard so...
 					__system("rm -rf /sdcard/.android_secure/* && rm -rf /sdcard/.android_secure/.*"); // we just rm -rf everything
@@ -51,7 +68,6 @@ void tw_format(char *fstype, char *fsblock)
 					__system(exe);
 				}
 			} else if (fstype[0] == 'y' && fstype[1] == 'a') { // if it's yaffs2
-				char frmt[255];
 				sprintf(exe,"cat /etc/fstab | grep %s | awk '{ print $2 }'",fsblock); // find volume name in fstab
 				fp = __popen(exe,"r");
 				fscanf(fp,"%s",frmt);

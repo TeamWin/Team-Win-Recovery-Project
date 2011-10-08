@@ -107,11 +107,16 @@ int DataManager::LoadValues(const string filename)
     return 0;
 }
 
+int DataManager::Flush()
+{
+    return SaveValues();
+}
+
 int DataManager::SaveValues()
 {
     if (mBackingFile.empty())       return -1;
 
-    ofstream out(mBackingFile.c_str(), ios_base::out);
+    ofstream out(mBackingFile.c_str(), ios::out | ios::trunc);
     int file_version = FILE_VERSION;
     out << file_version << endl;
 
@@ -222,7 +227,7 @@ int DataManager::SetValue(const string varName, string value, int persist /* = 0
     if (pos->second.second != 0)
         SaveValues();
 
-//    PageManager::NotifyVarChange(varName, value);
+    PageManager::NotifyVarChange(varName, value);
     return 0;
 }
 
@@ -255,6 +260,7 @@ void DataManager::SetDefaultValues()
     mInitialized = 1;
 
     mConstValues.insert(make_pair(TW_VERSION_VAR, TW_VERSION_STR));
+
     mValues.insert(make_pair(TW_NANDROID_SYSTEM_VAR, make_pair("1", 1)));
     mValues.insert(make_pair(TW_NANDROID_DATA_VAR, make_pair("1", 1)));
     mValues.insert(make_pair(TW_NANDROID_BOOT_VAR, make_pair("1", 1)));
@@ -272,6 +278,7 @@ void DataManager::SetDefaultValues()
     mValues.insert(make_pair(TW_TIME_ZONE_VAR, make_pair("CST6CDT", 1)));
     mValues.insert(make_pair(TW_ZIP_LOCATION_VAR, make_pair("/sdcard", 1)));
     mValues.insert(make_pair(TW_SORT_FILES_BY_DATE_VAR, make_pair("0", 1)));
+	mValues.insert(make_pair(TW_RM_RF_VAR, make_pair("0", 1)));
 }
 
 // Magic Values
@@ -315,6 +322,11 @@ extern "C" int DataManager_ResetDefaults()
 extern "C" int DataManager_LoadValues(const char* filename)
 {
     return DataManager::LoadValues(filename);
+}
+
+extern "C" int DataManager_Flush()
+{
+    return DataManager::Flush();
 }
 
 extern "C" int DataManager_GetValue(const char* varName, char* value)

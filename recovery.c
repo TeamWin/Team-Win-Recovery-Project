@@ -979,6 +979,7 @@ main(int argc, char **argv) {
             if (ensure_path_mounted("/sdcard") < 0)
                 LOGE("Unable to mount sdcard\n");
         }
+        mkdir("/sdcard/TWRP", 0777);
         DataManager_LoadValues("/sdcard/TWRP/.twrps");
 
         // Update some of the main data

@@ -19,6 +19,7 @@
 
 int DataManager_ResetDefaults();
 int DataManager_LoadValues(const char* filename);
+int DataManager_Flush();
 const char* DataManager_GetStrValue(const char* varName);
 int DataManager_GetIntValue(const char* varName);
 
