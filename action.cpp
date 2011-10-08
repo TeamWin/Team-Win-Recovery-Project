@@ -31,8 +31,10 @@ void wipe_dalvik_cache(void);
 int nandroid_back_exe(void);
 void set_restore_files(void);
 int nandroid_rest_exe(void);
-}
-
+void wipe_data(int confirm);
+void wipe_battery_stats(void);
+void wipe_rotate_data(void);
+};
 
 #include "rapidxml.hpp"
 #include "objects.hpp"
@@ -248,10 +250,16 @@ int GUIAction::doAction(int isThreaded)
         }
         if (mFunction == "wipe")
         {
-            if (mArg != "dalvik")
-                erase_volume(mArg.c_str());
-            else
+            if (mArg == "data")
+                wipe_data(0);
+            else if (mArg == "battery")
+                wipe_battery_stats();
+            else if (mArg == "rotate")
+                wipe_rotate_data();
+            else if (mArg == "dalvik")
                 wipe_dalvik_cache();
+            else
+                erase_volume(mArg.c_str());
             return 0;
         }
         if (mFunction == "nandroid")
