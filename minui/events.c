@@ -32,6 +32,8 @@
 #define VIBRATOR_TIMEOUT_FILE	"/sys/class/timed_output/vibrator/enable"
 #define VIBRATOR_TIME_MS	50
 
+#define ABS_MT_POSITION		0x2a	/* Group a set of X and Y */
+#define ABS_MT_AMPLITUDE	0x2b	/* Group a set of Z and W */
 #define ABS_MT_POSITION_X 0x35
 #define ABS_MT_POSITION_Y 0x36
 #define ABS_MT_TOUCH_MAJOR 0x30
@@ -288,17 +290,36 @@ static int vk_modify(struct ev *e, struct input_event *ev)
             e->mt_p.synced |= 0x02;
             e->mt_p.y = ev->value;
             break;
+        case ABS_MT_POSITION:
+            e->mt_p.synced = 0x03;
+            if (ev->value == (1 << 31))
+            {
+                e->mt_p.x = 0;
+                e->mt_p.y = 0;
+                lastWasSynReport = 1;
+            }
+            else
+            {
+                lastWasSynReport = 0;
+                e->mt_p.x = (ev->value & 0x7FFF0000) >> 16;
+                e->mt_p.y = (ev->value & 0xFFFF);
+            }
+            break;
+
         default:
             // This is an unhandled message, just skip it
             return 1;
         }
 
-        lastWasSynReport = 0;
-        return 1;
+        if (ev->code != ABS_MT_POSITION)
+        {
+            lastWasSynReport = 0;
+            return 1;
+        }
     }
 
     // Check if we should ignore the message
-    if (ev->type != EV_SYN || (ev->code != SYN_REPORT && ev->code != SYN_MT_REPORT))
+    if (ev->code != ABS_MT_POSITION && (ev->type != EV_SYN || (ev->code != SYN_REPORT && ev->code != SYN_MT_REPORT)))
     {
         lastWasSynReport = 0;
         return 0;

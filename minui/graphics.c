@@ -75,6 +75,32 @@ static int get_framebuffer(GGLSurface *fb)
         return -1;
     }
 
+    if (vi.bits_per_pixel != 16)
+    {
+        vi.blue.offset = 0;
+        vi.green.offset = 5;
+        vi.red.offset = 11;
+        vi.blue.length = 5;
+        vi.green.length = 6;
+        vi.red.length = 5;
+        vi.blue.msb_right = 0;
+        vi.green.msb_right = 0;
+        vi.red.msb_right = 0;
+        vi.transp.offset = 0;
+        vi.transp.length = 0;
+        vi.bits_per_pixel = 16;
+        vi.vmode = FB_VMODE_NONINTERLACED;
+        vi.activate = FB_ACTIVATE_NOW | FB_ACTIVATE_FORCE;
+
+        if (ioctl(fd, FBIOPUT_VSCREENINFO, &vi) < 0) {
+            perror("failed to put fb0 info");
+        }
+    
+        if (ioctl(fd, FBIOGET_VSCREENINFO, &vi) < 0) {
+            perror("failed to re-get fb0 info");
+        }
+    }
+
     bits = mmap(0, fi.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (bits == MAP_FAILED) {
         perror("failed to mmap framebuffer");
@@ -85,20 +111,20 @@ static int get_framebuffer(GGLSurface *fb)
     fb->version = sizeof(*fb);
     fb->width = vi.xres;
     fb->height = vi.yres;
-    fb->stride = vi.xres;
+    fb->stride = vi.xres_virtual;
     fb->data = bits;
     fb->format = GGL_PIXEL_FORMAT_RGB_565;
-    memset(fb->data, 0, vi.yres * vi.xres * 2);
+    memset(fb->data, 0, vi.yres * vi.xres_virtual * vi.bits_per_pixel / 8);
 
     fb++;
 
     fb->version = sizeof(*fb);
     fb->width = vi.xres;
     fb->height = vi.yres;
-    fb->stride = vi.xres;
-    fb->data = (void*) (((unsigned) bits) + vi.yres * vi.xres * 2);
+    fb->stride = vi.xres_virtual;
+    fb->data = (void*) (((unsigned) bits) + (vi.yres * vi.xres_virtual * vi.bits_per_pixel / 8));
     fb->format = GGL_PIXEL_FORMAT_RGB_565;
-    memset(fb->data, 0, vi.yres * vi.xres * 2);
+    memset(fb->data, 0, vi.yres * vi.xres_virtual * vi.bits_per_pixel / 8);
 
     return fd;
 }
@@ -107,8 +133,8 @@ static void get_memory_surface(GGLSurface* ms) {
   ms->version = sizeof(*ms);
   ms->width = vi.xres;
   ms->height = vi.yres;
-  ms->stride = vi.xres;
-  ms->data = malloc(vi.xres * vi.yres * 2);
+  ms->stride = vi.xres_virtual;
+  ms->data = malloc(vi.xres_virtual * vi.yres * vi.bits_per_pixel / 8);
   ms->format = GGL_PIXEL_FORMAT_RGB_565;
 }
 
@@ -133,7 +159,7 @@ void gr_flip(void)
     /* copy data from the in-memory surface to the buffer we're about
      * to make active. */
     memcpy(gr_framebuffer[gr_active_fb].data, gr_mem_surface.data,
-           vi.xres * vi.yres * 2);
+           vi.xres_virtual * vi.yres * vi.bits_per_pixel / 8);
 
     /* inform the display driver */
     set_active_framebuffer(gr_active_fb);
