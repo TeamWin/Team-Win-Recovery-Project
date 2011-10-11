@@ -612,3 +612,8 @@ int PageManager::NotifyVarChange(std::string varName, std::string value)
     return (mCurrentSet ? mCurrentSet->NotifyVarChange(varName, value) : -1);
 }
 
+void gui_notifyVarChange(const char *name, const char* value)
+{
+    PageManager::NotifyVarChange(name, value);
+}
+

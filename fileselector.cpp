@@ -147,7 +147,7 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
     }
 
     // Retrieve the line height
-    gr_getFontDetails(mFont, &mFontHeight, NULL);
+    gr_getFontDetails(mFont ? mFont->GetResource() : NULL, &mFontHeight, NULL);
     mLineHeight = mFontHeight;
     if (mFolderIcon && mFolderIcon->GetResource())
     {
@@ -338,16 +338,26 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
                         if (cwd != "/")     cwd += "/";
                         cwd += str;
                     }
-                    LOGI("Changing folder to: %s\n", cwd.c_str());
-                    DataManager::SetValue(mPathVar, cwd);
-                    if (GetFileList(cwd) != 0)
+
+                    if (mShowNavFolders == 0 && mShowFiles == 0)
                     {
-                        LOGE("Unable to change folders.\n");
-                        DataManager::SetValue(mPathVar, oldcwd);
-                        GetFileList(oldcwd);
+                        // This is a "folder" selection
+                        LOGI("Selecting folder: %s\n", cwd.c_str());
+                        DataManager::SetValue(mVariable, cwd);
                     }
-                    mStart = 0;
-                    mUpdate = 1;
+                    else
+                    {
+                        LOGI("Changing folder to: %s\n", cwd.c_str());
+                        DataManager::SetValue(mPathVar, cwd);
+                        if (GetFileList(cwd) != 0)
+                        {
+                            LOGE("Unable to change folders.\n");
+                            DataManager::SetValue(mPathVar, oldcwd);
+                            GetFileList(oldcwd);
+                        }
+                        mStart = 0;
+                        mUpdate = 1;
+                    }
                 }
                 else if (!mVariable.empty())
                 {

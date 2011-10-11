@@ -38,17 +38,24 @@ extern "C" {
 #include "../minui/minui.h"
 #include "../recovery_ui.h"
 #include "../minzip/Zip.h"
+#include <pixelflinger/pixelflinger.h>
 }
 
 #include "rapidxml.hpp"
 #include "objects.hpp"
+
+
+#include "curtain.h"
+#include "watermark.h"
+
 
 const static int CURTAIN_RATE = 12;
 
 using namespace rapidxml;
 
 // Global values
-static gr_surface gCurtain;
+static gr_surface gCurtain = NULL;
+static gr_surface gWatermark = NULL;
 static int gGuiInitialized = 0;
 static int gForceRender = 0;
 static int gNoAnimation = 0;
@@ -56,6 +63,7 @@ static int gNoAnimation = 0;
 static int gRecorder = -1;
 
 extern "C" void gr_write_frame_to_file(int fd);
+extern "C" void gr_watermark(gr_surface source, int sx, int sy, int w, int h, int dx, int dy);
 
 void flip(void)
 {
@@ -66,6 +74,8 @@ void flip(void)
         write(gRecorder, &time, sizeof(timespec));
         gr_write_frame_to_file(gRecorder);
     }
+    if (gWatermark)
+        gr_watermark(gWatermark, 0, 0, gr_get_width(gWatermark), gr_get_height(gWatermark), 0, 0);
     gr_flip();
     return;
 }
@@ -102,23 +112,11 @@ static void curtainRaise(gr_surface surface)
         {
             gr_blit(surface, 0, 0, msw, msh, 0, 0);
             gr_blit(gCurtain, 0, sy, w, h, 0, 0);
-            flip();
+            gr_flip();
         }
     }
     gr_blit(surface, 0, 0, msw, msh, 0, 0);
     flip();
-    return;
-}
-
-static void screenOff()
-{
-    int fd = open("/sys/power/state", O_WRONLY);
-    if (fd != -1)
-    {
-        write(fd, "mem", 3);
-        close(fd);
-        usleep(2000000);
-    }
     return;
 }
 
@@ -134,10 +132,10 @@ void curtainClose()
         for (; h < fbh; h += CURTAIN_RATE, sy -= CURTAIN_RATE)
         {
             gr_blit(gCurtain, 0, sy, w, h, 0, 0);
-            flip();
+            gr_flip();
         }
         gr_blit(gCurtain, 0, 0, gr_get_width(gCurtain), gr_get_height(gCurtain), 0, 0);
-        flip();
+        gr_flip();
     
         close(gRecorder);
     
@@ -176,7 +174,7 @@ static void *input_thread(void *cookie)
             {
                 if (state == 0)
                 {
-                    LOGE("TOUCH_RELEASE: %d,%d\n", x, y);
+//                    LOGE("TOUCH_RELEASE: %d,%d\n", x, y);
                     PageManager::NotifyTouch(TOUCH_RELEASE, x, y);
                 }
                 state = 0;
@@ -186,7 +184,7 @@ static void *input_thread(void *cookie)
             {
                 if (!drag)
                 {
-                    LOGE("TOUCH_START: %d,%d\n", x, y);
+//                    LOGE("TOUCH_START: %d,%d\n", x, y);
                     if (PageManager::NotifyTouch(TOUCH_START, x, y) > 0)
                         state = 1;
                     drag = 1;
@@ -195,7 +193,7 @@ static void *input_thread(void *cookie)
                 {
                     if (state == 0)
                     {
-                        LOGE("TOUCH_DRAG: %d,%d\n", x, y);
+//                        LOGE("TOUCH_DRAG: %d,%d\n", x, y);
                         if (PageManager::NotifyTouch(TOUCH_DRAG, x, y) > 0)
                             state = 1;
                     }
@@ -205,7 +203,7 @@ static void *input_thread(void *cookie)
         else if (ev.type == EV_KEY)
         {
             // Handle key-press here
-            LOGE("TOUCH_KEY: %d\n", ev.code);
+//            LOGE("TOUCH_KEY: %d\n", ev.code);
             PageManager::NotifyKey(ev.code);
         }
     }
@@ -283,7 +281,7 @@ static int runPages(void)
             int ret;
 
             ret = PageManager::Update();
-            if (ret > 1)
+            if (ret > 1 || (ret > 0 && gWatermark != NULL))
                 PageManager::Render();
 
             if (ret > 0)
@@ -319,15 +317,37 @@ int gui_changePackage(std::string newPackage)
 
 extern "C" int gui_init()
 {
+    int fd;
+
     gr_init();
     ev_init();
 
-    if (res_create_surface("curtain", &gCurtain))
+    // We need to write out the curtain and watermark blobs
+    fd = open("/tmp/extract.png", O_CREAT | O_WRONLY | O_TRUNC);
+    if (fd < 0)
+        return 0;
+
+    write(fd, gCurtainBlob, gCurtainBlobLength);
+    close(fd);
+
+    if (res_create_surface("/tmp/extract.png", &gCurtain))
     {
         gNoAnimation = 1;
         if (res_create_surface("bootup", &gCurtain))
             return 0;
     }
+
+    if (gWatermarkBlobLength)
+    {
+        fd = open("/tmp/extract.png", O_CREAT | O_WRONLY | O_TRUNC);
+        if (fd < 0)
+            return 0;
+
+        write(fd, gWatermarkBlob, gWatermarkBlobLength);
+        close(fd);
+        res_create_surface("/tmp/extract.png", &gWatermark);
+    }
+    unlink("/tmp/extract.png");
 
     curtainSet();
     return 0;

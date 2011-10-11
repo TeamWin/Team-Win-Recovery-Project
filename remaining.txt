@@ -1,4 +1,4 @@
-* Condition tag for elements
 * Confirmation of action
-* Pages should get a notification they are going active to refresh their data
+* Multi-String Variables
+* String Box
 

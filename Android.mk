@@ -19,7 +19,7 @@ LOCAL_SRC_FILES := \
 
 LOCAL_MODULE := libgui
 
-LOCAL_C_INCLUDES += bionic external/stlport/stlport
+LOCAL_C_INCLUDES += bionic external/stlport/stlport $(TARGET_DEVICE_DIR)/recovery
 
 include $(BUILD_STATIC_LIBRARY)
 

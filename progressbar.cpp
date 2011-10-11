@@ -170,6 +170,7 @@ int GUIProgressBar::NotifyVarChange(std::string varName, std::string value)
 
         if (varName == "ui_progress_portion")   mSlide = atof(value.c_str());
         else                                    mSlideFrames = atol(value.c_str());
+
         if (mSlide && mSlideFrames)
         {
             // Get the current position

@@ -91,11 +91,17 @@ public:
 public:
     bool isConditionTrue();
     bool isConditionValid();
+    void NotifyPageSet();
 
 protected:
     std::string mVar1;
     std::string mVar2;
     std::string mCompareOp;
+    std::string mLastVal;
+
+protected:
+    bool isMounted(std::string vol);
+
 };
 
 // Derived Objects

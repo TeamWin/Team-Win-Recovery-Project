@@ -34,6 +34,9 @@ int nandroid_rest_exe(void);
 void wipe_data(int confirm);
 void wipe_battery_stats(void);
 void wipe_rotate_data(void);
+int usb_storage_enable(void);
+int usb_storage_disable(void);
+int __system(const char *command);
 };
 
 #include "rapidxml.hpp"
@@ -118,6 +121,10 @@ int GUIAction::NotifyVarChange(std::string varName, std::string value)
 {
     if (varName.empty() && !isConditionValid() && !mKey && !mActionW)
         doAction();
+
+    // This handles notifying the condition system of page start
+    if (varName.empty() && isConditionValid())
+        NotifyPageSet();
 
     if (isConditionValid() && isConditionTrue())
         doAction();
@@ -226,6 +233,7 @@ int GUIAction::doAction(int isThreaded)
     {
         PageManager::SelectPackage("TWRP");
         gui_changePage("main");
+        return 0;
     }
 
     if (mFunction == "page")
@@ -240,6 +248,54 @@ int GUIAction::doAction(int isThreaded)
         return 0;
     }
 
+    if (mFunction == "set")
+    {
+        if (mArg.find('=') != string::npos)
+        {
+            string varName = mArg.substr(0, mArg.find('='));
+            string value = mArg.substr(mArg.find('=') + 1, string::npos);
+
+            DataManager::GetValue(value, value);
+            DataManager::SetValue(varName, value);
+        }
+        else
+            DataManager::SetValue(mArg, "1");
+        return 0;
+    }
+    if (mFunction == "clear")
+    {
+        DataManager::SetValue(mArg, "0");
+        return 0;
+    }
+
+    if (mFunction == "mount")
+    {
+        if (mArg == "usb")
+        {
+            usb_storage_enable();
+        }
+        else
+        {
+            string cmd = "mount " + mArg;
+            __system(cmd.c_str());
+        }
+        return 0;
+    }
+
+    if (mFunction == "umount" || mFunction == "unmount")
+    {
+        if (mArg == "usb")
+        {
+            usb_storage_disable();
+        }
+        else
+        {
+            string cmd = "umount " + mArg;
+            __system(cmd.c_str());
+        }
+        return 0;
+    }
+
     if (isThreaded)
     {
         if (mFunction == "flash")
@@ -247,9 +303,15 @@ int GUIAction::doAction(int isThreaded)
             std::string filename;
             DataManager::GetValue("tw_filename", filename);
             flash_zip(filename);
+            return 0;
         }
         if (mFunction == "wipe")
         {
+            DataManager::SetValue("tw_operation", "Format");
+            DataManager::SetValue("tw_partition", mArg);
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 0);
+
             if (mArg == "data")
                 wipe_data(0);
             else if (mArg == "battery")
@@ -260,6 +322,11 @@ int GUIAction::doAction(int isThreaded)
                 wipe_dalvik_cache();
             else
                 erase_volume(mArg.c_str());
+
+            DataManager::SetValue("tw_operation", "Format");
+            DataManager::SetValue("tw_partition", mArg);
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 1);
             return 0;
         }
         if (mFunction == "nandroid")
