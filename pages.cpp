@@ -566,6 +566,7 @@ void PageManager::ReleasePackage(std::string name)
 
 int PageManager::ChangePage(std::string name)
 {
+    DataManager::SetValue("tw_operation_state", 0);
     return (mCurrentSet ? mCurrentSet->SetPage(name) : -1);
 }
 
