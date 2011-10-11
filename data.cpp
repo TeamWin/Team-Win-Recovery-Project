@@ -43,13 +43,18 @@ extern "C"
 {
     #include "common.h"
     #include "data.h"
-}
 
-extern "C" int get_battery_level(void);
+    int get_battery_level(void);
+    void get_device_id(void);
+
+    extern char device_id[15];
+}
 
 #define FILE_VERSION    0x00010000
 
 using namespace std;
+
+void gui_notifyVarChange(const char *name, const char* value);
 
 map<string, DataManager::TStrIntPair>   DataManager::mValues;
 map<string, string>                     DataManager::mConstValues;
@@ -227,7 +232,7 @@ int DataManager::SetValue(const string varName, string value, int persist /* = 0
     if (pos->second.second != 0)
         SaveValues();
 
-    PageManager::NotifyVarChange(varName, value);
+    gui_notifyVarChange(varName.c_str(), value.c_str());
     return 0;
 }
 
@@ -248,7 +253,7 @@ int DataManager::SetValue(const string varName, float value, int persist /* = 0 
 void DataManager::DumpValues()
 {
     map<string, TStrIntPair>::iterator iter;
-    ui_print("Data Manager internal dump - Values with leading X are persisted.\n");
+    ui_print("Data Manager dump - Values with leading X are persisted.\n");
     for (iter = mValues.begin(); iter != mValues.end(); ++iter)
     {
         ui_print("%c %s=%s\n", iter->second.second ? 'X' : ' ', iter->first.c_str(), iter->second.first.c_str());
@@ -257,18 +262,26 @@ void DataManager::DumpValues()
 
 void DataManager::SetDefaultValues()
 {
+    string str;
+
+    get_device_id();
+
+    str = "/sdcard/TWRP/backups/";
+    str += device_id;
+
     mInitialized = 1;
 
     mConstValues.insert(make_pair(TW_VERSION_VAR, TW_VERSION_STR));
+    mConstValues.insert(make_pair(TW_BACKUPS_FOLDER_VAR, str));
 
-    mValues.insert(make_pair(TW_NANDROID_SYSTEM_VAR, make_pair("1", 1)));
-    mValues.insert(make_pair(TW_NANDROID_DATA_VAR, make_pair("1", 1)));
-    mValues.insert(make_pair(TW_NANDROID_BOOT_VAR, make_pair("1", 1)));
-    mValues.insert(make_pair(TW_NANDROID_RECOVERY_VAR, make_pair("0", 1)));
-    mValues.insert(make_pair(TW_NANDROID_CACHE_VAR, make_pair("0", 1)));
-    mValues.insert(make_pair(TW_NANDROID_WIMAX_VAR, make_pair("0", 1)));
-    mValues.insert(make_pair(TW_NANDROID_ANDSEC_VAR, make_pair("0", 1)));
-    mValues.insert(make_pair(TW_NANDROID_SDEXT_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_BACKUP_SYSTEM_VAR, make_pair("1", 1)));
+    mValues.insert(make_pair(TW_BACKUP_DATA_VAR, make_pair("1", 1)));
+    mValues.insert(make_pair(TW_BACKUP_BOOT_VAR, make_pair("1", 1)));
+    mValues.insert(make_pair(TW_BACKUP_RECOVERY_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_BACKUP_CACHE_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_BACKUP_WIMAX_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_BACKUP_ANDSEC_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_BACKUP_SDEXT_VAR, make_pair("0", 1)));
     mValues.insert(make_pair(TW_REBOOT_AFTER_FLASH_VAR, make_pair("0", 1)));
     mValues.insert(make_pair(TW_SIGNED_ZIP_VERIFY_VAR, make_pair("0", 1)));
     mValues.insert(make_pair(TW_FORCE_MD5_CHECK_VAR, make_pair("0", 1)));

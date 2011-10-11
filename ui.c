@@ -29,6 +29,7 @@
 #include "minui/minui.h"
 #include "recovery_ui.h"
 #include "themes.h"
+#include "data.h"
 
 #define MAX_COLS 50
 #define MAX_ROWS 40
@@ -422,7 +423,7 @@ void ui_show_indeterminate_progress()
 
 void ui_show_progress(float portion, int seconds)
 {
-    DataManager_SetFloatValue("ui_progress_portion", (float) (portion * 100.0));
+    DataManager_SetFloatValue("ui_progress_portion", portion * 100.0);
     DataManager_SetIntValue("ui_progress_frames", seconds * 30);
 
     pthread_mutex_lock(&gUpdateMutex);

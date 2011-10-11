@@ -114,7 +114,6 @@ char* nan_compress()
 void
 nan_backup_menu(int pIdx)
 {
-	tw_total = 0;
 	char* nan_b_headers[] = { "Nandroid Backup",
 							   "Choose Backup Options:",
 							   NULL	};
@@ -138,6 +137,17 @@ nan_backup_menu(int pIdx)
 	for (;;) {
 		int chosen_item = get_menu_selection(headers, nan_b_items, 0, pIdx); // get key presses
 		pIdx = chosen_item; // remember last selection location
+
+        int tw_total = 0;
+        tw_total += (DataManager_GetIntValue(TW_BACKUP_SYSTEM_VAR) == 1 ? 1 : 0);
+        tw_total += (DataManager_GetIntValue(TW_BACKUP_DATA_VAR) == 1 ? 1 : 0);
+        tw_total += (DataManager_GetIntValue(TW_BACKUP_CACHE_VAR) == 1 ? 1 : 0);
+        tw_total += (DataManager_GetIntValue(TW_BACKUP_RECOVERY_VAR) == 1 ? 1 : 0);
+        tw_total += (DataManager_GetIntValue(TW_BACKUP_WIMAX_VAR) == 1 ? 1 : 0);
+        tw_total += (DataManager_GetIntValue(TW_BACKUP_BOOT_VAR) == 1 ? 1 : 0);
+        tw_total += (DataManager_GetIntValue(TW_BACKUP_ANDSEC_VAR) == 1 ? 1 : 0);
+        tw_total += (DataManager_GetIntValue(TW_BACKUP_SDEXT_VAR) == 1 ? 1 : 0);
+
 		switch (chosen_item) {
 			case ITEM_NAN_BACKUP:
 				if (tw_total > 0) {
@@ -147,82 +157,36 @@ nan_backup_menu(int pIdx)
 				}
 				break;
 			case ITEM_NAN_SYSTEM:
-            	if (DataManager_GetIntValue(TW_NANDROID_SYSTEM_VAR)) {
-            		DataManager_SetIntValue(TW_NANDROID_SYSTEM_VAR, 0); // toggle's value
-            		tw_total--; // keeps count of how many selected
-            	} else {
-            		DataManager_SetIntValue(TW_NANDROID_SYSTEM_VAR, 1);
-            		tw_total++;
-            	}
+            	if (DataManager_GetIntValue(TW_BACKUP_SYSTEM_VAR) >= 0)
+                    DataManager_ToggleIntValue(TW_BACKUP_SYSTEM_VAR);
                 break;
 			case ITEM_NAN_DATA:
-            	if (DataManager_GetIntValue(TW_NANDROID_DATA_VAR)) {
-            		DataManager_SetIntValue(TW_NANDROID_DATA_VAR, 0);
-            		tw_total--;
-            	} else {
-            		DataManager_SetIntValue(TW_NANDROID_DATA_VAR, 1);
-            		tw_total++;
-            	}
+                if (DataManager_GetIntValue(TW_BACKUP_DATA_VAR) >= 0)
+                    DataManager_ToggleIntValue(TW_BACKUP_DATA_VAR);
 				break;
 			case ITEM_NAN_BOOT:
-            	if (DataManager_GetIntValue(TW_NANDROID_BOOT_VAR)) {
-            		DataManager_SetIntValue(TW_NANDROID_BOOT_VAR, 0);
-            		tw_total--;
-            	} else {
-            		DataManager_SetIntValue(TW_NANDROID_BOOT_VAR, 1);
-            		tw_total++;
-            	}
+                if (DataManager_GetIntValue(TW_BACKUP_BOOT_VAR) >= 0)
+                    DataManager_ToggleIntValue(TW_BACKUP_BOOT_VAR);
 				break;
 			case ITEM_NAN_RECOVERY:
-            	if (DataManager_GetIntValue(TW_NANDROID_RECOVERY_VAR)) {
-            		DataManager_SetIntValue(TW_NANDROID_RECOVERY_VAR, 0);
-            		tw_total--;
-            	} else {
-            		DataManager_SetIntValue(TW_NANDROID_RECOVERY_VAR, 1);
-            		tw_total++;
-            	}
+                if (DataManager_GetIntValue(TW_BACKUP_RECOVERY_VAR) >= 0)
+                    DataManager_ToggleIntValue(TW_BACKUP_RECOVERY_VAR);
 				break;
 			case ITEM_NAN_CACHE:
-            	if (DataManager_GetIntValue(TW_NANDROID_CACHE_VAR)) {
-            		DataManager_SetIntValue(TW_NANDROID_CACHE_VAR, 0);
-            		tw_total--;
-            	} else {
-            		DataManager_SetIntValue(TW_NANDROID_CACHE_VAR, 1);
-            		tw_total++;
-            	}
+                if (DataManager_GetIntValue(TW_BACKUP_CACHE_VAR) >= 0)
+                    DataManager_ToggleIntValue(TW_BACKUP_CACHE_VAR);
 				break;
 			case ITEM_NAN_WIMAX:
-				if (tw_nan_wimax_x != -1) {
-	            	if (DataManager_GetIntValue(TW_NANDROID_WIMAX_VAR)) {
-	            		DataManager_SetIntValue(TW_NANDROID_WIMAX_VAR, 0);
-	            		tw_total--;
-	            	} else {
-	            		DataManager_SetIntValue(TW_NANDROID_WIMAX_VAR, 1);
-	            		tw_total++;
-	            	}
-				}
+                if (DataManager_GetIntValue(TW_BACKUP_WIMAX_VAR) >= 0)
+                    DataManager_ToggleIntValue(TW_BACKUP_WIMAX_VAR);
 				break;
 			case ITEM_NAN_ANDSEC:
-				if (tw_nan_andsec_x != -1) {
-	            	if (DataManager_GetIntValue(TW_NANDROID_ANDSEC_VAR)) {
-	            		DataManager_SetIntValue(TW_NANDROID_ANDSEC_VAR, 0);
-	            		tw_total--;
-	            	} else {
-	            		DataManager_SetIntValue(TW_NANDROID_ANDSEC_VAR, 1);
-	            		tw_total++;
-	            	}
-				}
+                if (DataManager_GetIntValue(TW_BACKUP_ANDSEC_VAR) >= 0)
+                    DataManager_ToggleIntValue(TW_BACKUP_ANDSEC_VAR);
 				break;
 			case ITEM_NAN_SDEXT:
-				if (tw_nan_sdext_x != -1) {
-	            	if (DataManager_GetIntValue(TW_NANDROID_SDEXT_VAR)) {
-	            		DataManager_SetIntValue(TW_NANDROID_SDEXT_VAR, 0);
-	            		tw_total--;
-	            	} else {
-	            		DataManager_SetIntValue(TW_NANDROID_SDEXT_VAR, 1);
-	            		tw_total++;
-	           		}
-				}
+                if (DataManager_GetIntValue(TW_BACKUP_SDEXT_VAR) >= 0)
+                    DataManager_ToggleIntValue(TW_BACKUP_SDEXT_VAR);
 				break;
 			case ITEM_NAN_COMPRESS:
             	DataManager_ToggleIntValue(TW_USE_COMPRESSION_VAR);
@@ -248,14 +212,19 @@ set_restore_files()
 	FILE *rfFp;
 	char rfCommand[255];
 	char rfOutput[20];
-	tw_nan_system_x = -1; // set restore files as not there (default)
-	tw_nan_data_x = -1;
-	tw_nan_cache_x = -1;
-	tw_nan_recovery_x = -1;
-	tw_nan_wimax_x = -1;
-	tw_nan_boot_x = -1;
-	tw_nan_andsec_x = -1;
-	tw_nan_sdext_x = -1;
+
+    const char* nan_dir = DataManager_GetStrValue("tw_restore");
+
+    // Start with the default values
+    int tw_restore_system = -1;
+    int tw_restore_data = -1;
+    int tw_restore_cache = -1;
+    int tw_restore_recovery = -1;
+    int tw_restore_wimax = -1;
+    int tw_restore_boot = -1;
+    int tw_restore_andsec = -1;
+    int tw_restore_sdext = -1;
+
 	sprintf(rfCommand,"cd %s && ls -l *.win | awk '{ print $9 }'",nan_dir); // form scan for *.win files command
 	rfFp = __popen(rfCommand, "r"); // open pipe with scan command
 	while (fscanf(rfFp,"%s",rfOutput) == 1) { // while there is output
@@ -264,70 +233,72 @@ set_restore_files()
 			strcmp(rfOutput,"system.ext3.win") == 0 ||
 			strcmp(rfOutput,"system.ext4.win") == 0) { // if output matches any of these filenames
 			strcpy(sys.fnm,rfOutput); // copy the filename and store in struct .fnm
-			tw_nan_system_x = 1; // set restore option for system as visible
-			tw_total++; // add to restore count
+			tw_restore_system = 1; // set restore option for system as visible
 		}
 		if (strcmp(rfOutput,"data.yaffs2.win") == 0 ||
 			strcmp(rfOutput,"data.ext2.win") == 0 ||
 			strcmp(rfOutput,"data.ext3.win") == 0 ||
 			strcmp(rfOutput,"data.ext4.win") == 0) {
 			strcpy(dat.fnm,rfOutput);
-			tw_nan_data_x = 1;
-			tw_total++;
+			tw_restore_data = 1;
 		}
 		if (strcmp(rfOutput,"cache.yaffs2.win") == 0 ||
 			strcmp(rfOutput,"cache.ext2.win") == 0 ||
 			strcmp(rfOutput,"cache.ext3.win") == 0 ||
 			strcmp(rfOutput,"cache.ext4.win") == 0) {
 			strcpy(cac.fnm,rfOutput);
-			tw_nan_cache_x = 1;
-			tw_total++;
+			tw_restore_cache = 1;
 		}
 		if (strcmp(rfOutput,"sd-ext.ext2.win") == 0 ||
 			strcmp(rfOutput,"sd-ext.ext3.win") == 0 ||
 			strcmp(rfOutput,"sd-ext.ext4.win") == 0) {
 			strcpy(sde.fnm,rfOutput);
-			tw_nan_sdext_x = 1;
-			tw_total++;
+			tw_restore_sdext = 1;
 		}
 		if (strcmp(rfOutput,"and-sec.vfat.win") == 0) {
 			strcpy(ase.fnm,rfOutput);
-			tw_nan_andsec_x = 1;
-			tw_total++;
+			tw_restore_andsec = 1;
 		}
 		if (strcmp(rfOutput,"boot.mtd.win") == 0 ||
 			strcmp(rfOutput,"boot.emmc.win") == 0) {
 			strcpy(boo.fnm,rfOutput);
-			tw_nan_boot_x = 1;
-			tw_total++;
+			tw_restore_boot = 1;
 		}
 		if (strcmp(rfOutput,"recovery.mtd.win") == 0 ||
 			strcmp(rfOutput,"recovery.emmc.win") == 0) {
 			strcpy(rec.fnm,rfOutput);
-			tw_nan_recovery_x = 1;
-			tw_total++;
+			tw_restore_recovery = 1;
 		}
 		if (strcmp(wim.mnt,"wimax") == 0 || strcmp(wim.mnt,"efs") == 0) {
 			if (strcmp(rfOutput,"wimax.mtd.win") == 0 ||
 				strcmp(rfOutput,"wimax.emmc.win") == 0) {
 				strcpy(wim.fnm,rfOutput);
-				tw_nan_wimax_x = 1;
-				tw_total++;
+				tw_restore_wimax = 1;
 			}
 			if (strcmp(rfOutput,"efs.yaffs2.win") == 0) {
 				strcpy(wim.fnm,rfOutput);
-				tw_nan_wimax_x = 1;
-				tw_total++;
+				tw_restore_wimax = 1;
 			}
 		}
 	}
 	__pclose(rfFp);
+
+    // Set the final values
+    DataManager_SetIntValue(TW_RESTORE_SYSTEM_VAR, tw_restore_system);
+    DataManager_SetIntValue(TW_RESTORE_DATA_VAR, tw_restore_data);
+    DataManager_SetIntValue(TW_RESTORE_CACHE_VAR, tw_restore_cache);
+    DataManager_SetIntValue(TW_RESTORE_RECOVERY_VAR, tw_restore_recovery);
+    DataManager_SetIntValue(TW_RESTORE_WIMAX_VAR, tw_restore_wimax);
+    DataManager_SetIntValue(TW_RESTORE_BOOT_VAR, tw_restore_boot);
+    DataManager_SetIntValue(TW_RESTORE_ANDSEC_VAR, tw_restore_andsec);
+    DataManager_SetIntValue(TW_RESTORE_SDEXT_VAR, tw_restore_sdext);
+
+    return;
 }
 
 void
 nan_restore_menu(int pIdx)
 {
-	tw_total = 0;
 	char* nan_r_headers[] = { "Nandroid Restore",
 							  "Choose Restore Options:",
 							  NULL	};
@@ -350,7 +321,18 @@ nan_restore_menu(int pIdx)
 	for (;;) {
 		int chosen_item = get_menu_selection(headers, nan_r_items, 0, pIdx);
 		pIdx = chosen_item; // remember last selection location
-		switch (chosen_item)
+
+        int tw_total = 0;
+        tw_total += (DataManager_GetIntValue(TW_BACKUP_SYSTEM_VAR) == 1 ? 1 : 0);
+        tw_total += (DataManager_GetIntValue(TW_BACKUP_DATA_VAR) == 1 ? 1 : 0);
+        tw_total += (DataManager_GetIntValue(TW_BACKUP_CACHE_VAR) == 1 ? 1 : 0);
+        tw_total += (DataManager_GetIntValue(TW_BACKUP_RECOVERY_VAR) == 1 ? 1 : 0);
+        tw_total += (DataManager_GetIntValue(TW_BACKUP_WIMAX_VAR) == 1 ? 1 : 0);
+        tw_total += (DataManager_GetIntValue(TW_BACKUP_BOOT_VAR) == 1 ? 1 : 0);
+        tw_total += (DataManager_GetIntValue(TW_BACKUP_ANDSEC_VAR) == 1 ? 1 : 0);
+        tw_total += (DataManager_GetIntValue(TW_BACKUP_SDEXT_VAR) == 1 ? 1 : 0);
+
+        switch (chosen_item)
 		{
 		case ITEM_NAN_BACKUP:
 			if (tw_total > 0) {
@@ -360,76 +342,36 @@ nan_restore_menu(int pIdx)
 			}
 			break;
 		case ITEM_NAN_SYSTEM:
-			if (tw_nan_system_x == 0) {
-				tw_nan_system_x = 1;
-        		tw_total++;
-			} else if (tw_nan_system_x == 1) {
-				tw_nan_system_x = 0;
-        		tw_total--;
-			}
+            if (DataManager_GetIntValue(TW_RESTORE_SYSTEM_VAR) >= 0)
+                DataManager_ToggleIntValue(TW_RESTORE_SYSTEM_VAR);
             break;
 		case ITEM_NAN_DATA:
-			if (tw_nan_data_x == 0) {
-				tw_nan_data_x = 1;
-        		tw_total++;
-			} else if (tw_nan_data_x == 1) {
-				tw_nan_data_x = 0;
-        		tw_total--;
-			}
+            if (DataManager_GetIntValue(TW_RESTORE_DATA_VAR) >= 0)
+                DataManager_ToggleIntValue(TW_RESTORE_DATA_VAR);
 			break;
 		case ITEM_NAN_BOOT:
-			if (tw_nan_boot_x == 0) {
-				tw_nan_boot_x = 1;
-        		tw_total++;
-			} else if (tw_nan_boot_x == 1) {
-				tw_nan_boot_x = 0;
-        		tw_total--;
-			}
+            if (DataManager_GetIntValue(TW_RESTORE_BOOT_VAR) >= 0)
+                DataManager_ToggleIntValue(TW_RESTORE_BOOT_VAR);
 			break;
 		case ITEM_NAN_RECOVERY:
-			if (tw_nan_recovery_x == 0) {
-				tw_nan_recovery_x = 1;
-        		tw_total++;
-			} else if (tw_nan_recovery_x == 1) {
-				tw_nan_recovery_x = 0;
-        		tw_total--;
-			}
+            if (DataManager_GetIntValue(TW_RESTORE_RECOVERY_VAR) >= 0)
+                DataManager_ToggleIntValue(TW_RESTORE_RECOVERY_VAR);
 			break;
 		case ITEM_NAN_CACHE:
-			if (tw_nan_cache_x == 0) {
-				tw_nan_cache_x = 1;
-        		tw_total++;
-			} else if (tw_nan_cache_x == 1) {
-				tw_nan_cache_x = 0;
-        		tw_total--;
-			}
+            if (DataManager_GetIntValue(TW_RESTORE_CACHE_VAR) >= 0)
+                DataManager_ToggleIntValue(TW_RESTORE_CACHE_VAR);
 			break;
 		case ITEM_NAN_WIMAX:
-			if (tw_nan_wimax_x == 0) {
-				tw_nan_wimax_x = 1;
-        		tw_total++;
-			} else if (tw_nan_wimax_x == 1) {
-				tw_nan_wimax_x = 0;
-        		tw_total--;
-			}
+            if (DataManager_GetIntValue(TW_RESTORE_WIMAX_VAR) >= 0)
+                DataManager_ToggleIntValue(TW_RESTORE_WIMAX_VAR);
 			break;
 		case ITEM_NAN_ANDSEC:
-			if (tw_nan_andsec_x == 0) {
-				tw_nan_andsec_x = 1;
-        		tw_total++;
-			} else if (tw_nan_andsec_x == 1) {
-				tw_nan_andsec_x = 0;
-        		tw_total--;
-			}
+            if (DataManager_GetIntValue(TW_RESTORE_ANDSEC_VAR) >= 0)
+                DataManager_ToggleIntValue(TW_RESTORE_ANDSEC_VAR);
 			break;
 		case ITEM_NAN_SDEXT:
-			if (tw_nan_sdext_x == 0) {
-				tw_nan_sdext_x = 1;
-        		tw_total++;
-			} else if (tw_nan_sdext_x == 1) {
-				tw_nan_sdext_x = 0;
-        		tw_total--;
-			}
+            if (DataManager_GetIntValue(TW_RESTORE_SDEXT_VAR) >= 0)
+                DataManager_ToggleIntValue(TW_RESTORE_SDEXT_VAR);
 			break;
 		case ITEM_NAN_BACK - 1:
         	dec_menu_loc();
@@ -457,41 +399,41 @@ nan_img_set(int tw_setting, int tw_backstore)
 		case ITEM_NAN_SYSTEM:
 			strcpy(tmp_set, "[ ] system");
 			if (tw_backstore) {
-				isTrue = tw_nan_system_x;
+				isTrue = DataManager_GetIntValue(TW_RESTORE_SYSTEM_VAR);
 			} else {
-				isTrue = DataManager_GetIntValue(TW_NANDROID_SYSTEM_VAR);
+				isTrue = DataManager_GetIntValue(TW_BACKUP_SYSTEM_VAR);
 			}
 			break;
 		case ITEM_NAN_DATA:
 			strcpy(tmp_set, "[ ] data");
 			if (tw_backstore) {
-				isTrue = tw_nan_data_x;
+                isTrue = DataManager_GetIntValue(TW_RESTORE_DATA_VAR);
 			} else {
-				isTrue = DataManager_GetIntValue(TW_NANDROID_DATA_VAR);
+				isTrue = DataManager_GetIntValue(TW_BACKUP_DATA_VAR);
 			}
 			break;
 		case ITEM_NAN_BOOT:
 			strcpy(tmp_set, "[ ] boot");
 			if (tw_backstore) {
-				isTrue = tw_nan_boot_x;
+                isTrue = DataManager_GetIntValue(TW_RESTORE_BOOT_VAR);
 			} else {
-				isTrue = DataManager_GetIntValue(TW_NANDROID_BOOT_VAR);
+				isTrue = DataManager_GetIntValue(TW_BACKUP_BOOT_VAR);
 			}
 			break;
 		case ITEM_NAN_RECOVERY:
 			strcpy(tmp_set, "[ ] recovery");
 			if (tw_backstore) {
-				isTrue = tw_nan_recovery_x;
+                isTrue = DataManager_GetIntValue(TW_RESTORE_RECOVERY_VAR);
 			} else {
-				isTrue = DataManager_GetIntValue(TW_NANDROID_RECOVERY_VAR);
+				isTrue = DataManager_GetIntValue(TW_BACKUP_RECOVERY_VAR);
 			}
 			break;
 		case ITEM_NAN_CACHE:
 			strcpy(tmp_set, "[ ] cache");
 			if (tw_backstore) {
-				isTrue = tw_nan_cache_x;
+                isTrue = DataManager_GetIntValue(TW_RESTORE_CACHE_VAR);
 			} else {
-				isTrue = DataManager_GetIntValue(TW_NANDROID_CACHE_VAR);
+				isTrue = DataManager_GetIntValue(TW_BACKUP_CACHE_VAR);
 			}
 			break;
 		case ITEM_NAN_WIMAX:
@@ -502,12 +444,12 @@ nan_img_set(int tw_setting, int tw_backstore)
 				strcat(tmp_set,"wimax");
 			}
 			if (tw_backstore) {
-				isTrue = tw_nan_wimax_x;
+                isTrue = DataManager_GetIntValue(TW_RESTORE_WIMAX_VAR);
 			} else {
 				if (strcmp(wim.mnt,"wimax") == 0 || strcmp(wim.mnt,"efs") == 0) {
-					isTrue = DataManager_GetIntValue(TW_NANDROID_WIMAX_VAR);
+					isTrue = DataManager_GetIntValue(TW_BACKUP_WIMAX_VAR);
 				} else {
-					tw_nan_wimax_x = -1;
+                    DataManager_SetIntValue(TW_RESTORE_WIMAX_VAR, -1);
 					isTrue = -1;
 				}
 			}
@@ -515,33 +457,32 @@ nan_img_set(int tw_setting, int tw_backstore)
 		case ITEM_NAN_ANDSEC:
 			strcpy(tmp_set, "[ ] .android_secure");
 			if (tw_backstore) {
-				isTrue = tw_nan_andsec_x;
+				isTrue = DataManager_GetIntValue(TW_RESTORE_ANDSEC_VAR);
 			} else {
 				if (stat(ase.dev,&st) != 0) {
-					tw_nan_andsec_x = -1;
+                    DataManager_SetIntValue(TW_RESTORE_ANDSEC_VAR, -1);
 					isTrue = -1;
 				} else {
-					isTrue = DataManager_GetIntValue(TW_NANDROID_ANDSEC_VAR);
+					isTrue = DataManager_GetIntValue(TW_BACKUP_ANDSEC_VAR);
 				}
 			}
 			break;
 		case ITEM_NAN_SDEXT:
 			strcpy(tmp_set, "[ ] sd-ext");
 			if (tw_backstore) {
-				isTrue = tw_nan_sdext_x;
+				isTrue = DataManager_GetIntValue(TW_RESTORE_SDEXT_VAR);
 			} else {
 				if (stat(sde.blk,&st) != 0) {
-					tw_nan_sdext_x = -1;
+                    DataManager_SetIntValue(TW_RESTORE_SDEXT_VAR, -1);
 					isTrue = -1;
 				} else {
-					isTrue = DataManager_GetIntValue(TW_NANDROID_SDEXT_VAR);
+					isTrue = DataManager_GetIntValue(TW_BACKUP_SDEXT_VAR);
 				}
 			}
 			break;
 	}
 	if (isTrue == 1) {
 		tmp_set[1] = 'x';
-		tw_total++;
 	} 
 	if (isTrue == -1) {
 		tmp_set[0] = ' ';
@@ -768,7 +709,7 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 int
 nandroid_back_exe()
 {
-    SetDataState("", "", 0, 0);
+    SetDataState("Starting", "backup", 0, 0);
 
     if (ensure_path_mounted(SDCARD_ROOT) != 0) {
 		ui_print("-- Could not mount: %s.\n-- Aborting.\n",SDCARD_ROOT);
@@ -795,12 +736,15 @@ nandroid_back_exe()
 		LOGI("=> Created folder: %s\n",tw_image_dir);
 	}
 	FILE *fp;
-	char pOutput[25];
+	char pOutput[26];
 	int sdSpaceFinal;
 	LOGI("=> Checking space on %s.\n",SDCARD_ROOT);
 	fp = __popen("df -k /sdcard | grep sdcard | awk '{ print $4 \" \" $3 }'", "r"); // how much space left on sdcard?
 	fgets(pOutput,25,fp);
+    // Force a NULL termination
+    pOutput[25] = 0;
 	__pclose(fp);
+    LOGI("=> Retrieved: %s.\n", pOutput);
 	if(pOutput[2] == '%') { // oh o, crespo devices report diskspace on the 3rd argument.
 		if (sscanf(pOutput,"%*s %d",&sdSpaceFinal) != 1) { // is it a number?
 			ui_print("-- Could not determine free space on %s.",SDCARD_ROOT); // oh noes! Can't find sdcard's free space.
@@ -808,7 +752,7 @@ nandroid_back_exe()
 			return 1;
 		}
 	} else {
-		if (sscanf(pOutput,"%d %*s",&sdSpaceFinal) != 1) { // is it a number?
+		if (sscanf(pOutput,"%d",&sdSpaceFinal) != 1) { // is it a number?
 			ui_print("-- Could not determine free space on %s.",SDCARD_ROOT); // oh noes! Can't find sdcard's free space.
             SetDataState("Backup failed", "", 1, 1);
 			return 1;
@@ -825,7 +769,7 @@ nandroid_back_exe()
 	createFstab();
 	ui_print("-- Done.\n");
 	// SYSTEM
-	if (DataManager_GetIntValue(TW_NANDROID_SYSTEM_VAR)) { // was system backup enabled?
+	if (DataManager_GetIntValue(TW_BACKUP_SYSTEM_VAR)) { // was system backup enabled?
 		if (tw_backup(sys,tw_image_dir) == 1) { // did the backup process return an error ? 0 = no error
             SetDataState("Backup failed", "system", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n"); //oh noes! abort abort!
@@ -833,7 +777,7 @@ nandroid_back_exe()
 		}
 	}
 	// DATA
-	if (DataManager_GetIntValue(TW_NANDROID_DATA_VAR)) {
+	if (DataManager_GetIntValue(TW_BACKUP_DATA_VAR)) {
 		if (tw_backup(dat,tw_image_dir) == 1) {
             SetDataState("Backup failed", "data", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
@@ -841,7 +785,7 @@ nandroid_back_exe()
 		}
 	}
 	// BOOT
-	if (DataManager_GetIntValue(TW_NANDROID_BOOT_VAR)) {
+	if (DataManager_GetIntValue(TW_BACKUP_BOOT_VAR)) {
 		if (tw_backup(boo,tw_image_dir) == 1) {
             SetDataState("Backup failed", "boot", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
@@ -849,7 +793,7 @@ nandroid_back_exe()
 		}
 	}
 	// RECOVERY
-	if (DataManager_GetIntValue(TW_NANDROID_RECOVERY_VAR)) {
+	if (DataManager_GetIntValue(TW_BACKUP_RECOVERY_VAR)) {
 		if (tw_backup(rec,tw_image_dir) == 1) {
             SetDataState("Backup failed", "recovery", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
@@ -857,7 +801,7 @@ nandroid_back_exe()
 		}
 	}
 	// CACHE
-	if (DataManager_GetIntValue(TW_NANDROID_CACHE_VAR)) {
+	if (DataManager_GetIntValue(TW_BACKUP_CACHE_VAR)) {
 		if (tw_backup(cac,tw_image_dir) == 1) {
             SetDataState("Backup failed", "cache", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
@@ -865,7 +809,7 @@ nandroid_back_exe()
 		}
 	}
 	// WIMAX
-	if (DataManager_GetIntValue(TW_NANDROID_WIMAX_VAR)) {
+	if (DataManager_GetIntValue(TW_BACKUP_WIMAX_VAR)) {
 		if (tw_backup(wim,tw_image_dir) == 1) {
             SetDataState("Backup failed", "wimax", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
@@ -873,7 +817,7 @@ nandroid_back_exe()
 		}
 	}
 	// ANDROID-SECURE
-	if (DataManager_GetIntValue(TW_NANDROID_ANDSEC_VAR)) {
+	if (DataManager_GetIntValue(TW_BACKUP_ANDSEC_VAR)) {
 		if (tw_backup(ase,tw_image_dir) == 1) {
             SetDataState("Backup failed", ".android_secure", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
@@ -881,7 +825,7 @@ nandroid_back_exe()
 		}
 	}
 	// SD-EXT
-	if (DataManager_GetIntValue(TW_NANDROID_SDEXT_VAR)) {
+	if (DataManager_GetIntValue(TW_BACKUP_SDEXT_VAR)) {
 		if (tw_backup(sde,tw_image_dir) == 1) {
             SetDataState("Backup failed", "sd-ext", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
@@ -908,7 +852,7 @@ nandroid_back_exe()
 	time(&stop);
 	ui_print("[%d MB TOTAL BACKED UP TO SDCARD]\n",(int)(sdSpaceFinal - sdSpace) / 1024);
 	ui_print("[BACKUP COMPLETED IN %d SECONDS]\n\n",(int)difftime(stop, start)); // the end
-    SetDataState("Backup failed", "", 0, 1);
+    SetDataState("Backup Succeeded", "", 0, 1);
 	return 0;
 }
 
@@ -928,25 +872,31 @@ int tw_restore(struct dInfo rMnt, char *rDir)
 		rUppr[i] = toupper(rUppr[i]);
 	}
 	ui_print("[%s]\n",rUppr);
-	ui_show_progress(1,150);
 	time(&rStart);
+    SetDataState("Verifying MD5", rMnt.mnt, 0, 0);
 	ui_print("...Verifying md5 hash for %s.\n",rMnt.mnt);
 	if(checkMD5(rDir,rMnt.fnm) == 0) // verify md5, check if no error; 0 = no error.
 	{
 		strcpy(rFilename,rDir);
+        if (rFilename[strlen(rFilename)-1] != '/')
+        {
+            strcat(rFilename, "/");
+        }
 		strcat(rFilename,rMnt.fnm);
 		sprintf(rCommand,"ls -l %s | awk -F'.' '{ print $2 }'",rFilename); // let's get the filesystem type from filename
-		reFp = __popen(rCommand, "r");
+        reFp = __popen(rCommand, "r");
 		LOGI("=> Filename is: %s\n",rMnt.fnm);
 		while (fscanf(reFp,"%s",rFilesystem) == 1) { // if we get a match, store filesystem type
 			LOGI("=> Filesystem is: %s\n",rFilesystem); // show it off to the world!
 		}
 		__pclose(reFp);
+
 		if (DataManager_GetIntValue(TW_RM_RF_VAR) == 1 && (strcmp(rMnt.mnt,"system") == 0 || strcmp(rMnt.mnt,"data") == 0 || strcmp(rMnt.mnt,"cache") == 0)) { // we'll use rm -rf instead of formatting for system, data and cache if the option is set
 			ui_print("...using rm -rf to wipe %s\n", rMnt.mnt);
 			tw_mount(rMnt); // mount the partition first
 			sprintf(rCommand,"rm -rf %s%s/*", "/", rMnt.mnt);
-			LOGI("rm rf commad: %s\n", rCommand);
+			LOGI("rm rf command: %s\n", rCommand);
+            SetDataState("Formatting", rMnt.mnt, 0, 0);
 			reFp = __popen(rCommand, "r");
 			while (fscanf(reFp,"%s",rOutput) == 1) {
 				ui_print_overwrite("%s",rOutput);
@@ -954,6 +904,7 @@ int tw_restore(struct dInfo rMnt, char *rDir)
 			__pclose(reFp);
 		} else {
 			ui_print("...Formatting %s\n",rMnt.mnt);
+            SetDataState("Formatting", rMnt.mnt, 0, 0);
 			tw_format(rFilesystem,rMnt.blk); // let's format block, based on filesystem from filename above
 		}
 		ui_print("....Done.\n");
@@ -973,6 +924,7 @@ int tw_restore(struct dInfo rMnt, char *rDir)
 			sprintf(rCommand,"cd %s && tar -xvf %s",rMount,rFilename); // formulate shell command to restore
 		}
 		ui_print("...Restoring %s\n",rMount);
+        SetDataState("Restoring", rMnt.mnt, 0, 0);
 		reFp = __popen(rCommand, "r");
 		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 2) { // twrp spam
 			while (fgets(rOutput,sizeof(rOutput),reFp) != NULL) {
@@ -992,7 +944,6 @@ int tw_restore(struct dInfo rMnt, char *rDir)
 		ui_print("...Failed md5 check. Aborted.\n\n");
 		return 1;
 	}
-	ui_reset_progress();
 	time(&rStop);
 	ui_print("[%s DONE (%d SECONDS)]\n\n",rUppr,(int)difftime(rStop,rStart));
 	return 0;
@@ -1001,58 +952,93 @@ int tw_restore(struct dInfo rMnt, char *rDir)
 int 
 nandroid_rest_exe()
 {
+    SetDataState("", "", 0, 0);
+
+    const char* nan_dir = DataManager_GetStrValue("tw_restore");
+
 	if (ensure_path_mounted(SDCARD_ROOT) != 0) {
 		ui_print("-- Could not mount: %s.\n-- Aborting.\n",SDCARD_ROOT);
 		return 1;
 	}
+
+    int tw_total = 0;
+    tw_total += (DataManager_GetIntValue(TW_RESTORE_SYSTEM_VAR) == 1 ? 1 : 0);
+    tw_total += (DataManager_GetIntValue(TW_RESTORE_DATA_VAR) == 1 ? 1 : 0);
+    tw_total += (DataManager_GetIntValue(TW_RESTORE_CACHE_VAR) == 1 ? 1 : 0);
+    tw_total += (DataManager_GetIntValue(TW_RESTORE_RECOVERY_VAR) == 1 ? 1 : 0);
+    tw_total += (DataManager_GetIntValue(TW_RESTORE_WIMAX_VAR) == 1 ? 1 : 0);
+    tw_total += (DataManager_GetIntValue(TW_RESTORE_BOOT_VAR) == 1 ? 1 : 0);
+    tw_total += (DataManager_GetIntValue(TW_RESTORE_ANDSEC_VAR) == 1 ? 1 : 0);
+    tw_total += (DataManager_GetIntValue(TW_RESTORE_SDEXT_VAR) == 1 ? 1 : 0);
+
+    float sections = 1.0 / tw_total;
+    LOGI("Sections as float: %f\n", sections);
+    LOGI("Sections: %d\n", tw_total);
+
 	time_t rStart, rStop;
 	time(&rStart);
 	ui_print("\n[RESTORE STARTED]\n\n");
-	if (tw_nan_system_x == 1) {
+	if (DataManager_GetIntValue(TW_RESTORE_SYSTEM_VAR) == 1) {
+        ui_show_progress(sections, 150);
 		if (tw_restore(sys,nan_dir) == 1) {
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
+            SetDataState("Restore failed", "", 1, 1);
 			return 1;
 		}
 	}
-	if (tw_nan_data_x == 1) {
+    if (DataManager_GetIntValue(TW_RESTORE_DATA_VAR) == 1) {
+        ui_show_progress(sections, 150);
 		if (tw_restore(dat,nan_dir) == 1) {
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
+            SetDataState("Restore failed", "", 1, 1);
 			return 1;
 		}
 	}
-	if (tw_nan_boot_x == 1) {
+    if (DataManager_GetIntValue(TW_RESTORE_BOOT_VAR) == 1) {
+        ui_show_progress(sections, 150);
 		if (tw_restore(boo,nan_dir) == 1) {
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
+            SetDataState("Restore failed", "", 1, 1);
 			return 1;
 		}
 	}
-	if (tw_nan_recovery_x == 1) {
+    if (DataManager_GetIntValue(TW_RESTORE_RECOVERY_VAR) == 1) {
+        ui_show_progress(sections, 150);
 		if (tw_restore(rec,nan_dir) == 1) {
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
+            SetDataState("Restore failed", "", 1, 1);
 			return 1;
 		}
 	}
-	if (tw_nan_cache_x == 1) {
+    if (DataManager_GetIntValue(TW_RESTORE_CACHE_VAR) == 1) {
+        ui_show_progress(sections, 150);
 		if (tw_restore(cac,nan_dir) == 1) {
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
+            SetDataState("Restore failed", "", 1, 1);
 			return 1;
 		}
 	}
-	if (tw_nan_wimax_x == 1) {
+    if (DataManager_GetIntValue(TW_RESTORE_WIMAX_VAR) == 1) {
+        ui_show_progress(sections, 150);
 		if (tw_restore(wim,nan_dir) == 1) {
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
+            SetDataState("Restore failed", "", 1, 1);
 			return 1;
 		}
 	}
-	if (tw_nan_andsec_x == 1) {
+    if (DataManager_GetIntValue(TW_RESTORE_ANDSEC_VAR) == 1) {
+        ui_show_progress(sections, 150);
 		if (tw_restore(ase,nan_dir) == 1) {
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
+            SetDataState("Restore failed", "", 1, 1);
 			return 1;
 		}
 	}
-	if (tw_nan_sdext_x == 1) {
+    if (DataManager_GetIntValue(TW_RESTORE_SDEXT_VAR) == 1) {
+        ui_show_progress(sections, 150);
 		if (tw_restore(sde,nan_dir) == 1) {
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
+            SetDataState("Restore failed", "", 1, 1);
 			return 1;
 		}
 	}
@@ -1063,6 +1049,7 @@ nandroid_rest_exe()
 	verifyFst();
 	LOGI("=> And update our fstab also.\n");
 	createFstab();
+    SetDataState("Restore Succeeded", "", 0, 1);
 	return 0;
 }
 
@@ -1158,8 +1145,13 @@ void choose_backup_folder()
         if (chosen_item == 0) {
             break;
         } else if (item[item_len-1] == '/') {
+            char nan_dir[512];
+
             strcpy(nan_dir, tw_dir);
             strcat(nan_dir, item);
+
+            DataManager_SetStrValue("tw_restore", nan_dir);
+
             set_restore_files();
             nan_restore_menu(0);
             break;

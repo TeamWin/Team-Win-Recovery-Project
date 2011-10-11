@@ -50,3 +50,8 @@ void gui_print_overwrite(const char *fmt, ...)
     return;
 }
 
+void gui_notifyVarChange(const char *name, const char* value)
+{
+    return;
+}
+

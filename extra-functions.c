@@ -229,7 +229,7 @@ __pclose(FILE *iop)
 void get_device_id()
 {
 	FILE *fp;
-	fp = __popen("cat /proc/cmdline | sed \"s/.*serialno=//\" | cut -d\" \" -f1", "r");
+	fp = __popen("busybox cat /proc/cmdline | busybox sed \"s/.*serialno=//\" | busybox cut -d\" \" -f1", "r");
 	if (fp == NULL)
 	{
 		LOGI("=> device id file not found.");
@@ -334,6 +334,55 @@ TODO: Currently only one mount is supported, defaulting
 #define CUSTOM_LUN_FILE "/sys/devices/platform/usb_mass_storage/lun"
 #endif
 
+int usb_storage_enable(void)
+{
+    int fd;
+
+    Volume *vol = volume_for_path("/sdcard"); 
+    if (!vol)
+    {
+        LOGE("Unable to locate volume information.");
+        return -1;
+    }
+
+    if ((fd = open(CUSTOM_LUN_FILE"0/file", O_WRONLY)) < 0)
+    {
+        LOGE("Unable to open ums lunfile: (%s)", strerror(errno));
+        return -1;
+    }
+
+    if ((write(fd, vol->device, strlen(vol->device)) < 0) &&
+        (!vol->device2 || (write(fd, vol->device, strlen(vol->device2)) < 0))) {
+        LOGE("Unable to write to ums lunfile: (%s)", strerror(errno));
+        close(fd);
+        return -1;
+    }
+    close(fd);
+    return 0;
+}
+
+int usb_storage_disable(void)
+{
+    int fd;
+
+    if ((fd = open(CUSTOM_LUN_FILE"0/file", O_WRONLY)) < 0)
+    {
+        LOGE("Unable to open ums lunfile: (%s)", strerror(errno));
+        return -1;
+    }
+
+    char ch = 0;
+    if (write(fd, &ch, 1) < 0)
+    {
+        LOGE("Unable to write to ums lunfile: (%s)", strerror(errno));
+        close(fd);
+        return -1;
+    }
+
+    close(fd);
+    return 0;
+}
+
 void usb_storage_toggle()
 {
 /*maybe make this a header instead?
@@ -344,46 +393,24 @@ void usb_storage_toggle()
 */
     ui_print("\nMounting USB as storage device...");
 
-    int fd;
-    Volume *vol = volume_for_path("/sdcard"); 
-    if ((fd = open(CUSTOM_LUN_FILE"0/file", O_WRONLY)) < 0) {
-        LOGE("Unable to open ums lunfile: (%s)", strerror(errno));
-        return;
-    }
-
-    if ((write(fd, vol->device, strlen(vol->device)) < 0) &&
-        (!vol->device2 || (write(fd, vol->device, strlen(vol->device2)) < 0))) {
-        LOGE("Unable to write to ums lunfile: (%s)", strerror(errno));
-        close(fd);
+    if (usb_storage_enable())
         return;
 
-    } else {
-        ui_clear_key_queue();
-        ui_print("\nUSB as storage device mounted!\n");
-        ui_print("\nPress Power to disable,");
-        ui_print("\nand return to menu\n");
+    ui_clear_key_queue();
+    ui_print("\nUSB as storage device mounted!\n");
+    ui_print("\nPress Power to disable,");
+    ui_print("\nand return to menu\n");
 
-        for (;;) {
-        	int key = ui_wait_key();
-        	if (key == KEY_POWER) {
-        		ui_print("\nDisabling USB as storage device...");
+    for (;;) {
+        int key = ui_wait_key();
+        if (key == KEY_POWER) {
+            ui_print("\nDisabling USB as storage device...");
 
-        		if ((fd = open(CUSTOM_LUN_FILE"0/file", O_WRONLY)) < 0) {
-        			LOGE("Unable to open ums lunfile: (%s)", strerror(errno));
-        			return;
-        		}
-
-        		char ch = 0;
-        		if (write(fd, &ch, 1) < 0) {
-        			LOGE("Unable to write to ums lunfile: (%s)", strerror(errno));
-        			close(fd);
-        			return;
-        		}
-        		ui_print("\nUSB as storage device unmounted!\n");
-        		break;
-        	}
+            usb_storage_disable();
+            break;
         }
     }
+    return;
 }
 
 char* zip_verify()

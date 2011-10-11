@@ -28,6 +28,7 @@ class DataManager
 public:
     static int ResetDefaults();
     static int LoadValues(const string filename);
+    static int Flush();
 
     // Core get routines
     static int GetValue(const string varName, string& value);

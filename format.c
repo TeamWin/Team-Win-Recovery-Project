@@ -36,20 +36,23 @@ void tw_format(char *fstype, char *fsblock)
 			sprintf(uCommand,"cat /proc/mounts | grep %s | awk '{ print $1 }'",fsblock); // form shell command to find block in mounts
 			fp = __popen(uCommand, "r");
 			LOGI("=> Formatting %s with %s\n",fsblock,fstype);
+            uOutput[0] = 0x00;
 			if (fscanf(fp,"%s",uOutput) == 1) { // if block is found in mounts
 				sprintf(exe,"umount %s",fsblock); // unmount block
 				__system(exe);
 			}
 			__pclose(fp);
 			if (fstype[0] == 'e' && fstype[1] == 'x') { // if it's ext
-				sprintf(uCommand,"ls /sbin/mke2fs | grep mke2fs | awk '{ print $1 }'"); // form shell command to search for mke2fs
-				fp = __popen(uCommand, "r");
-				LOGI("=> checking for /sbin/mke2fs\n");
-				if (fscanf(fp,"%s",uOutput) == 1) { // if mke2fs is found
-					sprintf(exe,"mke2fs -t %s -m 0 %s",fstype,fsblock); // use mke2fs and format block according to fstype
+                struct stat st;
+                if (stat("/sbin/mke2fs", &st) == 0)
+                {
+                    sprintf(exe, "mke2fs -t %s -m 0 %s",fstype,fsblock); // use mke2fs and format block according to fstype
+                    LOGI("mke2fs command: %s\n", exe);
 					__system(exe);
-				} else {
-					sprintf(exe,"cat /etc/fstab | grep %s | awk '{ print $2 }'",fsblock); // find volume name in fstab
+				}
+                else 
+                {
+					sprintf(exe, "cat /etc/fstab | grep %s | awk '{ print $2 }'", fsblock); // find volume name in fstab
 					fp = __popen(exe,"r");
 					fscanf(fp,"%s",frmt);
 					__pclose(fp);
@@ -57,9 +60,7 @@ void tw_format(char *fstype, char *fsblock)
 					LOGI("rm -rf command: %s\n", exe);
 					__system(exe); // we just rm -rf everything
 				}
-				LOGI("uOutput = %s\n", uOutput);
 				__pclose(fp);
-				
 			} else if (fstype[0] == 'v' && fstype[1] == 'f') { // if it's vfat
 				if (strcmp(fsblock,"/sdcard/.android_secure") == 0) { // if it's android secure, we shouldn't format sdcard so...
 					__system("rm -rf /sdcard/.android_secure/* && rm -rf /sdcard/.android_secure/.*"); // we just rm -rf everything
