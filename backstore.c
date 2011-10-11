@@ -725,7 +725,7 @@ nandroid_back_exe()
 	time_t seconds;
 	seconds = time(0);
     t = localtime(&seconds);
-    sprintf(timestamp,"%02d%02d%d%02d%02d%02d",t->tm_mon+1,t->tm_mday,t->tm_year+1900,t->tm_hour,t->tm_min,t->tm_sec); // make time stamp
+    sprintf(timestamp,"%04d-%02d-%02d--%02d-%02d-%02d",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min,t->tm_sec); // make time stamp
 	sprintf(tw_image_dir,"%s/%s/%s/",backup_folder,device_id,timestamp); // for backup folder
 	sprintf(exe,"mkdir -p %s",tw_image_dir); // make the folder with timestamp
 	if (__system(exe) != 0) {
