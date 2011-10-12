@@ -587,14 +587,13 @@ int tw_unmount(struct dInfo uMnt)
 		FILE *fp;
 		char uCommand[255];
 		char uOutput[50];
-		char exe[50];
 		LOGI("=> Checking if /%s is mounted.\n",uMnt.mnt);
 		sprintf(uCommand,"cat /proc/mounts | grep %s | awk '{ print $1 }'",uMnt.blk);
 		fp = __popen(uCommand, "r");
 		if (fscanf(fp,"%s",uOutput) == 1) {
 			__pclose(fp);
-			sprintf(exe,"umount /%s",uMnt.mnt);
-			fp = __popen(exe, "r");
+			sprintf(uCommand,"umount /%s",uMnt.mnt);
+			fp = __popen(uCommand, "r");
 			fgets(uOutput,sizeof(uOutput),fp);
 			__pclose(fp);
 			if (uOutput[0] == 'u') {
@@ -682,7 +681,7 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 	ui_print("[%s (%d MB)]\n",bUppr,bPartSize/1024); // show size in MB
 	int bProgTime;
 	time_t bStart, bStop;
-	char bOutput[512];
+	char bOutput[1024];
 	if (sdSpace > bPartSize) { // Do we have enough space on sdcard?
 		time(&bStart); // start timer
 		bProgTime = bPartSize / bDiv; // not very accurate but better than nothing progress time for progress bar

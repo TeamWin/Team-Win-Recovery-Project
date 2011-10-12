@@ -780,7 +780,7 @@ prompt_and_wait() {
 
 	go_reboot = 0;
     finish_recovery(NULL);
-    ui_reset_progress();
+    //ui_reset_progress();
 
 	char** headers = prepend_title((const char**)MENU_HEADERS);
     char* MENU_ITEMS[] = {  "Start Recovery",
@@ -792,7 +792,7 @@ prompt_and_wait() {
         go_home = 0;
         go_menu = 0;
         menu_loc_idx = 0;
-		ui_reset_progress();
+		//ui_reset_progress();
     	
         /*int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
 
