@@ -27,7 +27,7 @@
 // get locations from our device.info
 void getLocations()
 {
-	FILE *fp;
+	FILE *fp = NULL;
 	int tmpInt;
 	char tmpText[50];
 	if (strcmp(get_fstype(),"mtd") == 0)
