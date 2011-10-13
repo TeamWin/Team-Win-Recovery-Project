@@ -563,7 +563,7 @@ int tw_unmount(struct dInfo uMnt)
 /* New backup function
 ** Condensed all partitions into one function
 */
-int tw_backup(struct dInfo bMnt, char *bDir)
+int tw_backup(struct dInfo bMnt, char *bDir, float portion)
 {
     if (ensure_path_mounted(SDCARD_ROOT) != 0) {
 		ui_print("-- Could not mount: %s.\n-- Aborting.\n",SDCARD_ROOT);
@@ -636,7 +636,7 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 	if (sdSpace > bPartSize) { // Do we have enough space on sdcard?
 		time(&bStart); // start timer
 		bProgTime = bPartSize / bDiv; // not very accurate but better than nothing progress time for progress bar
-		ui_show_progress(1,bProgTime);
+		ui_show_progress((portion * 3) / 4, bProgTime);
 		ui_print("...Backing up %s partition.\n",bMount);
 		bFp = __popen(bCommand, "r"); // sending backup command formed earlier above
 		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 2) { // if twrp spam is on, show all lines
@@ -653,6 +653,7 @@ int tw_backup(struct dInfo bMnt, char *bDir)
 		int pFileSize;
 		ui_print("...Double checking backup file size.\n");
         SetDataState("Verifying", bMnt.mnt, 0, 0);
+        ui_show_progress(portion / 4, bProgTime / 4);
 		sprintf(bCommand,"ls -l %s%s | awk '{ print $5 }'",bDir,bImage); // double checking to make sure we backed up something
 		bFp = __popen(bCommand, "r");
 		fscanf(bFp,"%d",&pFileSize);
@@ -718,7 +719,7 @@ nandroid_back_exe()
 	}
 
     struct tm *t;
-    char timestamp[15];
+    char timestamp[64];
 	char tw_image_dir[255];
 	char exe[255];
 	time_t start, stop;
@@ -762,7 +763,22 @@ nandroid_back_exe()
 	sdSpace = sdSpaceFinal; // set starting and running count of sd space
 	LOGI("=> /sdcard has %d MB free.\n",sdSpace/1024);
 	time(&start);
-	ui_print("\n[BACKUP STARTED]\n\n");
+
+    int tw_total = 0;
+    tw_total += (DataManager_GetIntValue(TW_BACKUP_SYSTEM_VAR) == 1 ? 1 : 0);
+    tw_total += (DataManager_GetIntValue(TW_BACKUP_DATA_VAR) == 1 ? 1 : 0);
+    tw_total += (DataManager_GetIntValue(TW_BACKUP_CACHE_VAR) == 1 ? 1 : 0);
+    tw_total += (DataManager_GetIntValue(TW_BACKUP_RECOVERY_VAR) == 1 ? 1 : 0);
+    tw_total += (DataManager_GetIntValue(TW_BACKUP_WIMAX_VAR) == 1 ? 1 : 0);
+    tw_total += (DataManager_GetIntValue(TW_BACKUP_BOOT_VAR) == 1 ? 1 : 0);
+    tw_total += (DataManager_GetIntValue(TW_BACKUP_ANDSEC_VAR) == 1 ? 1 : 0);
+    tw_total += (DataManager_GetIntValue(TW_BACKUP_SDEXT_VAR) == 1 ? 1 : 0);
+
+    float sections = 1.0 / tw_total;
+    LOGI("Sections as float: %f\n", sections);
+    LOGI("Sections: %d\n", tw_total);
+
+    ui_print("\n[BACKUP STARTED]\n\n");
 	ui_print("-- Verifying filesystems, please wait...\n");
 	verifyFst();
 	ui_print("-- Updating fstab.\n");
@@ -770,7 +786,7 @@ nandroid_back_exe()
 	ui_print("-- Done.\n");
 	// SYSTEM
 	if (DataManager_GetIntValue(TW_BACKUP_SYSTEM_VAR)) { // was system backup enabled?
-		if (tw_backup(sys,tw_image_dir) == 1) { // did the backup process return an error ? 0 = no error
+		if (tw_backup(sys,tw_image_dir, sections) == 1) { // did the backup process return an error ? 0 = no error
             SetDataState("Backup failed", "system", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n"); //oh noes! abort abort!
 			return 1;
@@ -778,7 +794,7 @@ nandroid_back_exe()
 	}
 	// DATA
 	if (DataManager_GetIntValue(TW_BACKUP_DATA_VAR)) {
-		if (tw_backup(dat,tw_image_dir) == 1) {
+		if (tw_backup(dat,tw_image_dir, sections) == 1) {
             SetDataState("Backup failed", "data", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
@@ -786,7 +802,7 @@ nandroid_back_exe()
 	}
 	// BOOT
 	if (DataManager_GetIntValue(TW_BACKUP_BOOT_VAR)) {
-		if (tw_backup(boo,tw_image_dir) == 1) {
+		if (tw_backup(boo,tw_image_dir, sections) == 1) {
             SetDataState("Backup failed", "boot", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
@@ -794,7 +810,7 @@ nandroid_back_exe()
 	}
 	// RECOVERY
 	if (DataManager_GetIntValue(TW_BACKUP_RECOVERY_VAR)) {
-		if (tw_backup(rec,tw_image_dir) == 1) {
+		if (tw_backup(rec,tw_image_dir, sections) == 1) {
             SetDataState("Backup failed", "recovery", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
@@ -802,7 +818,7 @@ nandroid_back_exe()
 	}
 	// CACHE
 	if (DataManager_GetIntValue(TW_BACKUP_CACHE_VAR)) {
-		if (tw_backup(cac,tw_image_dir) == 1) {
+		if (tw_backup(cac,tw_image_dir, sections) == 1) {
             SetDataState("Backup failed", "cache", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
@@ -810,7 +826,7 @@ nandroid_back_exe()
 	}
 	// WIMAX
 	if (DataManager_GetIntValue(TW_BACKUP_WIMAX_VAR)) {
-		if (tw_backup(wim,tw_image_dir) == 1) {
+		if (tw_backup(wim,tw_image_dir, sections) == 1) {
             SetDataState("Backup failed", "wimax", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
@@ -818,7 +834,7 @@ nandroid_back_exe()
 	}
 	// ANDROID-SECURE
 	if (DataManager_GetIntValue(TW_BACKUP_ANDSEC_VAR)) {
-		if (tw_backup(ase,tw_image_dir) == 1) {
+		if (tw_backup(ase,tw_image_dir, sections) == 1) {
             SetDataState("Backup failed", ".android_secure", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;
@@ -826,7 +842,7 @@ nandroid_back_exe()
 	}
 	// SD-EXT
 	if (DataManager_GetIntValue(TW_BACKUP_SDEXT_VAR)) {
-		if (tw_backup(sde,tw_image_dir) == 1) {
+		if (tw_backup(sde,tw_image_dir, sections) == 1) {
             SetDataState("Backup failed", "sd-ext", 1, 1);
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
 			return 1;

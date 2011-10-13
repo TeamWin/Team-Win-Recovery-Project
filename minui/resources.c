@@ -89,6 +89,8 @@ int res_create_surface(const char* name, gr_surface* pSurface) {
         goto exit;
     }
 
+    png_set_packing(png_ptr);
+
     png_init_io(png_ptr, fp);
     png_set_sig_bytes(png_ptr, sizeof(header));
     png_read_info(png_ptr, info_ptr);
@@ -124,11 +126,11 @@ int res_create_surface(const char* name, gr_surface* pSurface) {
             GGL_PIXEL_FORMAT_RGBX_8888 : GGL_PIXEL_FORMAT_RGBA_8888;
 
     if (color_type == PNG_COLOR_TYPE_PALETTE) {
-      png_set_palette_to_rgb(png_ptr);
+        png_set_palette_to_rgb(png_ptr);
     }
 
     int y;
-    if (channels == 3) {
+    if (channels < 4) {
         for (y = 0; y < height; ++y) {
             unsigned char* pRow = pData + y * stride;
             png_read_row(png_ptr, pRow, NULL);

@@ -75,8 +75,9 @@ static int get_framebuffer(GGLSurface *fb)
         return -1;
     }
 
-    if (vi.bits_per_pixel != 16)
+    if (vi.bits_per_pixel != 85)
     {
+        fprintf(stderr, "Setting framebuffer to 16-bit\n");
         vi.blue.offset = 0;
         vi.green.offset = 5;
         vi.red.offset = 11;
@@ -126,6 +127,7 @@ static int get_framebuffer(GGLSurface *fb)
     fb->format = GGL_PIXEL_FORMAT_RGB_565;
     memset(fb->data, 0, vi.yres * vi.xres_virtual * vi.bits_per_pixel / 8);
 
+    fprintf(stderr, "Framebuffer initialized: %dx%dx%d\n", vi.xres, vi.yres, vi.bits_per_pixel);
     return fd;
 }
 
@@ -405,18 +407,18 @@ int gr_init(void)
 
     gr_init_font();
     gr_vt_fd = open("/dev/tty0", O_RDWR | O_SYNC);
-    if (gr_vt_fd < 0) {
-        // This is non-fatal; post-Cupcake kernels don't have tty0.
-        perror("can't open /dev/tty0");
-    } else if (ioctl(gr_vt_fd, KDSETMODE, (void*) KD_GRAPHICS)) {
-        // However, if we do open tty0, we expect the ioctl to work.
-        perror("failed KDSETMODE to KD_GRAPHICS on tty0");
-        gr_exit();
-        return -1;
+    if (gr_vt_fd >= 0) {
+        if (ioctl(gr_vt_fd, KDSETMODE, (void*) KD_GRAPHICS)) {
+            // However, if we do open tty0, we expect the ioctl to work.
+            perror("failed KDSETMODE to KD_GRAPHICS on tty0");
+            gr_exit();
+            return -1;
+        }
     }
 
     gr_fb_fd = get_framebuffer(gr_framebuffer);
     if (gr_fb_fd < 0) {
+        perror("Unable to get framebuffer.\n");
         gr_exit();
         return -1;
     }
@@ -426,7 +428,7 @@ int gr_init(void)
     fprintf(stderr, "framebuffer: fd %d (%d x %d)\n",
             gr_fb_fd, gr_framebuffer[0].width, gr_framebuffer[0].height);
 
-        /* start with 0 as front (displayed) and 1 as back (drawing) */
+    /* start with 0 as front (displayed) and 1 as back (drawing) */
     gr_active_fb = 0;
     set_active_framebuffer(0);
     gl->colorBuffer(gl, &gr_mem_surface);
