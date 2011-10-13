@@ -30,24 +30,14 @@ static int set_bootloader_message_block(const struct bootloader_message *in, con
 
 //Attempting to determine mtd or emmc with a global method
 char *get_fstype() {
-    Volume* v = volume_for_path("/misc");
-    if (!v)
-    {
-        LOGW("Unable to locate /misc partition\n");
-        v = volume_for_path("/system");
-        if (!v)
-        {
-            LOGE("Unable to identify parititon type.\n");
-            return "Unknown";
-        }
-    }
+    struct stat st;
 
-    if (strcmp(v->fs_type, "mtd") == 0) {
+    if (stat("/proc/mtd",&st) == 0)
         return "mtd";
-    } else if (strcmp(v->fs_type, "emmc") == 0) {
+    if (stat("/proc/emmc", &st) == 0)
         return "emmc";
-    }
-    LOGE("unknown misc partition fs_type \"%s\"\n", v->fs_type);
+
+    LOGE("Unable to identify memory type!);
     return "Unknown"; //probably need to handle this better
 }
 
