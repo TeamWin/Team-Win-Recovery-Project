@@ -33,8 +33,13 @@ char *get_fstype() {
     Volume* v = volume_for_path("/misc");
     if (!v)
     {
-        LOGE("Unable to locate /misc partition\n");
-        return -1;
+        LOGW("Unable to locate /misc partition\n");
+        v = volume_for_path("/system");
+        if (!v)
+        {
+            LOGE("Unable to identify parititon type.\n");
+            return "Unknown";
+        }
     }
 
     if (strcmp(v->fs_type, "mtd") == 0) {
