@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <dirent.h>
 
+#include <algorithm>
 
 extern "C" {
 #include "../common.h"
@@ -277,13 +278,13 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
             startSelection = -1;
 
             // Handle scrolling
-            if (y > startY + (mLineHeight + mLineSpacing))
+            if (y > (int) (startY + (mLineHeight + mLineSpacing)))
             {
                 if (mStart)     mStart--;
                 mUpdate = 1;
                 startY = y;
             }
-            else if (y < startY - (mLineHeight + mLineSpacing))
+            else if (y < (int) (startY - (mLineHeight + mLineSpacing)))
             {
                 int folderSize = mShowFolders ? mFolderList.size() : 0;
                 int fileSize = mShowFiles ? mFileList.size() : 0;
@@ -435,6 +436,8 @@ int GUIFileSelector::GetFileList(const std::string folder)
         }
     }
     closedir(d);
+    std::sort(mFolderList.begin(), mFolderList.end());
+    std::sort(mFileList.begin(), mFileList.end());
     return 0;
 }
 

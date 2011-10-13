@@ -94,6 +94,9 @@ int GUIProgressBar::Render(void)
     if (!mEmptyBar || !mEmptyBar->GetResource())    return -1;
     if (!mFullBar || !mFullBar->GetResource())      return -1;
 
+    // This handles making sure timing updates occur
+    Update();
+
     gr_blit(mEmptyBar->GetResource(), 0, 0, mRenderW, mRenderH, mRenderX, mRenderY);
     gr_blit(mFullBar->GetResource(), 0, 0, mLastPos, mRenderH, mRenderX, mRenderY);
     return 0;
@@ -141,11 +144,13 @@ int GUIProgressBar::Update(void)
     // Normalize to 0
     max -= min;
     cur -= min;
+    min = 0;
 
     if (cur < min)  cur = min;
     if (cur > max)  cur = max;
 
-    pos = (cur * mRenderW) / max;
+    if (max == 0)   pos = 0;
+    else            pos = (cur * mRenderW) / max;
 
     if (pos == mLastPos)    return 0;
     mLastPos = pos;
@@ -155,6 +160,8 @@ int GUIProgressBar::Update(void)
 
 int GUIProgressBar::NotifyVarChange(std::string varName, std::string value)
 {
+    static int nextPush = 0;
+
     if (varName == "ui_progress_portion" || varName == "ui_progress_frames")
     {
         std::string str;
@@ -168,10 +175,26 @@ int GUIProgressBar::NotifyVarChange(std::string varName, std::string value)
             mSlideFrames = 0;
         }
 
-        if (varName == "ui_progress_portion")   mSlide = atof(value.c_str());
-        else                                    mSlideFrames = atol(value.c_str());
+        if (nextPush)
+        {
+            mSlide += nextPush;
+            cur = (int) mSlide;
+            DataManager::SetValue(mCurValVar, cur);
+            nextPush = 0;
+        }
 
-        if (mSlide && mSlideFrames)
+        if (varName == "ui_progress_portion")   mSlide = atof(value.c_str());
+        else
+        {
+            mSlideFrames = atol(value.c_str());
+            if (mSlideFrames == 0)
+            {
+                // We're just holding this progress until the next push
+                nextPush = mSlide;
+            }
+        }
+
+        if (mSlide > 0 && mSlideFrames > 0)
         {
             // Get the current position
             str.clear();

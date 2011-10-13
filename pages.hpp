@@ -74,6 +74,7 @@ protected:
 protected:
     char* mXmlFile;
     xml_document<> mDoc;
+//    TiXmlDocument* mDoc;
     ResourceManager* mResources;
     std::vector<Page*> mPages;
     Page* mCurrentPage;

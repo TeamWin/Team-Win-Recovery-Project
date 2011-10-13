@@ -296,6 +296,8 @@ PageSet::PageSet(char* xmlFile)
     mCurrentPage = NULL;
 
     mXmlFile = xmlFile;
+//    mDoc = new TiXmlDocument(mXmlFile);
+//    mDoc->LoadFile();
     mDoc.parse<0>(mXmlFile);
 }
 
@@ -309,13 +311,32 @@ int PageSet::Load(ZipArchive* package)
 {
     xml_node<>* parent;
     xml_node<>* child;
-
+ 
     parent = mDoc.first_node("recovery");
     if (!parent)
         parent = mDoc.first_node("install");
 
+#if 0
+    TiXmlNode* parent = NULL;
+    TiXmlNode* child = NULL;
+
+    parent = mDoc->FirstChild("recovery");
+    if (!parent)
+        parent = mDoc->FirstChild("install");
+
     if (!parent)
         return -1;
+
+    // Now, let's parse the XML
+    LOGI("Loading resources...\n");
+    child = parent->FirstChild("resources");
+    if (child)
+        mResources = new ResourceManager(child, package);
+
+    child = parent->FirstChild("pages");
+    if (!child)
+        return -1;
+#endif
 
     // Now, let's parse the XML
     LOGI("Loading resources...\n");
@@ -566,8 +587,9 @@ void PageManager::ReleasePackage(std::string name)
 
 int PageManager::ChangePage(std::string name)
 {
+    int ret = (mCurrentSet ? mCurrentSet->SetPage(name) : -1);
     DataManager::SetValue("tw_operation_state", 0);
-    return (mCurrentSet ? mCurrentSet->SetPage(name) : -1);
+    return ret;
 }
 
 Resource* PageManager::FindResource(std::string name)
@@ -613,7 +635,7 @@ int PageManager::NotifyVarChange(std::string varName, std::string value)
     return (mCurrentSet ? mCurrentSet->NotifyVarChange(varName, value) : -1);
 }
 
-void gui_notifyVarChange(const char *name, const char* value)
+extern "C" void gui_notifyVarChange(const char *name, const char* value)
 {
     PageManager::NotifyVarChange(name, value);
 }

@@ -84,6 +84,9 @@ GUIText::GUIText(xml_node<>* node)
 
         attr = child->first_attribute("h");
         if (attr)   mRenderH = atol(attr->value());
+
+        attr = child->first_attribute("placement");
+        if (attr)   mPlacement = (Placement) atol(attr->value());
     }
 
     child = node->first_node("text");
@@ -107,9 +110,26 @@ int GUIText::Render(void)
     mLastValue = parseText();
     mVarChanged = 0;
 
-    // TODO: width and height aren't bounded.
+    int x = mRenderX, y = mRenderY;
+    int width = gr_measure(mLastValue.c_str(), fontResource);
+
+    if (mPlacement != TOP_LEFT && mPlacement != BOTTOM_LEFT)
+    {
+        if (mPlacement == CENTER)
+            x -= (width / 2);
+        else
+            x -= width;
+    }
+    if (mPlacement != TOP_LEFT && mPlacement != TOP_RIGHT)
+    {
+        if (mPlacement == CENTER)
+            y -= (mFontHeight / 2);
+        else
+            y -= mFontHeight;
+    }
+
     gr_color(mColor.red, mColor.green, mColor.blue, mColor.alpha);
-    gr_text(mRenderX, mRenderY, mLastValue.c_str(), fontResource);
+    gr_text(x, y, mLastValue.c_str(), fontResource);
     return 0;
 }
 

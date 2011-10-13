@@ -126,7 +126,7 @@ int GUIAction::NotifyVarChange(std::string varName, std::string value)
     if (varName.empty() && isConditionValid())
         NotifyPageSet();
 
-    if (isConditionValid() && isConditionTrue())
+    if ((GetConditionVariable() == varName || varName.empty()) && isConditionValid() && isConditionTrue())
         doAction();
 
     return 0;
@@ -136,7 +136,9 @@ void* GUIAction::thread_start(void *cookie)
 {
     GUIAction* ourThis = (GUIAction*) cookie;
 
+    LOGI("GUIAction thread has been started.\n");
     ourThis->doAction(1);
+    LOGI("GUIAction thread is terminating.\n");
     return NULL;
 }
 
@@ -163,41 +165,36 @@ void GUIAction::flash_zip(std::string filename)
     }
 
     const ZipEntry* twrp = mzFindZipEntry(&zip, "META-INF/teamwin/twrp.zip");
-    if (twrp == NULL)
-        goto legacy;
-
-    unlink("/tmp/twrp.zip");
-    fd = creat("/tmp/twrp.zip", 0666);
-    if (fd < 0)
-        goto legacy;
-
-    if (!mzExtractZipEntryToFile(&zip, twrp, fd))
-        goto legacy;
-
-    close(fd);
-
-    if (PageManager::LoadPackage("install", "/tmp/twrp.zip"))
-        goto legacy;
-
-    mzCloseZipArchive(&zip);
-
-    PageManager::SelectPackage("install");
-    gui_changePage("main");
+    if (twrp != NULL)
+    {
+        unlink("/tmp/twrp.zip");
+        fd = creat("/tmp/twrp.zip", 0666);
+    }
+    if (fd >= 0 && twrp != NULL && 
+        mzExtractZipEntryToFile(&zip, twrp, fd) && 
+        !PageManager::LoadPackage("install", "/tmp/twrp.zip"))
+    {
+        mzCloseZipArchive(&zip);
+        PageManager::SelectPackage("install");
+        gui_changePage("main");
+    }
+    else
+    {
+        // In this case, we just use 
+        mzCloseZipArchive(&zip);
+        gui_changePage(mArg);
+    }
+    if (fd >= 0)
+        close(fd);
 
     install_zip_package(filename.c_str());
     DataManager::SetValue("ui_progress", 100);
     DataManager::SetValue("ui_progress", 0);
 
-    return;
-
-legacy:
-    // In this case, we just use 
-    mzCloseZipArchive(&zip);
-    if (fd != -1)   close(fd);
-    gui_changePage(mArg);
-    install_zip_package(filename.c_str());
-    DataManager::SetValue("ui_progress", 100);
-    DataManager::SetValue("ui_progress", 0);
+    DataManager::SetValue("tw_operation", "Flash");
+    DataManager::SetValue("tw_partition", filename);
+    DataManager::SetValue("tw_operation_status", 0);
+    DataManager::SetValue("tw_operation_state", 1);
     return;
 }
 
@@ -302,6 +299,12 @@ int GUIAction::doAction(int isThreaded)
         {
             std::string filename;
             DataManager::GetValue("tw_filename", filename);
+
+            DataManager::SetValue("tw_operation", "Flashing");
+            DataManager::SetValue("tw_partition", filename);
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 0);
+
             flash_zip(filename);
             return 0;
         }
@@ -340,8 +343,6 @@ int GUIAction::doAction(int isThreaded)
             else
                 return -1;
 
-            DataManager::SetValue("ui_progress", 100);
-            DataManager::SetValue("ui_progress", 0);
             return 0;
         }
     }

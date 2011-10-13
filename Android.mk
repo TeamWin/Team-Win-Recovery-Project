@@ -15,9 +15,14 @@ LOCAL_SRC_FILES := \
     fileselector.cpp \
     progressbar.cpp \
     animation.cpp \
-    conditional.cpp
+    conditional.cpp \
+    tinyxml.cpp \
+    tinyxmlerror.cpp \
+    tinyxmlparser.cpp
 
 LOCAL_MODULE := libgui
+
+LOCAL_CFLAGS += -DTIXML_USE_STL
 
 LOCAL_C_INCLUDES += bionic external/stlport/stlport $(TARGET_DEVICE_DIR)/recovery
 

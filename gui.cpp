@@ -49,7 +49,8 @@ extern "C" {
 #include "watermark.h"
 
 
-const static int CURTAIN_RATE = 12;
+const static int CURTAIN_RATE = 16;
+const static int CURTAIN_FADE = 32;
 
 using namespace rapidxml;
 
@@ -82,8 +83,8 @@ void flip(void)
 
 void rapidxml::parse_error_handler(const char *what, void *where)
 {
-    printf("Parser error: %s\n", what);
-    printf("  Start of string: %s\n", (char*) where);
+    fprintf(stderr, "Parser error: %s\n", what);
+    fprintf(stderr, "  Start of string: %s\n", (char*) where);
     abort();
 }
 
@@ -140,13 +141,16 @@ void curtainClose()
         close(gRecorder);
     
         int fade;
-        for (fade = 16; fade < 255; fade += 16)
+        for (fade = 16; fade < 255; fade += CURTAIN_FADE)
         {
             gr_blit(gCurtain, 0, 0, gr_get_width(gCurtain), gr_get_height(gCurtain), 0, 0);
             gr_color(0, 0, 0, fade);
             gr_fill(0, 0, gr_fb_width(), gr_fb_height());
             gr_flip();
         }
+        gr_color(0, 0, 0, 255);
+        gr_fill(0, 0, gr_fb_width(), gr_fb_height());
+        gr_flip();
     }
     return;
 }
@@ -323,27 +327,34 @@ extern "C" int gui_init()
     ev_init();
 
     // We need to write out the curtain and watermark blobs
-    fd = open("/tmp/extract.png", O_CREAT | O_WRONLY | O_TRUNC);
-    if (fd < 0)
-        return 0;
-
-    write(fd, gCurtainBlob, gCurtainBlobLength);
-    close(fd);
-
-    if (res_create_surface("/tmp/extract.png", &gCurtain))
+    if (sizeof(gCurtainBlob) > 32)
+    {
+        fd = open("/tmp/extract.png", O_CREAT | O_WRONLY | O_TRUNC);
+        if (fd < 0)
+            return 0;
+    
+        write(fd, gCurtainBlob, sizeof(gCurtainBlob));
+        close(fd);
+    
+        if (res_create_surface("/tmp/extract.png", &gCurtain))
+        {
+            return -1;
+        }
+    }
+    else
     {
         gNoAnimation = 1;
         if (res_create_surface("bootup", &gCurtain))
             return 0;
     }
 
-    if (gWatermarkBlobLength)
+    if (sizeof(gWatermarkBlob) > 32)
     {
         fd = open("/tmp/extract.png", O_CREAT | O_WRONLY | O_TRUNC);
         if (fd < 0)
             return 0;
 
-        write(fd, gWatermarkBlob, gWatermarkBlobLength);
+        write(fd, gWatermarkBlob, sizeof(gWatermarkBlob));
         close(fd);
         res_create_surface("/tmp/extract.png", &gWatermark);
     }

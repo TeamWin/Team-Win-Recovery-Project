@@ -57,6 +57,9 @@ GUIAnimation::GUIAnimation(xml_node<>* node)
 
         attr = child->first_attribute("y");
         if (attr)   mRenderY = atol(attr->value());
+
+        attr = child->first_attribute("placement");
+        if (attr)   mPlacement = (Placement) atol(attr->value());
     }
 
     child = node->first_node("speed");
@@ -87,6 +90,23 @@ GUIAnimation::GUIAnimation(xml_node<>* node)
     {
         mRenderW = gr_get_width(mAnimation->GetResource());
         mRenderH = gr_get_height(mAnimation->GetResource());
+
+        // Adjust for placement
+        if (mPlacement != TOP_LEFT && mPlacement != BOTTOM_LEFT)
+        {
+            if (mPlacement == CENTER)
+                mRenderX -= (mRenderW / 2);
+            else
+                mRenderX -= mRenderW;
+        }
+        if (mPlacement != TOP_LEFT && mPlacement != TOP_RIGHT)
+        {
+            if (mPlacement == CENTER)
+                mRenderY -= (mRenderH / 2);
+            else
+                mRenderY -= mRenderH;
+        }
+        SetPlacement(TOP_LEFT);
     }
 }
 

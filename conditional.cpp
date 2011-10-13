@@ -53,6 +53,11 @@ Conditional::~Conditional()
 {
 }
 
+std::string Conditional::GetConditionVariable()
+{
+    return mVar1;
+}
+
 bool Conditional::isConditionTrue()
 {
     // This is used to hold the proper value of "true" based on the '!' NOT flag
@@ -96,10 +101,10 @@ bool Conditional::isConditionTrue()
     if (mCompareOp.find('=') != string::npos && var1 == var2)
         return bTrue;
 
-    if (mCompareOp.find('>') != string::npos && (var1 > var2 || atof(var1.c_str()) > atof(var2.c_str())))
+    if (mCompareOp.find('>') != string::npos && (atof(var1.c_str()) > atof(var2.c_str())))
         return bTrue;
 
-    if (mCompareOp.find('<') != string::npos && (var1 < var2 || atof(var1.c_str()) < atof(var2.c_str())))
+    if (mCompareOp.find('<') != string::npos && (atof(var1.c_str()) < atof(var2.c_str())))
         return bTrue;
 
     if (mCompareOp == "modified" && var1 != mLastVal)

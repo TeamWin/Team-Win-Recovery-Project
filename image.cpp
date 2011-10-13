@@ -52,12 +52,32 @@ GUIImage::GUIImage(xml_node<>* node)
 
         attr = child->first_attribute("y");
         if (attr)   mRenderY = atol(attr->value());
+
+        attr = child->first_attribute("placement");
+        if (attr)   mPlacement = (Placement) atol(attr->value());
     }
 
     if (mImage && mImage->GetResource())
     {
         mRenderW = gr_get_width(mImage->GetResource());
         mRenderH = gr_get_height(mImage->GetResource());
+
+        // Adjust for placement
+        if (mPlacement != TOP_LEFT && mPlacement != BOTTOM_LEFT)
+        {
+            if (mPlacement == CENTER)
+                mRenderX -= (mRenderW / 2);
+            else
+                mRenderX -= mRenderW;
+        }
+        if (mPlacement != TOP_LEFT && mPlacement != TOP_RIGHT)
+        {
+            if (mPlacement == CENTER)
+                mRenderY -= (mRenderH / 2);
+            else
+                mRenderY -= mRenderH;
+        }
+        SetPlacement(TOP_LEFT);
     }
 
     return;

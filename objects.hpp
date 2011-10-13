@@ -18,11 +18,19 @@ using namespace rapidxml;
 #include "resources.hpp"
 #include "pages.hpp"
 
-
 class RenderObject
 {
 public:
-    RenderObject()              { mRenderX = 0; mRenderY = 0; mRenderW = 0; mRenderH = 0; }
+    enum Placement {
+        TOP_LEFT = 0,
+        TOP_RIGHT = 1,
+        BOTTOM_LEFT = 2,
+        BOTTOM_RIGHT = 3,
+        CENTER = 4,
+    };
+
+public:
+    RenderObject()              { mRenderX = 0; mRenderY = 0; mRenderW = 0; mRenderH = 0; mPlacement = TOP_LEFT; }
     virtual ~RenderObject()     {}
 
 public:
@@ -41,11 +49,18 @@ public:
     //  Return 0 on success, <0 on error
     virtual int SetRenderPos(int x, int y, int w = 0, int h = 0)    { mRenderX = x; mRenderY = y; if (w || h) { mRenderW = w; mRenderH = h; } return 0; }
 
+    // GetPlacement - Returns the current placement
+    virtual int GetPlacement(Placement& placement)                  { placement = mPlacement; return 0; }
+
+    // SetPlacement - Update the current placement
+    virtual int SetPlacement(Placement placement)                   { mPlacement = placement; return 0; }
+
     // SetPageFocus - Notify when a page gains or loses focus
     virtual void SetPageFocus(int inFocus)                          { return; }
 
 protected:
     int mRenderX, mRenderY, mRenderW, mRenderH;
+    Placement mPlacement;
 };
 
 class ActionObject
@@ -89,6 +104,7 @@ public:
     virtual ~Conditional();
 
 public:
+    std::string GetConditionVariable();
     bool isConditionTrue();
     bool isConditionValid();
     void NotifyPageSet();
