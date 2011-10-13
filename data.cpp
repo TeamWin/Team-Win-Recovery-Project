@@ -48,13 +48,13 @@ extern "C"
     void get_device_id(void);
 
     extern char device_id[15];
+
+    void gui_notifyVarChange(const char *name, const char* value);
 }
 
 #define FILE_VERSION    0x00010000
 
 using namespace std;
-
-void gui_notifyVarChange(const char *name, const char* value);
 
 map<string, DataManager::TStrIntPair>   DataManager::mValues;
 map<string, string>                     DataManager::mConstValues;
