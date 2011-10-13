@@ -255,7 +255,7 @@ void verifyFst()
     if (strcmp(get_fstype(),"mtd") == 0)
         return;
 
-	fp = __popen("blkid","r");
+	fp = __popen("busybox blkid","r");
 	while (fgets(blkOutput,sizeof(blkOutput),fp) != NULL) {
 		if (sscanf(blkOutput,"%s %s %s TYPE=\"%s",blk,arg2,arg3,arg4) == 4) {
 			arg4[strlen(arg4)-1] = '\0';
