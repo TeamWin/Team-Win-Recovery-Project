@@ -26,8 +26,6 @@ LOCAL_SRC_FILES := \
 
 LOCAL_MODULE := recovery
 
-LOCAL_FORCE_STATIC_EXECUTABLE := true
-
 LOCAL_C_INCLUDES += bionic external/stlport/stlport
 
 RECOVERY_API_VERSION := 2
@@ -46,6 +44,8 @@ endif
 LOCAL_MODULE_TAGS := eng
 
 LOCAL_STATIC_LIBRARIES :=
+LOCAL_SHARED_LIBRARIES :=
+
 ifeq ($(TARGET_RECOVERY_UI_LIB),)
   LOCAL_SRC_FILES += default_recovery_ui.c
 else
@@ -55,12 +55,12 @@ endif
 ifeq ($(TARGET_RECOVERY_GUI),)
   LOCAL_SRC_FILES += gui_stub.c
 else
-  LOCAL_STATIC_LIBRARIES += libgui libstlport_static
+  LOCAL_STATIC_LIBRARIES += libgui
 endif
 
 LOCAL_STATIC_LIBRARIES += libz libminzip libunz libmtdutils libmincrypt
-LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libcutils
-LOCAL_STATIC_LIBRARIES += libstlport_static libstdc++ libc
+LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng 
+LOCAL_SHARED_LIBRARIES += libc libstlport libcutils libstdc++
 
 include $(BUILD_EXECUTABLE)
 

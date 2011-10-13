@@ -35,6 +35,7 @@ char *get_fstype() {
 
     if (stat("/proc/mtd",&st) == 0)
         return "mtd";
+
     if (stat("/proc/emmc", &st) == 0)
         return "emmc";
 
