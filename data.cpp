@@ -316,7 +316,7 @@ void DataManager::SetDefaultValues()
     mConstValues.insert(make_pair("TW_SINGLE_ZIP_MODE", "SINGLE_ZIP_MODE"));
 	mConstValues.insert(make_pair("TW_RM_RF", "RM_RF"));
 
-    mConstValues.insert(make_pair(TW_VERSION_VAR, "1.1.1"));
+    mConstValues.insert(make_pair(TW_VERSION_VAR, "1.1.2"));
     mValues.insert(make_pair(TW_NANDROID_SYSTEM_VAR, make_pair("1", 1)));
     mValues.insert(make_pair(TW_NANDROID_DATA_VAR, make_pair("1", 1)));
     mValues.insert(make_pair(TW_NANDROID_BOOT_VAR, make_pair("1", 1)));

@@ -1740,7 +1740,7 @@ void all_settings_menu(int pIdx)
 */
 int check_md5(char* path) {
     char cmd[PATH_MAX + 30];
-    sprintf(cmd, "/sbin/md5check.sh %s", path);
+    sprintf(cmd, "/sbin/md5check.sh '%s'", path);
     
     //ui_print("\nMD5 Command: %s", cmd);
     
@@ -1751,7 +1751,7 @@ int check_md5(char* path) {
     //ui_print("\nMD5 Message: %s", cs_);
     __pclose(cs);
     
-    int o = 0;
+    int o = -99;
     if (strncmp(cs_s, "OK", 2) == 0)
         o = 1;
     else if (strncmp(cs_s, "FAILURE", 7) == 0)
@@ -1762,6 +1762,8 @@ int check_md5(char* path) {
         o = -2;
     else if (strncmp(cs_s, "DF", 2) == 0)
         o = -3;
+    else // Unknown error
+        o = -99;
 
     return o;
 }
