@@ -986,7 +986,7 @@ main(int argc, char **argv) {
         update_tz_environment_variables();
         set_theme(DataManager_GetStrValue(TW_COLOR_THEME_VAR));
 
-        if (!gui_start())
+        if (gui_start())
             prompt_and_wait();
     }
 
