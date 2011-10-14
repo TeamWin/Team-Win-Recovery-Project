@@ -65,7 +65,6 @@ int ConvertStrToColor(std::string str, COLOR* color)
 int ActionObject::SetActionPos(int x, int y, int w, int h)
 {
     if (x < 0 || y < 0)                                     return -1;
-    if (x + w > gr_fb_width() || y + h > gr_fb_height())    return -1;
 
     mActionX = x; 
     mActionY = y; 
