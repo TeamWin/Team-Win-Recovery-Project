@@ -32,9 +32,9 @@ void getLocations()
 	char tmpText[50];
 	if (strcmp(get_fstype(),"mtd") == 0)
 	{
-		fp = __popen("cat /proc/mtd", "r");
+		fp = fopen("/proc/mtd", "rt");
 	} else if (strcmp(get_fstype(),"emmc") == 0) {
-		fp = __popen("cat /proc/emmc", "r");
+		fp = fopen("/proc/emmc", "rt");
 	}
 	if (fp == NULL)
 	{
@@ -104,7 +104,7 @@ void getLocations()
 				wim.sze = tmp.sze;
 			}
 		}
-		pclose(fp);
+		fclose(fp);
 		readRecFstab();
 	}
 	get_device_id();
@@ -118,11 +118,13 @@ void readRecFstab()
 	if (fp == NULL) {
 		LOGI("=> Can not open /etc/recovery.fstab.\n");
 	} else {
-		fgets(tmpText, 255, fp);
-		fgets(tmpText, 255, fp);
 		while (fgets(tmpText,255,fp) != NULL)
 		{
+            // Ignore comments or blank lines
+            if (tmpText[0] == '#' || strlen(tmpText) < 10)  continue;
+
 			sscanf(tmpText,"%*c%s %s %s %s",tmp.mnt,tmp.fst,tmp.blk,tmp.dev); // populate structs from recovery.fstab
+
 			if (strcmp(tmp.mnt,"system") == 0)
 			{
 				strcpy(sys.fst,tmp.fst);
@@ -245,34 +247,68 @@ void verifyFst()
 {
 	FILE *fp;
 	char blkOutput[100];
-	char blk[50];
-	char arg2[50];
-	char arg3[50];
-	char arg4[50];
-	char fst[10];
+	char* blk;
+    char* arg;
+    char* ptr;
 
     // Do not run this routine on MTD devices. The blkid command hangs.
     if (strcmp(get_fstype(),"mtd") == 0)
         return;
 
-	fp = __popen("busybox blkid","r");
-	while (fgets(blkOutput,sizeof(blkOutput),fp) != NULL) {
-		if (sscanf(blkOutput,"%s %s %s TYPE=\"%s",blk,arg2,arg3,arg4) == 4) {
-			arg4[strlen(arg4)-1] = '\0';
-			strcpy(fst,arg4);
-		} else if (sscanf(blkOutput,"%s %s TYPE=\"%s",blk,arg2,arg3) == 3) {
-			arg3[strlen(arg3)-1] = '\0';
-			strcpy(fst,arg3);
-		}
-		blk[strlen(blk)-1] = '\0';
+	fp = __popen("blkid","r");
+	while (fgets(blkOutput,sizeof(blkOutput),fp) != NULL)
+    {
+        blk = blkOutput;
+        ptr = blkOutput;
+        while (*ptr > 32 && *ptr != ':')        ptr++;
+        if (*ptr == 0)                          continue;
+        *ptr = 0;
+
+        // Increment by two, but verify that we don't hit a NULL
+        ptr++;
+        if (*ptr != 0)      ptr++;
+
+        // Now, find the TYPE field
+        while (1)
+        {
+            arg = ptr;
+            while (*ptr > 32)       ptr++;
+            if (*ptr != 0)
+            {
+                *ptr = 0;
+                ptr++;
+            }
+
+            if (strlen(arg) > 6)
+            {
+                if (memcmp(arg, "TYPE=\"", 6) == 0)  break;
+                if (memcmp(arg, "TYPE=\"", 6) == 0)  break;
+                if (memcmp(arg, "TYPE=\"", 6) == 0)  break;
+            }
+
+            if (*ptr == 0)
+            {
+                arg = NULL;
+                break;
+            }
+        }
+
+        if (arg && strlen(arg) > 7)
+        {
+            arg += 6;   // Skip the TYPE=" portion
+            arg[strlen(arg)-1] = '\0';  // Drop the tail quote
+        }
+        else
+            continue;
+
 		if (strcmp(blk,sys.blk) == 0) {
-			strcpy(sys.fst,fst);
+			strcpy(sys.fst,arg);
 		} else if (strcmp(blk,dat.blk) == 0) {
-			strcpy(dat.fst,fst);
+			strcpy(dat.fst,arg);
 		} else if (strcmp(blk,cac.blk) == 0) {
-			strcpy(cac.fst,fst);
+			strcpy(cac.fst,arg);
 		} else if (strcmp(blk,sde.blk) == 0) {
-			strcpy(sde.fst,fst);
+			strcpy(sde.fst,arg);
 		}
 	}
 	__pclose(fp);

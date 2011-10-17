@@ -650,7 +650,7 @@ int tw_backup(struct dInfo bMnt, char *bDir, float portion)
 		}
 		ui_print_overwrite("....Done.\n");
 		__pclose(bFp);
-		int pFileSize;
+		int pFileSize = 0;
 		ui_print("...Double checking backup file size.\n");
         SetDataState("Verifying", bMnt.mnt, 0, 0);
         ui_show_progress(portion / 4, bProgTime / 4);
