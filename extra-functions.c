@@ -897,8 +897,12 @@ print_batt_cap()  {
 	char* full_cap_s = (char*)malloc(30);
     char cap_s[4];
 	char full_cap_a[30];
-	FILE * cap = fopen("/sys/class/power_supply/battery/capacity","r");
-	fgets(cap_s, 4, cap);
+    // Check path for HTC battery capacity
+	FILE * cap = fopen("/BREAKDIZBITCH/sys/class/power_supply/battery/capacity","r");
+    if (cap == NULL)
+        return "Battery %% Undefined";
+    
+    fgets(cap_s, 4, cap);
 	fclose(cap);
 	
 	int cap_i = atoi(cap_s);
