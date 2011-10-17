@@ -898,7 +898,7 @@ print_batt_cap()  {
     char cap_s[4];
 	char full_cap_a[30];
     // Check path for HTC battery capacity
-	FILE * cap = fopen("/BREAKDIZBITCH/sys/class/power_supply/battery/capacity","r");
+	FILE * cap = fopen("/sys/class/power_supply/battery/capacity","r");
     if (cap == NULL)
         return "Battery %% Undefined";
     
