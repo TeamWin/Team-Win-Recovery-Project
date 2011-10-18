@@ -726,6 +726,9 @@ int install_zip_package(const char* zip_path_filename) {
 				ui_print("\n-- Invalid md5");
 				ui_print("\n-- Filename in md5 and zip do not match");
 				break;
+            default:
+                ui_print("\n-- Unknown md5 error");
+                break;
 		}
 		ui_print("\n-- Aborting install");
 		result = INSTALL_ERROR;
@@ -787,7 +790,7 @@ prompt_and_wait() {
 
 	go_reboot = 0;
     finish_recovery(NULL);
-    ui_reset_progress();
+    //ui_reset_progress();
 
 	char** headers = prepend_title((const char**)MENU_HEADERS);
     char* MENU_ITEMS[] = {  "Start Recovery",
@@ -799,7 +802,7 @@ prompt_and_wait() {
         go_home = 0;
         go_menu = 0;
         menu_loc_idx = 0;
-		ui_reset_progress();
+		//ui_reset_progress();
     	
         /*int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
 

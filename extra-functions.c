@@ -930,9 +930,14 @@ int get_battery_level(void)
     {
         char cap_s[4];
         FILE * cap = fopen("/sys/class/power_supply/battery/capacity","rt");
-        fgets(cap_s, 4, cap);
-        fclose(cap);
-        lastVal = atoi(cap_s);
+        if (cap)
+        {
+            fgets(cap_s, 4, cap);
+            fclose(cap);
+            lastVal = atoi(cap_s);
+            if (lastVal > 100)  lastVal = 100;
+            if (lastVal < 0)    lastVal = 0;
+        }
         nextSecCheck = curTime.tv_sec + 60;
     }
     return lastVal;
@@ -1782,7 +1787,7 @@ void all_settings_menu(int pIdx)
 */
 int check_md5(char* path) {
     char cmd[PATH_MAX + 30];
-    sprintf(cmd, "/sbin/md5check.sh %s", path);
+    sprintf(cmd, "/sbin/md5check.sh '%s'", path);
     
     //ui_print("\nMD5 Command: %s", cmd);
     
@@ -1793,7 +1798,7 @@ int check_md5(char* path) {
     //ui_print("\nMD5 Message: %s", cs_);
     __pclose(cs);
     
-    int o = 0;
+    int o = -99;
     if (strncmp(cs_s, "OK", 2) == 0)
         o = 1;
     else if (strncmp(cs_s, "FAILURE", 7) == 0)
@@ -1804,6 +1809,8 @@ int check_md5(char* path) {
         o = -2;
     else if (strncmp(cs_s, "DF", 2) == 0)
         o = -3;
+    else // Unknown error
+        o = -99;
 
     return o;
 }
