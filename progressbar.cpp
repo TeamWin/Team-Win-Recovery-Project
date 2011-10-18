@@ -162,6 +162,15 @@ int GUIProgressBar::NotifyVarChange(std::string varName, std::string value)
 {
     static int nextPush = 0;
 
+    if (varName.empty())
+    {
+        nextPush = 0;
+        mLastPos = 0;
+        mSlide = 0.0;
+        mSlideInc = 0.0;
+        return 0;
+    }
+
     if (varName == "ui_progress_portion" || varName == "ui_progress_frames")
     {
         std::string str;

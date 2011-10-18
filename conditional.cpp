@@ -107,8 +107,18 @@ bool Conditional::isConditionTrue()
     if (mCompareOp.find('<') != string::npos && (atof(var1.c_str()) < atof(var2.c_str())))
         return bTrue;
 
-    if (mCompareOp == "modified" && var1 != mLastVal)
-        return bTrue;
+    if (mCompareOp == "modified")
+    {
+        // This is a hack to allow areas to reset the default value
+        if (var1.empty())
+        {
+            mLastVal = var1;
+            return !bTrue;
+        }
+
+        if (var1 != mLastVal)
+            return bTrue;
+    }
 
     return !bTrue;
 }
@@ -123,7 +133,7 @@ void Conditional::NotifyPageSet()
     if (mCompareOp == "modified")
     {
         string val;
-    
+
         // If this fails, val will not be set, which is perfect
         if (DataManager::GetValue(mVar1, val))
         {

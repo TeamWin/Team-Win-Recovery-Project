@@ -378,6 +378,11 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
 
 int GUIFileSelector::NotifyVarChange(std::string varName, std::string value)
 {
+    if (varName.empty())
+    {
+        // Always clear the data variable so we know to use it
+        DataManager::SetValue(mVariable, "");
+    }
     if (varName == mPathVar)
     {
         GetFileList(value);
