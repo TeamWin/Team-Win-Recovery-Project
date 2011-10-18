@@ -46,6 +46,5 @@ struct bootloader_message {
  */
 int get_bootloader_message(struct bootloader_message *out);
 int set_bootloader_message(const struct bootloader_message *in);
-char *get_fstype();
 
 #endif

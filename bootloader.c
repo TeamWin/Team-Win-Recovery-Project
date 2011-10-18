@@ -29,20 +29,6 @@ static int set_bootloader_message_mtd(const struct bootloader_message *in, const
 static int get_bootloader_message_block(struct bootloader_message *out, const Volume* v);
 static int set_bootloader_message_block(const struct bootloader_message *in, const Volume* v);
 
-//Attempting to determine mtd or emmc with a global method
-char *get_fstype() {
-    struct stat st;
-
-    if (stat("/proc/mtd",&st) == 0)
-        return "mtd";
-
-    if (stat("/proc/emmc", &st) == 0)
-        return "emmc";
-
-    LOGE("Unable to identify memory type!");
-    return "Unknown"; //probably need to handle this better
-}
-
 int get_bootloader_message(struct bootloader_message *out) {
     Volume* v = volume_for_path("/misc");
     if (!v)

@@ -862,7 +862,11 @@ main(int argc, char **argv) {
 	LOGI("=> Linking mtab\n");
 	__system("ln -s /proc/mounts /etc/mtab"); // And link mtab for mke2fs
 	LOGI("=> Getting locations\n");
-    getLocations();
+    if (getLocations())
+    {
+        LOGE("Failing out of recovery.\n");
+        return -1;
+    }
     
     int previous_runs = 0;
     const char *send_intent = NULL;

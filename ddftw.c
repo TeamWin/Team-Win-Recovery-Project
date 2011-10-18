@@ -24,176 +24,209 @@
 #include "bootloader.h"
 #include "backstore.h"
 
-// get locations from our device.info
-void getLocations()
+static int isMTDdevice = 0;
+
+struct dInfo* findDeviceByLabel(const char* label)
 {
-	FILE *fp = NULL;
-	int tmpInt;
-	char tmpText[50];
-	if (strcmp(get_fstype(),"mtd") == 0)
-	{
-		fp = fopen("/proc/mtd", "rt");
-	} else if (strcmp(get_fstype(),"emmc") == 0) {
-		fp = fopen("/proc/emmc", "rt");
-	}
-	if (fp == NULL)
-	{
-		LOGI("\n=> Could not determine flash type!\n");
-	} else {
-		while (fscanf(fp,"%s %0x %*s %*c%s",tmp.dev,&tmp.sze,tmp.mnt) != EOF) // populate structs from proc
-		{
-			if (strcmp(tmp.dev,"dev:") != 0)
-			{
-				tmp.dev[strlen(tmp.dev)-1] = '\0';
-				tmp.mnt[strlen(tmp.mnt)-1] = '\0';
-				if (sscanf(tmp.dev,"mtd%d",&tmpInt) == 1)
-				{
-					sprintf(tmpText,"%smtdblock%d",tw_block,tmpInt);
-					strcpy(tmp.blk,tmpText);
-					sprintf(tmpText,"%s%s",tw_mtd,tmp.dev);
-					strcpy(tmp.dev,tmpText);
-					strcpy(tmp.fst,"mtd");
-				} else {
-					sprintf(tmpText,"%s%s",tw_block,tmp.dev);
-					strcpy(tmp.dev,tmpText);
-					strcpy(tmp.blk,tmp.dev);
-					strcpy(tmp.fst,"emmc");
-				}
-			}
-			if (strcmp(tmp.mnt,"system") == 0) { // read in system line
-				strcpy(sys.mnt,tmp.mnt);
-				strcpy(sys.dev,tmp.dev);
-				strcpy(sys.blk,tmp.blk);
-			}
-			if (strcmp(tmp.mnt,"userdata") == 0) {
-				strcpy(dat.mnt,"data");
-				strcpy(dat.dev,tmp.dev);
-				strcpy(dat.blk,tmp.blk);
-			}
-			if (strcmp(tmp.mnt,"boot") == 0) {
-				strcpy(boo.mnt,tmp.mnt);
-				strcpy(boo.dev,tmp.dev);
-				strcpy(boo.blk,tmp.blk);
-				strcpy(boo.fst,tmp.fst);
-				boo.sze = tmp.sze;
-			}
-			if (strcmp(tmp.mnt,"recovery") == 0) {
-				strcpy(rec.mnt,tmp.mnt);
-				strcpy(rec.dev,tmp.dev);
-				strcpy(rec.blk,tmp.blk);
-				strcpy(rec.fst,tmp.fst);
-				rec.sze = tmp.sze;
-			}
-			if (strcmp(tmp.mnt,"cache") == 0) {
-				strcpy(cac.mnt,tmp.mnt);
-				strcpy(cac.dev,tmp.dev);
-				strcpy(cac.blk,tmp.blk);
-			}
-			if (strcmp(tmp.mnt,"wimax") == 0) {
-				strcpy(wim.mnt,tmp.mnt);
-				strcpy(wim.dev,tmp.dev);
-				strcpy(wim.blk,tmp.blk);
-				strcpy(wim.fst,tmp.fst);
-				wim.sze = tmp.sze;
-			}
-			if (strcmp(tmp.mnt,"efs") == 0) {
-				strcpy(wim.mnt,tmp.mnt);
-				strcpy(wim.dev,tmp.dev);
-				strcpy(wim.blk,tmp.blk);
-				strcpy(wim.fst,"yaffs2");
-				wim.sze = tmp.sze;
-			}
-		}
-		fclose(fp);
-		readRecFstab();
-	}
-	get_device_id();
+    if (!label)                             return NULL;
+    if (strcmp(label, "system") == 0)       return &sys;
+    if (strcmp(label, "userdata") == 0)     return &dat;
+    if (strcmp(label, "data") == 0)         return &dat;
+    if (strcmp(label, "boot") == 0)         return &boo;
+    if (strcmp(label, "recovery") == 0)     return &rec;
+    if (strcmp(label, "cache") == 0)        return &cac;
+    if (strcmp(label, "wimax") == 0)        return &wim;
+    if (strcmp(label, "efs") == 0)          return &wim;
+    if (strcmp(label, "sdcard") == 0)       return &sdc;
+    if (strcmp(label, "sd-ext") == 0)       return &sde;
+    return NULL;
 }
 
-void readRecFstab()
+struct dInfo* findDeviceByBlockDevice(const char* blockDevice)
 {
-	FILE *fp;
-	char tmpText[255];
-	fp = fopen("/etc/recovery.fstab", "r");
-	if (fp == NULL) {
-		LOGI("=> Can not open /etc/recovery.fstab.\n");
-	} else {
-		while (fgets(tmpText,255,fp) != NULL)
-		{
-            // Ignore comments or blank lines
-            if (tmpText[0] == '#' || strlen(tmpText) < 10)  continue;
+    if (!blockDevice)                       return NULL;
+    if (strcmp(blockDevice, sys.blk) == 0)  return &sys;
+    if (strcmp(blockDevice, dat.blk) == 0)  return &dat;
+    if (strcmp(blockDevice, boo.blk) == 0)  return &boo;
+    if (strcmp(blockDevice, rec.blk) == 0)  return &rec;
+    if (strcmp(blockDevice, cac.blk) == 0)  return &cac;
+    if (strcmp(blockDevice, wim.blk) == 0)  return &wim;
+    if (strcmp(blockDevice, sdc.blk) == 0)  return &sdc;
+    if (strcmp(blockDevice, sde.blk) == 0)  return &sde;
+    return NULL;
+}
 
-			sscanf(tmpText,"%*c%s %s %s %s",tmp.mnt,tmp.fst,tmp.blk,tmp.dev); // populate structs from recovery.fstab
+// This routine handles the case where we can't open either /proc/mtd or /proc/emmc
+int setLocationData(const char* label, const char* blockDevice, const char* mtdDevice, const char* fstype, int size)
+{
+    struct dInfo* loc = NULL;
 
-			if (strcmp(tmp.mnt,"system") == 0)
-			{
-				strcpy(sys.fst,tmp.fst);
-				if (strcmp(sys.mnt,"system") != 0)
-				{
-					strcpy(sys.mnt,tmp.mnt);
-					strcpy(sys.blk,tmp.blk);
-					strcpy(sys.dev,tmp.blk);
-				}
-			}
-			if (strcmp(tmp.mnt,"data") == 0)
-			{
-				strcpy(dat.fst,tmp.fst);
-				if (strcmp(dat.mnt,"data") != 0)
-				{
-					strcpy(dat.mnt,tmp.mnt);
-					strcpy(dat.blk,tmp.blk);
-					strcpy(dat.dev,tmp.blk);
-				}
-			}
-			if (strcmp(tmp.mnt,"cache") == 0)
-			{
-				strcpy(cac.fst,tmp.fst);
-				if (strcmp(cac.mnt,"cache") != 0)
-				{
-					strcpy(cac.mnt,tmp.mnt);
-					strcpy(cac.blk,tmp.blk);
-					strcpy(cac.dev,tmp.blk);
-				}
-			}
-			if (strcmp(tmp.mnt,"sdcard") == 0)
-			{
-				strcpy(sdc.fst,tmp.fst);
-				if (strcmp(sdc.mnt,"sdcard") != 0)
-				{
-					strcpy(sdc.mnt,tmp.mnt);
-					strcpy(sdc.blk,tmp.blk);
-					strcpy(sdc.dev,tmp.dev);
-				}
-			}
-			if (strcmp(tmp.mnt,"sd-ext") == 0)
-			{
-				strcpy(sde.mnt,tmp.mnt);
-				strcpy(sde.fst,tmp.fst);
-				strcpy(sde.blk,tmp.blk);
-				strcpy(sde.dev,tmp.dev);
-			}
-		}
-	}
-	fclose(fp);
-	strcpy(ase.dev,"/sdcard/.android_secure"); // android secure stuff
-	strcpy(ase.blk,ase.dev);
-	strcpy(ase.mnt,".android_secure");
-	strcpy(ase.fst,"vfat");
-	if (strcmp(sde.mnt,"sd-ext") != 0) // sd-ext stuff
+    if (label)                  loc = findDeviceByLabel(label);
+    if (!loc && blockDevice)    loc = findDeviceByBlockDevice(blockDevice);
+
+    if (!loc)                   return -1;
+
+    if (label)                  strcpy(loc->mnt, label);
+    if (blockDevice)            strcpy(loc->blk, blockDevice);
+    if (mtdDevice)              strcpy(loc->dev, mtdDevice);
+    if (fstype)                 strcpy(loc->fst, fstype);
+    if (size)                   loc->sze = size;
+
+    return 0;
+}
+
+int getLocationsViafstab()
+{
+    FILE* fp;
+    char line[512];
+    int ret = 0;
+
+    // In this case, we'll first get the partitions we care about (with labels)
+    fp = fopen("/etc/recovery.fstab", "rt");
+    if (fp == NULL)
+    {
+        LOGE("=> Unable to open /etc/recovery.fstab\n");
+        return -1;
+    }
+
+    while (fgets(line, sizeof(line), fp) != NULL)
+    {
+        char mount[32], fstype[32], device[64];
+        char* pDevice = device;
+
+        if (line[0] != '/')     continue;
+        sscanf(line + 1, "%s %s %s", mount, fstype, device);
+
+        if (device[0] != '/')   pDevice = NULL;
+        setLocationData(mount, pDevice, pDevice, fstype, 0);
+    }
+    fclose(fp);
+
+    // Now, let's retrieve base partition sizes
+    if (!isMTDdevice)
+    {
+        fp = __popen("fdisk -l /dev/block/mmcblk0","r");
+        if (fp == NULL)
+        {
+            LOGE("=> Unable to retrieve partition sizes via fdisk\n");
+            return -1;
+        }
+    
+        while (fgets(line, sizeof(line), fp) != NULL)
+        {
+            char device[64], blocks[16];
+    
+            if (line[0] != '/')     continue;
+            sscanf(line, "%s %*s %*s %s", device, blocks);
+    
+            int size = atoi(blocks) * 1024;
+            if (size && (setLocationData(NULL, device, NULL, NULL, size) == 0))
+                LOGI("  Mount %s size: %d\n", device, size);
+        }
+        fclose(fp);
+    }
+    return ret;
+}
+
+// get locations from our device.info
+int getLocationsViaProc(const char* fstype)
+{
+	FILE *fp = NULL;
+    char line[255];
+
+    if (fstype == NULL)
+    {
+        LOGE("Invalid argument to getLocationsViaProc\n");
+        return -1;
+    }
+
+    sprintf(line, "/proc/%s", fstype);
+    fp = fopen(line, "rt");
+    if (fp == NULL)
+    {
+        LOGW("Device does not support %s\n", line);
+        return -1;
+    }
+
+    while (fgets(line, sizeof(line), fp) != NULL)
+    {
+        char device[32], label[32];
+        int size = 0;
+        char mtdDevice[32];
+        char* fstype = NULL;
+        int deviceId;
+
+        sscanf(line, "%s %x %*s %*c%s", device, &size, label);
+
+        // Skip header and blank lines
+        if ((strcmp(device, "dev:") == 0) || (strlen(line) < 8))
+            continue;
+
+        // Strip off the : and " from the details
+        device[strlen(device)-1] = '\0';
+        label[strlen(label)-1] = '\0';
+
+        if (sscanf(device,"mtd%d", &deviceId) == 1)
+        {
+            isMTDdevice = 1;
+            sprintf(mtdDevice, "%s%s", tw_mtd, device);
+            sprintf(device, "%smtdblock%d", tw_block, deviceId);
+            strcpy(tmp.fst,"mtd");
+            fstype = "mtd";
+        }
+        else
+        {
+            strcpy(mtdDevice, device);
+            fstype = "emmc";
+        }
+
+        if (strcmp(label, "efs") == 0)
+            fstype = "yaffs2";
+
+        setLocationData(label, device, mtdDevice, fstype, size);
+    }
+
+    fclose(fp);
+
+    // We still proceed on to use the fstab to query devices as well
+    return getLocationsViafstab();
+}
+
+int getLocations()
+{
+    if (getLocationsViaProc("emmc") != 0 && getLocationsViaProc("mtd") != 0 && getLocationsViafstab() != 0)
+    {
+        LOGE("E: Unable to get device locations.\n");
+        return -1;
+    }
+
+    // Handle adding .android_secure and sd-ext
+    strcpy(ase.dev,"/sdcard/.android_secure"); // android secure stuff
+    strcpy(ase.blk,ase.dev);
+    strcpy(ase.mnt,".android_secure");
+    strcpy(ase.fst,"vfat");
+
+    if (strcmp(sde.mnt,"sd-ext") != 0) // sd-ext stuff
 	{
 		int tmpInt;
 		char tmpBase[50];
 		char tmpWildCard[50];
+
 		strcpy(tmpBase,sdc.blk);
 		tmpBase[strlen(tmpBase)-1] = '\0';
 		sprintf(tmpWildCard,"%s%%d",tmpBase);
-		sscanf(sdc.blk,tmpWildCard,&tmpInt); // sdcard block used as sd-ext base
-		sprintf(sde.blk,"%s%d",tmpBase,tmpInt+1);
+		sscanf(sdc.blk, tmpWildCard, &tmpInt); // sdcard block used as sd-ext base
+		sprintf(sde.blk, "%s%d",tmpBase, tmpInt+1);
 	}
+
+    get_device_id();
+
 	LOGI("=> Let's update filesystem types.\n");
-	verifyFst(); // use blkid to REALLY REALLY determine partition filesystem type, blkid doesn't like mtd
+	verifyFst(); // use blkid to REALLY REALLY determine partition filesystem type
 	LOGI("=> And update our fstab also.\n\n");
 	createFstab(); // used for our busybox mount command
+
+    return 0;
 }
 
 // write fstab so we can mount in adb shell
@@ -208,18 +241,18 @@ void createFstab()
 	{
 		char tmpString[255];
 		sprintf(tmpString,"%s /%s %s rw\n",sys.blk,sys.mnt,sys.fst);
-		fputs(tmpString, fp);
+		if (tmpString[0] != ' ')    fputs(tmpString, fp);
 		sprintf(tmpString,"%s /%s %s rw\n",dat.blk,dat.mnt,dat.fst);
-		fputs(tmpString, fp);
+        if (tmpString[0] != ' ')    fputs(tmpString, fp);
 		sprintf(tmpString,"%s /%s %s rw\n",cac.blk,cac.mnt,cac.fst);
-		fputs(tmpString, fp);
+        if (tmpString[0] != ' ')    fputs(tmpString, fp);
 		sprintf(tmpString,"%s /%s %s rw\n",sdc.blk,sdc.mnt,sdc.fst);
-		fputs(tmpString, fp);
+        if (tmpString[0] != ' ')    fputs(tmpString, fp);
 		if (stat(sde.blk,&st) == 0) {
 			strcpy(sde.mnt,"sd-ext");
 			strcpy(sde.dev,sde.blk);
 			sprintf(tmpString,"%s /%s %s rw\n",sde.blk,sde.mnt,sde.fst);
-			fputs(tmpString, fp);
+            if (tmpString[0] != ' ')    fputs(tmpString, fp);
 			if (stat("/sd-ext",&st) != 0) {
 				if(mkdir("/sd-ext",0777) == -1) {
 					LOGI("=> Can not create /sd-ext folder.\n");
@@ -230,7 +263,7 @@ void createFstab()
 		}
 		if (strcmp(wim.mnt,"efs") == 0) {
 			sprintf(tmpString,"%s /%s %s rw\n",wim.blk,wim.mnt,wim.fst);
-			fputs(tmpString, fp);
+            if (tmpString[0] != ' ')    fputs(tmpString, fp);
 			if (stat("/efs",&st) != 0) {
 				if(mkdir("/efs",0777) == -1) {
 					LOGI("=> Can not create /efs folder.\n");
@@ -250,10 +283,7 @@ void verifyFst()
 	char* blk;
     char* arg;
     char* ptr;
-
-    // Do not run this routine on MTD devices. The blkid command hangs.
-    if (strcmp(get_fstype(),"mtd") == 0)
-        return;
+    struct dInfo* dat;
 
 	fp = __popen("blkid","r");
 	while (fgets(blkOutput,sizeof(blkOutput),fp) != NULL)
@@ -301,15 +331,9 @@ void verifyFst()
         else
             continue;
 
-		if (strcmp(blk,sys.blk) == 0) {
+        dat = findDeviceByBlockDevice(blk);
+        if (dat)
 			strcpy(sys.fst,arg);
-		} else if (strcmp(blk,dat.blk) == 0) {
-			strcpy(dat.fst,arg);
-		} else if (strcmp(blk,cac.blk) == 0) {
-			strcpy(cac.fst,arg);
-		} else if (strcmp(blk,sde.blk) == 0) {
-			strcpy(sde.fst,arg);
-		}
 	}
 	__pclose(fp);
 }

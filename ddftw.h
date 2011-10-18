@@ -17,4 +17,4 @@ struct dInfo tmp, sys, dat, boo, rec, wim, cac, sdc, ase, sde;
 void readRecFstab();
 void verifyFst();
 void createFstab();
-void getLocations();
+int getLocations();
