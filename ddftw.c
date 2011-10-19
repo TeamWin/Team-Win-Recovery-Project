@@ -69,6 +69,16 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
     if (label)                  strcpy(loc->mnt, label);
     if (blockDevice)            strcpy(loc->blk, blockDevice);
     if (mtdDevice)              strcpy(loc->dev, mtdDevice);
+
+    // This is a simple 
+    if (strcpy(loc->mnt, "boot") == 0 && strlen(loc->blk) > 1)
+    {
+        if (strcmp(loc->blk, loc->dev) == 0)
+            fstype = "emmc";
+        else
+            fstype = "mtd";
+    }
+
     if (fstype)                 strcpy(loc->fst, fstype);
     if (size)                   loc->sze = size;
 

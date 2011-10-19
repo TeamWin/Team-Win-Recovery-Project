@@ -226,23 +226,48 @@ __pclose(FILE *iop)
 	return (pid == -1 ? -1 : pstat);
 }
 
+#define CMDLINE_SERIALNO        "androidboot.serialno="
+#define CMDLINE_SERIALNO_LEN    (strlen(CMDLINE_SERIALNO))
+
 void get_device_id()
 {
 	FILE *fp;
-	fp = __popen("busybox cat /proc/cmdline | busybox sed \"s/.*serialno=//\" | busybox cut -d\" \" -f1", "r");
-	if (fp == NULL)
-	{
-		LOGI("=> device id file not found.");
-	} else 
-	{
-		fgets(device_id, 15, fp);
-		int len = strlen(device_id);
-		if (device_id[len-1] == '\n') {
-			device_id[len-1] = 0;
-		}
-		//LOGI("=> DEVICE_ID: %s\n", device_id);
-	}
-	__pclose(fp);
+    char line[2048];
+
+    // Assign a blank device_id to start with
+    device_id[0] = 0;
+
+    // First, try the cmdline to see if the serial number was supplied
+	fp = fopen("/proc/cmdline", "rt");
+	if (fp != NULL)
+    {
+        char* token;
+
+        // First step, read the line. For cmdline, it's one long line
+        fgets(line, sizeof(line), fp);
+        fclose(fp);
+
+        // Now, let's tokenize the string
+        token = strtok(line, " ");
+
+        // Let's walk through the line, looking for the CMDLINE_SERIALNO token
+        while (token)
+        {
+            // We don't need to verify the length of token, because if it's too short, it will mismatch CMDLINE_SERIALNO at the NULL
+            if (memcmp(token, CMDLINE_SERIALNO, CMDLINE_SERIALNO_LEN) == 0)
+            {
+                // We found the serial number!
+                strcpy(device_id, token + CMDLINE_SERIALNO_LEN);
+                return;
+            }
+            token = strtok(NULL, " ");
+        }
+    }
+
+    LOGE("=> device id not found.");
+
+    strcpy(device_id, "serialno");
+    return;
 }
 
 void show_fake_main_menu() {
