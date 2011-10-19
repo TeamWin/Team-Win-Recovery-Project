@@ -71,7 +71,7 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
     if (mtdDevice)              strcpy(loc->dev, mtdDevice);
 
     // This is a simple 
-    if (strcpy(loc->mnt, "boot") == 0 && strlen(loc->blk) > 1)
+    if (strcmp(loc->mnt, "boot") == 0 && strlen(loc->blk) > 1)
     {
         if (strcmp(loc->blk, loc->dev) == 0)
             fstype = "emmc";
