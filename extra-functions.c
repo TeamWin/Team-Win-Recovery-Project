@@ -228,11 +228,14 @@ __pclose(FILE *iop)
 
 #define CMDLINE_SERIALNO        "androidboot.serialno="
 #define CMDLINE_SERIALNO_LEN    (strlen(CMDLINE_SERIALNO))
+#define CPUINFO_SERIALNO        "Serial"
+#define CPUINFO_HARDWARE        "Hardware"
 
 void get_device_id()
 {
 	FILE *fp;
     char line[2048];
+	char hardware_id[32];
 
     // Assign a blank device_id to start with
     device_id[0] = 0;
@@ -264,6 +267,41 @@ void get_device_id()
         }
     }
 
+	// Now we'll try cpuinfo for a serial number
+	fp = fopen("/proc/cpuinfo", "rt");
+	if (fp != NULL)
+    {
+		while (fgets(line, sizeof(line), fp) != NULL) { // First step, read the line.
+			// Now, let's tokenize the string
+			token = strtok(line, " \n\r:");
+
+			// Let's walk through the line, looking for the CPUINFO_SERIALNO token
+			while (token)
+			{
+				// We don't need to verify the length of token, because if it's too short, it will mismatch CMDLINE_SERIALNO at the NULL
+				if (strcmp(token, CPUINFO_SERIALNO) == 0)
+				{
+					// We found the serial number! the next token is the serial number
+					token = strtok(NULL, " \n\r:");
+					strcpy(device_id, token);
+					fclose(fp);
+					return;
+				} else if (strcmp(token, CPUINFO_HARDWARE) == 0) {// We're also going to look for the hardware line in cpuinfo and save it for later in case we don't find the device ID
+					// We found the hardware ID, the next token is the hardware name (usually the code name of the device)
+					token = strtok(NULL, " \n\r:");
+					strcpy(hardware_id, token);
+				}
+				token = strtok(NULL, " ");
+			}
+		}
+		fclose(fp);
+    }
+	
+	if (hardware_id[0] != 0) {
+		LOGW("\nusing hardware id for device id\n");
+		strcpy(device_id, hardware_id);
+		return;
+	}
     LOGE("=> device id not found.");
 
     strcpy(device_id, "serialno");
@@ -819,6 +857,7 @@ void advanced_menu()
             case ITEM_CPY_LOG:
                 ensure_path_mounted("/sdcard");
             	__system("cp /tmp/recovery.log /sdcard");
+				sync();
                 ui_print("Copied recovery log to /sdcard.\n");
             	break;
             case ADVANCED_MENU_BACK:
