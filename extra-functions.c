@@ -277,25 +277,29 @@ void get_device_id()
 			{
 				// We found the serial number!
 				token = line + CPUINFO_SERIALNO_LEN; // skip past "Serial"
-				while (*token <= 32 || *token == ':') token++; // skip over all spaces and the colon
-				if (token[strlen(token)-1] == 10) { // checking for endline chars and dropping them from the end of the string if needed
-					strncpy(device_id, token, strlen(token) - 1);
-				} else {
-					strcpy(device_id, token);
+				while ((*token > 0 && *token <= 32 ) || *token == ':') token++; // skip over all spaces and the colon
+				if (*token != NULL) {
+					if (token[strlen(token)-1] == 10) { // checking for endline chars and dropping them from the end of the string if needed
+						strncpy(device_id, token, strlen(token) - 1);
+					} else {
+						strcpy(device_id, token);
+					}
+					LOGI("=> serial from cpuinfo: '%s'\n", device_id);
+					fclose(fp);
+					return;
 				}
-				LOGI("=> serial from cpuinfo: '%s'\n", device_id);
-				fclose(fp);
-				return;
 			} else if (memcmp(line, CPUINFO_HARDWARE, CPUINFO_HARDWARE_LEN) == 0) {// We're also going to look for the hardware line in cpuinfo and save it for later in case we don't find the device ID
 				// We found the hardware ID
 				token = line + CPUINFO_HARDWARE_LEN; // skip past "Hardware"
-				while (*token <= 32 || *token == ':')  token++; // skip over all spaces and the colon
-				if (token[strlen(token)-1] == 10) { // checking for endline chars and dropping them from the end of the string if needed
-					strncpy(hardware_id, token, strlen(token) - 1);
-				} else {
-					strcpy(hardware_id, token);
+				while ((*token > 0 && *token <= 32 ) || *token == ':')  token++; // skip over all spaces and the colon
+				if (*token != NULL) {
+					if (token[strlen(token)-1] == 10) { // checking for endline chars and dropping them from the end of the string if needed
+						strncpy(hardware_id, token, strlen(token) - 1);
+					} else {
+						strcpy(hardware_id, token);
+					}
+					LOGI("=> hardware id from cpuinfo: '%s'\n", hardware_id);
 				}
-				LOGI("=> hardware id from cpuinfo: '%s'\n", hardware_id);
 			}
 		}
 		fclose(fp);
