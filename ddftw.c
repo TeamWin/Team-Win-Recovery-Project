@@ -129,12 +129,15 @@ int getLocationsViafstab()
     
         while (fgets(line, sizeof(line), fp) != NULL)
         {
-            char device[64], blocks[16];
+            char isBoot[64], device[64], blocks[2][16];
+            int size = 0;
     
             if (line[0] != '/')     continue;
-            sscanf(line, "%s %*s %*s %s", device, blocks);
+            sscanf(line, "%s %s %*s %s %s", device, isBoot, blocks[0], blocks[1]);
     
-            int size = atoi(blocks) * 1024;
+            if (isBoot[0] == '*')       size = atoi(blocks[1]) * 1024;
+            else                        size = atoi(blocks[0]) * 1024;
+
             if (size && (setLocationData(NULL, device, NULL, NULL, size) == 0))
                 LOGI("  Mount %s size: %d\n", device, size);
         }
