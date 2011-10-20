@@ -322,6 +322,7 @@ static void *input_thread(void *cookie)
                     // (positive or negative), fake an up/down
                     // key event.
                     rel_sum += ev.value;
+
                     if (rel_sum > 3) {
                         fake_key = 1;
                         ev.type = EV_KEY;

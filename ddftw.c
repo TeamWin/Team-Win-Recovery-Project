@@ -25,6 +25,7 @@
 #include "backstore.h"
 
 static int isMTDdevice = 0;
+static int isBootMountable = 0;
 
 struct dInfo* findDeviceByLabel(const char* label)
 {
@@ -73,6 +74,10 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
     // This is a simple 
     if (strcmp(loc->mnt, "boot") == 0 && strlen(loc->blk) > 1)
     {
+        // We use this flag to mark the boot partition as mountable
+        if (fstype && strcmp(fstype, "vfat") == 0)
+            isBootMountable = 1;
+
         if (strcmp(loc->blk, loc->dev) == 0)
             fstype = "emmc";
         else
@@ -282,6 +287,8 @@ void createFstab()
 				}
 			}
 		}
+        sprintf(tmpString,"%s /%s vfat rw\n",boo.blk,boo.mnt);
+        if (tmpString[0] != ' ')    fputs(tmpString, fp);
 	}
 	fclose(fp);
 }

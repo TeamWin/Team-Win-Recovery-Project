@@ -18,6 +18,7 @@ on init
     mkdir /data
     mkdir /cache
     mkdir /misc
+    mkdir /boot
     mount /tmp /tmp tmpfs
 
 on boot

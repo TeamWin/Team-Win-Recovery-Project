@@ -64,6 +64,10 @@ struct ev {
     struct virtualkey *vks;
     int vk_count;
 
+    char deviceName[64];
+
+    int ignored;
+
     struct position p, mt_p;
     int down;
 };
@@ -119,9 +123,15 @@ static int vk_init(struct ev *e)
     e->vk_count = 0;
 
     len = strlen(vk_path);
-    len = ioctl(e->fd->fd, EVIOCGNAME(sizeof(vk_path) - len), vk_path + len);
+    len = ioctl(e->fd->fd, EVIOCGNAME(sizeof(e->deviceName)), e->deviceName);
     if (len <= 0)
+    {
+        LOGE("Unable to query event object.\n");
         return -1;
+    }
+    LOGI("Event object: %s\n", e->deviceName);
+
+    strcat(vk_path, e->deviceName);
 
     vk_fd = open(vk_path, O_RDONLY);
     if (vk_fd < 0)
@@ -265,8 +275,21 @@ static int vk_modify(struct ev *e, struct input_event *ev)
     static int downX = -1, downY = -1;
     static int discard = 0;
     static int lastWasSynReport = 0;
+    static int touchReleaseOnNextSynReport = 0;
     int i;
     int x, y;
+
+    // This is used to ditch useless event handlers, like an accelerometer
+    if (e->ignored)     return 1;
+
+    if (ev->type == EV_REL && ev->code == REL_Z)
+    {
+        // This appears to be an accelerometer or another strange input device. It's not the touchscreen.
+        e->ignored = 1;
+        return 1;
+    }
+
+//    LOGI("EV: %s => type: %x  code: %x  value: %d\n", e->deviceName, ev->type, ev->code, ev->value);
 
     // Discard key-up messages
     if (ev->type == EV_KEY && ev->value == 0)
@@ -285,10 +308,22 @@ static int vk_modify(struct ev *e, struct input_event *ev)
         case ABS_MT_POSITION_X:
             e->mt_p.synced |= 0x01;
             e->mt_p.x = ev->value;
+//            LOGI("EV: %s => EV_ABS  ABS_MT_POSITION_X  %d\n", e->deviceName, ev->value);
             break;
         case ABS_MT_POSITION_Y:
             e->mt_p.synced |= 0x02;
             e->mt_p.y = ev->value;
+//            LOGI("EV: %s => EV_ABS  ABS_MT_POSITION_Y  %d\n", e->deviceName, ev->value);
+            break;
+        case ABS_MT_TOUCH_MAJOR:
+//            LOGI("EV: %s => EV_ABS  ABS_MT_TOUCH_MAJOR  %d\n", e->deviceName, ev->value);
+            if (ev->value == 0)
+            {
+                // We're in a touch release, although some devices will still send positions as well
+                e->mt_p.x = 0;
+                e->mt_p.y = 0;
+                touchReleaseOnNextSynReport = 1;
+            }
             break;
         case ABS_MT_POSITION:
             e->mt_p.synced = 0x03;
@@ -325,11 +360,17 @@ static int vk_modify(struct ev *e, struct input_event *ev)
         return 0;
     }
 
+//    if (ev->type == EV_SYN && ev->code == SYN_REPORT)       LOGI("EV: %s => EV_SYN  SYN_REPORT\n", e->deviceName);
+//    if (ev->type == EV_SYN && ev->code == SYN_MT_REPORT)    LOGI("EV: %s => EV_SYN  SYN_MT_REPORT\n", e->deviceName);
+
     // Discard the MT versions
     if (ev->code == SYN_MT_REPORT)      return 0;
 
-    if (lastWasSynReport == 1)
+    if (lastWasSynReport == 1 || touchReleaseOnNextSynReport == 1)
     {
+        // Reset the value
+        touchReleaseOnNextSynReport = 0;
+
         // We are a finger-up state
         if (!discard)
         {
@@ -363,6 +404,18 @@ static int vk_modify(struct ev *e, struct input_event *ev)
         // We don't have useful information to convey
         return 1;
     }
+
+#ifdef RECOVERY_TOUCHSCREEN_SWAP_XY
+    x ^= y;
+    y ^= x;
+    x ^= y;
+#endif
+#ifdef RECOVERY_TOUCHSCREEN_FLIP_X
+    x = gr_fb_width() - x;
+#endif
+#ifdef RECOVERY_TOUCHSCREEN_FLIP_Y
+    y = gr_fb_height() - y;
+#endif
 
     // Clear the current sync states
     e->p.synced = e->mt_p.synced = 0;
@@ -435,3 +488,4 @@ int ev_get(struct input_event *ev, unsigned dont_wait)
 
     return -1;
 }
+

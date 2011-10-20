@@ -6,7 +6,7 @@ include $(CLEAR_VARS)
 
 commands_recovery_local_path := $(LOCAL_PATH)
 
-TARGET_RECOVERY_GUI := 1
+TARGET_RECOVERY_GUI := true
 
 LOCAL_SRC_FILES := \
     recovery.c \
@@ -52,10 +52,10 @@ else
   LOCAL_STATIC_LIBRARIES += $(TARGET_RECOVERY_UI_LIB)
 endif
 
-ifeq ($(TARGET_RECOVERY_GUI),)
-  LOCAL_SRC_FILES += gui_stub.c
-else
+ifeq ($(TARGET_RECOVERY_GUI),true)
   LOCAL_STATIC_LIBRARIES += libgui
+else
+  LOCAL_SRC_FILES += gui_stub.c
 endif
 
 LOCAL_STATIC_LIBRARIES += libz libminzip libunz libmtdutils libmincrypt
