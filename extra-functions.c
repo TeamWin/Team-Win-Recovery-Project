@@ -229,13 +229,16 @@ __pclose(FILE *iop)
 #define CMDLINE_SERIALNO        "androidboot.serialno="
 #define CMDLINE_SERIALNO_LEN    (strlen(CMDLINE_SERIALNO))
 #define CPUINFO_SERIALNO        "Serial"
+#define CPUINFO_SERIALNO_LEN    (strlen(CPUINFO_SERIALNO))
 #define CPUINFO_HARDWARE        "Hardware"
+#define CPUINFO_HARDWARE_LEN    (strlen(CPUINFO_HARDWARE))
 
 void get_device_id()
 {
 	FILE *fp;
     char line[2048];
 	char hardware_id[32];
+	char* token;
 
     // Assign a blank device_id to start with
     device_id[0] = 0;
@@ -244,8 +247,6 @@ void get_device_id()
 	fp = fopen("/proc/cmdline", "rt");
 	if (fp != NULL)
     {
-        char* token;
-
         // First step, read the line. For cmdline, it's one long line
         fgets(line, sizeof(line), fp);
         fclose(fp);
@@ -272,39 +273,42 @@ void get_device_id()
 	if (fp != NULL)
     {
 		while (fgets(line, sizeof(line), fp) != NULL) { // First step, read the line.
-			// Now, let's tokenize the string
-			token = strtok(line, " \n\r:");
-
-			// Let's walk through the line, looking for the CPUINFO_SERIALNO token
-			while (token)
+			if (memcmp(line, CPUINFO_SERIALNO, CPUINFO_SERIALNO_LEN) == 0)  // check the beginning of the line for "Serial"
 			{
-				// We don't need to verify the length of token, because if it's too short, it will mismatch CMDLINE_SERIALNO at the NULL
-				if (strcmp(token, CPUINFO_SERIALNO) == 0)
-				{
-					// We found the serial number! the next token is the serial number
-					token = strtok(NULL, " \n\r:");
+				// We found the serial number!
+				token = line + CPUINFO_SERIALNO_LEN; // skip past "Serial"
+				while (*token <= 32 || *token == ':') token++; // skip over all spaces and the colon
+				if (token[strlen(token)-1] == 10) { // checking for endline chars and dropping them from the end of the string if needed
+					strncpy(device_id, token, strlen(token) - 1);
+				} else {
 					strcpy(device_id, token);
-					fclose(fp);
-					return;
-				} else if (strcmp(token, CPUINFO_HARDWARE) == 0) {// We're also going to look for the hardware line in cpuinfo and save it for later in case we don't find the device ID
-					// We found the hardware ID, the next token is the hardware name (usually the code name of the device)
-					token = strtok(NULL, " \n\r:");
+				}
+				LOGI("=> serial from cpuinfo: '%s'\n", device_id);
+				fclose(fp);
+				return;
+			} else if (memcmp(line, CPUINFO_HARDWARE, CPUINFO_HARDWARE_LEN) == 0) {// We're also going to look for the hardware line in cpuinfo and save it for later in case we don't find the device ID
+				// We found the hardware ID
+				token = line + CPUINFO_HARDWARE_LEN; // skip past "Hardware"
+				while (*token <= 32 || *token == ':')  token++; // skip over all spaces and the colon
+				if (token[strlen(token)-1] == 10) { // checking for endline chars and dropping them from the end of the string if needed
+					strncpy(hardware_id, token, strlen(token) - 1);
+				} else {
 					strcpy(hardware_id, token);
 				}
-				token = strtok(NULL, " ");
+				LOGI("=> hardware id from cpuinfo: '%s'\n", hardware_id);
 			}
 		}
 		fclose(fp);
     }
 	
 	if (hardware_id[0] != 0) {
-		LOGW("\nusing hardware id for device id\n");
+		LOGW("\nusing hardware id for device id: '%s'\n", hardware_id);
 		strcpy(device_id, hardware_id);
 		return;
 	}
-    LOGE("=> device id not found.");
 
     strcpy(device_id, "serialno");
+	LOGE("=> device id not found, using '%s'.", device_id);
     return;
 }
 
