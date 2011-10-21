@@ -19,6 +19,8 @@ LOCAL_SRC_FILES := \
 
 LOCAL_MODULE := libgui
 
+# LOCAL_CFLAGS += -D_SIMULATE_ACTIONS
+
 LOCAL_C_INCLUDES += bionic external/stlport/stlport $(commands_recovery_local_path)/gui/devices/$(DEVICE_RESOLUTION)
 
 include $(BUILD_STATIC_LIBRARY)

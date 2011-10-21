@@ -91,11 +91,15 @@ GUIProgressBar::GUIProgressBar(xml_node<>* node)
 
 int GUIProgressBar::Render(void)
 {
-    if (!mEmptyBar || !mEmptyBar->GetResource())    return -1;
-    if (!mFullBar || !mFullBar->GetResource())      return -1;
-
     // This handles making sure timing updates occur
     Update();
+    return RenderInternal();
+}
+
+int GUIProgressBar::RenderInternal(void)
+{
+    if (!mEmptyBar || !mEmptyBar->GetResource())    return -1;
+    if (!mFullBar || !mFullBar->GetResource())      return -1;
 
     gr_blit(mEmptyBar->GetResource(), 0, 0, mRenderW, mRenderH, mRenderX, mRenderY);
     gr_blit(mFullBar->GetResource(), 0, 0, mLastPos, mRenderH, mRenderX, mRenderY);
@@ -152,9 +156,9 @@ int GUIProgressBar::Update(void)
     if (max == 0)   pos = 0;
     else            pos = (cur * mRenderW) / max;
 
-    if (pos == mLastPos)    return 0;
+    if (pos == mLastPos)            return 0;
     mLastPos = pos;
-    if (Render() != 0)      return -1;
+    if (RenderInternal() != 0)      return -1;
     return 2;
 }
 

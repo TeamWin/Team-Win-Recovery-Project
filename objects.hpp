@@ -434,6 +434,10 @@ protected:
     float mSlideInc;
     int mSlideFrames;
     int mLastPos;
+
+protected:
+    virtual int RenderInternal(void);       // Does the actual render
+
 };
 
 #endif  // _OBJECTS_HEADER
