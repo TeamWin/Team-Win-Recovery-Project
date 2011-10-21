@@ -637,6 +637,7 @@ int tw_backup(struct dInfo bMnt, char *bDir, float portion)
 		bProgTime = bPartSize / bDiv; // not very accurate but better than nothing progress time for progress bar
 		ui_show_progress((portion * 3) / 4, bProgTime);
 		ui_print("...Backing up %s partition.\n",bMount);
+        ui_print("  Backup command: %s\n", bCommand);
 		bFp = __popen(bCommand, "r"); // sending backup command formed earlier above
 		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 2) { // if twrp spam is on, show all lines
 			while (fgets(bOutput,sizeof(bOutput),bFp) != NULL) {

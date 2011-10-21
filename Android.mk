@@ -58,9 +58,9 @@ else
   LOCAL_SRC_FILES += gui_stub.c
 endif
 
-LOCAL_STATIC_LIBRARIES += libz libminzip libunz libmtdutils libmincrypt
+LOCAL_STATIC_LIBRARIES += libz libminzip libunz libmincrypt
 LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng 
-LOCAL_SHARED_LIBRARIES += libc libstlport libcutils libstdc++
+LOCAL_SHARED_LIBRARIES += libmtdutils libc libstlport libcutils libstdc++
 
 include $(BUILD_EXECUTABLE)
 
@@ -79,12 +79,12 @@ LOCAL_STATIC_LIBRARIES := libmincrypt libcutils libstdc++ libc
 include $(BUILD_EXECUTABLE)
 
 include $(commands_recovery_local_path)/minui/Android.mk
-include $(commands_recovery_local_path)/bmlutils/Android.mk
-include $(commands_recovery_local_path)/flashutils/Android.mk
 include $(commands_recovery_local_path)/gui/Android.mk
 include $(commands_recovery_local_path)/minzip/Android.mk
 include $(commands_recovery_local_path)/mmcutils/Android.mk
 include $(commands_recovery_local_path)/mtdutils/Android.mk
+include $(commands_recovery_local_path)/bmlutils/Android.mk
+include $(commands_recovery_local_path)/flashutils/Android.mk
 include $(commands_recovery_local_path)/tools/Android.mk
 include $(commands_recovery_local_path)/edify/Android.mk
 include $(commands_recovery_local_path)/prebuilt/Android.mk

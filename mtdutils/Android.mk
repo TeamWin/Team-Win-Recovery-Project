@@ -10,7 +10,8 @@ LOCAL_SRC_FILES := \
 
 LOCAL_MODULE := libmtdutils
 
-include $(BUILD_STATIC_LIBRARY)
+include $(BUILD_SHARED_LIBRARY)
 
 endif	# TARGET_ARCH == arm
 endif	# !TARGET_SIMULATOR
+

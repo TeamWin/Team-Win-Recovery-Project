@@ -305,6 +305,9 @@ void verifyFst()
     char* ptr;
     struct dInfo* dat;
 
+    // This has a tendency to hang on MTD devices.
+    if (isMTDdevice)    return;
+
 	fp = __popen("blkid","r");
 	while (fgets(blkOutput,sizeof(blkOutput),fp) != NULL)
     {

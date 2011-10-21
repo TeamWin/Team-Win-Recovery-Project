@@ -14,7 +14,7 @@ mmcutils.c
 LOCAL_MODULE := libmmcutils
 LOCAL_MODULE_TAGS := eng
 
-include $(BUILD_STATIC_LIBRARY)
+include $(BUILD_SHARED_LIBRARY)
 
 endif # TARGET_ARCH == arm
 endif # !TARGET_SIMULATOR

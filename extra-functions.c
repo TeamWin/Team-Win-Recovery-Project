@@ -279,6 +279,7 @@ void get_device_id()
 				token = line + CPUINFO_SERIALNO_LEN; // skip past "Serial"
 				while ((*token > 0 && *token <= 32 ) || *token == ':') token++; // skip over all spaces and the colon
 				if (*token != NULL) {
+                    token[30] = 0;
 					if (token[strlen(token)-1] == 10) { // checking for endline chars and dropping them from the end of the string if needed
 						memset(device_id, 0, sizeof(device_id));
 						strncpy(device_id, token, strlen(token) - 1);
@@ -294,8 +295,9 @@ void get_device_id()
 				token = line + CPUINFO_HARDWARE_LEN; // skip past "Hardware"
 				while ((*token > 0 && *token <= 32 ) || *token == ':')  token++; // skip over all spaces and the colon
 				if (*token != NULL) {
+                    token[30] = 0;
 					if (token[strlen(token)-1] == 10) { // checking for endline chars and dropping them from the end of the string if needed
-						memset(hardware_id, 0, sizeof(hardware_id));
+                        memset(hardware_id, 0, sizeof(hardware_id));
 						strncpy(hardware_id, token, strlen(token) - 1);
 					} else {
 						strcpy(hardware_id, token);

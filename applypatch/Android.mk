@@ -31,8 +31,8 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := main.c
 LOCAL_MODULE := applypatch
 LOCAL_C_INCLUDES += bootable/recovery
-LOCAL_STATIC_LIBRARIES += libapplypatch libmtdutils libmincrypt libbz
-LOCAL_SHARED_LIBRARIES += libz libcutils libstdc++ libc
+LOCAL_STATIC_LIBRARIES += libapplypatch libmincrypt libbz
+LOCAL_SHARED_LIBRARIES += libmtdutils libz libcutils libstdc++ libc
 
 include $(BUILD_EXECUTABLE)
 

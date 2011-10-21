@@ -3,7 +3,7 @@ FILE * __popen(const char *program, const char *type);
 int __pclose(FILE *iop);
 
 // Device ID variable / function
-char device_id[32];
+char device_id[64];
 void get_device_id();
 
 // Menus
