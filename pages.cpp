@@ -85,6 +85,7 @@ Page::Page(xml_node<>* page)
         LOGE("No page name attribute found!\n");
     }
 
+    LOGI("Loading page %s\n", mName.c_str());
     mTouchStart = NULL;
 
     // We can memset the whole structure, because the alpha channel is ignored
