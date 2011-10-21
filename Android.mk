@@ -79,8 +79,11 @@ LOCAL_STATIC_LIBRARIES := libmincrypt libcutils libstdc++ libc
 include $(BUILD_EXECUTABLE)
 
 include $(commands_recovery_local_path)/minui/Android.mk
+include $(commands_recovery_local_path)/bmlutils/Android.mk
+include $(commands_recovery_local_path)/flashutils/Android.mk
 include $(commands_recovery_local_path)/gui/Android.mk
 include $(commands_recovery_local_path)/minzip/Android.mk
+include $(commands_recovery_local_path)/mmcutils/Android.mk
 include $(commands_recovery_local_path)/mtdutils/Android.mk
 include $(commands_recovery_local_path)/tools/Android.mk
 include $(commands_recovery_local_path)/edify/Android.mk
