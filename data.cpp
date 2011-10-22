@@ -92,8 +92,8 @@ int DataManager::LoadValues(const string filename)
         string Name;
         string Value;
 
-        in >> Name;
-        in >> Value;
+        getline(in, Name);
+        getline(in, Value);
 
         if (!Name.empty())
         {
@@ -216,6 +216,10 @@ int DataManager::SetValue(const string varName, string value, int persist /* = 0
 {
     if (!mInitialized)
         SetDefaultValues();
+
+    // Don't allow empty values or numerical starting values
+    if (varName.empty() || (varName[0] >= '0' && varName[0] <= '9'))
+        return -1;
 
     map<string, string>::iterator constChk;
     constChk = mConstValues.find(varName);
