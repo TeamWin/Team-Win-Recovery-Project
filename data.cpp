@@ -95,7 +95,7 @@ int DataManager::LoadValues(const string filename)
         getline(in, Name);
         getline(in, Value);
 
-        if (!Name.empty())
+        if (!Name.empty() && (Name[0] < '0' || Name[0] > '9'))
         {
             map<string, TStrIntPair>::iterator pos;
 
