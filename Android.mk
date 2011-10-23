@@ -58,9 +58,9 @@ else
   LOCAL_SRC_FILES += gui_stub.c
 endif
 
-LOCAL_STATIC_LIBRARIES += libz libminzip libunz libmincrypt
+LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
 LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng 
-LOCAL_SHARED_LIBRARIES += libmtdutils libc libstlport libcutils libstdc++
+LOCAL_SHARED_LIBRARIES += libz libmtdutils libc libstlport libcutils libstdc++
 
 include $(BUILD_EXECUTABLE)
 

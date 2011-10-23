@@ -6,7 +6,7 @@ LOCAL_MODULE := teamwin
 LOCAL_MODULE_TAGS := eng
 LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
 LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-LOCAL_REQUIRED_MODULES := busybox e2fsck mke2fs tune2fs libc libcutils libdl libext2_blkid libext2_com_err libext2_e2p libext2fs libext2_profile libext2_uuid liblog libm libstlport linker libstdc++
+LOCAL_REQUIRED_MODULES := pigz busybox e2fsck mke2fs tune2fs libc libcutils libdl libext2_blkid libext2_com_err libext2_e2p libext2fs libext2_profile libext2_uuid liblog libm libstlport linker libstdc++
 LOCAL_SRC_FILES := teamwin
 include $(BUILD_PREBUILT)
 
