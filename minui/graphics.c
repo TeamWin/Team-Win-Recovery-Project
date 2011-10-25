@@ -75,12 +75,12 @@ static int get_framebuffer(GGLSurface *fb)
         return -1;
     }
 
-    if (vi.bits_per_pixel != 85)
+    if (vi.bits_per_pixel != 99)
     {
         fprintf(stderr, "Setting framebuffer to 16-bit\n");
-        vi.blue.offset = 0;
+        vi.blue.offset = 11;
         vi.green.offset = 5;
-        vi.red.offset = 11;
+        vi.red.offset = 0;
         vi.blue.length = 5;
         vi.green.length = 6;
         vi.red.length = 5;
@@ -143,9 +143,9 @@ static void get_memory_surface(GGLSurface* ms) {
 static void set_active_framebuffer(unsigned n)
 {
     if (n > 1) return;
-    vi.yres_virtual = vi.yres * 2;
+    vi.yres_virtual = vi.yres * vi.bits_per_pixel / 8;
     vi.yoffset = n * vi.yres;
-    vi.bits_per_pixel = 16;
+//    vi.bits_per_pixel = 16;
     if (ioctl(gr_fb_fd, FBIOPUT_VSCREENINFO, &vi) < 0) {
         perror("active fb swap failed");
     }
@@ -476,7 +476,7 @@ int gr_get_surface(gr_surface* surface)
     get_memory_surface(ms);
 
     // Now, copy the data
-    memcpy(ms->data, gr_mem_surface.data, vi.xres * vi.yres * 2);
+    memcpy(ms->data, gr_mem_surface.data, vi.xres * vi.yres * vi.bits_per_pixel / 8);
 
     *surface = (gr_surface*) ms;
     return 0;
@@ -495,5 +495,5 @@ int gr_free_surface(gr_surface surface)
 
 void gr_write_frame_to_file(int fd)
 {
-    write(fd, gr_mem_surface.data, vi.xres * vi.yres * 2);
+    write(fd, gr_mem_surface.data, vi.xres * vi.yres * vi.bits_per_pixel / 8);
 }
