@@ -342,19 +342,19 @@
             </object>
 
             <object type="console">
-                <placement x="0" y="120" w="540" h="780" />
+                <placement x="0" y="120" w="480" h="640" />
                 <color foreground="#B0B0B0" background="black" scroll="black" />
                 <font resource="fixed" />
             </object>
 
             <object type="progressbar">
-                <placement x="144" y="920" />
+                <placement x="144" y="760" />
                 <resource  empty="progress_empty" full="progress_full" />
                 <data name="ui_progress" />
             </object>
 
             <object type="animation">
-                <placement x="144" y="920" />
+                <placement x="144" y="760" />
                 <resource name="progress" />
                 <speed fps="15" render="2" />
                 <loop frame="1" />
@@ -393,13 +393,13 @@
             </object>
 
             <object type="console">
-                <placement x="0" y="120" w="540" h="530" />
+                <placement x="0" y="120" w="480" h="390" />
                 <color foreground="#B0B0B0" background="black" scroll="black" />
                 <font resource="fixed" />
             </object>
 
             <object type="button">
-                <placement x="147" y="696" />
+                <placement x="147" y="556" />
                 <font resource="font" color="white" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
@@ -824,7 +824,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="365" />
+                <placement x="10" y="355" />
                 <font resource="font" color="white" />
                 <text>Data</text>
                 <data variable="tw_backup_data" />
@@ -832,7 +832,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="440" />
+                <placement x="10" y="420" />
                 <font resource="font" color="white" />
                 <text>Boot</text>
                 <data variable="tw_backup_boot" />
@@ -840,7 +840,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="515" />
+                <placement x="10" y="485" />
                 <font resource="font" color="white" />
                 <text>Recovery</text>
                 <data variable="tw_backup_recovery" />
@@ -848,7 +848,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="590" />
+                <placement x="10" y="550" />
                 <font resource="font" color="white" />
                 <text>Cache</text>
                 <data variable="tw_backup_cache" />
@@ -856,7 +856,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="665" />
+                <placement x="10" y="615" />
                 <font resource="font" color="white" />
                 <text>WiMax</text>
                 <data variable="tw_backup_wimax" />
@@ -864,7 +864,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="740" />
+                <placement x="10" y="680" />
                 <font resource="font" color="white" />
                 <text>.android_secure</text>
                 <condition var1="fileexists" var2="/sdcard/.android_secure" />
@@ -873,7 +873,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="815" />
+                <placement x="10" y="745" />
                 <font resource="font" color="white" />
                 <text>sd-ext</text>
                 <condition var1="fileexists" var2="/sd-ext" />
@@ -882,7 +882,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="890" />
+                <placement x="10" y="810" />
                 <font resource="font" color="white" />
                 <text>Enable Compression (Requires more time)</text>
                 <data variable="tw_use_compression" />

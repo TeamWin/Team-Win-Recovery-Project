@@ -329,14 +329,14 @@ extern "C" int gui_init()
     // We need to write out the curtain and watermark blobs
     if (sizeof(gCurtainBlob) > 32)
     {
-        fd = open("/tmp/extract.png", O_CREAT | O_WRONLY | O_TRUNC);
+        fd = open("/tmp/extract.jpg", O_CREAT | O_WRONLY | O_TRUNC);
         if (fd < 0)
             return 0;
     
         write(fd, gCurtainBlob, sizeof(gCurtainBlob));
         close(fd);
     
-        if (res_create_surface("/tmp/extract.png", &gCurtain))
+        if (res_create_surface("/tmp/extract.jpg", &gCurtain))
         {
             return -1;
         }
