@@ -25,7 +25,6 @@
 #include "backstore.h"
 
 static int isMTDdevice = 0;
-static int isBootMountable = 0;
 
 struct dInfo* findDeviceByLabel(const char* label)
 {
@@ -57,6 +56,8 @@ struct dInfo* findDeviceByBlockDevice(const char* blockDevice)
     return NULL;
 }
 
+#define SAFE_STR(str)       (str ? str : "<NULL>")
+
 // This routine handles the case where we can't open either /proc/mtd or /proc/emmc
 int setLocationData(const char* label, const char* blockDevice, const char* mtdDevice, const char* fstype, int size)
 {
@@ -65,23 +66,24 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
     if (label)                  loc = findDeviceByLabel(label);
     if (!loc && blockDevice)    loc = findDeviceByBlockDevice(blockDevice);
 
-    if (!loc)                   return -1;
+    if (!loc)
+        return -1;
+
+    LOGI(" setLocationData ==> %s = %s, %s, %s, %d\n", SAFE_STR(label), SAFE_STR(blockDevice), SAFE_STR(mtdDevice), SAFE_STR(fstype), size);
 
     if (label)                  strcpy(loc->mnt, label);
     if (blockDevice)            strcpy(loc->blk, blockDevice);
     if (mtdDevice)              strcpy(loc->dev, mtdDevice);
 
     // This is a simple 
-    if (strcmp(loc->mnt, "boot") == 0 && strlen(loc->blk) > 1)
+    if (strcmp(loc->mnt, "boot") == 0 && fstype && strcmp(fstype, "vfat") == 0 && strlen(loc->blk) > 1)
     {
-        // We use this flag to mark the boot partition as mountable
-        if (fstype && strcmp(fstype, "vfat") == 0)
-            isBootMountable = 1;
-
         if (strcmp(loc->blk, loc->dev) == 0)
             fstype = "emmc";
         else
             fstype = "mtd";
+
+        LOGI(" ==>  Switching boot device to %s\n", fstype);
     }
 
     if (fstype)                 strcpy(loc->fst, fstype);

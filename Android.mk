@@ -59,7 +59,7 @@ else
 endif
 
 LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
-LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng 
+LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libjpeg
 LOCAL_SHARED_LIBRARIES += libz libmtdutils libc libstlport libcutils libstdc++
 
 include $(BUILD_EXECUTABLE)

@@ -133,41 +133,45 @@ static int vk_init(struct ev *e)
 
     strcat(vk_path, e->deviceName);
 
+    // Some devices split the keys from the touchscreen
+    e->vk_count = 0;
     vk_fd = open(vk_path, O_RDONLY);
-    if (vk_fd < 0)
-        return -1;
+    if (vk_fd >= 0)
+    {
+        len = read(vk_fd, vks, sizeof(vks)-1);
+        close(vk_fd);
+        if (len <= 0)
+            return -1;
+    
+        vks[len] = '\0';
+    
+        /* Parse a line like:
+            keytype:keycode:centerx:centery:width:height:keytype2:keycode2:centerx2:...
+        */
+        for (ts = vks, e->vk_count = 1; *ts; ++ts) {
+            if (*ts == ':')
+                ++e->vk_count;
+        }
 
-    len = read(vk_fd, vks, sizeof(vks)-1);
-    close(vk_fd);
-    if (len <= 0)
-        return -1;
+        if (e->vk_count % 6) {
+            LOGW("minui: %s is %d %% 6\n", vk_path, e->vk_count % 6);
+        }
+        e->vk_count /= 6;
+        if (e->vk_count <= 0)
+            return -1;
 
-    vks[len] = '\0';
-
-    /* Parse a line like:
-        keytype:keycode:centerx:centery:width:height:keytype2:keycode2:centerx2:...
-    */
-    for (ts = vks, e->vk_count = 1; *ts; ++ts) {
-        if (*ts == ':')
-            ++e->vk_count;
+        e->down = DOWN_NOT;
     }
-
-    if (e->vk_count % 6) {
-        LOGW("minui: %s is %d %% 6\n", vk_path, e->vk_count % 6);
-    }
-    e->vk_count /= 6;
-    if (e->vk_count <= 0)
-        return -1;
-
-    e->down = DOWN_NOT;
 
     ioctl(e->fd->fd, EVIOCGABS(ABS_X), &e->p.xi);
     ioctl(e->fd->fd, EVIOCGABS(ABS_Y), &e->p.yi);
     e->p.synced = 0;
+//    LOGI("EV: ST minX: %d  maxX: %d  minY: %d  maxY: %d\n", e->p.xi.minimum, e->p.xi.maximum, e->p.yi.minimum, e->p.yi.maximum);
 
     ioctl(e->fd->fd, EVIOCGABS(ABS_MT_POSITION_X), &e->mt_p.xi);
     ioctl(e->fd->fd, EVIOCGABS(ABS_MT_POSITION_Y), &e->mt_p.yi);
     e->mt_p.synced = 0;
+//    LOGI("EV: MT minX: %d  maxX: %d  minY: %d  maxY: %d\n", e->mt_p.xi.minimum, e->mt_p.xi.maximum, e->mt_p.yi.minimum, e->mt_p.yi.maximum);
 
     e->vks = malloc(sizeof(*e->vks) * e->vk_count);
 

@@ -10,7 +10,8 @@ endif
 
 LOCAL_C_INCLUDES +=\
     external/libpng\
-    external/zlib
+    external/zlib\
+	external/jpeg
 
 
 ifeq ($(RECOVERY_TOUCHSCREEN_SWAP_XY), true)

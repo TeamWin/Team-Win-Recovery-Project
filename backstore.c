@@ -260,7 +260,10 @@ set_restore_files()
 			tw_restore_andsec = 1;
 		}
 		if (strcmp(rfOutput,"boot.mtd.win") == 0 ||
-			strcmp(rfOutput,"boot.emmc.win") == 0) {
+            strcmp(rfOutput,"boot.emmc.win") == 0 ||
+            strcmp(rfOutput,"boot.ext2.win") == 0 ||
+            strcmp(rfOutput,"boot.ext3.win") == 0 ||
+			strcmp(rfOutput,"boot.ext4.win") == 0) {
 			strcpy(boo.fnm,rfOutput);
 			tw_restore_boot = 1;
 		}
@@ -578,13 +581,17 @@ int tw_backup(struct dInfo bMnt, char *bDir, float portion)
 		bDiv = 2048;
 	}
 	FILE *bFp;
+    char str[512];
 	int bPartSize;
 	char *bImage = malloc(sizeof(char)*50);
 	char *bMount = malloc(sizeof(char)*50);
 	char *bCommand = malloc(sizeof(char)*255);
-	if (strcmp(bMnt.mnt,"system") == 0 || strcmp(bMnt.mnt,"data") == 0 || 
+    int bMountable = 0;
+
+    if (strcmp(bMnt.mnt,"system") == 0 || strcmp(bMnt.mnt,"data") == 0 || 
 			strcmp(bMnt.mnt,"cache") == 0 || strcmp(bMnt.mnt,"sd-ext") == 0 || 
 			strcmp(bMnt.mnt,"efs") == 0 || strcmp(bMnt.mnt,".android_secure") == 0) { // detect mountable partitions
+        bMountable = 1;
 		if (strcmp(bMnt.mnt,".android_secure") == 0) { // if it's android secure, add sdcard to prefix
 			strcpy(bMount,"/sdcard/");
 			strcat(bMount,bMnt.mnt);
@@ -605,7 +612,8 @@ int tw_backup(struct dInfo bMnt, char *bDir, float portion)
 		}
 		sprintf(bCommand,"du -sk %s | awk '{ print $1 }'",bMount); // check for partition/folder size
 		bFp = __popen(bCommand, "r");
-		fscanf(bFp,"%d",&bPartSize);
+        fgets(str, sizeof(str), bFp);
+		bPartSize = atol(str);
 		__pclose(bFp);
 		sprintf(bCommand,"cd %s && tar %s %s%s ./*",bMount,bTarArg,bDir,bImage); // form backup command
 	} else {
@@ -614,7 +622,7 @@ int tw_backup(struct dInfo bMnt, char *bDir, float portion)
 		sprintf(bImage,"%s.%s.win",bMnt.mnt,bMnt.fst); // non-mountable partitions such as boot/wimax/recovery
 		if (strcmp(bMnt.fst,"mtd") == 0) {
 			sprintf(bCommand,"dump_image %s %s%s",bMnt.mnt,bDir,bImage); // if it's mtd, we use dump image
-		} else if (strcmp(bMnt.fst,"emmc") == 0) {
+		} else if (strcmp(bMnt.fst,"emmc") == 0 || memcmp(bMnt.fst,"ext",3) == 0) {
 			sprintf(bCommand,"dd bs=%s if=%s of=%s%s",bs_size,bMnt.blk,bDir,bImage); // if it's emmc, use dd
 		}
 		ui_print("\n");
@@ -637,7 +645,7 @@ int tw_backup(struct dInfo bMnt, char *bDir, float portion)
 		bProgTime = bPartSize / bDiv; // not very accurate but better than nothing progress time for progress bar
 		ui_show_progress((portion * 3) / 4, bProgTime);
 		ui_print("...Backing up %s partition.\n",bMount);
-        ui_print("  Backup command: %s\n", bCommand);
+        LOGI("  Backup command: %s\n", bCommand);
 		bFp = __popen(bCommand, "r"); // sending backup command formed earlier above
 		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 2) { // if twrp spam is on, show all lines
 			while (fgets(bOutput,sizeof(bOutput),bFp) != NULL) {
@@ -656,11 +664,12 @@ int tw_backup(struct dInfo bMnt, char *bDir, float portion)
         ui_show_progress(portion / 4, bProgTime / 4);
 		sprintf(bCommand,"ls -l %s%s | awk '{ print $5 }'",bDir,bImage); // double checking to make sure we backed up something
 		bFp = __popen(bCommand, "r");
-		fscanf(bFp,"%d",&pFileSize);
+        fgets(str, sizeof(str), bFp);
+		pFileSize = atol(str);
 		__pclose(bFp);
 		ui_print("....File size: %d bytes.\n",pFileSize); // file size
 		if (pFileSize > 0) { // larger than 0 bytes?
-			if (strcmp(bMnt.fst,"mtd") == 0 || strcmp(bMnt.fst,"emmc") == 0) { // if it's an unmountable partition, we can make sure
+			if (!bMountable) { // if it's an unmountable partition, we can make sure
 				LOGI("=> Expected size: %d Got: %d\n",bMnt.sze,pFileSize); // partition size matches file image size (they should match!)
 				if (pFileSize != bMnt.sze) {
 					ui_print("....File size is incorrect. Aborting...\n\n"); // they dont :(
@@ -924,21 +933,34 @@ int tw_restore(struct dInfo rMnt, char *rDir)
 			tw_format(rFilesystem,rMnt.blk); // let's format block, based on filesystem from filename above
 		}
 		ui_print("....Done.\n");
-		if (strcmp(rFilesystem,"mtd") == 0) { // if filesystem is mtd, we use flash image
+
+        // detect mountable partitions
+        int bMountable = 0;
+        if (strcmp(rMnt.mnt,"system") == 0    || strcmp(rMnt.mnt,"data") == 0 || 
+                strcmp(rMnt.mnt,"cache") == 0 || strcmp(rMnt.mnt,"sd-ext") == 0 || 
+                strcmp(rMnt.mnt,"efs") == 0   || strcmp(rMnt.mnt,".android_secure") == 0)
+        {
+            bMountable = 1;
+        }
+
+
+        if (bMountable)
+        {
+            tw_mount(rMnt);
+            strcpy(rMount,"/");
+            if (strcmp(rMnt.mnt,".android_secure") == 0) { // if it's android_secure, we have add prefix
+                strcat(rMount,"sdcard/");
+            }
+            strcat(rMount,rMnt.mnt);
+            sprintf(rCommand,"cd %s && tar -xvf %s",rMount,rFilename); // formulate shell command to restore
+        } else if (strcmp(rFilesystem,"mtd") == 0) { // if filesystem is mtd, we use flash image
 			sprintf(rCommand,"flash_image %s %s",rMnt.mnt,rFilename);
 			strcpy(rMount,rMnt.mnt);
-		} else if (strcmp(rFilesystem,"emmc") == 0) { // if filesystem is emmc, we use dd
+		} else { // if filesystem is emmc, we use dd
 			sprintf(rCommand,"dd bs=%s if=%s of=%s",bs_size,rFilename,rMnt.dev);
 			strcpy(rMount,rMnt.mnt);
-		} else {
-			tw_mount(rMnt);
-			strcpy(rMount,"/");
-			if (strcmp(rMnt.mnt,".android_secure") == 0) { // if it's android_secure, we have add prefix
-				strcat(rMount,"sdcard/");
-			}
-			strcat(rMount,rMnt.mnt);
-			sprintf(rCommand,"cd %s && tar -xvf %s",rMount,rFilename); // formulate shell command to restore
 		}
+
 		ui_print("...Restoring %s\n",rMount);
         SetDataState("Restoring", rMnt.mnt, 0, 0);
 		reFp = __popen(rCommand, "r");
