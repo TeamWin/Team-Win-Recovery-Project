@@ -26,18 +26,22 @@
 #define TW_BACKUP_BOOT_VAR          "tw_backup_boot"
 #define TW_BACKUP_RECOVERY_VAR      "tw_backup_recovery"
 #define TW_BACKUP_CACHE_VAR         "tw_backup_cache"
-#define TW_BACKUP_WIMAX_VAR         "tw_backup_wimax"
 #define TW_BACKUP_ANDSEC_VAR        "tw_backup_andsec"
 #define TW_BACKUP_SDEXT_VAR         "tw_backup_sdext"
+#define TW_BACKUP_SP1_VAR           "tw_backup_sp1"
+#define TW_BACKUP_SP2_VAR           "tw_backup_sp2"
+#define TW_BACKUP_SP3_VAR           "tw_backup_sp3"
 
 #define TW_RESTORE_SYSTEM_VAR       "tw_restore_system"
 #define TW_RESTORE_DATA_VAR         "tw_restore_data"
 #define TW_RESTORE_BOOT_VAR         "tw_restore_boot"
 #define TW_RESTORE_RECOVERY_VAR     "tw_restore_recovery"
 #define TW_RESTORE_CACHE_VAR        "tw_restore_cache"
-#define TW_RESTORE_WIMAX_VAR        "tw_restore_wimax"
 #define TW_RESTORE_ANDSEC_VAR       "tw_restore_andsec"
 #define TW_RESTORE_SDEXT_VAR        "tw_restore_sdext"
+#define TW_RESTORE_SP1_VAR          "tw_restore_sp1"
+#define TW_RESTORE_SP2_VAR          "tw_restore_sp2"
+#define TW_RESTORE_SP3_VAR          "tw_restore_sp3"
 
 #define TW_SHOW_SPAM_VAR            "tw_show_spam"
 #define TW_COLOR_THEME_VAR          "tw_color_theme"
@@ -51,6 +55,10 @@
 #define TW_RM_RF_VAR                "tw_rm_rf"
 
 #define TW_BACKUPS_FOLDER_VAR       "tw_backups_folder"
+
+#define TW_SP1_PARTITION_NAME_VAR   "tw_sp1_name"
+#define TW_SP2_PARTITION_NAME_VAR   "tw_sp2_name"
+#define TW_SP3_PARTITION_NAME_VAR   "tw_sp3_name"
 
 #endif  // _VARIABLES_HEADER_
 

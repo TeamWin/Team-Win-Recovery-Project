@@ -35,10 +35,18 @@ struct dInfo* findDeviceByLabel(const char* label)
     if (strcmp(label, "boot") == 0)         return &boo;
     if (strcmp(label, "recovery") == 0)     return &rec;
     if (strcmp(label, "cache") == 0)        return &cac;
-    if (strcmp(label, "wimax") == 0)        return &wim;
-    if (strcmp(label, "efs") == 0)          return &wim;
-    if (strcmp(label, "sdcard") == 0)       return &sdc;
     if (strcmp(label, "sd-ext") == 0)       return &sde;
+
+    // New sdcard methods
+    if (strcmp(label, "sdcard") == 0)       return &sdcext;
+    if (strcmp(label, "sdc-ext") == 0)      return &sdcext;
+    if (strcmp(label, "sdc-int") == 0)      return &sdcint;
+
+    // Special Partitions (such as WiMAX, efs, and PDS)
+    if (strcmp(label, EXPAND(SP1_NAME)) == 0)       return &sp1;
+    if (strcmp(label, EXPAND(SP2_NAME)) == 0)       return &sp2;
+    if (strcmp(label, EXPAND(SP3_NAME)) == 0)       return &sp3;
+
     return NULL;
 }
 
@@ -50,9 +58,12 @@ struct dInfo* findDeviceByBlockDevice(const char* blockDevice)
     if (strcmp(blockDevice, boo.blk) == 0)  return &boo;
     if (strcmp(blockDevice, rec.blk) == 0)  return &rec;
     if (strcmp(blockDevice, cac.blk) == 0)  return &cac;
-    if (strcmp(blockDevice, wim.blk) == 0)  return &wim;
-    if (strcmp(blockDevice, sdc.blk) == 0)  return &sdc;
     if (strcmp(blockDevice, sde.blk) == 0)  return &sde;
+    if (strcmp(blockDevice, sdcext.blk) == 0)  return &sdcext;
+    if (strcmp(blockDevice, sdcint.blk) == 0)  return &sdcint;
+    if (strcmp(blockDevice, sp1.blk) == 0)  return &sp1;
+    if (strcmp(blockDevice, sp2.blk) == 0)  return &sp2;
+    if (strcmp(blockDevice, sp3.blk) == 0)  return &sp3;
     return NULL;
 }
 
@@ -224,6 +235,35 @@ int getLocationsViaProc(const char* fstype)
 
 int getLocations()
 {
+    // This decides if a partition can be mounted and appears in the fstab
+    sys.mountable = 1;
+    dat.mountable = 1;
+    cac.mountable = 1;
+    sde.mountable = 1;
+    boo.mountable = 1;
+    rec.mountable = 0;
+    sdcext.mountable = 1;
+    sdcint.mountable = 1;
+    ase.mountable = 0;
+    sp1.mountable = SP1_MOUNTABLE;
+    sp2.mountable = SP2_MOUNTABLE;
+    sp3.mountable = SP3_MOUNTABLE;
+
+    // This decides how we backup/restore a block
+    sys.backup = files;
+    dat.backup = files;
+    cac.backup = files;
+    sde.backup = files;
+    boo.backup = image;
+    rec.backup = image;
+    sdcext.backup = none;
+    sdcint.backup = none;
+    ase.backup = files;
+    sp1.backup = SP1_BACKUP_METHOD;
+    sp2.backup = SP2_BACKUP_METHOD;
+    sp3.backup = SP3_BACKUP_METHOD;
+
+
     if (getLocationsViaProc("emmc") != 0 && getLocationsViaProc("mtd") != 0 && getLocationsViafstab() != 0)
     {
         LOGE("E: Unable to get device locations.\n");
@@ -236,18 +276,20 @@ int getLocations()
     strcpy(ase.mnt,".android_secure");
     strcpy(ase.fst,"vfat");
 
-    if (strcmp(sde.mnt,"sd-ext") != 0) // sd-ext stuff
-	{
-		int tmpInt;
-		char tmpBase[50];
-		char tmpWildCard[50];
-
-		strcpy(tmpBase,sdc.blk);
-		tmpBase[strlen(tmpBase)-1] = '\0';
-		sprintf(tmpWildCard,"%s%%d",tmpBase);
-		sscanf(sdc.blk, tmpWildCard, &tmpInt); // sdcard block used as sd-ext base
-		sprintf(sde.blk, "%s%d",tmpBase, tmpInt+1);
-	}
+    if (strlen(sdcext.blk) > 0)
+    {
+        int tmpInt;
+        char tmpBase[50];
+        char tmpWildCard[50];
+    
+        // We make the base via sdcard block
+        strcpy(sde.mnt, "sd-ext");
+        strcpy(tmpBase,sdcext.blk);
+        tmpBase[strlen(tmpBase)-1] = '\0';
+        sprintf(tmpWildCard,"%s%%d",tmpBase);
+        sscanf(sdcext.blk, tmpWildCard, &tmpInt); // sdcard block used as sd-ext base
+        sprintf(sde.blk, "%s%d",tmpBase, tmpInt+1);
+    }
 
     get_device_id();
 
@@ -259,51 +301,47 @@ int getLocations()
     return 0;
 }
 
+static void createFstabEntry(FILE* fp, char* blk, char* mnt, char* fst)
+{
+    char tmpString[255];
+    struct stat st;
+
+    if (!blk || !*blk)      return;
+
+    sprintf(tmpString,"%s /%s %s rw\n", blk, mnt, fst);
+    fputs(tmpString, fp);
+    sprintf(tmpString, "/%s", mnt);
+
+    if (stat(tmpString, &st) != 0)
+    {
+        if (mkdir(tmpString, 0777) == -1)
+            LOGI("=> Can not create %s folder.\n", tmpString);
+        else
+            LOGI("=> Created %s folder.\n", tmpString);
+    }
+    return;
+}
+
 // write fstab so we can mount in adb shell
 void createFstab()
 {
 	FILE *fp;
-	struct stat st;
 	fp = fopen("/etc/fstab", "w");
-	if (fp == NULL) {
-		LOGI("=> Can not open /etc/fstab.\n");
-	} else 
+	if (fp == NULL)
+        LOGI("=> Can not open /etc/fstab.\n");
+    else 
 	{
-		char tmpString[255];
-		sprintf(tmpString,"%s /%s %s rw\n",sys.blk,sys.mnt,sys.fst);
-		if (tmpString[0] != ' ')    fputs(tmpString, fp);
-		sprintf(tmpString,"%s /%s %s rw\n",dat.blk,dat.mnt,dat.fst);
-        if (tmpString[0] != ' ')    fputs(tmpString, fp);
-		sprintf(tmpString,"%s /%s %s rw\n",cac.blk,cac.mnt,cac.fst);
-        if (tmpString[0] != ' ')    fputs(tmpString, fp);
-		sprintf(tmpString,"%s /%s %s rw\n",sdc.blk,sdc.mnt,sdc.fst);
-        if (tmpString[0] != ' ')    fputs(tmpString, fp);
-		if (stat(sde.blk,&st) == 0) {
-			strcpy(sde.mnt,"sd-ext");
-			strcpy(sde.dev,sde.blk);
-			sprintf(tmpString,"%s /%s %s rw\n",sde.blk,sde.mnt,sde.fst);
-            if (tmpString[0] != ' ')    fputs(tmpString, fp);
-			if (stat("/sd-ext",&st) != 0) {
-				if(mkdir("/sd-ext",0777) == -1) {
-					LOGI("=> Can not create /sd-ext folder.\n");
-				} else {
-					LOGI("=> Created /sd-ext folder.\n");
-				}
-			}
-		}
-		if (strcmp(wim.mnt,"efs") == 0) {
-			sprintf(tmpString,"%s /%s %s rw\n",wim.blk,wim.mnt,wim.fst);
-            if (tmpString[0] != ' ')    fputs(tmpString, fp);
-			if (stat("/efs",&st) != 0) {
-				if(mkdir("/efs",0777) == -1) {
-					LOGI("=> Can not create /efs folder.\n");
-				} else {
-					LOGI("=> Created /efs folder.\n");
-				}
-			}
-		}
-        sprintf(tmpString,"%s /%s vfat rw\n",boo.blk,boo.mnt);
-        if (tmpString[0] != ' ')    fputs(tmpString, fp);
+        if (sys.mountable)  createFstabEntry(fp, sys.blk, sys.mnt, sys.fst);
+		if (dat.mountable)  createFstabEntry(fp, dat.blk, dat.mnt, dat.fst);
+        if (cac.mountable)  createFstabEntry(fp, cac.blk, cac.mnt, cac.fst);
+        if (sdcext.mountable)  createFstabEntry(fp, sdcext.blk, sdcext.mnt, sdcext.fst);
+        if (sdcint.mountable)  createFstabEntry(fp, sdcint.blk, sdcint.mnt, sdcint.fst);
+        if (sde.mountable)  createFstabEntry(fp, sde.blk, sde.mnt, sde.fst);
+        if (sp1.mountable)  createFstabEntry(fp, sp1.blk, sp1.mnt, sp1.fst);
+        if (sp2.mountable)  createFstabEntry(fp, sp2.blk, sp1.mnt, sp2.fst);
+        if (sp3.mountable)  createFstabEntry(fp, sp3.blk, sp1.mnt, sp3.fst);
+
+        createFstabEntry(fp, boo.blk, boo.mnt, "vfat");
 	}
 	fclose(fp);
 }

@@ -1494,7 +1494,7 @@ void chkMounts()
 	    {
 	    	cacIsMounted = 1;
 	    }
-	    if (strcmp(tmp.blk,sdc.blk) == 0)
+	    if (strcmp(tmp.blk,sdcext.blk) == 0)
 	    {
 	    	sdcIsMounted = 1;
 	    }

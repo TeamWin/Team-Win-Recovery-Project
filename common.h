@@ -118,4 +118,22 @@ void wipe_data(int confirm);
 
 int gui_set_variable(const char*, const char*);
 
+
+// This handles the special partitions
+#ifndef SP1_NAME
+#define SP1_NAME
+#define SP1_BACKUP_METHOD none
+#define SP1_MOUNTABLE 0
+#endif
+#ifndef SP2_NAME
+#define SP2_NAME
+#define SP2_BACKUP_METHOD none
+#define SP2_MOUNTABLE 0
+#endif
+#ifndef SP3_NAME
+#define SP3_NAME
+#define SP3_BACKUP_METHOD none
+#define SP3_MOUNTABLE 0
+#endif
+
 #endif  // RECOVERY_COMMON_H
