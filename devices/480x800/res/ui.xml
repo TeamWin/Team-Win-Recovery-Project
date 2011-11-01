@@ -858,8 +858,8 @@
             <object type="checkbox">
                 <placement x="10" y="615" />
                 <font resource="font" color="white" />
-                <text>WiMax</text>
-                <data variable="tw_backup_wimax" />
+                <text>%tw_sp1_name%</text>
+                <data variable="tw_backup_sp1" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 
@@ -1212,9 +1212,9 @@
             <object type="checkbox">
                 <placement x="10" y="665" />
                 <font resource="font" color="white" />
-                <text>WiMax</text>
-                <condition var1="tw_restore_wimax" op=">=" var2="0" />
-                <data variable="tw_restore_wimax" />
+                <text>%tw_sp1_name%</text>
+                <condition var1="tw_restore_sp1" op=">=" var2="0" />
+                <data variable="tw_restore_sp1" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 
