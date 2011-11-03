@@ -1055,8 +1055,8 @@
             </object>
 
             <object type="console">
-                <slideout resource="slideout" x="240" y="920" />
-                <placement x="0" y="0" w="540" h="960" />
+                <slideout resource="slideout" x="210" y="760" />
+                <placement x="0" y="0" w="480" h="800" />
                 <color foreground="#B0B0B0" background="black" scroll="black" />
                 <font resource="fixed" />
             </object>
@@ -1402,8 +1402,8 @@
             </object>
 
             <object type="console">
-                <slideout resource="slideout" x="240" y="920" />
-                <placement x="0" y="0" w="540" h="960" />
+                <slideout resource="slideout" x="210" y="760" />
+                <placement x="0" y="0" w="480" h="800" />
                 <color foreground="#B0B0B0" background="black" scroll="black" />
                 <font resource="fixed" />
             </object>
