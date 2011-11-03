@@ -1167,7 +1167,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="290" />
+                <placement x="10" y="300" />
                 <font resource="UItext" color="white" />
                 <text>System</text>
                 <condition var1="tw_restore_system" op=">=" var2="0" />
@@ -1176,7 +1176,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="365" />
+                <placement x="10" y="350" />
                 <font resource="UItext" color="white" />
                 <text>Data</text>
                 <condition var1="tw_restore_data" op=">=" var2="0" />
@@ -1185,7 +1185,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="440" />
+                <placement x="10" y="400" />
                 <font resource="UItext" color="white" />
                 <text>Boot</text>
                 <condition var1="tw_restore_boot" op=">=" var2="0" />
@@ -1194,7 +1194,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="515" />
+                <placement x="10" y="450" />
                 <font resource="UItext" color="white" />
                 <text>Recovery</text>
                 <condition var1="tw_restore_recovery" op=">=" var2="0" />
@@ -1203,7 +1203,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="590" />
+                <placement x="10" y="500" />
                 <font resource="UItext" color="white" />
                 <text>Cache</text>
                 <condition var1="tw_restore_cache" op=">=" var2="0" />
@@ -1212,7 +1212,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="665" />
+                <placement x="10" y="550" />
                 <font resource="UItext" color="white" />
                 <text>WiMax</text>
                 <condition var1="tw_restore_wimax" op=">=" var2="0" />
@@ -1221,7 +1221,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="740" />
+                <placement x="10" y="600" />
                 <font resource="UItext" color="white" />
                 <text>.android_secure</text>
                 <condition var1="tw_restore_andsec" op=">=" var2="0" />
@@ -1230,11 +1230,20 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="815" />
+                <placement x="10" y="650" />
                 <font resource="UItext" color="white" />
                 <text>sd-ext</text>
                 <condition var1="tw_restore_sdext" op=">=" var2="0" />
                 <data variable="tw_restore_sdext" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+
+            <object type="checkbox">
+                <placement x="10" y="750" />
+                <font resource="UItext" color="white" />
+                <text>Skip MD5 Checksum Verification</text>
+                <condition var1="tw_skip_md5_check" op=">=" var2="0" />
+                <data variable="tw_skip_md5_check" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 
