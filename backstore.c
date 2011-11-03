@@ -31,6 +31,34 @@
 #include "roots.h"
 #include "format.h"
 
+int getWordFromString(int word, const char* string, char* buffer, int bufferLen)
+{
+    char* start = NULL;
+
+    do
+    {
+        // Ignore leading whitespace
+        while (*string > 0 && *string < 33)     ++string;
+
+        start = string;
+        while (*string > 31)                    ++string;
+    } while (--word > 0);
+
+    // Handle word not found
+    if (*start == NULL)
+    {
+        buffer[0] = '\0';
+        return 0;
+    }
+
+    if ((string - start) > bufferLen)
+        memcpy(buffer, start, bufferLen-1);
+    else
+        memcpy(buffer, start, string - start);
+
+    return (string - start);
+}
+
 void SetDataState(char* operation, char* partition, int errorCode, int done)
 {
     DataManager_SetStrValue("tw_operation", operation);
@@ -965,7 +993,7 @@ int tw_restore(struct dInfo rMnt, char *rDir)
 	time(&rStart);
     SetDataState("Verifying MD5", rMnt.mnt, 0, 0);
 	ui_print("...Verifying md5 hash for %s.\n",rMnt.mnt);
-	if(checkMD5(rDir,rMnt.fnm) == 0) // verify md5, check if no error; 0 = no error.
+	if(checkMD5(rDir, rMnt.fnm) == 0) // verify md5, check if no error; 0 = no error.
 	{
 		strcpy(rFilename,rDir);
         if (rFilename[strlen(rFilename)-1] != '/')
@@ -1008,7 +1036,7 @@ int tw_restore(struct dInfo rMnt, char *rDir)
                 strcat(rMount,"sdcard/");
             }
             strcat(rMount,rMnt.mnt);
-            sprintf(rCommand,"cd %s && tar -xvfp %s",rMount,rFilename); // formulate shell command to restore
+            sprintf(rCommand,"cd %s && tar -xvf %s",rMount,rFilename); // formulate shell command to restore
         } else if (rMnt.backup == image) {
             if (strcmp(rFilesystem,"mtd") == 0) { // if filesystem is mtd, we use flash image
     			sprintf(rCommand,"flash_image %s %s",rMnt.mnt,rFilename);
@@ -1291,11 +1319,11 @@ int makeMD5(char *imgDir, const char *imgFile)
 	} else {
 		FILE *fp;
 		char tmpString[255];
-		char tmpAnswer[10];
+		char tmpAnswer[15];
 		sprintf(tmpString,"cd %s && md5sum %s > %s.md5",imgDir,imgFile,imgFile);
 		fp = __popen(tmpString, "r");
 		fgets(tmpString, 255, fp);
-		sscanf(tmpString,"%s %*s",tmpAnswer);
+		getWordFromString(1, tmpString, tmpAnswer, sizeof(tmpAnswer));
 		if (strcmp(tmpAnswer,"md5sum:") == 0) {
 			ui_print("....MD5 Error: %s", tmpString);
 		} else {
@@ -1310,17 +1338,23 @@ int makeMD5(char *imgDir, const char *imgFile)
 int checkMD5(char *imgDir, const char *imgFile)
 {
 	int bool = 1;
+
+    if (DataManager_GetIntValue(TW_SKIP_MD5_CHECK_VAR) == 1) {
+        // When skipping the test, we return success
+        return 0;
+    }
+
 	if (ensure_path_mounted("/sdcard") != 0) {
 		LOGI("=> Can not mount sdcard.\n");
 		return bool;
 	} else {
 		FILE *fp;
 		char tmpString[255];
-		char tmpAnswer[10];
+		char tmpAnswer[15];
 		sprintf(tmpString,"cd %s && md5sum -c %s.md5",imgDir,imgFile);
 		fp = __popen(tmpString, "r");
 		fgets(tmpString, 255, fp);
-		sscanf(tmpString,"%*s %s",tmpAnswer);
+		getWordFromString(2, tmpString, tmpAnswer, sizeof(tmpAnswer));
 		if (strcmp(tmpAnswer,"OK") == 0) {
 			ui_print("....MD5 Check: %s\n", tmpAnswer);
 			bool = 0;

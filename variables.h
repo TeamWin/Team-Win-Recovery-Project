@@ -49,6 +49,7 @@
 #define TW_SORT_FILES_BY_DATE_VAR   "tw_sort_files_by_date"
 #define TW_ZIP_LOCATION_VAR         "tw_zip_location"
 #define TW_FORCE_MD5_CHECK_VAR      "tw_force_md5_check"
+#define TW_SKIP_MD5_CHECK_VAR       "tw_skip_md5_check"
 #define TW_SIGNED_ZIP_VERIFY_VAR    "tw_signed_zip_verify"
 #define TW_REBOOT_AFTER_FLASH_VAR   "tw_reboot_after_flash_option"
 #define TW_TIME_ZONE_VAR            "tw_time_zone"
