@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <dirent.h>
+#include <ctype.h>
 
 #include <algorithm>
 
@@ -407,10 +408,17 @@ int GUIFileSelector::SetRenderPos(int x, int y, int w /* = 0 */, int h /* = 0 */
     return 0;
 }
 
+struct convert {
+   void operator()(char& c) { c = toupper((unsigned char)c); } // converts to upper case for case insensitive comparisons
+};
+
+
 bool GUIFileSelector::fileSort(struct dirent d1, struct dirent d2)
 {
     std::string d1_str = d1.d_name;
+    for_each(d1_str.begin(), d1_str.end(), convert());
     std::string d2_str = d2.d_name;
+    for_each(d2_str.begin(), d2_str.end(), convert());
 
     return d1_str < d2_str;
 }
