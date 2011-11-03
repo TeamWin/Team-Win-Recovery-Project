@@ -359,10 +359,11 @@ protected:
     virtual int GetSelection(int x, int y);
 
     virtual int GetFileList(const std::string folder);
+    static bool fileSort(struct dirent d1, struct dirent d2);
 
 protected:
-    std::vector<std::string> mFolderList;
-    std::vector<std::string> mFileList;
+    std::vector<struct dirent> mFolderList;
+    std::vector<struct dirent> mFileList;
     std::string mPathVar;
     std::string mExtn;
     std::string mVariable;

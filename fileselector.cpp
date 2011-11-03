@@ -219,12 +219,12 @@ int GUIFileSelector::Render(void)
         if (line + mStart < folderSize)
         {
             icon = mFolderIcon;
-            label = mFolderList.at(line + mStart);
+            label = mFolderList.at(line + mStart).d_name;
         }
         else
         {
             icon = mFileIcon;
-            label = mFileList.at((line + mStart) - folderSize);
+            label = mFileList.at((line + mStart) - folderSize).d_name;
         }
 
         if (icon && icon->GetResource())
@@ -316,7 +316,7 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
                     std::string oldcwd;
                     std::string cwd;
 
-                    str = mFolderList.at(startSelection);
+                    str = mFolderList.at(startSelection).d_name;
                     DataManager::GetValue(mPathVar, cwd);
 
                     oldcwd = cwd;
@@ -362,7 +362,7 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
                 }
                 else if (!mVariable.empty())
                 {
-                    str = mFileList.at(startSelection - folderSize);
+                    str = mFileList.at(startSelection - folderSize).d_name;
 
                     std::string cwd;
                     DataManager::GetValue(mPathVar, cwd);
@@ -407,6 +407,14 @@ int GUIFileSelector::SetRenderPos(int x, int y, int w /* = 0 */, int h /* = 0 */
     return 0;
 }
 
+bool GUIFileSelector::fileSort(struct dirent d1, struct dirent d2)
+{
+    std::string d1_str = d1.d_name;
+    std::string d2_str = d2.d_name;
+
+    return d1_str < d2_str;
+}
+
 int GUIFileSelector::GetFileList(const std::string folder)
 {
     DIR* d;
@@ -430,19 +438,19 @@ int GUIFileSelector::GetFileList(const std::string folder)
         if (de->d_type == DT_DIR)
         {
             if (mShowNavFolders || (entry != "." && entry != ".."))
-                mFolderList.push_back(entry);
+                mFolderList.push_back(*de);
         }
         else if (de->d_type == DT_REG)
         {
             if (mExtn.empty() || (entry.length() > mExtn.length() && entry.substr(entry.length() - mExtn.length()) == mExtn))
             {
-                mFileList.push_back(entry);
+                mFileList.push_back(*de);
             }
         }
     }
     closedir(d);
-    std::sort(mFolderList.begin(), mFolderList.end());
-    std::sort(mFileList.begin(), mFileList.end());
+    std::sort(mFolderList.begin(), mFolderList.end(), fileSort);
+    std::sort(mFileList.begin(), mFileList.end(), fileSort);
     return 0;
 }
 

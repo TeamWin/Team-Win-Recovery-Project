@@ -356,7 +356,7 @@ int GUIAction::doAction(int isThreaded)
     return -1;
 }
 
-#else _SIMULATE_ACTIONS
+#else // _SIMULATE_ACTIONS
 
 int GUIAction::doAction(int isThreaded)
 {
