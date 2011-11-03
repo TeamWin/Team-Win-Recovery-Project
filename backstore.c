@@ -546,64 +546,62 @@ nan_img_set(int tw_setting, int tw_backstore)
 */
 int tw_mount(struct dInfo mMnt)
 {
-	if (strcmp(mMnt.mnt,"system") == 0 || strcmp(mMnt.mnt,"data") == 0 ||
-		strcmp(mMnt.mnt,"cache") == 0 || strcmp(mMnt.mnt,"sd-ext") == 0 || 
-		strcmp(mMnt.mnt,"efs") == 0) { // if any of the mount points match these
-		FILE *fp;
-		char mCommand[255];
-		char mOutput[50];
-		LOGI("=> Checking if /%s is mounted.\n",mMnt.mnt); // check it mounted
-		sprintf(mCommand,"cat /proc/mounts | grep %s | awk '{ print $1 }'",mMnt.blk); // by checking for block in proc mounts
-		fp = __popen(mCommand, "r"); // run above command
-		if (fscanf(fp,"%s",mOutput) != 1) { // if we get a match
-			__pclose(fp);
-			LOGI("=> /%s is not mounted. Mounting...\n",mMnt.mnt);
-			sprintf(mCommand,"mount -t %s %s /%s",mMnt.fst,mMnt.blk,mMnt.mnt); // mount using filesystem stored in struct mMnt.fst
-			fp = __popen(mCommand, "r");
-			fgets(mOutput,sizeof(mOutput),fp); // get output
-			__pclose(fp);
-			if (mOutput[0] == 'm') { // if output starts with m, it's an error
-				ui_print("-- Error: %s",mOutput);
-				return 1;
-			} else {
-				LOGI("=> Mounted /%s.\n",mMnt.mnt); // output should be nothing, so it's succesful
-			}
-		} else {
-			__pclose(fp);
-			LOGI("=> /%s is already mounted.\n",mMnt.mnt);
-		}
-	}
+    // Do not try to mount non-mountable partitions
+    if (!mMnt.mountable)        return 0;
+
+	FILE *fp;
+    char mCommand[255];
+    char mOutput[255];
+    LOGI("=> Checking if /%s is mounted.\n",mMnt.mnt); // check it mounted
+    sprintf(mCommand,"cat /proc/mounts | grep %s | awk '{ print $1 }'",mMnt.blk); // by checking for block in proc mounts
+    fp = __popen(mCommand, "r"); // run above command
+    if (fscanf(fp,"%s",mOutput) != 1) { // if we get a match
+        __pclose(fp);
+        LOGI("=> /%s is not mounted. Mounting...\n",mMnt.mnt);
+        sprintf(mCommand,"mount -t %s %s /%s",mMnt.fst,mMnt.blk,mMnt.mnt); // mount using filesystem stored in struct mMnt.fst
+        fp = __popen(mCommand, "r");
+        fgets(mOutput,sizeof(mOutput),fp); // get output
+        __pclose(fp);
+        if (mOutput[0] == 'm') { // if output starts with m, it's an error
+            ui_print("-- Error: %s",mOutput);
+            return 1;
+        } else {
+            LOGI("=> Mounted /%s.\n",mMnt.mnt); // output should be nothing, so it's succesful
+        }
+    } else {
+        __pclose(fp);
+        LOGI("=> /%s is already mounted.\n",mMnt.mnt);
+    }
 	return 0;
 }
 
 int tw_unmount(struct dInfo uMnt)
 {
-	if (strcmp(uMnt.mnt,"system") == 0 || strcmp(uMnt.mnt,"data") == 0 ||
-		strcmp(uMnt.mnt,"cache") == 0 || strcmp(uMnt.mnt,"sd-ext") == 0 || 
-		strcmp(uMnt.mnt,"efs") == 0) {
-		FILE *fp;
-		char uCommand[255];
-		char uOutput[50];
-		LOGI("=> Checking if /%s is mounted.\n",uMnt.mnt);
-		sprintf(uCommand,"cat /proc/mounts | grep %s | awk '{ print $1 }'",uMnt.blk);
-		fp = __popen(uCommand, "r");
-		if (fscanf(fp,"%s",uOutput) == 1) {
-			__pclose(fp);
-			sprintf(uCommand,"umount /%s",uMnt.mnt);
-			fp = __popen(uCommand, "r");
-			fgets(uOutput,sizeof(uOutput),fp);
-			__pclose(fp);
-			if (uOutput[0] == 'u') {
-				ui_print("-- Error: %s",uOutput);
-				return 1;
-			} else {
-				LOGI("=> Unmounted /%s\n",uMnt.mnt);
-			}
-		} else {
-			__pclose(fp);
-			LOGI("=> /%s is not mounted.\n\n",uMnt.mnt);
-		}
-	}
+    // Do not try to mount non-mountable partitions
+    if (!uMnt.mountable)        return 0;
+
+    FILE *fp;
+    char uCommand[255];
+    char uOutput[255];
+    LOGI("=> Checking if /%s is mounted.\n",uMnt.mnt);
+    sprintf(uCommand,"cat /proc/mounts | grep %s | awk '{ print $1 }'",uMnt.blk);
+    fp = __popen(uCommand, "r");
+    if (fscanf(fp,"%s",uOutput) == 1) {
+        __pclose(fp);
+        sprintf(uCommand,"umount /%s",uMnt.mnt);
+        fp = __popen(uCommand, "r");
+        fgets(uOutput,sizeof(uOutput),fp);
+        __pclose(fp);
+        if (uOutput[0] == 'u') {
+            ui_print("-- Error: %s",uOutput);
+            return 1;
+        } else {
+            LOGI("=> Unmounted /%s\n",uMnt.mnt);
+        }
+    } else {
+        __pclose(fp);
+        LOGI("=> /%s is not mounted.\n\n",uMnt.mnt);
+    }
 	return 0;
 }
 

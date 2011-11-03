@@ -70,7 +70,7 @@ struct dInfo* findDeviceByBlockDevice(const char* blockDevice)
 #define SAFE_STR(str)       (str ? str : "<NULL>")
 
 // This routine handles the case where we can't open either /proc/mtd or /proc/emmc
-int setLocationData(const char* label, const char* blockDevice, const char* mtdDevice, const char* fstype, int size)
+int setLocationData(const char* label, const char* blockDevice, const char* mtdDevice, const char* fstype, unsigned long size)
 {
     struct dInfo* loc = NULL;
 
@@ -103,6 +103,35 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
     return 0;
 }
 
+int getSizesViaPartitions()
+{
+    FILE* fp;
+    char line[512];
+    int ret = 0;
+
+    // In this case, we'll first get the partitions we care about (with labels)
+    fp = fopen("/proc/partitions", "rt");
+    if (fp == NULL)
+        return -1;
+
+    while (fgets(line, sizeof(line), fp) != NULL)
+    {
+        unsigned long major, minor, blocks;
+        char device[64];
+        char tmpString[64];
+
+        if (strlen(line) < 7 || line[0] == 'm')     continue;
+        sscanf(line + 1, "%d %d %d %s", &major, &minor, &blocks, device);
+
+        // Adjust block size to byte size
+        blocks *= 1024;
+        sprintf(tmpString, "%s%s", tw_block, device);
+        setLocationData(NULL, tmpString, NULL, NULL, blocks);
+    }
+    fclose(fp);
+    return 0;
+}
+
 int getLocationsViafstab()
 {
     FILE* fp;
@@ -130,6 +159,9 @@ int getLocationsViafstab()
     }
     fclose(fp);
 
+    // We can ignore the results of this call. But if it works, it at least helps get details
+    getSizesViaPartitions();
+
     // Now, let's retrieve base partition sizes
     if (!isMTDdevice)
     {
@@ -143,7 +175,7 @@ int getLocationsViafstab()
         while (fgets(line, sizeof(line), fp) != NULL)
         {
             char isBoot[64], device[64], blocks[2][16], *pSizeBlock;
-            int size = 0;
+            unsigned long size = 0;
     
             if (line[0] != '/')     continue;
             sscanf(line, "%s %s %*s %s %s", device, isBoot, blocks[0], blocks[1]);
@@ -166,6 +198,7 @@ int getLocationsViafstab()
         }
         fclose(fp);
     }
+
     return ret;
 }
 
@@ -192,7 +225,7 @@ int getLocationsViaProc(const char* fstype)
     while (fgets(line, sizeof(line), fp) != NULL)
     {
         char device[32], label[32];
-        int size = 0;
+        unsigned long size = 0;
         char mtdDevice[32];
         char* fstype = NULL;
         int deviceId;
@@ -312,7 +345,8 @@ static void createFstabEntry(FILE* fp, char* blk, char* mnt, char* fst)
     fputs(tmpString, fp);
     sprintf(tmpString, "/%s", mnt);
 
-    if (stat(tmpString, &st) != 0)
+    // We only create the folder if the block device exists
+    if (stat(blk, &st) == 0 && stat(tmpString, &st) != 0)
     {
         if (mkdir(tmpString, 0777) == -1)
             LOGI("=> Can not create %s folder.\n", tmpString);

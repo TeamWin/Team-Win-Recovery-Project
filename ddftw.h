@@ -17,8 +17,8 @@ struct dInfo {
 	char dev[100];
 	char fst[10];
 	char fnm[20];
-	int sze;
-    int used;
+	unsigned long sze;
+    unsigned long used;
     int mountable;
     enum backup_method backup;
 };
