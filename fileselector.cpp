@@ -220,12 +220,12 @@ int GUIFileSelector::Render(void)
         if (line + mStart < folderSize)
         {
             icon = mFolderIcon;
-            label = mFolderList.at(line + mStart).d_name;
+            label = mFolderList.at(line + mStart).fileName;
         }
         else
         {
             icon = mFileIcon;
-            label = mFileList.at((line + mStart) - folderSize).d_name;
+            label = mFileList.at((line + mStart) - folderSize).fileName;
         }
 
         if (icon && icon->GetResource())
@@ -317,7 +317,7 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
                     std::string oldcwd;
                     std::string cwd;
 
-                    str = mFolderList.at(startSelection).d_name;
+                    str = mFolderList.at(startSelection).fileName;
                     DataManager::GetValue(mPathVar, cwd);
 
                     oldcwd = cwd;
@@ -363,7 +363,7 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
                 }
                 else if (!mVariable.empty())
                 {
-                    str = mFileList.at(startSelection - folderSize).d_name;
+                    str = mFileList.at(startSelection - folderSize).fileName;
 
                     std::string cwd;
                     DataManager::GetValue(mPathVar, cwd);
@@ -408,25 +408,16 @@ int GUIFileSelector::SetRenderPos(int x, int y, int w /* = 0 */, int h /* = 0 */
     return 0;
 }
 
-struct convert {
-   void operator()(char& c) { c = toupper((unsigned char)c); } // converts to upper case for case insensitive comparisons
-};
-
-
-bool GUIFileSelector::fileSort(struct dirent d1, struct dirent d2)
+bool GUIFileSelector::fileSort(FileData d1, FileData d2)
 {
-    std::string d1_str = d1.d_name;
-    for_each(d1_str.begin(), d1_str.end(), convert());
-    std::string d2_str = d2.d_name;
-    for_each(d2_str.begin(), d2_str.end(), convert());
-
-    return d1_str < d2_str;
+    return (strcasecmp(d1.fileName.c_str(), d2.fileName.c_str()) < 0);
 }
 
 int GUIFileSelector::GetFileList(const std::string folder)
 {
     DIR* d;
     struct dirent* de;
+    struct stat st;
 
     // Clear all data
     mFolderList.clear();
@@ -441,22 +432,36 @@ int GUIFileSelector::GetFileList(const std::string folder)
 
     while ((de = readdir(d)) != NULL)
     {
-        std::string entry = de->d_name;
+        FileData data;
 
-        if (de->d_type == DT_DIR)
+        data.fileName = de->d_name;
+        data.fileType = de->d_type;
+
+        std::string path = folder + "/" + data.fileName;
+        stat(path.c_str(), &st);
+        data.protection = st.st_mode;
+        data.userId = st.st_uid;
+        data.groupId = st.st_gid;
+        data.fileSize = st.st_size;
+        data.lastAccess = st.st_atime;
+        data.lastModified = st.st_mtime;
+        data.lastStatChange = st.st_ctime;
+
+        if (data.fileType == DT_DIR)
         {
-            if (mShowNavFolders || (entry != "." && entry != ".."))
-                mFolderList.push_back(*de);
+            if (mShowNavFolders || (data.fileName != "." && data.fileName != ".."))
+                mFolderList.push_back(data);
         }
-        else if (de->d_type == DT_REG)
+        else if (data.fileType == DT_REG)
         {
-            if (mExtn.empty() || (entry.length() > mExtn.length() && entry.substr(entry.length() - mExtn.length()) == mExtn))
+            if (mExtn.empty() || (data.fileName.length() > mExtn.length() && data.fileName.substr(data.fileName.length() - mExtn.length()) == mExtn))
             {
-                mFileList.push_back(*de);
+                mFileList.push_back(data);
             }
         }
     }
     closedir(d);
+
     std::sort(mFolderList.begin(), mFolderList.end(), fileSort);
     std::sort(mFileList.begin(), mFileList.end(), fileSort);
     return 0;

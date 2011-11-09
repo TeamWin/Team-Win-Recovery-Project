@@ -356,14 +356,27 @@ public:
     virtual void SetPageFocus(int inFocus);
 
 protected:
+    struct FileData {
+        std::string fileName;
+        unsigned char fileType;     // Uses d_type format from struct dirent
+        mode_t protection;          // Uses mode_t format from stat
+        uid_t userId;
+        gid_t groupId;
+        off_t fileSize;
+        time_t lastAccess;          // Uses time_t format from stat
+        time_t lastModified;        // Uses time_t format from stat
+        time_t lastStatChange;      // Uses time_t format from stat
+    };
+
+protected:
     virtual int GetSelection(int x, int y);
 
     virtual int GetFileList(const std::string folder);
-    static bool fileSort(struct dirent d1, struct dirent d2);
+    static bool fileSort(FileData d1, FileData d2);
 
 protected:
-    std::vector<struct dirent> mFolderList;
-    std::vector<struct dirent> mFileList;
+    std::vector<FileData> mFolderList;
+    std::vector<FileData> mFileList;
     std::string mPathVar;
     std::string mExtn;
     std::string mVariable;
