@@ -318,6 +318,7 @@ void DataManager::SetDefaultValues()
     mValues.insert(make_pair(TW_TIME_ZONE_VAR, make_pair("CST6CDT", 1)));
     mValues.insert(make_pair(TW_ZIP_LOCATION_VAR, make_pair("/sdcard", 1)));
     mValues.insert(make_pair(TW_SORT_FILES_BY_DATE_VAR, make_pair("0", 1)));
+	mValues.insert(make_pair(TW_GUI_SORT_ORDER, make_pair("1", 1)));
 	mValues.insert(make_pair(TW_RM_RF_VAR, make_pair("0", 1)));
     mValues.insert(make_pair(TW_SKIP_MD5_CHECK_VAR, make_pair("0", 1)));
 }

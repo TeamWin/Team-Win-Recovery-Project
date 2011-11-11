@@ -47,6 +47,7 @@
 #define TW_COLOR_THEME_VAR          "tw_color_theme"
 #define TW_VERSION_VAR              "tw_version"
 #define TW_SORT_FILES_BY_DATE_VAR   "tw_sort_files_by_date"
+#define TW_GUI_SORT_ORDER           "tw_gui_sort_order"
 #define TW_ZIP_LOCATION_VAR         "tw_zip_location"
 #define TW_FORCE_MD5_CHECK_VAR      "tw_force_md5_check"
 #define TW_SKIP_MD5_CHECK_VAR       "tw_skip_md5_check"
