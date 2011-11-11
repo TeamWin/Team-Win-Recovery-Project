@@ -52,7 +52,7 @@ extern "C"
     void gui_notifyVarChange(const char *name, const char* value);
 }
 
-#define FILE_VERSION    0x00010000
+#define FILE_VERSION    0x00010001
 
 using namespace std;
 
@@ -78,38 +78,48 @@ int DataManager::LoadValues(const string filename)
     mBackingFile = filename;
 
     // Read in the file, if possible
-    ifstream in(filename.c_str(), ios_base::in);
+    FILE* in = fopen(filename.c_str(), "rb");
+    if (!in)    return 0;
 
     int file_version;
-    in >> file_version;
-    if (file_version != FILE_VERSION)
-    {
-        return -1;
-    }
+    if (fread(&file_version, 1, sizeof(int), in) != sizeof(int))    goto error;
+    if (file_version != FILE_VERSION)                               goto error;
 
-    while (!in.eof())
+    while (!feof(in))
     {
         string Name;
         string Value;
+        unsigned short length;
+        char array[512];
 
-        getline(in, Name);
-        getline(in, Value);
+        if (fread(&length, 1, sizeof(unsigned short), in) != sizeof(unsigned short))    goto error;
+        if (length >= 512)                                                              goto error;
+        if (fread(array, 1, length, in) != length)                                      goto error;
+        Name = array;
 
-        if (!Name.empty() && (Name[0] < '0' || Name[0] > '9'))
+        if (fread(&length, 1, sizeof(unsigned short), in) != sizeof(unsigned short))    goto error;
+        if (length >= 512)                                                              goto error;
+        if (fread(array, 1, length, in) != length)                                      goto error;
+        Value = array;
+
+        map<string, TStrIntPair>::iterator pos;
+
+        pos = mValues.find(Name);
+        if (pos != mValues.end())
         {
-            map<string, TStrIntPair>::iterator pos;
-
-            pos = mValues.find(Name);
-            if (pos == mValues.end())
-                mValues.insert(TNameValuePair(Name, TStrIntPair(Value, 1)));
-            else
-            {
-                pos->second.first = Value;
-                pos->second.second = 1;
-            }
+            pos->second.first = Value;
+            pos->second.second = 1;
         }
+        else
+            mValues.insert(TNameValuePair(Name, TStrIntPair(Value, 1)));
     }
+    fclose(in);
     return 0;
+
+error:
+    // File version mismatch. Use defaults.
+    fclose(in);
+    return -1;
 }
 
 int DataManager::Flush()
@@ -121,9 +131,11 @@ int DataManager::SaveValues()
 {
     if (mBackingFile.empty())       return -1;
 
-    ofstream out(mBackingFile.c_str(), ios::out | ios::trunc);
+    FILE* out = fopen(mBackingFile.c_str(), "wb");
+    if (!out)                       return -1;
+
     int file_version = FILE_VERSION;
-    out << file_version << endl;
+    fwrite(&file_version, 1, sizeof(int), out);
 
     map<string, TStrIntPair>::iterator iter;
     for (iter = mValues.begin(); iter != mValues.end(); ++iter)
@@ -131,10 +143,15 @@ int DataManager::SaveValues()
         // Save only the persisted data
         if (iter->second.second != 0)
         {
-            out << iter->first << endl;
-            out << iter->second.first << endl;
+            unsigned short length = (unsigned short) iter->first.length() + 1;
+            fwrite(&length, 1, sizeof(unsigned short), out);
+            fwrite(iter->first.c_str(), 1, length, out);
+            length = (unsigned short) iter->second.first.length() + 1;
+            fwrite(&length, 1, sizeof(unsigned short), out);
+            fwrite(iter->second.first.c_str(), 1, length, out);
         }
     }
+    fclose(out);
     return 0;
 }
 
