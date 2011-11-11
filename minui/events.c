@@ -289,6 +289,7 @@ static int vk_modify(struct ev *e, struct input_event *ev)
     if (ev->type == EV_REL && ev->code == REL_Z)
     {
         // This appears to be an accelerometer or another strange input device. It's not the touchscreen.
+//        LOGI("EV: Device disabled due to non-touchscreen messages.\n");
         e->ignored = 1;
         return 1;
     }

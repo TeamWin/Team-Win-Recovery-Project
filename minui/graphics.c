@@ -102,6 +102,11 @@ static int get_framebuffer(GGLSurface *fb)
         }
     }
 
+
+#ifdef RECOVERY_GRAPHICS_USE_LINELENGTH
+    vi.xres_virtual = fi.line_length >> 1;
+#endif
+
     bits = mmap(0, fi.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (bits == MAP_FAILED) {
         perror("failed to mmap framebuffer");
