@@ -385,6 +385,7 @@ protected:
     int mShowFolders, mShowFiles, mShowNavFolders;
     int mUpdate;
     int mBackgroundX, mBackgroundY, mBackgroundW, mBackgroundH;
+	static int mSortOrder;
     unsigned mFontHeight;
     unsigned mLineHeight;
     int mIconWidth, mIconHeight;

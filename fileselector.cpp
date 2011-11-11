@@ -31,6 +31,8 @@ extern "C" {
 #include "rapidxml.hpp"
 #include "objects.hpp"
 
+int GUIFileSelector::mSortOrder = 0;
+
 GUIFileSelector::GUIFileSelector(xml_node<>* node)
 {
     xml_attribute<>* attr;
@@ -171,11 +173,12 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
         mBackgroundW = gr_get_width(mBackground->GetResource());
         mBackgroundH = gr_get_height(mBackground->GetResource());
     }
-
-    // Fetch the file/folder list
+	
+	// Fetch the file/folder list
     std::string value;
     DataManager::GetValue(mPathVar, value);
-    GetFileList(value);
+    if (GetFileList(value) != 0)
+		GetFileList("/sdcard");
 }
 
 GUIFileSelector::~GUIFileSelector()
@@ -384,9 +387,10 @@ int GUIFileSelector::NotifyVarChange(std::string varName, std::string value)
         // Always clear the data variable so we know to use it
         DataManager::SetValue(mVariable, "");
     }
-    if (varName == mPathVar)
+    if (varName == mPathVar || varName == TW_GUI_SORT_ORDER)
     {
-        GetFileList(value);
+        DataManager::GetValue(mPathVar, value);  // sometimes the value will be the sort order instead of the path, so we read the path everytime
+		GetFileList(value);
         mStart = 0;
         mUpdate = 1;
         return 0;
@@ -410,7 +414,37 @@ int GUIFileSelector::SetRenderPos(int x, int y, int w /* = 0 */, int h /* = 0 */
 
 bool GUIFileSelector::fileSort(FileData d1, FileData d2)
 {
-    return (strcasecmp(d1.fileName.c_str(), d2.fileName.c_str()) < 0);
+	if (d1.fileName == ".")
+		return -1;
+	if (d2.fileName == ".")
+		return 0;
+	if (d1.fileName == "..")
+		return -1;
+	if (d2.fileName == "..")
+		return 0;
+	
+	switch (mSortOrder) {
+		case 3: // by size largest first
+			if (d1.fileSize == d2.fileSize || d1.fileType == DT_DIR) // some directories report a different size than others - but this is not the size of the files inside the directory, so we just sort by name on directories
+				return (strcasecmp(d1.fileName.c_str(), d2.fileName.c_str()) < 0);
+			return d1.fileSize > d2.fileSize;
+		case -3: // by size smallest first
+			if (d1.fileSize == d2.fileSize || d1.fileType == DT_DIR) // some directories report a different size than others - but this is not the size of the files inside the directory, so we just sort by name on directories
+				return (strcasecmp(d1.fileName.c_str(), d2.fileName.c_str()) > 0);
+			return d1.fileSize < d2.fileSize;
+		case 2: // by last modified date newest first
+			if (d1.lastModified == d2.lastModified)
+				return (strcasecmp(d1.fileName.c_str(), d2.fileName.c_str()) < 0);
+			return d1.lastModified > d2.lastModified;
+		case -2: // by date oldest first
+			if (d1.lastModified == d2.lastModified)
+				return (strcasecmp(d1.fileName.c_str(), d2.fileName.c_str()) > 0);
+			return d1.lastModified < d2.lastModified;
+		case -1: // by name descending
+			return (strcasecmp(d1.fileName.c_str(), d2.fileName.c_str()) > 0);
+		default: // should be a 1 - sort by name ascending
+			return (strcasecmp(d1.fileName.c_str(), d2.fileName.c_str()) < 0);
+	}
 }
 
 int GUIFileSelector::GetFileList(const std::string folder)
@@ -462,7 +496,9 @@ int GUIFileSelector::GetFileList(const std::string folder)
     }
     closedir(d);
 
-    std::sort(mFolderList.begin(), mFolderList.end(), fileSort);
+    mSortOrder = DataManager::GetIntValue(TW_GUI_SORT_ORDER);
+	LOGI("sort order value: '%i'\n", mSortOrder);
+	std::sort(mFolderList.begin(), mFolderList.end(), fileSort);
     std::sort(mFileList.begin(), mFileList.end(), fileSort);
     return 0;
 }

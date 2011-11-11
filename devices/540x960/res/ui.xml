@@ -7,6 +7,7 @@
         <resource name="filelist" type="font" filename="bluehighway-40" />
         <resource name="android" type="image" filename="android" />
         <resource name="main_button" type="image" filename="qhd-menu-button" />
+        <resource name="sort_button" type="image" filename="qhd-sort-button" />
         <resource name="file_icon" type="image" filename="file" />
         <resource name="folder_icon" type="image" filename="folder" />
         <resource name="slideout" type="image" filename="slideout" />
@@ -141,6 +142,54 @@
                 <text>Flash</text>
                 <image resource="main_button" />
                 <action function="flash">flash_zip</action>
+            </object>
+			
+			<object type="button">
+                <placement x="280" y="696" />
+                <font resource="UItext" color="white" />
+                <text>Name</text>
+                <image resource="sort_button" />
+                <action function="set">tw_gui_sort_order=1</action>
+            </object>
+			
+			<object type="button">
+                <placement x="360" y="696" />
+                <font resource="UItext" color="white" />
+                <text>Date</text>
+                <image resource="sort_button" />
+                <action function="set">tw_gui_sort_order=2</action>
+            </object>
+			
+			<object type="button">
+                <placement x="440" y="696" />
+                <font resource="UItext" color="white" />
+                <text>Size</text>
+                <image resource="sort_button" />
+                <action function="set">tw_gui_sort_order=3</action>
+            </object>
+			
+			<object type="button">
+                <placement x="280" y="770" />
+                <font resource="UItext" color="white" />
+                <text>Name</text>
+                <image resource="sort_button" />
+                <action function="set">tw_gui_sort_order=-1</action>
+            </object>
+			
+			<object type="button">
+                <placement x="360" y="770" />
+                <font resource="UItext" color="white" />
+                <text>Date</text>
+                <image resource="sort_button" />
+                <action function="set">tw_gui_sort_order=-2</action>
+            </object>
+			
+			<object type="button">
+                <placement x="440" y="770" />
+                <font resource="UItext" color="white" />
+                <text>Size</text>
+                <image resource="sort_button" />
+                <action function="set">tw_gui_sort_order=-3</action>
             </object>
 
             <object type="action">
