@@ -12,6 +12,7 @@ typedef struct {
 
 // Utility Functions
 int ConvertStrToColor(std::string str, COLOR* color);
+int gui_forceRender(void);
 int gui_changePage(std::string newPage);
 
 class Resource;
@@ -25,7 +26,7 @@ public:
     virtual ~Page()             {}
 
 public:
-    Page(xml_node<>* page);
+    Page(xml_node<>* page, xml_node<>* header = NULL);
     std::string GetName(void)   { return mName; }
 
 public:
@@ -69,7 +70,7 @@ public:
     int NotifyVarChange(std::string varName, std::string value);
 
 protected:
-    int LoadPages(xml_node<>* pages);
+    int LoadPages(xml_node<>* pages, xml_node<>* header = NULL);
 
 protected:
     char* mXmlFile;

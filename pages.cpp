@@ -76,104 +76,128 @@ int ActionObject::SetActionPos(int x, int y, int w, int h)
     return 0;
 }
 
-Page::Page(xml_node<>* page)
+Page::Page(xml_node<>* page, xml_node<>* header /* = NULL */)
 {
-    if (page && page->first_attribute("name"))
+    if (!page)      return;
+
+    if (page->first_attribute("name"))
         mName = page->first_attribute("name")->value();
     else
     {
         LOGE("No page name attribute found!\n");
+        return;
     }
 
+    if (page->first_attribute("header") != NULL)
+    {
+        std::string val = page->first_attribute("header")->value();
+        if (val != "1" && val != "true")
+            header = NULL;
+    }
+    else
+        header = NULL;
+
     LOGI("Loading page %s\n", mName.c_str());
+    if (header)
+        LOGI("  -- Using header\n");
+
     mTouchStart = NULL;
 
     // We can memset the whole structure, because the alpha channel is ignored
     memset(&mBackground, 0, sizeof(COLOR));
 
-    // Let's retrieve the background value
-    xml_node<>* bg = page->first_node("background");
-    if (bg)
+    xml_node<>* node = header;
+    if (!node)  node = page;
+
+    do
     {
-        xml_attribute<>* attr = bg->first_attribute("color");
-        if (attr)
+        // Let's retrieve the background value
+        xml_node<>* bg = node->first_node("background");
+        if (bg)
         {
-            std::string color = attr->value();
-            ConvertStrToColor(color, &mBackground);
+            xml_attribute<>* attr = bg->first_attribute("color");
+            if (attr)
+            {
+                std::string color = attr->value();
+                ConvertStrToColor(color, &mBackground);
+            }
         }
-    }
+        
+        xml_node<>* child;
+        child = node->first_node("object");
+        while (child)
+        {
+            if (!child->first_attribute("type"))
+                break;
     
-    xml_node<>* child;
-    child = page->first_node("object");
-    while (child)
-    {
-        if (!child->first_attribute("type"))
-            break;
+            std::string type = child->first_attribute("type")->value();
+    
+            if (type == "text")
+            {
+                GUIText* element = new GUIText(child);
+                mRenders.push_back(element);
+                mActions.push_back(element);
+            }
+            else if (type == "image")
+            {
+                GUIImage* element = new GUIImage(child);
+                mRenders.push_back(element);
+            }
+            else if (type == "fill")
+            {
+                GUIFill* element = new GUIFill(child);
+                mRenders.push_back(element);
+            }
+            else if (type == "action")
+            {
+                GUIAction* element = new GUIAction(child);
+                mActions.push_back(element);
+            }
+            else if (type == "console")
+            {
+                GUIConsole* element = new GUIConsole(child);
+                mRenders.push_back(element);
+                mActions.push_back(element);
+            }
+            else if (type == "button")
+            {
+                GUIButton* element = new GUIButton(child);
+                mRenders.push_back(element);
+                mActions.push_back(element);
+            }
+            else if (type == "checkbox")
+            {
+                GUICheckbox* element = new GUICheckbox(child);
+                mRenders.push_back(element);
+                mActions.push_back(element);
+            }
+            else if (type == "fileselector")
+            {
+                GUIFileSelector* element = new GUIFileSelector(child);
+                mRenders.push_back(element);
+                mActions.push_back(element);
+            }
+            else if (type == "animation")
+            {
+                GUIAnimation* element = new GUIAnimation(child);
+                mRenders.push_back(element);
+            }
+            else if (type == "progressbar")
+            {
+                GUIProgressBar* element = new GUIProgressBar(child);
+                mRenders.push_back(element);
+                mActions.push_back(element);
+            }
+            else
+            {
+                LOGE("Unknown object type.\n");
+            }
+            child = child->next_sibling("object");
+        }
 
-        std::string type = child->first_attribute("type")->value();
-
-        if (type == "text")
-        {
-            GUIText* element = new GUIText(child);
-            mRenders.push_back(element);
-            mActions.push_back(element);
-        }
-        else if (type == "image")
-        {
-            GUIImage* element = new GUIImage(child);
-            mRenders.push_back(element);
-        }
-        else if (type == "fill")
-        {
-            GUIFill* element = new GUIFill(child);
-            mRenders.push_back(element);
-        }
-        else if (type == "action")
-        {
-            GUIAction* element = new GUIAction(child);
-            mActions.push_back(element);
-        }
-        else if (type == "console")
-        {
-            GUIConsole* element = new GUIConsole(child);
-            mRenders.push_back(element);
-            mActions.push_back(element);
-        }
-        else if (type == "button")
-        {
-            GUIButton* element = new GUIButton(child);
-            mRenders.push_back(element);
-            mActions.push_back(element);
-        }
-        else if (type == "checkbox")
-        {
-            GUICheckbox* element = new GUICheckbox(child);
-            mRenders.push_back(element);
-            mActions.push_back(element);
-        }
-        else if (type == "fileselector")
-        {
-            GUIFileSelector* element = new GUIFileSelector(child);
-            mRenders.push_back(element);
-            mActions.push_back(element);
-        }
-        else if (type == "animation")
-        {
-            GUIAnimation* element = new GUIAnimation(child);
-            mRenders.push_back(element);
-        }
-        else if (type == "progressbar")
-        {
-            GUIProgressBar* element = new GUIProgressBar(child);
-            mRenders.push_back(element);
-            mActions.push_back(element);
-        }
-        else
-        {
-            LOGE("Unknown object type.\n");
-        }
-        child = child->next_sibling("object");
-    }
+        if (node == header)     node = page;
+        else                    node = NULL;
+    } while (node);
     return;
 }
 
@@ -229,7 +253,8 @@ int Page::NotifyTouch(TOUCH_STATE state, int x, int y)
             {
                 mTouchStart = (*iter);
                 ret = mTouchStart->NotifyTouch(state, x, y);
-                break;
+                if (ret >= 0)   break;
+                mTouchStart = NULL;
             }
         }
     }
@@ -311,32 +336,11 @@ int PageSet::Load(ZipArchive* package)
 {
     xml_node<>* parent;
     xml_node<>* child;
+    xml_node<>* header;
  
     parent = mDoc.first_node("recovery");
     if (!parent)
         parent = mDoc.first_node("install");
-
-#if 0
-    TiXmlNode* parent = NULL;
-    TiXmlNode* child = NULL;
-
-    parent = mDoc->FirstChild("recovery");
-    if (!parent)
-        parent = mDoc->FirstChild("install");
-
-    if (!parent)
-        return -1;
-
-    // Now, let's parse the XML
-    LOGI("Loading resources...\n");
-    child = parent->FirstChild("resources");
-    if (child)
-        mResources = new ResourceManager(child, package);
-
-    child = parent->FirstChild("pages");
-    if (!child)
-        return -1;
-#endif
 
     // Now, let's parse the XML
     LOGI("Loading resources...\n");
@@ -344,12 +348,15 @@ int PageSet::Load(ZipArchive* package)
     if (child)
         mResources = new ResourceManager(child, package);
 
+    // This can be NULL, because we'll just assume no header
+    header = parent->first_node("header");
+
     child = parent->first_node("pages");
     if (!child)
         return -1;
 
     LOGI("Loading pages...\n");
-    return LoadPages(child);
+    return LoadPages(child, header);
 }
 
 int PageSet::SetPage(std::string page)
@@ -387,7 +394,7 @@ Page* PageSet::FindPage(std::string name)
     return NULL;
 }
 
-int PageSet::LoadPages(xml_node<>* pages)
+int PageSet::LoadPages(xml_node<>* pages, xml_node<>* header /* = NULL */)
 {
     xml_node<>* child;
 
@@ -396,7 +403,7 @@ int PageSet::LoadPages(xml_node<>* pages)
     child = pages->first_node("page");
     while (child != NULL)
     {
-        Page* page = new Page(child);
+        Page* page = new Page(child, header);
         if (page->GetName().empty())
         {
             LOGE("Unable to process load page\n");

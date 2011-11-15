@@ -27,6 +27,7 @@ extern "C" {
 #include "objects.hpp"
 
 GUIText::GUIText(xml_node<>* node)
+    : Conditional(node)
 {
     xml_attribute<>* attr;
     xml_node<>* child;
@@ -103,6 +104,8 @@ GUIText::GUIText(xml_node<>* node)
 
 int GUIText::Render(void)
 {
+    if (!isConditionTrue())     return 0;
+
     void* fontResource = NULL;
 
     if (mFont)  fontResource = mFont->GetResource();
@@ -135,6 +138,8 @@ int GUIText::Render(void)
 
 int GUIText::Update(void)
 {
+    if (!isConditionTrue())     return 0;
+
     static int updateCounter = 15;
 
     // This hack just makes sure we update at least once a minute for things like clock and battery

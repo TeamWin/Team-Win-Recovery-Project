@@ -103,6 +103,8 @@ GUIAction::GUIAction(xml_node<>* node)
 
 int GUIAction::NotifyTouch(TOUCH_STATE state, int x, int y)
 {
+    if (!isConditionTrue())         return -1;
+
     if (state == TOUCH_RELEASE)
         doAction();
 
@@ -201,6 +203,9 @@ void GUIAction::flash_zip(std::string filename)
 #ifndef _SIMULATE_ACTIONS
 int GUIAction::doAction(int isThreaded)
 {
+    // This will ensure that we re-render when this is done
+    gui_forceRender();
+
     if (mFunction == "reboot")
     {
         curtainClose();

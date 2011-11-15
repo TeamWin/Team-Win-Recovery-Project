@@ -35,6 +35,7 @@ GUICheckbox::GUICheckbox(xml_node<>* node)
     mChecked = NULL;
     mUnchecked = NULL;
     mLabel = NULL;
+    mRendered = false;
 
     mLastState = 0;
 
@@ -91,7 +92,11 @@ GUICheckbox::~GUICheckbox()
 
 int GUICheckbox::Render(void)
 {
-    if (!isConditionTrue())     return 0;
+    if (!isConditionTrue())
+    {
+        mRendered = false;
+        return 0;
+    }
 
     int ret = 0;
     int lastState = 0;
@@ -109,12 +114,14 @@ int GUICheckbox::Render(void)
     }
     if (mLabel)     ret = mLabel->Render();
     mLastState = lastState;
+    mRendered = true;
     return ret;
 }
 
 int GUICheckbox::Update(void)
 {
-    if (!isConditionTrue())     return 0;
+    if (!isConditionTrue())     return (mRendered ? 2 : 0);
+    if (!mRendered)             return 2;
 
     int lastState = 0;
     DataManager::GetValue(mVarName, lastState);
@@ -148,7 +155,9 @@ int GUICheckbox::SetRenderPos(int x, int y, int w, int h)
 
 int GUICheckbox::NotifyTouch(TOUCH_STATE state, int x, int y)
 {
-    if (isConditionTrue() && state == TOUCH_RELEASE)
+    if (!isConditionTrue())     return -1;
+
+    if (state == TOUCH_RELEASE)
     {
         int lastState;
         DataManager::GetValue(mVarName, lastState);

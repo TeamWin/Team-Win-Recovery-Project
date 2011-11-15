@@ -123,6 +123,7 @@ static void curtainRaise(gr_surface surface)
 
 void curtainClose()
 {
+#if 0
     int w = gr_get_width(gCurtain);
     int h = 1;
     int sy = gr_get_height(gCurtain) - 1;
@@ -137,9 +138,10 @@ void curtainClose()
         }
         gr_blit(gCurtain, 0, 0, gr_get_width(gCurtain), gr_get_height(gCurtain), 0, 0);
         gr_flip();
-    
-        close(gRecorder);
-    
+
+        if (gRecorder != -1)
+            close(gRecorder);
+
         int fade;
         for (fade = 16; fade < 255; fade += CURTAIN_FADE)
         {
@@ -152,6 +154,7 @@ void curtainClose()
         gr_fill(0, 0, gr_fb_width(), gr_fb_height());
         gr_flip();
     }
+#endif
     return;
 }
 
@@ -301,6 +304,12 @@ static int runPages(void)
             flip();
         }
     }
+    return 0;
+}
+
+int gui_forceRender(void)
+{
+    gForceRender = 1;
     return 0;
 }
 

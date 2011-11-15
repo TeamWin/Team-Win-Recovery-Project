@@ -122,7 +122,8 @@ protected:
 
 // Derived Objects
 // GUIText - Used for static text
-class GUIText : public RenderObject, public ActionObject
+class GUIText : public RenderObject, public ActionObject, public Conditional
+
 {
 public:
     // w and h may be ignored, in which case, no bounding box is applied
@@ -235,7 +236,7 @@ public:
     virtual int IsInRegion(int x, int y);
 
     // NotifyTouch - Notify of a touch event
-    //  Return 0 on success, >0 to ignore remainder of touch, and <0 on error
+    //  Return 0 on success, >0 to ignore remainder of touch, and <0 on error (Return error to allow other handlers)
     virtual int NotifyTouch(TOUCH_STATE state, int x, int y);
 
 protected:
@@ -261,7 +262,7 @@ protected:
 
 };
 
-class GUIButton : public RenderObject, public ActionObject
+class GUIButton : public RenderObject, public ActionObject, public Conditional
 {
 public:
     GUIButton(xml_node<>* node);
@@ -291,6 +292,7 @@ protected:
     GUIAction* mAction;
     int mTextX, mTextY, mTextW, mTextH;
     int mIconX, mIconY, mIconW, mIconH;
+    bool mRendered;
 };
 
 class GUICheckbox: public RenderObject, public ActionObject, public Conditional
@@ -323,6 +325,7 @@ protected:
     int mTextX, mTextY;
     int mCheckX, mCheckY, mCheckW, mCheckH;
     int mLastState;
+    bool mRendered;
     std::string mVarName;
 };
 

@@ -152,10 +152,13 @@ bool Conditional::isMounted(string vol)
 	fp = fopen("/proc/mounts", "rt");
 	while (fgets(tmpOutput,255,fp) != NULL)
 	{
-        char* pos = tmpOutput;
+        char* mnt = tmpOutput;
+        while (*mnt > 32)               mnt++;
+        while (*mnt > 0 && *mnt <= 32)  mnt++;
+        char* pos = mnt;
 	    while (*pos > 32)   pos++;
         *pos = 0;
-	    if (vol == tmpOutput)
+	    if (vol == mnt)
         {
             fclose(fp);
             return true;

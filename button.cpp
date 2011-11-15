@@ -27,6 +27,7 @@ extern "C" {
 #include "objects.hpp"
 
 GUIButton::GUIButton(xml_node<>* node)
+    : Conditional(node)
 {
     xml_attribute<>* attr;
     xml_node<>* child;
@@ -35,6 +36,7 @@ GUIButton::GUIButton(xml_node<>* node)
     mButtonIcon = NULL;
     mButtonLabel = NULL;
     mAction = NULL;
+    mRendered = false;
 
     if (!node)  return;
 
@@ -79,6 +81,12 @@ GUIButton::~GUIButton()
 
 int GUIButton::Render(void)
 {
+    if (!isConditionTrue())
+    {
+        mRendered = false;
+        return 0;
+    }
+
     int ret = 0;
 
     if (mButtonImg)     ret = mButtonImg->Render();
@@ -87,11 +95,15 @@ int GUIButton::Render(void)
         gr_blit(mButtonIcon->GetResource(), 0, 0, mIconW, mIconH, mIconX, mIconY);
     if (mButtonLabel)   ret = mButtonLabel->Render();
     if (ret < 0)        return ret;
+    mRendered = true;
     return ret;
 }
 
 int GUIButton::Update(void)
 {
+    if (!isConditionTrue())     return (mRendered ? 2 : 0);
+    if (!mRendered)             return 2;
+
     int ret = 0, ret2 = 0;
 
     if (mButtonImg)         ret = mButtonImg->Update();
@@ -143,7 +155,16 @@ int GUIButton::SetRenderPos(int x, int y, int w, int h)
     if (mButtonLabel)   mButtonLabel->GetCurrentBounds(mTextW, mTextH);
     if (mTextW)
     {
-        mTextX = mRenderX + ((mRenderW - mTextW) / 2);
+        // As a special case, we'll allow large text which automatically moves it to the right.
+        if (mTextW > mRenderW)
+        {
+            mTextX = mRenderW + 10;
+            mRenderW += mTextW + 10;
+        }
+        else
+        {
+            mTextX = mRenderX + ((mRenderW - mTextW) / 2);
+        }
     }
 
     if (mIconH == 0 || mTextH == 0 || mIconH + mTextH > mRenderH)
@@ -166,6 +187,8 @@ int GUIButton::SetRenderPos(int x, int y, int w, int h)
 
 int GUIButton::NotifyTouch(TOUCH_STATE state, int x, int y)
 {
+    if (!isConditionTrue())     return -1;
+
     return (mAction ? mAction->NotifyTouch(state, x, y) : 1);
 }
 

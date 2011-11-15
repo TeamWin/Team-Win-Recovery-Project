@@ -2,12 +2,9 @@
 
 <recovery>
     <resources>
-        <resource name="header" type="font" filename="bluehighway-25" />
-        <resource name="UItext" type="font" filename="bluehighway-25" />
-        <resource name="filelist" type="font" filename="bluehighway-40" />
+        <resource name="font" type="font" filename="bluehighway-25" />
         <resource name="android" type="image" filename="android" />
         <resource name="main_button" type="image" filename="qhd-menu-button" />
-        <resource name="sort_button" type="image" filename="qhd-sort-button" />
         <resource name="file_icon" type="image" filename="file" />
         <resource name="folder_icon" type="image" filename="folder" />
         <resource name="slideout" type="image" filename="slideout" />
@@ -18,36 +15,39 @@
         <resource name="checkbox_true" type="image" filename="checkbox_checked" />
     </resources>
 
+    <header>
+        <background color="black" />
+
+        <object type="image">
+            <image resource="android" />
+            <placement x="10" y="10" />
+        </object>
+
+        <object type="text" color="white">
+            <font resource="font" />
+            <placement x="100" y="10" />
+            <text>Team Win Recovery Project  v%tw_version%</text>
+        </object>
+
+        <object type="text" color="white">
+            <font resource="font" />
+            <placement x="100" y="75" />
+            <text>%tw_time%</text>
+        </object>
+
+        <object type="text" color="white">
+            <font resource="font" />
+            <placement x="250" y="75" />
+            <condition var1="tw_battery" op=">" var2="0" />
+            <text>Battery: %tw_battery%</text>
+        </object>
+    </header>
+
     <pages>
-        <page name="main">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
+        <page name="main" header="1">
             <object type="button">
                 <placement x="10" y="120" />
-                <font resource="UItext" color="black" />
+                <font resource="font" color="black" />
                 <text>Install</text>
                 <image resource="main_button" />
                 <action function="page">install</action>
@@ -55,7 +55,7 @@
 
             <object type="button">
                 <placement x="277" y="120" />
-                <font resource="UItext" color="black" />
+                <font resource="font" color="black" />
                 <text>Wipe</text>
                 <image resource="main_button" />
                 <action function="page">wipe</action>
@@ -63,7 +63,7 @@
 
             <object type="button">
                 <placement x="10" y="312" />
-                <font resource="UItext" color="black" />
+                <font resource="font" color="black" />
                 <text>Backup</text>
                 <image resource="main_button" />
                 <action function="page">backup</action>
@@ -71,7 +71,7 @@
 
             <object type="button">
                 <placement x="277" y="312" />
-                <font resource="UItext" color="black" />
+                <font resource="font" color="black" />
                 <text>Restore</text>
                 <image resource="main_button" />
                 <action function="page">restore</action>
@@ -79,7 +79,7 @@
 
             <object type="button">
                 <placement x="10" y="504" />
-                <font resource="UItext" color="black" />
+                <font resource="font" color="black" />
                 <text>Mount</text>
                 <image resource="main_button" />
                 <action function="page">mount</action>
@@ -87,110 +87,82 @@
 
             <object type="button">
                 <placement x="277" y="504" />
-                <font resource="UItext" color="black" />
+                <font resource="font" color="black" />
                 <text>Reboot</text>
                 <image resource="main_button" />
                 <action function="page">reboot</action>
             </object>
+
+            <object type="button">
+                <placement x="10" y="696" />
+                <font resource="font" color="black" />
+                <text>Settings</text>
+                <image resource="main_button" />
+                <action function="page">settings</action>
+            </object>
+
+            <object type="button">
+                <placement x="277" y="696" />
+                <font resource="font" color="black" />
+                <text>Console</text>
+                <image resource="main_button" />
+                <action function="page">console</action>
+            </object>
         </page>
 
-        <page name="install">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
+        <page name="install" header="1">
             <object type="fileselector">
-                <placement x="5" y="120" w="530" h="540" />
+                <placement x="5" y="120" w="470" h="660" />
                 <icon folder="folder_icon" file="file_icon" />
-                <background color="#303030" />
-                <font resource="filelist" spacing="15" color="white" />
+                <background color="#454545" />
+                <font resource="font" spacing="18" color="white" />
                 <filter extn=".zip" folders="1" files="1" />
                 <path name="tw_zip_location" default="/sdcard" />
                 <data name="tw_filename" />
             </object>
 
+            <object type="action">
+                <condition var1="tw_filename" op="modified" />
+                <action function="page">flash_confirm</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+        </page>
+
+        <page name="flash_confirm" header="1">
             <object type="text" color="white">
-                <font resource="UItext" />
-                <placement x="5" y="666" />
-                <text>Selection: %tw_filename%</text>
+                <font resource="font" />
+                <placement x="10" y="120" />
+                <text>WARNING: This operation may install incompatible software</text>
+            </object>
+
+            <object type="text" color="white">
+                <font resource="font" />
+                <placement x="10" y="135" />
+                <text>and render your device unusable.</text>
+            </object>
+
+            <object type="text" color="white">
+                <font resource="font" />
+                <placement x="10" y="250" />
+                <text>File to flash: %tw_filename%</text>
             </object>
 
             <object type="button">
-                <placement x="5" y="696" />
-                <font resource="UItext" color="white" />
-                <text>Flash</text>
+                <placement x="127" y="550" />
+                <font resource="font" color="black" />
+                <text>Flash now</text>
                 <image resource="main_button" />
                 <action function="flash">flash_zip</action>
             </object>
-			
-			<object type="button">
-                <placement x="280" y="696" />
-                <font resource="UItext" color="white" />
-                <text>Name</text>
-                <image resource="sort_button" />
-                <action function="set">tw_gui_sort_order=1</action>
-            </object>
-			
-			<object type="button">
-                <placement x="360" y="696" />
-                <font resource="UItext" color="white" />
-                <text>Date</text>
-                <image resource="sort_button" />
-                <action function="set">tw_gui_sort_order=2</action>
-            </object>
-			
-			<object type="button">
-                <placement x="440" y="696" />
-                <font resource="UItext" color="white" />
-                <text>Size</text>
-                <image resource="sort_button" />
-                <action function="set">tw_gui_sort_order=3</action>
-            </object>
-			
-			<object type="button">
-                <placement x="280" y="770" />
-                <font resource="UItext" color="white" />
-                <text>Name</text>
-                <image resource="sort_button" />
-                <action function="set">tw_gui_sort_order=-1</action>
-            </object>
-			
-			<object type="button">
-                <placement x="360" y="770" />
-                <font resource="UItext" color="white" />
-                <text>Date</text>
-                <image resource="sort_button" />
-                <action function="set">tw_gui_sort_order=-2</action>
-            </object>
-			
-			<object type="button">
-                <placement x="440" y="770" />
-                <font resource="UItext" color="white" />
-                <text>Size</text>
-                <image resource="sort_button" />
-                <action function="set">tw_gui_sort_order=-3</action>
-            </object>
 
             <object type="action">
                 <touch key="back" />
@@ -203,198 +175,10 @@
             </object>
         </page>
 
-        <page name="reboot">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
-            <object type="button">
-                <placement x="10" y="120" />
-                <font resource="UItext" color="black" />
-                <text>System</text>
-                <image resource="main_button" />
-                <action function="reboot">system</action>
-            </object>
-
-            <object type="button">
-                <placement x="277" y="120" />
-                <font resource="UItext" color="black" />
-                <text>Power Off</text>
-                <image resource="main_button" />
-                <action function="reboot">poweroff</action>
-            </object>
-
-            <object type="button">
-                <placement x="10" y="312" />
-                <font resource="UItext" color="black" />
-                <text>Recovery</text>
-                <image resource="main_button" />
-                <action function="reboot">recovery</action>
-            </object>
-
-            <object type="button">
-                <placement x="277" y="312" />
-                <font resource="UItext" color="black" />
-                <text>Bootloader</text>
-                <image resource="main_button" />
-                <action function="reboot">bootloader</action>
-            </object>
-
-            <object type="action">
-                <touch key="home" />
-                <action function="page">main</action>
-            </object>
-
-            <object type="action">
-                <touch key="back" />
-                <action function="page">main</action>
-            </object>
-        </page>
-
-        <page name="mount">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
-            <object type="button">
-                <placement x="10" y="120" />
-                <font resource="UItext" color="black" />
-                <text>Mount USB Storage</text>
-                <image resource="main_button" />
-                <action function="page">usb_mount</action>
-            </object>
-
-            <object type="action">
-                <touch key="home" />
-                <action function="page">main</action>
-            </object>
-
-            <object type="action">
-                <touch key="back" />
-                <action function="page">main</action>
-            </object>
-        </page>
-
-        <page name="usb_mount">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
-            <object type="button">
-                <placement x="10" y="120" />
-                <font resource="UItext" color="black" />
-                <text>Unmount</text>
-                <image resource="main_button" />
-                <action function="page">usb_umount</action>
-            </object>
-
-            <object type="action">
-                <action function="mount">usb</action>
-            </object>
-        </page>
-
-        <page name="usb_umount">
-            <object type="action">
-                <action function="unmount">usb</action>
-            </object>
-
-            <object type="action">
-                <action function="page">mount</action>
-            </object>
-        </page>
-
-        <page name="flash_zip">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
+        <page name="flash_zip" header="1">
             <object type="console">
-                <placement x="0" y="120" w="540" h="780" />
-                <color foreground="#B0B0B0" background="black" scroll="black" />
+                <placement x="0" y="120" w="540" h="620" />
+                <color foreground="#B0B0B0" background="black" scroll="#303030" />
                 <font resource="fixed" />
             </object>
 
@@ -417,76 +201,26 @@
             </object>
         </page>
 
-        <page name="flash_done">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
+        <page name="flash_done" header="1">
             <object type="console">
-                <placement x="0" y="120" w="540" h="530" />
+                <placement x="0" y="120" w="540" h="390" />
                 <color foreground="#B0B0B0" background="black" scroll="black" />
                 <font resource="fixed" />
             </object>
 
             <object type="button">
-                <placement x="147" y="696" />
-                <font resource="UItext" color="white" />
+                <placement x="127" y="560" />
+                <font resource="font" color="white" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
         </page>
 
-        <page name="wipe">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
+        <page name="wipe" header="1">
             <object type="button">
                 <placement x="10" y="120" />
-                <font resource="UItext" color="black" />
+                <font resource="font" color="black" />
                 <text>Cache</text>
                 <image resource="main_button" />
                 <action function="page">wipe_cache</action>
@@ -494,7 +228,7 @@
 
             <object type="button">
                 <placement x="277" y="120" />
-                <font resource="UItext" color="black" />
+                <font resource="font" color="black" />
                 <text>Dalvik Cache</text>
                 <image resource="main_button" />
                 <action function="page">wipe_dalvik</action>
@@ -502,7 +236,7 @@
 
             <object type="button">
                 <placement x="10" y="312" />
-                <font resource="UItext" color="black" />
+                <font resource="font" color="black" />
                 <text>Factory Reset</text>
                 <image resource="main_button" />
                 <action function="page">wipe_data</action>
@@ -510,7 +244,7 @@
 
             <object type="button">
                 <placement x="277" y="312" />
-                <font resource="UItext" color="black" />
+                <font resource="font" color="black" />
                 <text>Battery Stats</text>
                 <image resource="main_button" />
                 <action function="page">wipe_battery</action>
@@ -518,7 +252,7 @@
 
             <object type="button">
                 <placement x="10" y="504" />
-                <font resource="UItext" color="black" />
+                <font resource="font" color="black" />
                 <text>Rotation</text>
                 <image resource="main_button" />
                 <action function="page">wipe_rotate</action>
@@ -535,38 +269,7 @@
             </object>
         </page>
 
-        <page name="wipe_cache">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
-            <object type="progressbar">
-                <placement x="144" y="470" />
-                <resource  empty="progress_empty" full="progress_full" />
-                <data name="ui_progress" />
-            </object>
-
+        <page name="wipe_cache" header="1">
             <object type="animation">
                 <placement x="144" y="470" />
                 <resource name="progress" />
@@ -584,38 +287,7 @@
             </object>
         </page>
 
-        <page name="wipe_dalvik">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
-            <object type="progressbar">
-                <placement x="144" y="470" />
-                <resource  empty="progress_empty" full="progress_full" />
-                <data name="ui_progress" />
-            </object>
-
+        <page name="wipe_dalvik" header="1">
             <object type="animation">
                 <placement x="144" y="470" />
                 <resource name="progress" />
@@ -633,38 +305,7 @@
             </object>
         </page>
 
-        <page name="wipe_rotate">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
-            <object type="progressbar">
-                <placement x="144" y="470" />
-                <resource  empty="progress_empty" full="progress_full" />
-                <data name="ui_progress" />
-            </object>
-
+        <page name="wipe_rotate" header="1">
             <object type="animation">
                 <placement x="144" y="470" />
                 <resource name="progress" />
@@ -682,38 +323,7 @@
             </object>
         </page>
 
-        <page name="wipe_data">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
-            <object type="progressbar">
-                <placement x="144" y="470" />
-                <resource  empty="progress_empty" full="progress_full" />
-                <data name="ui_progress" />
-            </object>
-
+        <page name="wipe_data" header="1">
             <object type="animation">
                 <placement x="144" y="470" />
                 <resource name="progress" />
@@ -731,39 +341,7 @@
             </object>
         </page>
 
-
-        <page name="wipe_battery">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
-            <object type="progressbar">
-                <placement x="144" y="470" />
-                <resource  empty="progress_empty" full="progress_full" />
-                <data name="ui_progress" />
-            </object>
-
+        <page name="wipe_battery" header="1">
             <object type="animation">
                 <placement x="144" y="470" />
                 <resource name="progress" />
@@ -781,41 +359,16 @@
             </object>
         </page>
 
-        <page name="wipe_done">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
+        <page name="wipe_done" header="1">
             <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="UItext" />
-                <placement x="130" y="445" />
+                <font resource="font" />
+                <placement x="270" y="540" placement="4" />
                 <text>Wipe complete</text>
             </object>
 
             <object type="button">
-                <placement x="144" y="570" />
-                <font resource="UItext" color="white" />
+                <placement x="127" y="550" />
+                <font resource="font" color="white" />
                 <text>Back</text>
                 <image resource="main_button" />
                 <action function="page">wipe</action>
@@ -832,91 +385,66 @@
             </object>
         </page>
 
-        <page name="backup">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
+        <page name="backup" header="1">
             <object type="button">
                 <placement x="10" y="120" />
-                <font resource="UItext" color="black" />
+                <font resource="font" color="black" />
                 <text>Backup now</text>
                 <image resource="main_button" />
                 <action function="page">backup_run</action>
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="290" />
-                <font resource="UItext" color="white" />
+                <placement x="10" y="265" />
+                <font resource="font" color="white" />
                 <text>System</text>
                 <data variable="tw_backup_system" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="365" />
-                <font resource="UItext" color="white" />
+                <placement x="10" y="305" />
+                <font resource="font" color="white" />
                 <text>Data</text>
                 <data variable="tw_backup_data" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="440" />
-                <font resource="UItext" color="white" />
+                <placement x="10" y="345" />
+                <font resource="font" color="white" />
                 <text>Boot</text>
                 <data variable="tw_backup_boot" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="515" />
-                <font resource="UItext" color="white" />
+                <placement x="10" y="385" />
+                <font resource="font" color="white" />
                 <text>Recovery</text>
                 <data variable="tw_backup_recovery" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="590" />
-                <font resource="UItext" color="white" />
+                <placement x="10" y="425" />
+                <font resource="font" color="white" />
                 <text>Cache</text>
                 <data variable="tw_backup_cache" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="665" />
-                <font resource="UItext" color="white" />
-                <text>WiMax</text>
-                <data variable="tw_backup_wimax" />
+                <placement x="10" y="465" />
+                <font resource="font" color="white" />
+                <text>%tw_sp1_name%</text>
+                <data variable="tw_backup_sp1" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="740" />
-                <font resource="UItext" color="white" />
+                <placement x="10" y="505" />
+                <font resource="font" color="white" />
                 <text>.android_secure</text>
                 <condition var1="fileexists" var2="/sdcard/.android_secure" />
                 <data variable="tw_backup_andsec" />
@@ -924,8 +452,8 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="815" />
-                <font resource="UItext" color="white" />
+                <placement x="10" y="545" />
+                <font resource="font" color="white" />
                 <text>sd-ext</text>
                 <condition var1="fileexists" var2="/sd-ext" />
                 <data variable="tw_backup_sdext" />
@@ -933,8 +461,8 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="890" />
-                <font resource="UItext" color="white" />
+                <placement x="10" y="605" />
+                <font resource="font" color="white" />
                 <text>Enable Compression (Requires more time)</text>
                 <data variable="tw_use_compression" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
@@ -951,34 +479,9 @@
             </object>
         </page>
 
-        <page name="backup_run">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
+        <page name="backup_run" header="1">
             <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="UItext" />
+                <font resource="font" />
                 <placement x="270" y="440" placement="4" />
                 <text>%tw_operation% %tw_partition%</text>
             </object>
@@ -1018,138 +521,63 @@
             </object>
         </page>
 
-        <page name="backup_success">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
+        <page name="backup_success" header="1">
             <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="UItext" />
-                <placement x="130" y="445" />
+                <font resource="font" />
+                <placement x="270" y="445" placement="4" />
                 <text>Your backup was successful!</text>
             </object>
 
             <object type="button">
-                <placement x="144" y="570" />
-                <font resource="UItext" color="white" />
+                <placement x="127" y="570" />
+                <font resource="font" color="white" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
         </page>
 
-        <page name="backup_failed">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
+        <page name="backup_failed" header="1">
             <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="UItext" />
-                <placement x="144" y="445" />
+                <font resource="font" />
+                <placement x="270" y="445" placement="4" />
                 <text>Your backup failed.</text>
             </object>
 
             <object type="text" color="white">
-                <font resource="UItext" />
-                <placement x="120" y="475" />
+                <font resource="font" />
+                <placement x="270" y="475" placement="4" />
                 <text>Pull up the console for more details</text>
             </object>
 
             <object type="button">
-                <placement x="144" y="570" />
-                <font resource="UItext" color="white" />
+                <placement x="127" y="570" />
+                <font resource="font" color="white" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
 
             <object type="console">
-                <slideout resource="slideout" x="240" y="920" />
+                <slideout resource="slideout" x="210" y="920" />
                 <placement x="0" y="0" w="540" h="960" />
-                <color foreground="#B0B0B0" background="black" scroll="black" />
+                <color foreground="#B0B0B0" background="black" scroll="#303030" />
                 <font resource="fixed" />
             </object>
         </page>
 
-        <page name="restore">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
+        <page name="restore" header="1">
             <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="UItext" />
+                <font resource="font" />
                 <placement x="10" y="120" />
                 <text>Select packge to restore</text>
             </object>
 
             <object type="fileselector">
-                <placement x="5" y="140" w="530" h="540" />
+                <placement x="5" y="140" w="470" h="650" />
                 <icon folder="folder_icon" file="file_icon" />
                 <background color="#303030" />
-                <font resource="filelist" spacing="15" color="white" />
+                <font resource="font" spacing="15" color="white" />
                 <filter folders="1" files="0" nav="0" />
                 <path name="tw_backups_folder" />
                 <data name="tw_restore" default="" />
@@ -1181,43 +609,18 @@
             </object>
         </page>
 
-        <page name="restore_select">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
+        <page name="restore_select" header="1">
             <object type="button">
                 <placement x="10" y="120" />
-                <font resource="UItext" color="black" />
+                <font resource="font" color="black" />
                 <text>Restore  now</text>
                 <image resource="main_button" />
                 <action function="page">restore_run</action>
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="300" />
-                <font resource="UItext" color="white" />
+                <placement x="10" y="265" />
+                <font resource="font" color="white" />
                 <text>System</text>
                 <condition var1="tw_restore_system" op=">=" var2="0" />
                 <data variable="tw_restore_system" />
@@ -1225,8 +628,8 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="350" />
-                <font resource="UItext" color="white" />
+                <placement x="10" y="305" />
+                <font resource="font" color="white" />
                 <text>Data</text>
                 <condition var1="tw_restore_data" op=">=" var2="0" />
                 <data variable="tw_restore_data" />
@@ -1234,8 +637,8 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="400" />
-                <font resource="UItext" color="white" />
+                <placement x="10" y="345" />
+                <font resource="font" color="white" />
                 <text>Boot</text>
                 <condition var1="tw_restore_boot" op=">=" var2="0" />
                 <data variable="tw_restore_boot" />
@@ -1243,8 +646,8 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="450" />
-                <font resource="UItext" color="white" />
+                <placement x="10" y="385" />
+                <font resource="font" color="white" />
                 <text>Recovery</text>
                 <condition var1="tw_restore_recovery" op=">=" var2="0" />
                 <data variable="tw_restore_recovery" />
@@ -1252,8 +655,8 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="500" />
-                <font resource="UItext" color="white" />
+                <placement x="10" y="425" />
+                <font resource="font" color="white" />
                 <text>Cache</text>
                 <condition var1="tw_restore_cache" op=">=" var2="0" />
                 <data variable="tw_restore_cache" />
@@ -1261,17 +664,17 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="550" />
-                <font resource="UItext" color="white" />
-                <text>WiMax</text>
-                <condition var1="tw_restore_wimax" op=">=" var2="0" />
-                <data variable="tw_restore_wimax" />
+                <placement x="10" y="465" />
+                <font resource="font" color="white" />
+                <text>%tw_sp1_name%</text>
+                <condition var1="tw_restore_sp1" op=">=" var2="0" />
+                <data variable="tw_restore_sp1" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="600" />
-                <font resource="UItext" color="white" />
+                <placement x="10" y="505" />
+                <font resource="font" color="white" />
                 <text>.android_secure</text>
                 <condition var1="tw_restore_andsec" op=">=" var2="0" />
                 <data variable="tw_restore_andsec" />
@@ -1279,20 +682,11 @@
             </object>
 
             <object type="checkbox">
-                <placement x="10" y="650" />
-                <font resource="UItext" color="white" />
+                <placement x="10" y="545" />
+                <font resource="font" color="white" />
                 <text>sd-ext</text>
                 <condition var1="tw_restore_sdext" op=">=" var2="0" />
                 <data variable="tw_restore_sdext" />
-                <image checked="checkbox_true" unchecked="checkbox_false" />
-            </object>
-
-            <object type="checkbox">
-                <placement x="10" y="750" />
-                <font resource="UItext" color="white" />
-                <text>Skip MD5 Checksum Verification</text>
-                <condition var1="tw_skip_md5_check" op=">=" var2="0" />
-                <data variable="tw_skip_md5_check" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 
@@ -1307,34 +701,9 @@
             </object>
         </page>
 
-        <page name="restore_run">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
+        <page name="restore_run" header="1">
             <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="UItext" />
+                <font resource="font" />
                 <placement x="270" y="440" placement="4" />
                 <text>%tw_operation% %tw_partition%</text>
             </object>
@@ -1374,98 +743,220 @@
             </object>
         </page>
 
-        <page name="restore_success">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
+        <page name="restore_success" header="1">
             <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="UItext" />
-                <placement x="130" y="445" />
+                <font resource="font" />
+                <placement x="270" y="440" placement="4" />
                 <text>Your restore was successful!</text>
             </object>
 
             <object type="button">
-                <placement x="144" y="570" />
-                <font resource="UItext" color="white" />
+                <placement x="127" y="570" />
+                <font resource="font" color="white" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
         </page>
 
-        <page name="restore_failed">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
+        <page name="restore_failed" header="1">
             <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="30" />
-                <text>Based on Android System Recovery</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="350" y="75" />
-                <text>%tw_time%</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="UItext" />
-                <placement x="144" y="445" />
+                <font resource="font" />
+                <placement x="270" y="440" placement="4" />
                 <text>Your restore failed.</text>
             </object>
 
             <object type="text" color="white">
-                <font resource="UItext" />
-                <placement x="120" y="475" />
+                <font resource="font" />
+                <placement x="270" y="475" placement="4" />
                 <text>Pull up the console for more details</text>
             </object>
 
             <object type="button">
-                <placement x="144" y="570" />
-                <font resource="UItext" color="white" />
+                <placement x="127" y="570" />
+                <font resource="font" color="white" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
 
             <object type="console">
-                <slideout resource="slideout" x="240" y="920" />
+                <slideout resource="slideout" x="210" y="920" />
                 <placement x="0" y="0" w="540" h="960" />
                 <color foreground="#B0B0B0" background="black" scroll="black" />
                 <font resource="fixed" />
+            </object>
+        </page>
+
+        <page name="mount" header="1">
+            <object type="button">
+                <placement x="10" y="120" />
+                <font resource="font" color="white" />
+                <condition var1="mounted" op="!=" var2="/system" />
+                <text>Mount System</text>
+                <image resource="checkbox_false" />
+                <action function="mount">/system</action>
+            </object>
+
+            <object type="button">
+                <placement x="10" y="120" />
+                <font resource="font" color="white" />
+                <condition var1="mounted" op="=" var2="/system" />
+                <text>Unmount System</text>
+                <image resource="checkbox_true" />
+                <action function="umount">/system</action>
+            </object>
+
+            <object type="button">
+                <placement x="10" y="160" />
+                <font resource="font" color="white" />
+                <condition var1="mounted" op="!=" var2="/data" />
+                <text>Mount Data</text>
+                <image resource="checkbox_false" />
+                <action function="mount">/data</action>
+            </object>
+
+            <object type="button">
+                <placement x="10" y="160" />
+                <font resource="font" color="white" />
+                <condition var1="mounted" op="=" var2="/data" />
+                <text>Unmount Data</text>
+                <image resource="checkbox_true" />
+                <action function="umount">/data</action>
+            </object>
+
+            <object type="button">
+                <placement x="10" y="200" />
+                <font resource="font" color="white" />
+                <condition var1="mounted" op="!=" var2="/cache" />
+                <text>Mount Cache</text>
+                <image resource="checkbox_false" />
+                <action function="mount">/cache</action>
+            </object>
+
+            <object type="button">
+                <placement x="10" y="200" />
+                <font resource="font" color="white" />
+                <condition var1="mounted" op="=" var2="/cache" />
+                <text>Unmount Cache</text>
+                <image resource="checkbox_true" />
+                <action function="umount">/cache</action>
+            </object>
+
+            <object type="button">
+                <placement x="10" y="260" />
+                <font resource="font" color="black" />
+                <text>Mount USB Storage</text>
+                <image resource="main_button" />
+                <action function="page">usb_mount</action>
+            </object>
+
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">main</action>
+            </object>
+        </page>
+
+        <page name="usb_mount" header="1">
+            <object type="button">
+                <placement x="10" y="120" />
+                <font resource="font" color="black" />
+                <text>Unmount</text>
+                <image resource="main_button" />
+                <action function="page">usb_umount</action>
+            </object>
+
+            <object type="action">
+                <action function="mount">usb</action>
+            </object>
+        </page>
+
+        <page name="usb_umount">
+            <object type="action">
+                <action function="unmount">usb</action>
+            </object>
+
+            <object type="action">
+                <action function="page">mount</action>
+            </object>
+        </page>
+
+        <page name="reboot" header="1">
+            <object type="button">
+                <placement x="10" y="120" />
+                <font resource="font" color="black" />
+                <text>System</text>
+                <image resource="main_button" />
+                <action function="reboot">system</action>
+            </object>
+
+            <object type="button">
+                <placement x="277" y="120" />
+                <font resource="font" color="black" />
+                <text>Power Off</text>
+                <image resource="main_button" />
+                <action function="reboot">poweroff</action>
+            </object>
+
+            <object type="button">
+                <placement x="10" y="312" />
+                <font resource="font" color="black" />
+                <text>Recovery</text>
+                <image resource="main_button" />
+                <action function="reboot">recovery</action>
+            </object>
+
+            <object type="button">
+                <placement x="277" y="312" />
+                <font resource="font" color="black" />
+                <text>Bootloader</text>
+                <image resource="main_button" />
+                <action function="reboot">bootloader</action>
+            </object>
+
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">main</action>
+            </object>
+        </page>
+
+        <page name="settings" header="1">
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">main</action>
+            </object>
+        </page>
+
+        <page name="console" header="1">
+            <object type="console">
+                <placement x="0" y="120" w="540" h="680" />
+                <color foreground="#B0B0B0" background="black" scroll="#303030" />
+                <font resource="fixed" />
+            </object>
+
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">main</action>
             </object>
         </page>
 
