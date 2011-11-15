@@ -292,6 +292,9 @@ void DataManager::SetDefaultValues()
 
     mInitialized = 1;
 
+    mConstValues.insert(make_pair("true", "1"));
+    mConstValues.insert(make_pair("false", "0"));
+
     mConstValues.insert(make_pair(TW_VERSION_VAR, TW_VERSION_STR));
     mConstValues.insert(make_pair(TW_BACKUPS_FOLDER_VAR, str));
 

@@ -41,7 +41,7 @@ int getWordFromString(int word, const char* string, char* buffer, int bufferLen)
         while (*string > 0 && *string < 33)     ++string;
 
         start = string;
-        while (*string > 31)                    ++string;
+        while (*string > 32)                    ++string;
     } while (--word > 0);
 
     // Handle word not found
@@ -51,6 +51,7 @@ int getWordFromString(int word, const char* string, char* buffer, int bufferLen)
         return 0;
     }
 
+    memset(buffer, 0, bufferLen);
     if ((string - start) > bufferLen)
         memcpy(buffer, start, bufferLen-1);
     else
@@ -1325,7 +1326,7 @@ int makeMD5(char *imgDir, const char *imgFile)
 		fgets(tmpString, 255, fp);
 		getWordFromString(1, tmpString, tmpAnswer, sizeof(tmpAnswer));
 		if (strcmp(tmpAnswer,"md5sum:") == 0) {
-			ui_print("....MD5 Error: %s", tmpString);
+            ui_print("....MD5 Error: %s (%s)", tmpString, tmpAnswer);
 		} else {
 			ui_print("....MD5 Created.\n");
 			bool = 0;
@@ -1359,7 +1360,7 @@ int checkMD5(char *imgDir, const char *imgFile)
 			ui_print("....MD5 Check: %s\n", tmpAnswer);
 			bool = 0;
 		} else {
-			ui_print("....MD5 Error: %s", tmpString);
+			ui_print("....MD5 Error: %s (%s)", tmpString, tmpAnswer);
 		}
 		__pclose(fp);
 	}
