@@ -324,6 +324,8 @@ void DataManager::SetDefaultValues()
 	mValues.insert(make_pair(TW_GUI_SORT_ORDER, make_pair("1", 1)));
 	mValues.insert(make_pair(TW_RM_RF_VAR, make_pair("0", 1)));
     mValues.insert(make_pair(TW_SKIP_MD5_CHECK_VAR, make_pair("0", 1)));
+	mValues.insert(make_pair(TW_SDEXT_SIZE, make_pair("0", 512)));
+	mValues.insert(make_pair(TW_SWAP_SIZE, make_pair("0", 32)));
 }
 
 // Magic Values

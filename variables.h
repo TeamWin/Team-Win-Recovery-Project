@@ -62,5 +62,8 @@
 #define TW_SP2_PARTITION_NAME_VAR   "tw_sp2_name"
 #define TW_SP3_PARTITION_NAME_VAR   "tw_sp3_name"
 
+#define TW_SDEXT_SIZE               "tw_sdext_size"
+#define TW_SWAP_SIZE                "tw_swap_size"
+
 #endif  // _VARIABLES_HEADER_
 
