@@ -13,6 +13,9 @@
         <resource name="progress_full" type="image" filename="progress_fill" />
         <resource name="checkbox_false" type="image" filename="checkbox_empty" />
         <resource name="checkbox_true" type="image" filename="checkbox_checked" />
+		<resource name="sort_button" type="image" filename="qhd-sort-button" />
+		<resource name="minus_button" type="image" filename="qhd-minus-button" />
+		<resource name="plus_button" type="image" filename="qhd-plus-button" />
     </resources>
 
     <header>
@@ -1125,9 +1128,87 @@
 			<object type="button">
                 <placement x="10" y="120" />
                 <font resource="font" color="black" />
-                <text>Not implemented yet!</text>
+                <text></text>
+                <image resource="minus_button" />
+                <action function="addsubtract">tw_sdext_size-128</action>
+            </object>
+			
+			<object type="button">
+                <placement x="250" y="120" />
+                <font resource="font" color="black" />
+                <text></text>
+                <image resource="plus_button" />
+                <action function="addsubtract">tw_sdext_size+128</action>
+            </object>
+			
+			<object type="text" color="white">
+				<font resource="font" />
+				<placement x="84" y="130" />
+				<text>EXT Size: %tw_sdext_size%</text>
+			</object>
+			
+			<object type="button">
+                <placement x="10" y="180" />
+                <font resource="font" color="black" />
+                <text></text>
+                <image resource="minus_button" />
+                <action function="addsubtract">tw_swap_size-32</action>
+            </object>
+			
+			<object type="button">
+                <placement x="250" y="180" />
+                <font resource="font" color="black" />
+                <text></text>
+                <image resource="plus_button" />
+                <action function="addsubtract">tw_swap_size+32</action>
+            </object>
+			
+			<object type="text" color="white">
+				<font resource="font" />
+				<placement x="84" y="190" />
+				<text>Swap Size: %tw_swap_size%</text>
+			</object>
+			
+			<object type="text" color="white">
+				<font resource="font" />
+				<placement x="10" y="240" />
+				<text>File system: %tw_sdpart_file_system%</text>
+			</object>
+			
+			<object type="button">
+                <placement x="10" y="280" />
+                <font resource="font" color="black" />
+                <text>EXT3</text>
                 <image resource="main_button" />
-                <action function="page">main</action>
+                <action function="set">tw_sdpart_file_system=ext3</action>
+            </object>
+			
+			<object type="button">
+                <placement x="277" y="280" />
+                <font resource="font" color="black" />
+                <text>EXT4</text>
+                <image resource="main_button" />
+                <action function="set">tw_sdpart_file_system=ext4</action>
+            </object>
+			
+			<object type="text" color="white">
+				<font resource="font" />
+				<placement x="10" y="460" />
+				<text>You will lose all files on your SD card!</text>
+			</object>
+			
+			<object type="text" color="white">
+				<font resource="font" />
+				<placement x="10" y="500" />
+				<text>This action cannot be undone!</text>
+			</object>
+			
+			<object type="button">
+                <placement x="144" y="540" />
+                <font resource="font" color="black" />
+                <text>Partition SD</text>
+                <image resource="main_button" />
+                <action function="page">partsdcardaction</action>
             </object>
 			
             <object type="action">
@@ -1137,7 +1218,49 @@
 
             <object type="action">
                 <touch key="back" />
-                <action function="page">main</action>
+                <action function="page">advanced</action>
+            </object>
+        </page>
+		
+		<page name="partsdcardaction" header="1">
+			<object type="text" color="white">
+				<font resource="font" />
+				<placement x="10" y="120" />
+				<text>Partitioning SD Card . . .</text>
+			</object>
+			
+			<object type="text" color="white">
+				<font resource="font" />
+				<placement x="10" y="150" />
+				<text>This may take a couple minutes.</text>
+			</object>
+			
+			<object type="text" color="white">
+				<font resource="font" />
+				<placement x="10" y="180" />
+				<text>The progress bar may not be accurate.</text>
+			</object>
+			
+			<object type="action">
+                <action function="partitionsd"></action>
+            </object>
+			
+			<object type="progressbar">
+                <placement x="144" y="920" />
+                <resource  empty="progress_empty" full="progress_full" />
+                <data name="ui_progress" />
+            </object>
+
+            <object type="animation">
+                <placement x="144" y="920" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+
+            <object type="action">
+                <condition var1="tw_operation_state" var2="1" />
+                <action function="page">advanced</action>
             </object>
         </page>
 		
@@ -1157,7 +1280,7 @@
 			<object type="text" color="white">
 				<font resource="font" />
 				<placement x="10" y="180" />
-				<text>The progress bar is not accurate.</text>
+				<text>The progress bar may not be accurate.</text>
 			</object>
 			
 			<object type="action">
@@ -1180,15 +1303,6 @@
             <object type="action">
                 <condition var1="tw_operation_state" var2="1" />
                 <action function="page">advanced</action>
-            </object>
-            <object type="action">
-                <touch key="home" />
-                <action function="page">main</action>
-            </object>
-
-            <object type="action">
-                <touch key="back" />
-                <action function="page">main</action>
             </object>
         </page>
     </pages>

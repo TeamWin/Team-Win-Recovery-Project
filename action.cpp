@@ -38,6 +38,7 @@ void wipe_rotate_data(void);
 int usb_storage_enable(void);
 int usb_storage_disable(void);
 int __system(const char *command);
+void run_script(char *str1,char *str2,char *str3,char *str4,char *str5,char *str6,char *str7, int request_confirm);
 };
 
 #include "rapidxml.hpp"
@@ -306,6 +307,36 @@ int GUIAction::doAction(int isThreaded)
 		__system("cp /tmp/recovery.log /sdcard");
 		sync();
 		ui_print("Copied recovery log to /sdcard.\n");
+		return 0;
+	}
+	
+	if (mFunction == "addsubtract")
+	{
+		if (mArg.find("+") != string::npos)
+        {
+            string varName = mArg.substr(0, mArg.find('+'));
+            string string_to_add = mArg.substr(mArg.find('+') + 1, string::npos);
+			int amount_to_add = atoi(string_to_add.c_str());
+			int value;
+
+			DataManager::GetValue(varName, value);
+            DataManager::SetValue(varName, value + amount_to_add);
+			return 0;
+        }
+		if (mArg.find("-") != string::npos)
+        {
+            string varName = mArg.substr(0, mArg.find('-'));
+            string string_to_subtract = mArg.substr(mArg.find('-') + 1, string::npos);
+			int amount_to_subtract = atoi(string_to_subtract.c_str());
+			int value;
+
+			DataManager::GetValue(varName, value);
+			value -= amount_to_subtract;
+			if (value <= 0)
+				value = 0;
+            DataManager::SetValue(varName, value);
+			return 0;
+        }
 	}
 
     if (isThreaded)
@@ -372,6 +403,46 @@ int GUIAction::doAction(int isThreaded)
 			DataManager::SetValue("ui_progress", 100);
 			DataManager::SetValue("ui_progress", 0);
 			DataManager::SetValue("tw_operation", "FixingPermissions");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 1);
+			return 0;
+		}
+		if (mFunction == "partitionsd")
+		{
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "partitionsd");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 0);
+			// Below seen in Koush's recovery
+			char sddevice[256];
+			Volume *vol = volume_for_path("/sdcard");
+			strcpy(sddevice, vol->device);
+			// Just need block not whole partition
+			sddevice[strlen("/dev/block/mmcblkX")] = NULL;
+
+			char es[64];
+			std::string ext_format;
+			int ext, swap;
+			DataManager::GetValue("tw_sdext_size", ext);
+			DataManager::GetValue("tw_swap_size", swap);
+			DataManager::GetValue("tw_sdpart_file_system", ext_format);
+			sprintf(es, "/sbin/sdparted -es %dM -ss %dM -efs %s -s > /cache/part.log",ext,swap,ext_format.c_str());
+			LOGI("\nrunning script: %s\n", es);
+			run_script("\nContinue partitioning?",
+				   "\nPartitioning sdcard : ",
+				   es,
+				   "\nunable to execute parted!\n(%s)\n",
+				   "\nOops... something went wrong!\nPlease check the recovery log!\n",
+				   "\nPartitioning complete!\n\n",
+				   "\nPartitioning aborted!\n\n", 0);
+			
+			// recreate TWRP folder and rewrite settings - these will be gone after sdcard is partitioned
+			ensure_path_mounted(SDCARD_ROOT);
+			mkdir("/sdcard/TWRP", 0777);
+			//DataManager_Flush();
+			DataManager::SetValue("ui_progress", 100);
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "partitionsd");
             DataManager::SetValue("tw_operation_status", 0);
             DataManager::SetValue("tw_operation_state", 1);
 			return 0;
@@ -473,6 +544,35 @@ int GUIAction::doAction(int isThreaded)
 		sync();
 		ui_print("Copied recovery log to /sdcard.\n");
 	}
+	
+	if (mFunction == "addsubtract")
+	{
+		if (mArg.find("+") != string::npos)
+        {
+            string varName = mArg.substr(0, mArg.find('+'));
+            string string_to_add = mArg.substr(mArg.find('+') + 1, string::npos);
+			int amount_to_add = atoi(string_to_add.c_str());
+			int value;
+
+			DataManager::GetValue(varName, value);
+            DataManager::SetValue(varName, value + amount_to_add);
+			return 0;
+        }
+		if (mArg.find("-") != string::npos)
+        {
+            string varName = mArg.substr(0, mArg.find('-'));
+            string string_to_subtract = mArg.substr(mArg.find('-') + 1, string::npos);
+			int amount_to_subtract = atoi(string_to_subtract.c_str());
+			int value;
+
+			DataManager::GetValue(varName, value);
+			value -= amount_to_subtract;
+			if ((value - amount_to_subtract) <= 0)
+				value = 0;
+            DataManager::SetValue(varName, value - amount_to_subtract);
+			return 0;
+        }
+	}
 
     if (isThreaded)
     {
@@ -563,6 +663,20 @@ int GUIAction::doAction(int isThreaded)
 			DataManager::SetValue("ui_progress", 100);
 			DataManager::SetValue("ui_progress", 0);
 			DataManager::SetValue("tw_operation", "FixingPermissions");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 1);
+			return 0;
+		}
+		if (mFunction == "partitionsd")
+		{
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "partitionsd");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 0);
+			usleep(10000000);
+			DataManager::SetValue("ui_progress", 100);
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "partitionsd");
             DataManager::SetValue("tw_operation_status", 0);
             DataManager::SetValue("tw_operation_state", 1);
 			return 0;
