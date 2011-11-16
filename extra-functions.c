@@ -1947,7 +1947,7 @@ show_menu_partition()
 					   "\nunable to execute parted!\n(%s)\n",
 					   "\nOops... something went wrong!\nPlease check the recovery log!\n",
 					   "\nPartitioning complete!\n\n",
-					   "\nPartitioning aborted!\n\n");
+					   "\nPartitioning aborted!\n\n", -1);
 				
 				// recreate TWRP folder and rewrite settings - these will be gone after sdcard is partitioned
 				ensure_path_mounted(SDCARD_ROOT);
@@ -2098,13 +2098,18 @@ void choose_ext_size(int pIdx) {
 	choose_ext_size(pIdx);
 }
 
-void run_script(char *str1,char *str2,char *str3,char *str4,char *str5,char *str6,char *str7)
+void run_script(char *str1,char *str2,char *str3,char *str4,char *str5,char *str6,char *str7, int request_confirm)
 {
 	ui_print("%s", str1);
         ui_clear_key_queue();
 	ui_print("\nPress Power to confirm,");
        	ui_print("\nany other key to abort.\n");
-	int confirm = ui_wait_key();
+	int confirm; = ui_wait_key();
+	if (request_confirm) // this option is used to skip the confirmation when the gui is in use
+		confirm = ui_wait_key();
+	else
+		confirm = KEY_POWER;
+	
 		if (confirm == BTN_MOUSE || confirm == KEY_POWER || confirm == SELECT_ITEM) {
                 	ui_print("%s", str2);
 		        pid_t pid = fork();
