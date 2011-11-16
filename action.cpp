@@ -26,6 +26,7 @@ extern "C" {
 #include "../recovery_ui.h"
 
 int install_zip_package(const char* zip_path_filename);
+void fix_perms();
 int erase_volume(const char* path);
 void wipe_dalvik_cache(void);
 int nandroid_back_exe(void);
@@ -103,8 +104,6 @@ GUIAction::GUIAction(xml_node<>* node)
 
 int GUIAction::NotifyTouch(TOUCH_STATE state, int x, int y)
 {
-    if (!isConditionTrue())         return -1;
-
     if (state == TOUCH_RELEASE)
         doAction();
 
@@ -203,9 +202,6 @@ void GUIAction::flash_zip(std::string filename)
 #ifndef _SIMULATE_ACTIONS
 int GUIAction::doAction(int isThreaded)
 {
-    // This will ensure that we re-render when this is done
-    gui_forceRender();
-
     if (mFunction == "reboot")
     {
         curtainClose();
@@ -298,6 +294,19 @@ int GUIAction::doAction(int isThreaded)
         }
         return 0;
     }
+	
+	if (mFunction == "restoredefaultsettings")
+	{
+		DataManager::ResetDefaults();
+	}
+	
+	if (mFunction == "copylog")
+	{
+		ensure_path_mounted("/sdcard");
+		__system("cp /tmp/recovery.log /sdcard");
+		sync();
+		ui_print("Copied recovery log to /sdcard.\n");
+	}
 
     if (isThreaded)
     {
@@ -351,6 +360,22 @@ int GUIAction::doAction(int isThreaded)
 
             return 0;
         }
+		if (mFunction == "fixpermissions")
+		{
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "FixingPermissions");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 0);
+			LOGI("fix permissions started!\n");
+			fix_perms();
+			LOGI("fix permissions DONE!\n");
+			DataManager::SetValue("ui_progress", 100);
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "FixingPermissions");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 1);
+			return 0;
+		}
     }
     else
     {
@@ -435,6 +460,19 @@ int GUIAction::doAction(int isThreaded)
             ui_print("Unmounted %s.\n", mArg.c_str());
         return 0;
     }
+	
+	if (mFunction == "restoredefaultsettings")
+	{
+		DataManager::ResetDefaults();
+	}
+	
+	if (mFunction == "copylog")
+	{
+		ensure_path_mounted("/sdcard");
+		__system("cp /tmp/recovery.log /sdcard");
+		sync();
+		ui_print("Copied recovery log to /sdcard.\n");
+	}
 
     if (isThreaded)
     {
@@ -513,6 +551,22 @@ int GUIAction::doAction(int isThreaded)
             DataManager::SetValue("tw_operation_state", 1);
             return 0;
         }
+		if (mFunction == "fixpermissions")
+		{
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "FixingPermissions");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 0);
+			LOGI("fix permissions started!\n");
+			usleep(10000000);
+			LOGI("fix permissions DONE!\n");
+			DataManager::SetValue("ui_progress", 100);
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "FixingPermissions");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 1);
+			return 0;
+		}
     }
     else
     {

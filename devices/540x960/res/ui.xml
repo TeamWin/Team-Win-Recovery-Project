@@ -88,25 +88,32 @@
             <object type="button">
                 <placement x="277" y="504" />
                 <font resource="font" color="black" />
-                <text>Reboot</text>
-                <image resource="main_button" />
-                <action function="page">reboot</action>
-            </object>
-
-            <object type="button">
-                <placement x="10" y="696" />
-                <font resource="font" color="black" />
                 <text>Settings</text>
                 <image resource="main_button" />
                 <action function="page">settings</action>
             </object>
 
             <object type="button">
+                <placement x="10" y="696" />
+                <font resource="font" color="black" />
+                <text>Advanced</text>
+                <image resource="main_button" />
+                <action function="page">advanced</action>
+            </object>
+			
+			<object type="button">
                 <placement x="277" y="696" />
                 <font resource="font" color="black" />
-                <text>Console</text>
+                <text>Reboot</text>
                 <image resource="main_button" />
-                <action function="page">console</action>
+                <action function="page">reboot</action>
+            </object>
+			
+			<object type="console">
+                <slideout resource="slideout" x="240" y="920" />
+                <placement x="0" y="0" w="540" h="960" />
+                <color foreground="#B0B0B0" background="black" scroll="#303030" />
+                <font resource="fixed" />
             </object>
         </page>
 
@@ -257,6 +264,30 @@
                 <image resource="main_button" />
                 <action function="page">wipe_rotate</action>
             </object>
+			
+			<object type="button">
+                <placement x="277" y="504" />
+                <font resource="font" color="black" />
+                <text>System</text>
+                <image resource="main_button" />
+                <action function="page">wipe_system</action>
+            </object>
+			
+			<object type="button">
+                <placement x="10" y="696" />
+                <font resource="font" color="black" />
+                <text>SD Card</text>
+                <image resource="main_button" />
+                <action function="page">wipe_sdcard</action>
+            </object>
+			
+			<object type="button">
+                <placement x="277" y="696" />
+                <font resource="font" color="black" />
+                <text>SD Ext</text>
+                <image resource="main_button" />
+                <action function="page">wipe_sdext</action>
+            </object>
 
             <object type="action">
                 <touch key="home" />
@@ -338,6 +369,60 @@
 
             <object type="action">
                 <action function="wipe">data</action>
+            </object>
+        </page>
+		
+		<page name="wipe_system" header="1">
+            <object type="animation">
+                <placement x="144" y="470" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+
+            <object type="action">
+                <condition var1="tw_operation_state" var2="1" />
+                <action function="page">wipe_done</action>
+            </object>
+
+            <object type="action">
+                <action function="wipe">/system</action>
+            </object>
+        </page>
+		
+		<page name="wipe_sdcard" header="1">
+            <object type="animation">
+                <placement x="144" y="470" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+
+            <object type="action">
+                <condition var1="tw_operation_state" var2="1" />
+                <action function="page">wipe_done</action>
+            </object>
+
+            <object type="action">
+                <action function="wipe">/sdcard</action>
+            </object>
+        </page>
+		
+		<page name="wipe_sdext" header="1">
+            <object type="animation">
+                <placement x="144" y="470" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+
+            <object type="action">
+                <condition var1="tw_operation_state" var2="1" />
+                <action function="page">wipe_done</action>
+            </object>
+
+            <object type="action">
+                <action function="wipe">/sd-ext</action>
             </object>
         </page>
 
@@ -931,6 +1016,46 @@
         </page>
 
         <page name="settings" header="1">
+			<object type="checkbox">
+                <placement x="10" y="120" />
+                <font resource="font" color="white" />
+                <text>Zip file signature verification?</text>
+                <data variable="tw_signed_zip_verify" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+			
+			<object type="checkbox">
+                <placement x="10" y="160" />
+                <font resource="font" color="white" />
+                <text>Reboot after flashing a zip?</text>
+                <data variable="tw_reboot_after_flash_option" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+			
+			<object type="checkbox">
+                <placement x="10" y="200" />
+                <font resource="font" color="white" />
+                <text>Force MD5 check on all zips?</text>
+                <data variable="tw_force_md5_check" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+			
+			<object type="checkbox">
+                <placement x="10" y="240" />
+                <font resource="font" color="white" />
+                <text>Use rm -rf instead of formatting?</text>
+                <data variable="tw_rm_rf" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+			
+			<object type="button">
+                <placement x="127" y="560" />
+                <font resource="font" color="black" />
+                <text>Restore Defaults</text>
+                <image resource="main_button" />
+                <action function="restoredefaultsettings"></action>
+            </object>
+			
             <object type="action">
                 <touch key="home" />
                 <action function="page">main</action>
@@ -959,7 +1084,113 @@
                 <action function="page">main</action>
             </object>
         </page>
+		
+		<page name="advanced" header="1">
+            <object type="button">
+                <placement x="10" y="120" />
+                <font resource="font" color="black" />
+                <text>Copy Log to SD</text>
+                <image resource="main_button" />
+                <action function="copylog"></action>
+            </object>
+			
+			<object type="button">
+                <placement x="277" y="120" />
+                <font resource="font" color="black" />
+                <text>Fix Permissions</text>
+                <image resource="main_button" />
+                <action function="page">fixperms</action>
+            </object>
+			
+			<object type="button">
+                <placement x="10" y="312" />
+                <font resource="font" color="black" />
+                <text>Partition SD Card</text>
+                <image resource="main_button" />
+                <action function="page">partsdcard</action>
+            </object>
+			
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
 
+            <object type="action">
+                <touch key="back" />
+                <action function="page">main</action>
+            </object>
+        </page>
+		
+		<page name="partsdcard" header="1">
+			<object type="button">
+                <placement x="10" y="120" />
+                <font resource="font" color="black" />
+                <text>Not implemented yet!</text>
+                <image resource="main_button" />
+                <action function="page">main</action>
+            </object>
+			
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">main</action>
+            </object>
+        </page>
+		
+		<page name="fixperms" header="1">
+			<object type="text" color="white">
+				<font resource="font" />
+				<placement x="10" y="120" />
+				<text>Fixing Permissions . . .</text>
+			</object>
+			
+			<object type="text" color="white">
+				<font resource="font" />
+				<placement x="10" y="150" />
+				<text>This may take several minutes.</text>
+			</object>
+			
+			<object type="text" color="white">
+				<font resource="font" />
+				<placement x="10" y="180" />
+				<text>The progress bar is not accurate.</text>
+			</object>
+			
+			<object type="action">
+                <action function="fixpermissions"></action>
+            </object>
+			
+			<object type="progressbar">
+                <placement x="144" y="920" />
+                <resource  empty="progress_empty" full="progress_full" />
+                <data name="ui_progress" />
+            </object>
+
+            <object type="animation">
+                <placement x="144" y="920" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+
+            <object type="action">
+                <condition var1="tw_operation_state" var2="1" />
+                <action function="page">advanced</action>
+            </object>
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">main</action>
+            </object>
+        </page>
     </pages>
 </recovery>
 
