@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-void tw_format(char *fstype, char *fsblock);
+int tw_format(const char *fstype, const char *fsblock);

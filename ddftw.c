@@ -80,7 +80,7 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
     if (!loc)
         return -1;
 
-    LOGI(" setLocationData ==> %s = %s, %s, %s, %d\n", SAFE_STR(label), SAFE_STR(blockDevice), SAFE_STR(mtdDevice), SAFE_STR(fstype), size);
+//    LOGI(" setLocationData ==> %s = %s, %s, %s, %d\n", SAFE_STR(label), SAFE_STR(blockDevice), SAFE_STR(mtdDevice), SAFE_STR(fstype), size);
 
     if (label)                  strcpy(loc->mnt, label);
     if (blockDevice)            strcpy(loc->blk, blockDevice);
@@ -194,7 +194,9 @@ int getLocationsViafstab()
             }
 
             if (size && (setLocationData(NULL, device, NULL, NULL, size) == 0))
-                LOGI("  Mount %s size: %d\n", device, size);
+            {
+//                LOGI("  Mount %s size: %d\n", device, size);
+            }
         }
         fclose(fp);
     }

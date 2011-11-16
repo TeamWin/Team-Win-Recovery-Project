@@ -34,7 +34,7 @@ static int num_volumes = 0;
 static Volume* device_volumes = NULL;
 
 void load_volume_table() {
-    int alloc = 2;
+    int alloc = 10;
     device_volumes = malloc(alloc * sizeof(Volume));
 
     // Insert an entry for /tmp, which is the ramdisk and is always mounted.
@@ -67,7 +67,7 @@ void load_volume_table() {
 
         if (mount_point && fs_type && device) {
             while (num_volumes >= alloc) {
-                alloc *= 2;
+                alloc += 5;
                 device_volumes = realloc(device_volumes, alloc*sizeof(Volume));
             }
             device_volumes[num_volumes].mount_point = strdup(mount_point);
@@ -103,6 +103,22 @@ Volume* volume_for_path(const char* path) {
             (path[len] == '\0' || path[len] == '/')) {
             return v;
         }
+    }
+    return NULL;
+}
+
+Volume* volume_for_device(const char* device)
+{
+    int i;
+    struct dInfo* loc = findDeviceByBlockDevice(device);
+
+    for (i = 0; i < num_volumes; ++i)
+    {
+        Volume* v = &device_volumes[i];
+        if (v->device && strcmp(device, v->device) == 0)
+            return v;
+        if (v->device && loc && strcmp(loc->mnt, v->device) == 0)
+            return v;
     }
     return NULL;
 }
@@ -207,57 +223,20 @@ int format_volume(const char* volume) {
         LOGE("unknown volume \"%s\"\n", volume);
         return -1;
     }
-    if (strcmp(v->fs_type, "ramdisk") == 0) {
-        // you can't format the ramdisk.
-        LOGE("can't format_volume \"%s\"", volume);
-        return -1;
-    }
+
     if (strcmp(v->mount_point, volume) != 0) {
         LOGE("can't give path \"%s\" to format_volume\n", volume);
         return -1;
     }
 
-    if (ensure_path_unmounted(volume) != 0) {
-        LOGE("format_volume failed to unmount \"%s\"\n", v->mount_point);
-        return -1;
+    // Retrieve the fs_type
+    char* fs_type = v->fs_type;
+    if (memcmp(fs_type, "ext", 3) == 0)
+    {
+        if (strcmp(v->mount_point,"/system") == 0)      fs_type = sys.fst;
+        else if (strcmp(v->mount_point,"/data") == 0)   fs_type = dat.fst;
+        else if (strcmp(v->mount_point,"/cache") == 0)  fs_type = cac.fst;
     }
 
-    if (strcmp(v->fs_type, "yaffs2") == 0 || strcmp(v->fs_type, "mtd") == 0) {
-        mtd_scan_partitions();
-        const MtdPartition* partition = mtd_find_partition_by_name(v->device);
-        if (partition == NULL) {
-            LOGE("format_volume: no MTD partition \"%s\"\n", v->device);
-            return -1;
-        }
-
-        MtdWriteContext *write = mtd_write_partition(partition);
-        if (write == NULL) {
-            LOGW("format_volume: can't open MTD \"%s\"\n", v->device);
-            return -1;
-        } else if (mtd_erase_blocks(write, -1) == (off_t) -1) {
-            LOGW("format_volume: can't erase MTD \"%s\"\n", v->device);
-            mtd_write_close(write);
-            return -1;
-        } else if (mtd_write_close(write)) {
-            LOGW("format_volume: can't close MTD \"%s\"\n", v->device);
-            return -1;
-        }
-        return 0;
-    }
-
-    if (v->fs_type[0] == 'e' && v->fs_type[1] == 'x' && v->fs_type[2] == 't') {
-    	char fst[10];
-    	if (strcmp(v->mount_point,"/system") == 0) {
-    		strcpy(fst,sys.fst);
-    	} else if (strcmp(v->mount_point,"/data") == 0) {
-    		strcpy(fst,dat.fst);
-    	} else if (strcmp(v->mount_point,"/cache") == 0) {
-    		strcpy(fst,cac.fst);
-    	}
-    	tw_format(fst,v->device);
-    	return 0;
-    }
-    
-    LOGE("format_volume: fs_type \"%s\" unsupported\n", v->fs_type);
-    return -1;
+    return tw_format(v->fs_type, v->device);
 }

@@ -25,6 +25,9 @@ void load_volume_table();
 // Return the Volume* record for this path (or NULL).
 Volume* volume_for_path(const char* path);
 
+// Return the Volume* record for this device (or NULL).
+Volume* volume_for_device(const char* device);
+
 // Make sure that the volume 'path' is on is mounted.  Returns 0 on
 // success (volume is mounted).
 int ensure_path_mounted(const char* path);

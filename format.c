@@ -22,68 +22,193 @@
 #include "format.h"
 #include "extra-functions.h"
 #include "common.h"
+#include "mtdutils/mtdutils.h"
+#include "mtdutils/mounts.h"
+#ifdef USE_EXT4
+#include "make_ext4fs.h"
+#endif
 
-void tw_format(char *fstype, char *fsblock)
+static int file_exists(const char* file)
 {
-	char frmt[255];
-	if (strcmp(fstype,"emmc") != 0 && strcmp(fstype,"mtd") != 0) {
-		struct stat st;
-		if (stat(fsblock,&st) == 0) {
-			FILE *fp;
-			char uCommand[255];
-			char uOutput[50];
-			char exe[255];
-			sprintf(uCommand,"cat /proc/mounts | grep %s | awk '{ print $1 }'",fsblock); // form shell command to find block in mounts
-			fp = __popen(uCommand, "r");
-			LOGI("=> Formatting %s with %s\n",fsblock,fstype);
-            uOutput[0] = 0x00;
-			if (fscanf(fp,"%s",uOutput) == 1) { // if block is found in mounts
-				sprintf(exe,"umount %s",fsblock); // unmount block
-				__system(exe);
-			}
-			__pclose(fp);
-			if (fstype[0] == 'e' && fstype[1] == 'x') { // if it's ext
-                struct stat st;
-                if (stat("/sbin/mke2fs", &st) == 0)
-                {
-                    sprintf(exe, "mke2fs -t %s -m 0 %s",fstype,fsblock); // use mke2fs and format block according to fstype
-                    LOGI("mke2fs command: %s\n", exe);
-					__system(exe);
-				}
-                else 
-                {
-					sprintf(exe, "cat /etc/fstab | grep %s | awk '{ print $2 }'", fsblock); // find volume name in fstab
-					fp = __popen(exe,"r");
-					fscanf(fp,"%s",frmt);
-					__pclose(fp);
-					sprintf(exe, "rm -rf %s/* && rm -rf %s/.*", frmt, frmt);
-					LOGI("rm -rf command: %s\n", exe);
-					__system(exe); // we just rm -rf everything
-				}
-				__pclose(fp);
-			} else if (fstype[0] == 'v' && fstype[1] == 'f') { // if it's vfat
-				if (strcmp(fsblock,"/sdcard/.android_secure") == 0) { // if it's android secure, we shouldn't format sdcard so...
-					__system("rm -rf /sdcard/.android_secure/* && rm -rf /sdcard/.android_secure/.*"); // we just rm -rf everything
-				} else {
-					sprintf(exe,"mkdosfs %s",fsblock); // use mkdosfs to format it
-					__system(exe);
-				}
-			} else if (fstype[0] == 'y' && fstype[1] == 'a') { // if it's yaffs2
-				sprintf(exe,"cat /etc/fstab | grep %s | awk '{ print $2 }'",fsblock); // find volume name in fstab
-				fp = __popen(exe,"r");
-				fscanf(fp,"%s",frmt);
-			    if (strcmp(frmt,"/efs") == 0) { // if it's efs, let's not format it and just rm -rf everything
-					__system("mount /efs");
-			    	__system("rm -rf /efs/* && rm -rf /efs/.*");
-			    } else {
-					erase_volume(frmt); // it's not efs, so lets format it with aosp api
-			    }
-				__pclose(fp);
-			}
-		} else {
-			LOGI("=> Device block is invalid.\n"); // oh noes, invalid, abort! Abort!
-		}
-	} else {
-		LOGI("=> Can not format emmc or mmc.\n"); // oh noes, invalid, abort! Abort!
-	}
+    struct stat st;
+    if (stat(file, &st) == 0)   return 1;
+    return 0;
+}
+
+static int tw_format_mtd(const char* device)
+{
+    char* location = (char*) device;
+
+    Volume* v = volume_for_device(device);
+    if (v)
+    {
+        // We may not have the right "name" for it... Let's flip it
+        location = v->device;
+    }
+
+    LOGI("%s: Formatting \"%s\"\n", __FUNCTION__, location);
+
+    mtd_scan_partitions();
+    const MtdPartition* mtd = mtd_find_partition_by_name(location);
+    if (mtd == NULL) {
+        LOGE("%s: no mtd partition named \"%s\"", __FUNCTION__, location);
+        return -1;
+    }
+
+    MtdWriteContext* ctx = mtd_write_partition(mtd);
+    if (ctx == NULL) {
+        LOGE("%s: can't write \"%s\"", __FUNCTION__, location);
+        return -1;
+    }
+    if (mtd_erase_blocks(ctx, -1) == -1) {
+        mtd_write_close(ctx);
+        LOGE("%s: failed to erase \"%s\"", __FUNCTION__, location);
+        return -1;
+    }
+    if (mtd_write_close(ctx) != 0) {
+        LOGE("%s: failed to close \"%s\"", __FUNCTION__, location);
+        return -1;
+    }
+    return 0;
+}
+
+static int tw_format_rmfr(const char* device)
+{
+    char cmd[256];
+
+    Volume* v = volume_for_device(device);
+    if (!v)
+    {
+        LOGE("%s: unable to locate volume for device \"%s\"\n", __FUNCTION__, device);
+        return -1;
+    }
+
+    if (ensure_path_mounted(v->mount_point) != 0)
+    {
+        LOGE("%s: failed to mount \"%s\"\n", __FUNCTION__, v->mount_point);
+        return -1;
+    }
+    
+    sprintf(cmd, "rm -rf %s/* && rm -rf %s/.*", v->mount_point, v->mount_point);
+    __system(cmd);
+
+    if (ensure_path_unmounted(v->mount_point) != 0)
+    {
+        // This isn't a normal error, since some partitions like cache may not be unmountable
+        LOGW("%s: failed to umount \"%s\"\n", __FUNCTION__, v->mount_point);
+    }
+
+    return 0;
+}
+
+static int tw_format_vfat(const char* device)
+{
+    char exe[512];
+
+    // if it's android secure, we shouldn't format sdcard so...
+    Volume* v = volume_for_device(device);
+    if (v)
+    {
+        if (strcmp(device, "/sdcard/.android_secure") == 0)
+            return tw_format_rmfr(device);
+    }
+
+    if (file_exists("/sbin/mkdosfs"))
+    {
+        sprintf(exe,"mkdosfs %s", device); // use mkdosfs to format it
+        __system(exe);
+    }
+    else
+        return tw_format_rmfr(device);
+
+    return 0;
+}
+
+static int tw_format_ext23(const char* fstype, const char* device)
+{
+    if (file_exists("/sbin/mke2fs"))
+    {
+        char exe[512];
+
+        sprintf(exe, "mke2fs -t %s -m 0 %s", fstype, device);
+        LOGI("mke2fs command: %s\n", exe);
+        __system(exe);
+    }
+    else
+        return tw_format_rmfr(device);
+
+    return 0;
+}
+
+static int tw_format_ext4(const char* device)
+{
+#ifdef USE_EXT4
+    reset_ext4fs_info();
+    int status = make_ext4fs(device, NULL, NULL, 0, 0, 0);
+    if (status != 0) {
+        LOGE("%s: make_ext4fs failed (%d) on %s", __FUNCTION__, status, device);
+        return -1;
+    }
+    return 0;
+#else
+    return tw_format_ext23("ext4", device);
+#endif
+}
+
+int tw_format(const char *fstype, const char *fsblock)
+{
+    int result = -1;
+
+    LOGI("%s: Formatting \"%s\" as \"%s\"\n", __FUNCTION__, fsblock, fstype);
+
+    Volume* v = volume_for_device(fsblock);
+    if (v)
+    {
+        if (ensure_path_unmounted(v->mount_point) != 0)
+        {
+            LOGE("%s: failed to unmount \"%s\"\n", __FUNCTION__, v->mount_point);
+            return -1;
+        }
+    }
+
+    // Verify the block exists
+    if (!file_exists(fsblock))
+    {
+        LOGE("%s: failed to locate device \"%s\"\n", __FUNCTION__, fsblock);
+        return -1;
+    }
+
+    // Let's handle the different types
+    if (strcmp(fstype, "yaffs2") == 0 && v && strcmp(v->mount_point, "/efs") == 0)
+        result = tw_format_rmfr(fsblock);
+
+    else if (strcmp(fstype, "yaffs2") == 0 || strcmp(fstype, "mtd") == 0)
+        result = tw_format_mtd(fsblock);
+
+    else if (strcmp(fstype, "ext4") == 0)
+        result = tw_format_ext4(fsblock);
+
+    else if (strcmp(fstype, "vfat") == 0)
+        result = tw_format_vfat(fsblock);
+
+    else if (memcmp(fstype, "ext", 3) == 0)
+        result = tw_format_ext23(fstype, fsblock);
+
+    // Now, let's make sure we've set the +x for the mount point
+    if (result == 0 && v)
+    {
+        if (ensure_path_mounted(v->mount_point) == 0)
+        {
+            struct stat st;
+
+            if (stat(v->mount_point, &st) == 0)
+            {
+                chmod(v->mount_point, st.st_mode | S_IXUSR | S_IXGRP | S_IXOTH);
+            }
+
+            ensure_path_unmounted(v->mount_point);
+        }
+    }
+
+    return result;
 }
