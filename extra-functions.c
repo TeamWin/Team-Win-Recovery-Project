@@ -2104,7 +2104,7 @@ void run_script(char *str1,char *str2,char *str3,char *str4,char *str5,char *str
         ui_clear_key_queue();
 	ui_print("\nPress Power to confirm,");
        	ui_print("\nany other key to abort.\n");
-	int confirm; = ui_wait_key();
+	int confirm;
 	if (request_confirm) // this option is used to skip the confirmation when the gui is in use
 		confirm = ui_wait_key();
 	else
