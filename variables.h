@@ -64,6 +64,7 @@
 
 #define TW_SDEXT_SIZE               "tw_sdext_size"
 #define TW_SWAP_SIZE                "tw_swap_size"
+#define TW_SDPART_FILE_SYSTEM       "tw_sdpart_file_system"
 
 #endif  // _VARIABLES_HEADER_
 
