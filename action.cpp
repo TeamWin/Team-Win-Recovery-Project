@@ -371,6 +371,12 @@ int GUIAction::doAction(int isThreaded)
                 wipe_dalvik_cache();
             else
                 erase_volume(mArg.c_str());
+			
+			if (mArg == "/sdcard") {
+				ensure_path_mounted(SDCARD_ROOT);
+				mkdir("/sdcard/TWRP", 0777);
+				DataManager::Flush();
+			}
 
             DataManager::SetValue("tw_operation", "Format");
             DataManager::SetValue("tw_partition", mArg);
@@ -439,7 +445,7 @@ int GUIAction::doAction(int isThreaded)
 			// recreate TWRP folder and rewrite settings - these will be gone after sdcard is partitioned
 			ensure_path_mounted(SDCARD_ROOT);
 			mkdir("/sdcard/TWRP", 0777);
-			//DataManager_Flush();
+			DataManager::Flush();
 			DataManager::SetValue("ui_progress", 100);
 			DataManager::SetValue("ui_progress", 0);
 			DataManager::SetValue("tw_operation", "partitionsd");
