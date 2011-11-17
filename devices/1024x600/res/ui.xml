@@ -17,33 +17,36 @@
         <resource name="checkbox_true" type="image" filename="checkbox_checked" />
     </resources>
 
-    <header>
-        <object type="image">
-            <image resource="base" />
-            <placement x="0" y="0" />
-        </object>
-
-        <object type="text" color="#A0A0A0">
-            <font resource="font" />
-            <placement x="250" y="5" />
-            <text>Team Win Recovery Project (twrp)  v%tw_version%</text>
-        </object>
-
-        <object type="text" color="#A0A0A0">
-            <font resource="font" />
-            <placement x="250" y="30" />
-            <text>Battery Level: %tw_battery%</text>
-        </object>
-
-        <object type="text" color="#A0A0A0">
-            <font resource="font" />
-            <placement x="450" y="35" />
-            <text>%tw_time%</text>
-        </object>
-    </header>
+    <templates>
+        <template name="header">
+            <object type="image">
+                <image resource="base" />
+                <placement x="0" y="0" />
+            </object>
+    
+            <object type="text" color="#A0A0A0">
+                <font resource="font" />
+                <placement x="250" y="5" />
+                <text>Team Win Recovery Project (twrp)  v%tw_version%</text>
+            </object>
+    
+            <object type="text" color="#A0A0A0">
+                <font resource="font" />
+                <placement x="250" y="30" />
+                <text>Battery Level: %tw_battery%</text>
+            </object>
+    
+            <object type="text" color="#A0A0A0">
+                <font resource="font" />
+                <placement x="450" y="35" />
+                <text>%tw_time%</text>
+            </object>
+        </template>
+    </templates>
 
     <pages>
-        <page name="main" header="1">
+        <page name="main">
+            <object type="template" name="header" />
 
             <object type="image">
                 <image resource="large_black" />
@@ -583,7 +586,9 @@
             </object>
         </page>
 
-        <page name="wipe_system" header="1">
+        <page name="wipe_system">
+            <object type="template" name="header" />
+
             <object type="progressbar">
                 <placement x="386" y="290" />
                 <resource  empty="progress_empty" full="progress_full" />
@@ -607,7 +612,9 @@
             </object>
         </page>
 
-        <page name="wipe_sdcard" header="1">
+        <page name="wipe_sdcard">
+            <object type="template" name="header" />
+
             <object type="progressbar">
                 <placement x="386" y="290" />
                 <resource  empty="progress_empty" full="progress_full" />
@@ -631,7 +638,9 @@
             </object>
         </page>
 
-        <page name="wipe_sdext" header="1">
+        <page name="wipe_sdext">
+            <object type="template" name="header" />
+
             <object type="progressbar">
                 <placement x="386" y="290" />
                 <resource  empty="progress_empty" full="progress_full" />
@@ -655,7 +664,9 @@
             </object>
         </page>
 
-        <page name="wipe_cache" header="1">
+        <page name="wipe_cache">
+            <object type="template" name="header" />
+
             <object type="progressbar">
                 <placement x="386" y="290" />
                 <resource  empty="progress_empty" full="progress_full" />

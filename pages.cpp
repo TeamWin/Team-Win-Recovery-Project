@@ -76,7 +76,7 @@ int ActionObject::SetActionPos(int x, int y, int w, int h)
     return 0;
 }
 
-Page::Page(xml_node<>* page, xml_node<>* header /* = NULL */)
+Page::Page(xml_node<>* page, xml_node<>* templates /* = NULL */)
 {
     if (!page)      return;
 
@@ -88,117 +88,141 @@ Page::Page(xml_node<>* page, xml_node<>* header /* = NULL */)
         return;
     }
 
-    if (page->first_attribute("header") != NULL)
-    {
-        std::string val = page->first_attribute("header")->value();
-        if (val != "1" && val != "true")
-            header = NULL;
-    }
-    else
-        header = NULL;
-
     LOGI("Loading page %s\n", mName.c_str());
-    if (header)
-        LOGI("  -- Using header\n");
 
     mTouchStart = NULL;
 
     // We can memset the whole structure, because the alpha channel is ignored
     memset(&mBackground, 0, sizeof(COLOR));
 
-    xml_node<>* node = header;
-    if (!node)  node = page;
+    // This is a recursive routine for template handling
+    ProcessNode(page, templates);
 
-    do
+    return;
+}
+
+bool Page::ProcessNode(xml_node<>* page, xml_node<>* templates /* = NULL */, int depth /* = 0 */)
+{
+    if (depth == 10)
     {
-        // Let's retrieve the background value
-        xml_node<>* bg = node->first_node("background");
-        if (bg)
+        LOGE("Page processing depth has exceeded 10. Failing out. This is likely a recursive template.\n");
+        return false;
+    }
+
+    // Let's retrieve the background value, if any
+    xml_node<>* bg = page->first_node("background");
+    if (bg)
+    {
+        xml_attribute<>* attr = bg->first_attribute("color");
+        if (attr)
         {
-            xml_attribute<>* attr = bg->first_attribute("color");
-            if (attr)
-            {
-                std::string color = attr->value();
-                ConvertStrToColor(color, &mBackground);
-            }
+            std::string color = attr->value();
+            ConvertStrToColor(color, &mBackground);
         }
-        
-        xml_node<>* child;
-        child = node->first_node("object");
-        while (child)
+    }
+
+    xml_node<>* child;
+    child = page->first_node("object");
+    while (child)
+    {
+        if (!child->first_attribute("type"))
+            break;
+
+        std::string type = child->first_attribute("type")->value();
+
+        if (type == "text")
         {
-            if (!child->first_attribute("type"))
-                break;
-    
-            std::string type = child->first_attribute("type")->value();
-    
-            if (type == "text")
+            GUIText* element = new GUIText(child);
+            mRenders.push_back(element);
+            mActions.push_back(element);
+        }
+        else if (type == "image")
+        {
+            GUIImage* element = new GUIImage(child);
+            mRenders.push_back(element);
+        }
+        else if (type == "fill")
+        {
+            GUIFill* element = new GUIFill(child);
+            mRenders.push_back(element);
+        }
+        else if (type == "action")
+        {
+            GUIAction* element = new GUIAction(child);
+            mActions.push_back(element);
+        }
+        else if (type == "console")
+        {
+            GUIConsole* element = new GUIConsole(child);
+            mRenders.push_back(element);
+            mActions.push_back(element);
+        }
+        else if (type == "button")
+        {
+            GUIButton* element = new GUIButton(child);
+            mRenders.push_back(element);
+            mActions.push_back(element);
+        }
+        else if (type == "checkbox")
+        {
+            GUICheckbox* element = new GUICheckbox(child);
+            mRenders.push_back(element);
+            mActions.push_back(element);
+        }
+        else if (type == "fileselector")
+        {
+            GUIFileSelector* element = new GUIFileSelector(child);
+            mRenders.push_back(element);
+            mActions.push_back(element);
+        }
+        else if (type == "animation")
+        {
+            GUIAnimation* element = new GUIAnimation(child);
+            mRenders.push_back(element);
+        }
+        else if (type == "progressbar")
+        {
+            GUIProgressBar* element = new GUIProgressBar(child);
+            mRenders.push_back(element);
+            mActions.push_back(element);
+        }
+        else if (type == "template")
+        {
+            if (!templates || !child->first_attribute("name"))
             {
-                GUIText* element = new GUIText(child);
-                mRenders.push_back(element);
-                mActions.push_back(element);
-            }
-            else if (type == "image")
-            {
-                GUIImage* element = new GUIImage(child);
-                mRenders.push_back(element);
-            }
-            else if (type == "fill")
-            {
-                GUIFill* element = new GUIFill(child);
-                mRenders.push_back(element);
-            }
-            else if (type == "action")
-            {
-                GUIAction* element = new GUIAction(child);
-                mActions.push_back(element);
-            }
-            else if (type == "console")
-            {
-                GUIConsole* element = new GUIConsole(child);
-                mRenders.push_back(element);
-                mActions.push_back(element);
-            }
-            else if (type == "button")
-            {
-                GUIButton* element = new GUIButton(child);
-                mRenders.push_back(element);
-                mActions.push_back(element);
-            }
-            else if (type == "checkbox")
-            {
-                GUICheckbox* element = new GUICheckbox(child);
-                mRenders.push_back(element);
-                mActions.push_back(element);
-            }
-            else if (type == "fileselector")
-            {
-                GUIFileSelector* element = new GUIFileSelector(child);
-                mRenders.push_back(element);
-                mActions.push_back(element);
-            }
-            else if (type == "animation")
-            {
-                GUIAnimation* element = new GUIAnimation(child);
-                mRenders.push_back(element);
-            }
-            else if (type == "progressbar")
-            {
-                GUIProgressBar* element = new GUIProgressBar(child);
-                mRenders.push_back(element);
-                mActions.push_back(element);
+                LOGE("Invalid template request.\n");
             }
             else
             {
-                LOGE("Unknown object type.\n");
-            }
-            child = child->next_sibling("object");
-        }
+                std::string name = child->first_attribute("name")->value();
 
-        if (node == header)     node = page;
-        else                    node = NULL;
-    } while (node);
-    return;
+                // We need to find the correct template
+                xml_node<>* node;
+                node = templates->first_node("template");
+
+                while (node)
+                {
+                    if (!node->first_attribute("name"))
+                        continue;
+
+                    if (name == node->first_attribute("name")->value())
+                    {
+                        if (!ProcessNode(node, templates, depth + 1))
+                            return false;
+                        else
+                            break;
+                    }
+                    node = node->next_sibling("template");
+                }
+            }
+        }
+        else
+        {
+            LOGE("Unknown object type.\n");
+        }
+        child = child->next_sibling("object");
+    }
+    return true;
 }
 
 int Page::Render(void)
@@ -336,7 +360,7 @@ int PageSet::Load(ZipArchive* package)
 {
     xml_node<>* parent;
     xml_node<>* child;
-    xml_node<>* header;
+    xml_node<>* templates;
  
     parent = mDoc.first_node("recovery");
     if (!parent)
@@ -348,15 +372,15 @@ int PageSet::Load(ZipArchive* package)
     if (child)
         mResources = new ResourceManager(child, package);
 
-    // This can be NULL, because we'll just assume no header
-    header = parent->first_node("header");
+    // This may be NULL if no templates are present
+    templates = parent->first_node("templates");
 
     child = parent->first_node("pages");
     if (!child)
         return -1;
 
     LOGI("Loading pages...\n");
-    return LoadPages(child, header);
+    return LoadPages(child, templates);
 }
 
 int PageSet::SetPage(std::string page)
@@ -394,7 +418,7 @@ Page* PageSet::FindPage(std::string name)
     return NULL;
 }
 
-int PageSet::LoadPages(xml_node<>* pages, xml_node<>* header /* = NULL */)
+int PageSet::LoadPages(xml_node<>* pages, xml_node<>* templates /* = NULL */)
 {
     xml_node<>* child;
 
@@ -403,7 +427,7 @@ int PageSet::LoadPages(xml_node<>* pages, xml_node<>* header /* = NULL */)
     child = pages->first_node("page");
     while (child != NULL)
     {
-        Page* page = new Page(child, header);
+        Page* page = new Page(child, templates);
         if (page->GetName().empty())
         {
             LOGE("Unable to process load page\n");

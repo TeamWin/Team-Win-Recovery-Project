@@ -26,52 +26,58 @@
 		<resource name="plus_button" type="image" filename="qhd-plus-button" />
     </resources>
 
-    <header>
-        <background color="black" />
-		
-		<object type="button">
-			<placement x="10" y="10" />
-			<font resource="font" color="black" />
-			<text></text>
-			<image resource="android" />
-			<condition var1="tw_busy" var2="0" />
-			<action function="page">main</action>
-		</object>
+    <templates>
+        <template name="header">
+            <background color="black" />
+    		
+    		<object type="button">
+    			<placement x="10" y="10" />
+    			<font resource="font" color="black" />
+    			<text></text>
+    			<image resource="android" />
+    			<condition var1="tw_busy" var2="0" />
+    			<action function="page">main</action>
+    		</object>
+    
+            <object type="image">
+                <image resource="android" />
+                <placement x="10" y="10" />
+            </object>
+    
+            <object type="text" color="white">
+                <font resource="font" />
+                <placement x="100" y="10" />
+                <text>Team Win Recovery Project  v%tw_version%</text>
+            </object>
+    
+            <object type="text" color="white">
+                <font resource="font" />
+                <placement x="100" y="75" />
+                <text>%tw_time%</text>
+            </object>
+    
+            <object type="text" color="white">
+                <font resource="font" />
+                <placement x="250" y="75" />
+                <condition var1="tw_battery" op=">" var2="0" />
+                <text>Battery: %tw_battery%</text>
+            </object>
+        </template>
 
-        <object type="image">
-            <image resource="android" />
-            <placement x="10" y="10" />
-        </object>
-
-        <object type="text" color="white">
-            <font resource="font" />
-            <placement x="100" y="10" />
-            <text>Team Win Recovery Project  v%tw_version%</text>
-        </object>
-
-        <object type="text" color="white">
-            <font resource="font" />
-            <placement x="100" y="75" />
-            <text>%tw_time%</text>
-        </object>
-
-        <object type="text" color="white">
-            <font resource="font" />
-            <placement x="250" y="75" />
-            <condition var1="tw_battery" op=">" var2="0" />
-            <text>Battery: %tw_battery%</text>
-        </object>
-		
-		<object type="console">
-			<slideout resource="slideout" x="240" y="920" />
-			<placement x="0" y="0" w="540" h="960" />
-			<color foreground="#B0B0B0" background="black" scroll="#303030" />
-			<font resource="fixed" />
-		</object>
-    </header>
+        <template name="footer">
+            <object type="console">
+                <slideout resource="slideout" x="240" y="920" />
+                <placement x="0" y="0" w="540" h="960" />
+                <color foreground="#B0B0B0" background="black" scroll="#303030" />
+                <font resource="fixed" />
+            </object>
+        </template>
+    </templates>
 
     <pages>
-        <page name="main" header="1">
+        <page name="main">
+            <object type="template" name="header" />
+
             <object type="button">
                 <placement x="10" y="120" />
                 <font resource="font" color="black" />
@@ -135,9 +141,13 @@
                 <image resource="main_button" />
                 <action function="page">reboot</action>
             </object>
+
+            <object type="template" name="footer" />
         </page>
 
-        <page name="install" header="1">
+        <page name="install">
+            <object type="template" name="header" />
+
             <object type="fileselector">
                 <placement x="5" y="120" w="470" h="660" />
                 <icon folder="folder_icon" file="file_icon" />
@@ -162,9 +172,13 @@
                 <touch key="home" />
                 <action function="page">main</action>
             </object>
+        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="flash_confirm" header="1">
+        <page name="flash_confirm">
+            <object type="template" name="header" />
+
             <object type="text" color="white">
                 <font resource="font" />
                 <placement x="10" y="120" />
@@ -200,9 +214,13 @@
                 <touch key="home" />
                 <action function="page">main</action>
             </object>
+                
+            <object type="template" name="footer" />
         </page>
 
-        <page name="flash_zip" header="1">
+        <page name="flash_zip">
+            <object type="template" name="header" />
+
             <object type="console">
                 <placement x="0" y="120" w="540" h="620" />
                 <color foreground="#B0B0B0" background="black" scroll="#303030" />
@@ -226,9 +244,13 @@
                 <condition var1="tw_operation_state" var2="1" />
                 <action function="page">flash_done</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="flash_done" header="1">
+        <page name="flash_done">
+            <object type="template" name="header" />
+
             <object type="console">
                 <placement x="0" y="120" w="540" h="390" />
                 <color foreground="#B0B0B0" background="black" scroll="black" />
@@ -242,9 +264,13 @@
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="wipe" header="1">
+        <page name="wipe">
+            <object type="template" name="header" />
+
             <object type="button">
                 <placement x="10" y="120" />
                 <font resource="font" color="black" />
@@ -318,9 +344,13 @@
                 <touch key="back" />
                 <action function="page">main</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="wipe_cache" header="1">
+        <page name="wipe_cache">
+            <object type="template" name="header" />
+
             <object type="animation">
                 <placement x="144" y="470" />
                 <resource name="progress" />
@@ -336,9 +366,13 @@
             <object type="action">
                 <action function="wipe">/cache</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="wipe_dalvik" header="1">
+        <page name="wipe_dalvik">
+            <object type="template" name="header" />
+
             <object type="animation">
                 <placement x="144" y="470" />
                 <resource name="progress" />
@@ -354,9 +388,13 @@
             <object type="action">
                 <action function="wipe">dalvik</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="wipe_rotate" header="1">
+        <page name="wipe_rotate">
+            <object type="template" name="header" />
+
             <object type="animation">
                 <placement x="144" y="470" />
                 <resource name="progress" />
@@ -372,9 +410,13 @@
             <object type="action">
                 <action function="wipe">rotate</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="wipe_data" header="1">
+        <page name="wipe_data">
+            <object type="template" name="header" />
+
             <object type="animation">
                 <placement x="144" y="470" />
                 <resource name="progress" />
@@ -390,9 +432,13 @@
             <object type="action">
                 <action function="wipe">data</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 		
-		<page name="wipe_system" header="1">
+		<page name="wipe_system">
+            <object type="template" name="header" />
+
             <object type="animation">
                 <placement x="144" y="470" />
                 <resource name="progress" />
@@ -408,9 +454,13 @@
             <object type="action">
                 <action function="wipe">/system</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 		
-		<page name="wipe_sdcard" header="1">
+		<page name="wipe_sdcard">
+            <object type="template" name="header" />
+
             <object type="animation">
                 <placement x="144" y="470" />
                 <resource name="progress" />
@@ -426,9 +476,13 @@
             <object type="action">
                 <action function="wipe">/sdcard</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 		
-		<page name="wipe_sdext" header="1">
+		<page name="wipe_sdext">
+            <object type="template" name="header" />
+
             <object type="animation">
                 <placement x="144" y="470" />
                 <resource name="progress" />
@@ -444,9 +498,13 @@
             <object type="action">
                 <action function="wipe">/sd-ext</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="wipe_battery" header="1">
+        <page name="wipe_battery">
+            <object type="template" name="header" />
+
             <object type="animation">
                 <placement x="144" y="470" />
                 <resource name="progress" />
@@ -462,9 +520,13 @@
             <object type="action">
                 <action function="wipe">battery</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="wipe_done" header="1">
+        <page name="wipe_done">
+            <object type="template" name="header" />
+
             <object type="text" color="white">
                 <font resource="font" />
                 <placement x="270" y="540" placement="4" />
@@ -488,9 +550,13 @@
                 <touch key="back" />
                 <action function="page">wipe</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="backup" header="1">
+        <page name="backup">
+            <object type="template" name="header" />
+
             <object type="button">
                 <placement x="10" y="120" />
                 <font resource="font" color="black" />
@@ -582,9 +648,13 @@
                 <touch key="back" />
                 <action function="page">main</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="backup_run" header="1">
+        <page name="backup_run">
+            <object type="template" name="header" />
+
             <object type="text" color="white">
                 <font resource="font" />
                 <placement x="270" y="440" placement="4" />
@@ -612,6 +682,8 @@
             <object type="action">
                 <action function="nandroid">backup</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
         <page name="backup_done">
@@ -626,7 +698,9 @@
             </object>
         </page>
 
-        <page name="backup_success" header="1">
+        <page name="backup_success">
+            <object type="template" name="header" />
+
             <object type="text" color="white">
                 <font resource="font" />
                 <placement x="270" y="445" placement="4" />
@@ -640,9 +714,13 @@
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="backup_failed" header="1">
+        <page name="backup_failed">
+            <object type="template" name="header" />
+
             <object type="text" color="white">
                 <font resource="font" />
                 <placement x="270" y="445" placement="4" />
@@ -662,9 +740,13 @@
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="restore" header="1">
+        <page name="restore">
+            <object type="template" name="header" />
+
             <object type="text" color="white">
                 <font resource="font" />
                 <placement x="10" y="120" />
@@ -695,6 +777,8 @@
                 <touch key="back" />
                 <action function="page">main</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
         <page name="restore_setrestoredata">
@@ -707,7 +791,9 @@
             </object>
         </page>
 
-        <page name="restore_select" header="1">
+        <page name="restore_select">
+            <object type="template" name="header" />
+
             <object type="button">
                 <placement x="10" y="120" />
                 <font resource="font" color="black" />
@@ -797,9 +883,13 @@
                 <touch key="back" />
                 <action function="page">main</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="restore_run" header="1">
+        <page name="restore_run">
+            <object type="template" name="header" />
+
             <object type="text" color="white">
                 <font resource="font" />
                 <placement x="270" y="440" placement="4" />
@@ -827,6 +917,8 @@
             <object type="action">
                 <action function="nandroid">restore</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
         <page name="restore_done">
@@ -841,7 +933,9 @@
             </object>
         </page>
 
-        <page name="restore_success" header="1">
+        <page name="restore_success">
+            <object type="template" name="header" />
+
             <object type="text" color="white">
                 <font resource="font" />
                 <placement x="270" y="440" placement="4" />
@@ -855,9 +949,13 @@
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="restore_failed" header="1">
+        <page name="restore_failed">
+            <object type="template" name="header" />
+
             <object type="text" color="white">
                 <font resource="font" />
                 <placement x="270" y="440" placement="4" />
@@ -877,9 +975,13 @@
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="mount" header="1">
+        <page name="mount">
+            <object type="template" name="header" />
+
             <object type="button">
                 <placement x="10" y="120" />
                 <font resource="font" color="white" />
@@ -951,9 +1053,13 @@
                 <touch key="back" />
                 <action function="page">main</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="usb_mount" header="1">
+        <page name="usb_mount">
+            <object type="template" name="header" />
+
             <object type="button">
                 <placement x="10" y="120" />
                 <font resource="font" color="black" />
@@ -965,6 +1071,8 @@
             <object type="action">
                 <action function="mount">usb</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
         <page name="usb_umount">
@@ -977,7 +1085,9 @@
             </object>
         </page>
 
-        <page name="reboot" header="1">
+        <page name="reboot">
+            <object type="template" name="header" />
+
             <object type="button">
                 <placement x="10" y="120" />
                 <font resource="font" color="black" />
@@ -1019,10 +1129,14 @@
                 <touch key="back" />
                 <action function="page">main</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="settings" header="1">
-			<object type="checkbox">
+        <page name="settings">
+            <object type="template" name="header" />
+
+            <object type="checkbox">
                 <placement x="10" y="120" />
                 <font resource="font" color="white" />
                 <text>Zip file signature verification?</text>
@@ -1071,27 +1185,13 @@
                 <touch key="back" />
                 <action function="page">main</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-        <page name="console" header="1">
-            <object type="console">
-                <placement x="0" y="120" w="540" h="680" />
-                <color foreground="#B0B0B0" background="black" scroll="#303030" />
-                <font resource="fixed" />
-            </object>
+		<page name="advanced">
+            <object type="template" name="header" />
 
-            <object type="action">
-                <touch key="home" />
-                <action function="page">main</action>
-            </object>
-
-            <object type="action">
-                <touch key="back" />
-                <action function="page">main</action>
-            </object>
-        </page>
-		
-		<page name="advanced" header="1">
             <object type="button">
                 <placement x="10" y="120" />
                 <font resource="font" color="black" />
@@ -1125,10 +1225,14 @@
                 <touch key="back" />
                 <action function="page">main</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 
-		<page name="partsdcard" header="1">
-			<object type="button">
+		<page name="partsdcard">
+            <object type="template" name="header" />
+
+            <object type="button">
                 <placement x="10" y="120" />
                 <font resource="font" color="black" />
                 <text></text>
@@ -1223,10 +1327,14 @@
                 <touch key="back" />
                 <action function="page">advanced</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 		
-		<page name="partsdcardaction" header="1">
-			<object type="text" color="white">
+		<page name="partsdcardaction">
+            <object type="template" name="header" />
+
+            <object type="text" color="white">
 				<font resource="font" />
 				<placement x="10" y="120" />
 				<text>Partitioning SD Card . . .</text>
@@ -1265,10 +1373,14 @@
                 <condition var1="tw_operation_state" var2="1" />
                 <action function="page">advanced</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
 		
-		<page name="fixperms" header="1">
-			<object type="text" color="white">
+		<page name="fixperms">
+            <object type="template" name="header" />
+
+            <object type="text" color="white">
 				<font resource="font" />
 				<placement x="10" y="120" />
 				<text>Fixing Permissions . . .</text>
@@ -1307,6 +1419,8 @@
                 <condition var1="tw_operation_state" var2="1" />
                 <action function="page">advanced</action>
             </object>
+                        
+            <object type="template" name="footer" />
         </page>
     </pages>
 </recovery>

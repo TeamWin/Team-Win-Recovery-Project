@@ -26,7 +26,7 @@ public:
     virtual ~Page()             {}
 
 public:
-    Page(xml_node<>* page, xml_node<>* header = NULL);
+    Page(xml_node<>* page, xml_node<>* templates = NULL);
     std::string GetName(void)   { return mName; }
 
 public:
@@ -44,6 +44,9 @@ protected:
 
     ActionObject* mTouchStart;
     COLOR mBackground;
+
+protected:
+    bool ProcessNode(xml_node<>* page, xml_node<>* templates = NULL, int depth = 0);
 };
 
 class PageSet
@@ -70,12 +73,11 @@ public:
     int NotifyVarChange(std::string varName, std::string value);
 
 protected:
-    int LoadPages(xml_node<>* pages, xml_node<>* header = NULL);
+    int LoadPages(xml_node<>* pages, xml_node<>* templates = NULL);
 
 protected:
     char* mXmlFile;
     xml_document<> mDoc;
-//    TiXmlDocument* mDoc;
     ResourceManager* mResources;
     std::vector<Page*> mPages;
     Page* mCurrentPage;
