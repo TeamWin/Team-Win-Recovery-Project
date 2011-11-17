@@ -66,5 +66,7 @@
 #define TW_SWAP_SIZE                "tw_swap_size"
 #define TW_SDPART_FILE_SYSTEM       "tw_sdpart_file_system"
 
+#define TW_ACTION_BUSY              "tw_busy"
+
 #endif  // _VARIABLES_HEADER_
 

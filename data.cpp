@@ -327,6 +327,7 @@ void DataManager::SetDefaultValues()
 	mValues.insert(make_pair(TW_SDEXT_SIZE, make_pair("512", 1)));
 	mValues.insert(make_pair(TW_SWAP_SIZE, make_pair("32", 1)));
 	mValues.insert(make_pair(TW_SDPART_FILE_SYSTEM, make_pair("ext3", 1)));
+    mValues.insert(make_pair(TW_ACTION_BUSY, make_pair("0", 0)));
 }
 
 // Magic Values
