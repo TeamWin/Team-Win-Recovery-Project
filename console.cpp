@@ -148,21 +148,8 @@ GUIConsole::GUIConsole(xml_node<>* node)
             }
         }
 
-        child = node->first_node("placement");
-        if (child)
-        {
-            attr = child->first_attribute("x");
-            if (attr)   mRenderX = atol(attr->value());
-
-            attr = child->first_attribute("y");
-            if (attr)   mRenderY = atol(attr->value());
-
-            attr = child->first_attribute("w");
-            if (attr)   mRenderW = atol(attr->value());
-
-            attr = child->first_attribute("h");
-            if (attr)   mRenderH = atol(attr->value());
-        }
+        // Load the placement
+        LoadPlacement(node->first_node("placement"), &mRenderX, &mRenderY, &mRenderW, &mRenderH);
 
         mStubX = mRenderX;    mStubY = mRenderY;    mStubW = mRenderW;    mStubH = mRenderH;
 

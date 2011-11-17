@@ -49,18 +49,8 @@ GUIAnimation::GUIAnimation(xml_node<>* node)
             mAnimation = (AnimationResource*) PageManager::FindResource(attr->value());
     }
 
-    child = node->first_node("placement");
-    if (child)
-    {
-        attr = child->first_attribute("x");
-        if (attr)   mRenderX = atol(attr->value());
-
-        attr = child->first_attribute("y");
-        if (attr)   mRenderY = atol(attr->value());
-
-        attr = child->first_attribute("placement");
-        if (attr)   mPlacement = (Placement) atol(attr->value());
-    }
+    // Load the placement
+    LoadPlacement(node->first_node("placement"), &mRenderX, &mRenderY, NULL, NULL, &mPlacement);
 
     child = node->first_node("speed");
     if (child)

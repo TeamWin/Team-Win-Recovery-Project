@@ -62,6 +62,50 @@ int ConvertStrToColor(std::string str, COLOR* color)
     return 0;
 }
 
+// Helper APIs
+bool LoadPlacement(xml_node<>* node, int* x, int* y, int* w /* = NULL */, int* h /* = NULL */, RenderObject::Placement* placement /* = NULL */)
+{
+    if (!node)      return false;
+
+    std::string value;
+    if (node->first_attribute("x"))
+    {
+        value = node->first_attribute("x")->value();
+        DataManager::GetValue(value, value);
+        *x = atol(value.c_str());
+    }
+
+    if (node->first_attribute("y"))
+    {
+        value = node->first_attribute("y")->value();
+        DataManager::GetValue(value, value);
+        *y = atol(value.c_str());
+    }
+
+    if (w && node->first_attribute("w"))
+    {
+        value = node->first_attribute("w")->value();
+        DataManager::GetValue(value, value);
+        *w = atol(value.c_str());
+    }
+
+    if (h && node->first_attribute("h"))
+    {
+        value = node->first_attribute("h")->value();
+        DataManager::GetValue(value, value);
+        *h = atol(value.c_str());
+    }
+
+    if (placement && node->first_attribute("placement"))
+    {
+        value = node->first_attribute("placement")->value();
+        DataManager::GetValue(value, value);
+        *placement = (RenderObject::Placement) atol(value.c_str());
+    }
+
+    return true;
+}
+
 int ActionObject::SetActionPos(int x, int y, int w, int h)
 {
     if (x < 0 || y < 0)                                     return -1;
@@ -372,6 +416,12 @@ int PageSet::Load(ZipArchive* package)
     if (child)
         mResources = new ResourceManager(child, package);
 
+    LOGI("Loading variables...\n");
+    child = parent->first_node("variables");
+    if (child)
+        LoadVariables(child);
+
+    LOGI("Loading pages...\n");
     // This may be NULL if no templates are present
     templates = parent->first_node("templates");
 
@@ -379,7 +429,6 @@ int PageSet::Load(ZipArchive* package)
     if (!child)
         return -1;
 
-    LOGI("Loading pages...\n");
     return LoadPages(child, templates);
 }
 
@@ -416,6 +465,25 @@ Page* PageSet::FindPage(std::string name)
             return (*iter);
     }
     return NULL;
+}
+
+int PageSet::LoadVariables(xml_node<>* vars)
+{
+    xml_node<>* child;
+
+    child = vars->first_node("variable");
+    while (child)
+    {
+        if (!child->first_attribute("name"))
+            break;
+        if (!child->first_attribute("value"))
+            break;
+
+        DataManager::SetValue(child->first_attribute("name")->value(), child->first_attribute("value")->value());
+        child = child->next_sibling("variable");
+    }
+    DataManager::DumpValues();
+    return 0;
 }
 
 int PageSet::LoadPages(xml_node<>* pages, xml_node<>* templates /* = NULL */)

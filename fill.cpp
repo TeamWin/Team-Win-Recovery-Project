@@ -41,21 +41,8 @@ GUIFill::GUIFill(xml_node<>* node)
     std::string color = attr->value();
     ConvertStrToColor(color, &mColor);
 
-    child = node->first_node("placement");
-    if (!child)
-        return;
-
-    attr = child->first_attribute("x");
-    if (attr)   mRenderX = atol(attr->value());
-
-    attr = child->first_attribute("y");
-    if (attr)   mRenderY = atol(attr->value());
-
-    attr = child->first_attribute("w");
-    if (attr)   mRenderW = atol(attr->value());
-
-    attr = child->first_attribute("h");
-    if (attr)   mRenderH = atol(attr->value());
+    // Load the placement
+    LoadPlacement(node->first_node("placement"), &mRenderX, &mRenderY, &mRenderW, &mRenderH);
 
     return;
 }

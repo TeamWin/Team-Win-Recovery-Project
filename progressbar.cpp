@@ -55,18 +55,10 @@ GUIProgressBar::GUIProgressBar(xml_node<>* node)
             mFullBar = PageManager::FindResource(attr->value());
     }
 
-    // Find the placement
-    child = node->first_node("placement");
-    if (child)
-    {
-        attr = child->first_attribute("x");
-        if (attr)   mRenderX = atol(attr->value());
+    // Load the placement
+    LoadPlacement(node->first_node("placement"), &mRenderX, &mRenderY);
 
-        attr = child->first_attribute("y");
-        if (attr)   mRenderY = atol(attr->value());
-    }
-
-    // Find the placement
+    // Load the data
     child = node->first_node("data");
     if (child)
     {

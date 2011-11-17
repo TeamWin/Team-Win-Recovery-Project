@@ -74,6 +74,7 @@ public:
 
 protected:
     int LoadPages(xml_node<>* pages, xml_node<>* templates = NULL);
+    int LoadVariables(xml_node<>* vars);
 
 protected:
     char* mXmlFile;

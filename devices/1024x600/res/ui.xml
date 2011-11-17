@@ -17,6 +17,16 @@
         <resource name="checkbox_true" type="image" filename="checkbox_checked" />
     </resources>
 
+    <variables>
+        <variable name="col1_x" value="23" />
+        <variable name="col2_x" value="269" />
+        <variable name="col3_x" value="515" />
+        <variable name="col4_x" value="761" />
+
+        <variable name="row1_y" value="127" />
+        <variable name="row2_y" value="388" />
+    </variables>
+
     <templates>
         <template name="header">
             <object type="image">
@@ -54,7 +64,7 @@
             </object>
 
             <object type="button">
-                <placement x="23" y="127" />
+                <placement x="%col1_x%" y="%row1_y%" />
                 <font resource="font" color="black" />
                 <text>Install</text>
                 <image resource="main_button" />
@@ -62,7 +72,7 @@
             </object>
 
             <object type="button">
-                <placement x="269" y="127" />
+                <placement x="%col2_x%" y="%row1_y%" />
                 <font resource="font" color="black" />
                 <text>Backup</text>
                 <image resource="main_button" />
@@ -70,7 +80,7 @@
             </object>
 
             <object type="button">
-                <placement x="515" y="127" />
+                <placement x="%col3_x%" y="%row1_y%" />
                 <font resource="font" color="black" />
                 <text>Restore</text>
                 <image resource="main_button" />
@@ -78,7 +88,7 @@
             </object>
 
             <object type="button">
-                <placement x="761" y="127" />
+                <placement x="%col4_x%" y="%row1_y%" />
                 <font resource="font" color="black" />
                 <text>Wipe</text>
                 <image resource="main_button" />
@@ -86,7 +96,7 @@
             </object>
 
             <object type="button">
-                <placement x="23" y="388" />
+                <placement x="%col1_x%" y="%row2_y%" />
                 <font resource="font" color="black" />
                 <text>Mount</text>
                 <image resource="main_button" />
@@ -94,7 +104,7 @@
             </object>
 
             <object type="button">
-                <placement x="269" y="388" />
+                <placement x="%col2_x%" y="%row2_y%" />
                 <font resource="font" color="black" />
                 <text>Reboot</text>
                 <image resource="main_button" />
@@ -102,7 +112,7 @@
             </object>
 
             <object type="button">
-                <placement x="515" y="388" />
+                <placement x="%col3_x%" y="%row2_y%" />
                 <font resource="font" color="black" />
                 <text>Reload UI</text>
                 <image resource="main_button" />

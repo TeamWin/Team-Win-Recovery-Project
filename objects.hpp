@@ -458,5 +458,8 @@ protected:
 
 };
 
+// Helper APIs
+bool LoadPlacement(xml_node<>* node, int* x, int* y, int* w = NULL, int* h = NULL, RenderObject::Placement* placement = NULL);
+
 #endif  // _OBJECTS_HEADER
 
