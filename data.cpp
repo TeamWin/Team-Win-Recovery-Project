@@ -157,14 +157,23 @@ int DataManager::SaveValues()
 
 int DataManager::GetValue(const string varName, string& value)
 {
+    string localStr = varName;
+
     if (!mInitialized)
         SetDefaultValues();
 
+    // Strip off leading and trailing '%' if provided
+    if (localStr.length() > 2 && localStr[0] == '%' && localStr[localStr.length()-1] == '%')
+    {
+        localStr.erase(0, 1);
+        localStr.erase(localStr.length() - 1, 1);
+    }
+
     // Handle magic values
-    if (GetMagicValue(varName, value) == 0)     return 0;
+    if (GetMagicValue(localStr, value) == 0)     return 0;
 
     map<string, string>::iterator constPos;
-    constPos = mConstValues.find(varName);
+    constPos = mConstValues.find(localStr);
     if (constPos != mConstValues.end())
     {
         value = constPos->second;
@@ -172,7 +181,7 @@ int DataManager::GetValue(const string varName, string& value)
     }
 
     map<string, TStrIntPair>::iterator pos;
-    pos = mValues.find(varName);
+    pos = mValues.find(localStr);
     if (pos == mValues.end())
         return -1;
 
