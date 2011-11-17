@@ -110,11 +110,6 @@
         <page name="install">
             <background color="black" />
 
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
             <object type="text" color="white">
                 <font resource="header" />
                 <placement x="100" y="15" />
@@ -193,11 +188,6 @@
         <page name="reboot">
             <background color="black" />
 
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
             <object type="text" color="white">
                 <font resource="header" />
                 <placement x="100" y="15" />
@@ -274,11 +264,6 @@
         <page name="mount">
             <background color="black" />
 
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
             <object type="text" color="white">
                 <font resource="header" />
                 <placement x="100" y="15" />
@@ -330,11 +315,6 @@
 
         <page name="usb_mount">
             <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
 
             <object type="text" color="white">
                 <font resource="header" />
@@ -391,11 +371,6 @@
 
         <page name="flash_zip">
             <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
 
             <object type="text" color="white">
                 <font resource="header" />
@@ -455,11 +430,6 @@
         <page name="flash_done">
             <background color="black" />
 
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
             <object type="text" color="white">
                 <font resource="header" />
                 <placement x="100" y="15" />
@@ -507,11 +477,6 @@
 
         <page name="wipe">
             <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
 
             <object type="text" color="white">
                 <font resource="header" />
@@ -568,7 +533,7 @@
             </object>
 
             <object type="button">
-                <placement x="20" y="350" />
+                <placement x="764" y="150" />
                 <font resource="font" color="black" />
                 <text>Battery Stats</text>
                 <image resource="main_button" />
@@ -576,11 +541,35 @@
             </object>
 
             <object type="button">
-                <placement x="268" y="350" />
+                <placement x="20" y="350" />
                 <font resource="font" color="black" />
                 <text>Rotation</text>
                 <image resource="main_button" />
                 <action function="page">wipe_rotate</action>
+            </object>
+
+            <object type="button">
+                <placement x="268" y="350" />
+                <font resource="font" color="black" />
+                <text>System</text>
+                <image resource="main_button" />
+                <action function="page">wipe_system</action>
+            </object>
+
+            <object type="button">
+                <placement x="516" y="350" />
+                <font resource="font" color="black" />
+                <text>SD Card</text>
+                <image resource="main_button" />
+                <action function="page">wipe_sdcard</action>
+            </object>
+
+            <object type="button">
+                <placement x="764" y="350" />
+                <font resource="font" color="black" />
+                <text>SD Ext</text>
+                <image resource="main_button" />
+                <action function="page">wipe_sdext</action>
             </object>
 
             <object type="action">
@@ -594,44 +583,79 @@
             </object>
         </page>
 
-        <page name="wipe_cache">
-            <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
+        <page name="wipe_system" header="1">
+            <object type="progressbar">
+                <placement x="386" y="290" />
+                <resource  empty="progress_empty" full="progress_full" />
+                <data name="ui_progress" />
             </object>
 
-            <object type="text" color="white">
-                <font resource="header" />
-                <placement x="100" y="15" />
-                <text>Recovery</text>
+            <object type="animation">
+                <placement x="386" y="290" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
             </object>
 
-            <object type="text" color="white">
-                <font resource="font" />
-                <placement x="400" y="20" />
-                <text>Team Win Recovery Project (twrp)  v%tw_version%</text>
+            <object type="action">
+                <condition var1="tw_operation_state" var2="1" />
+                <action function="page">wipe_done</action>
             </object>
 
-            <object type="text" color="white">
-                <font resource="font" />
-                <placement x="400" y="50" />
-                <text>Based on Android System Recovery</text>
+            <object type="action">
+                <action function="wipe">/system</action>
+            </object>
+        </page>
+
+        <page name="wipe_sdcard" header="1">
+            <object type="progressbar">
+                <placement x="386" y="290" />
+                <resource  empty="progress_empty" full="progress_full" />
+                <data name="ui_progress" />
             </object>
 
-            <object type="text" color="white">
-                <font resource="font" />
-                <placement x="400" y="75" />
-                <text>Battery Level: %tw_battery%</text>
+            <object type="animation">
+                <placement x="386" y="290" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
             </object>
 
-            <object type="text" color="white">
-                <font resource="font" />
-                <placement x="650" y="75" />
-                <text>%tw_time%</text>
+            <object type="action">
+                <condition var1="tw_operation_state" var2="1" />
+                <action function="page">wipe_done</action>
             </object>
 
+            <object type="action">
+                <action function="wipe">/sdcard</action>
+            </object>
+        </page>
+
+        <page name="wipe_sdext" header="1">
+            <object type="progressbar">
+                <placement x="386" y="290" />
+                <resource  empty="progress_empty" full="progress_full" />
+                <data name="ui_progress" />
+            </object>
+
+            <object type="animation">
+                <placement x="386" y="290" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+
+            <object type="action">
+                <condition var1="tw_operation_state" var2="1" />
+                <action function="page">wipe_done</action>
+            </object>
+
+            <object type="action">
+                <action function="wipe">/sd-ext</action>
+            </object>
+        </page>
+
+        <page name="wipe_cache" header="1">
             <object type="progressbar">
                 <placement x="386" y="290" />
                 <resource  empty="progress_empty" full="progress_full" />
@@ -657,11 +681,6 @@
 
         <page name="wipe_dalvik">
             <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
 
             <object type="text" color="white">
                 <font resource="header" />
@@ -719,11 +738,6 @@
         <page name="wipe_rotate">
             <background color="black" />
 
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
             <object type="text" color="white">
                 <font resource="header" />
                 <placement x="100" y="15" />
@@ -779,11 +793,6 @@
 
         <page name="wipe_data">
             <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
 
             <object type="text" color="white">
                 <font resource="header" />
@@ -842,11 +851,6 @@
         <page name="wipe_battery">
             <background color="black" />
 
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
             <object type="text" color="white">
                 <font resource="header" />
                 <placement x="100" y="15" />
@@ -902,11 +906,6 @@
 
         <page name="wipe_done">
             <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
 
             <object type="text" color="white">
                 <font resource="header" />
@@ -965,11 +964,6 @@
 
         <page name="backup">
             <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
 
             <object type="text" color="white">
                 <font resource="header" />
@@ -1089,11 +1083,6 @@
         <page name="backup_run">
             <background color="black" />
 
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
             <object type="text" color="white">
                 <font resource="header" />
                 <placement x="100" y="15" />
@@ -1168,11 +1157,6 @@
         <page name="backup_success">
             <background color="black" />
 
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
             <object type="text" color="white">
                 <font resource="header" />
                 <placement x="100" y="15" />
@@ -1220,11 +1204,6 @@
 
         <page name="backup_failed">
             <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
 
             <object type="text" color="white">
                 <font resource="header" />
@@ -1286,11 +1265,6 @@
 
         <page name="restore">
             <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
 
             <object type="text" color="white">
                 <font resource="header" />
@@ -1366,11 +1340,6 @@
 
         <page name="restore_select">
             <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
 
             <object type="text" color="white">
                 <font resource="header" />
@@ -1487,11 +1456,6 @@
         <page name="restore_run">
             <background color="black" />
 
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
             <object type="text" color="white">
                 <font resource="header" />
                 <placement x="100" y="15" />
@@ -1566,11 +1530,6 @@
         <page name="restore_success">
             <background color="black" />
 
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
-
             <object type="text" color="white">
                 <font resource="header" />
                 <placement x="100" y="15" />
@@ -1618,11 +1577,6 @@
 
         <page name="restore_failed">
             <background color="black" />
-
-            <object type="image">
-                <image resource="android" />
-                <placement x="10" y="10" />
-            </object>
 
             <object type="text" color="white">
                 <font resource="header" />

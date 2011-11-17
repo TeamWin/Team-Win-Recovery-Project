@@ -1,6 +1,14 @@
 <?xml version="1.0"?>
 
 <recovery>
+    <details>
+        <resolution width="540" height="960" />
+        <author>TeamWin</author>
+        <title>Backup Naowz</title>
+        <description>Default basic theme</description>
+        <preview>preview.jpg</preview>
+    </details>
+
     <resources>
         <resource name="font" type="font" filename="bluehighway-25" />
         <resource name="android" type="image" filename="android" />
@@ -1123,7 +1131,7 @@
                 <action function="page">main</action>
             </object>
         </page>
-		
+
 		<page name="partsdcard" header="1">
 			<object type="button">
                 <placement x="10" y="120" />
