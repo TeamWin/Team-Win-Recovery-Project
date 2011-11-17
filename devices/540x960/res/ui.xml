@@ -28,6 +28,15 @@
 
     <header>
         <background color="black" />
+		
+		<object type="button">
+			<placement x="10" y="10" />
+			<font resource="font" color="black" />
+			<text></text>
+			<image resource="android" />
+			<condition var1="tw_busy" var2="0" />
+			<action function="page">main</action>
+		</object>
 
         <object type="image">
             <image resource="android" />
@@ -52,6 +61,13 @@
             <condition var1="tw_battery" op=">" var2="0" />
             <text>Battery: %tw_battery%</text>
         </object>
+		
+		<object type="console">
+			<slideout resource="slideout" x="240" y="920" />
+			<placement x="0" y="0" w="540" h="960" />
+			<color foreground="#B0B0B0" background="black" scroll="#303030" />
+			<font resource="fixed" />
+		</object>
     </header>
 
     <pages>
@@ -118,13 +134,6 @@
                 <text>Reboot</text>
                 <image resource="main_button" />
                 <action function="page">reboot</action>
-            </object>
-			
-			<object type="console">
-                <slideout resource="slideout" x="240" y="920" />
-                <placement x="0" y="0" w="540" h="960" />
-                <color foreground="#B0B0B0" background="black" scroll="#303030" />
-                <font resource="fixed" />
             </object>
         </page>
 
@@ -653,13 +662,6 @@
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
-
-            <object type="console">
-                <slideout resource="slideout" x="210" y="920" />
-                <placement x="0" y="0" w="540" h="960" />
-                <color foreground="#B0B0B0" background="black" scroll="#303030" />
-                <font resource="fixed" />
-            </object>
         </page>
 
         <page name="restore" header="1">
@@ -874,13 +876,6 @@
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
-            </object>
-
-            <object type="console">
-                <slideout resource="slideout" x="210" y="920" />
-                <placement x="0" y="0" w="540" h="960" />
-                <color foreground="#B0B0B0" background="black" scroll="black" />
-                <font resource="fixed" />
             </object>
         </page>
 
