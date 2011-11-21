@@ -336,6 +336,9 @@ void DataManager::SetDefaultValues()
 	mValues.insert(make_pair(TW_SDEXT_SIZE, make_pair("512", 1)));
 	mValues.insert(make_pair(TW_SWAP_SIZE, make_pair("32", 1)));
 	mValues.insert(make_pair(TW_SDPART_FILE_SYSTEM, make_pair("ext3", 1)));
+	mValues.insert(make_pair(TW_TIME_ZONE_GUISEL, make_pair("CST6;CDT", 1)));
+	mValues.insert(make_pair(TW_TIME_ZONE_GUIOFFSET, make_pair("0", 1)));
+	mValues.insert(make_pair(TW_TIME_ZONE_GUIDST, make_pair("1", 1)));
     mValues.insert(make_pair(TW_ACTION_BUSY, make_pair("0", 0)));
 }
 
@@ -352,8 +355,8 @@ int DataManager::GetMagicValue(const string varName, string& value)
         now = time(0);
         current = localtime(&now);
 
-        if (current->tm_hour > 12)
-            sprintf(tmp, "%d:%02d PM", current->tm_hour - 12, current->tm_min);
+        if (current->tm_hour >= 12)
+            sprintf(tmp, "%d:%02d PM", current->tm_hour == 12 ? 12 : current->tm_hour - 12, current->tm_min);
         else
             sprintf(tmp, "%d:%02d AM", current->tm_hour == 0 ? 12 : current->tm_hour, current->tm_min);
 
