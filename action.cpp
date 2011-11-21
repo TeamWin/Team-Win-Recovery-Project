@@ -39,6 +39,7 @@ int usb_storage_enable(void);
 int usb_storage_disable(void);
 int __system(const char *command);
 void run_script(char *str1,char *str2,char *str3,char *str4,char *str5,char *str6,char *str7, int request_confirm);
+void update_tz_environment_variables();
 };
 
 #include "rapidxml.hpp"
@@ -139,9 +140,7 @@ void* GUIAction::thread_start(void *cookie)
     GUIAction* ourThis = (GUIAction*) cookie;
 
     LOGI("GUIAction thread has been started.\n");
-    DataManager::SetValue(TW_ACTION_BUSY, 1);
     ourThis->doAction(1);
-    DataManager::SetValue(TW_ACTION_BUSY, 0);
     LOGI("GUIAction thread is terminating.\n");
     return NULL;
 }
@@ -339,6 +338,31 @@ int GUIAction::doAction(int isThreaded)
             DataManager::SetValue(varName, value);
 			return 0;
         }
+	}
+	
+	if (mFunction == "setguitimezone")
+	{
+		string SelectedZone;
+		DataManager::GetValue(TW_TIME_ZONE_GUISEL, SelectedZone); // read the selected time zone into SelectedZone
+		string Zone = SelectedZone.substr(0, SelectedZone.find(';')); // parse to get time zone
+		string DSTZone = SelectedZone.substr(SelectedZone.find(';') + 1, string::npos); // parse to get DST component
+		
+		int dst;
+		DataManager::GetValue(TW_TIME_ZONE_GUIDST, dst); // check wether user chose to use DST
+		
+		string offset;
+		DataManager::GetValue(TW_TIME_ZONE_GUIOFFSET, offset); // pull in offset
+		
+		string NewTimeZone = Zone;
+		if (offset != "0")
+			NewTimeZone += ":" + offset;
+		
+		if (dst != 0)
+			NewTimeZone += DSTZone;
+		
+		DataManager::SetValue(TW_TIME_ZONE_VAR, NewTimeZone);
+		update_tz_environment_variables();
+		return 0;
 	}
 
     if (isThreaded)
