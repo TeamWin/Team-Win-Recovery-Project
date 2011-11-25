@@ -184,14 +184,37 @@ void GUIAction::flash_zip(std::string filename)
     }
     else
     {
-        // In this case, we just use 
+        // In this case, we just use the default page
         mzCloseZipArchive(&zip);
         gui_changePage(mArg);
     }
     if (fd >= 0)
         close(fd);
 
+#ifdef _SIMULATE_ACTIONS
+    for (int i = 0; i < 10; i++)
+    {
+        usleep(1000000);
+        DataManager::SetValue("ui_progress", i * 10);
+    }
+#else
     install_zip_package(filename.c_str());
+
+    // Now, check if we need to ensure TWRP remains installed...
+    struct stat st;
+    if (stat("/sbin/installTwrp", &st) == 0)
+    {
+        DataManager::SetValue("tw_operation", "Configuring TWRP");
+        DataManager::SetValue("tw_partition", "");
+        ui_print("Configuring TWRP...\n");
+        if (__system("/sbin/installTwrp reinstall") < 0)
+        {
+            ui_print("Unable to configure TWRP with this kernel.\n");
+        }
+    }
+#endif
+
+    // Done
     DataManager::SetValue("ui_progress", 100);
     DataManager::SetValue("ui_progress", 0);
 
@@ -202,7 +225,6 @@ void GUIAction::flash_zip(std::string filename)
     return;
 }
 
-#ifndef _SIMULATE_ACTIONS
 int GUIAction::doAction(int isThreaded)
 {
     if (mFunction == "reboot")
@@ -246,7 +268,10 @@ int GUIAction::doAction(int isThreaded)
 
     if (mFunction == "readBackup")
     {
+#ifdef _SIMULATE_ACTIONS
+#else
         set_restore_files();
+#endif
         return 0;
     }
 
@@ -272,6 +297,7 @@ int GUIAction::doAction(int isThreaded)
 
     if (mFunction == "mount")
     {
+#ifndef _SIMULATE_ACTIONS
         if (mArg == "usb")
         {
             usb_storage_enable();
@@ -282,10 +308,12 @@ int GUIAction::doAction(int isThreaded)
             __system(cmd.c_str());
         }
         return 0;
+#endif
     }
 
     if (mFunction == "umount" || mFunction == "unmount")
     {
+#ifndef _SIMULATE_ACTIONS
         if (mArg == "usb")
         {
             usb_storage_disable();
@@ -295,6 +323,7 @@ int GUIAction::doAction(int isThreaded)
             string cmd = "umount " + mArg;
             __system(cmd.c_str());
         }
+#endif
         return 0;
     }
 	
@@ -305,10 +334,12 @@ int GUIAction::doAction(int isThreaded)
 	
 	if (mFunction == "copylog")
 	{
+#ifndef _SIMULATE_ACTIONS
 		ensure_path_mounted("/sdcard");
 		__system("cp /tmp/recovery.log /sdcard");
 		sync();
 		ui_print("Copied recovery log to /sdcard.\n");
+#endif
 		return 0;
 	}
 	
@@ -363,6 +394,9 @@ int GUIAction::doAction(int isThreaded)
             DataManager::SetValue("tw_operation_status", 0);
             DataManager::SetValue("tw_operation_state", 0);
 
+#ifdef _SIMULATE_ACTIONS
+            usleep(5000000);
+#else
             if (mArg == "data")
                 wipe_data(0);
             else if (mArg == "battery")
@@ -379,6 +413,7 @@ int GUIAction::doAction(int isThreaded)
 				mkdir("/sdcard/TWRP", 0777);
 				DataManager::Flush();
 			}
+#endif
 
             DataManager::SetValue("tw_operation", "Format");
             DataManager::SetValue("tw_partition", mArg);
@@ -390,12 +425,22 @@ int GUIAction::doAction(int isThreaded)
         {
             DataManager::SetValue("ui_progress", 0);
 
+#ifdef _SIMULATE_ACTIONS
+            for (int i = 0; i < 5; i++)
+            {
+                usleep(1000000);
+                DataManager::SetValue("ui_progress", i * 20);
+            }
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 1);
+#else
             if (mArg == "backup")
                 nandroid_back_exe();
             else if (mArg == "restore")
                 nandroid_rest_exe();
             else
                 return -1;
+#endif
 
             return 0;
         }
@@ -406,7 +451,11 @@ int GUIAction::doAction(int isThreaded)
             DataManager::SetValue("tw_operation_status", 0);
             DataManager::SetValue("tw_operation_state", 0);
 			LOGI("fix permissions started!\n");
+#ifdef _SIMULATE_ACTIONS
+            usleep(10000000);
+#else
 			fix_perms();
+#endif
 			LOGI("fix permissions DONE!\n");
 			DataManager::SetValue("ui_progress", 100);
 			DataManager::SetValue("ui_progress", 0);
@@ -421,7 +470,11 @@ int GUIAction::doAction(int isThreaded)
 			DataManager::SetValue("tw_operation", "partitionsd");
             DataManager::SetValue("tw_operation_status", 0);
             DataManager::SetValue("tw_operation_state", 0);
-			// Below seen in Koush's recovery
+
+#ifdef _SIMULATE_ACTIONS
+            usleep(10000000);
+#else
+            // Below seen in Koush's recovery
 			char sddevice[256];
 			Volume *vol = volume_for_path("/sdcard");
 			strcpy(sddevice, vol->device);
@@ -448,256 +501,21 @@ int GUIAction::doAction(int isThreaded)
 			ensure_path_mounted(SDCARD_ROOT);
 			mkdir("/sdcard/TWRP", 0777);
 			DataManager::Flush();
-			DataManager::SetValue("ui_progress", 100);
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "partitionsd");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 1);
-			return 0;
-		}
-    }
-    else
-    {
-        pthread_t t;
-        pthread_create(&t, NULL, thread_start, this);
-        return 0;
-    }
-    return -1;
-}
-
-#else // _SIMULATE_ACTIONS
-
-int GUIAction::doAction(int isThreaded)
-{
-    if (mFunction == "reboot")
-    {
-        ui_print("Reboot requested to %s.\n", mArg.c_str());
-        return 0;
-    }
-    if (mFunction == "home")
-    {
-        PageManager::SelectPackage("TWRP");
-        gui_changePage("main");
-        return 0;
-    }
-
-    if (mFunction == "page")
-        return gui_changePage(mArg);
-
-    if (mFunction == "reload")
-        return PageManager::ReloadPackage("TWRP", "/sdcard/TWRP/theme/ui.zip");
-
-    if (mFunction == "readBackup")
-    {
-        //set_restore_files();
-        ui_print("Simulating backup contains all data available.\n");
-        DataManager::SetValue(TW_RESTORE_SYSTEM_VAR, 1);
-        DataManager::SetValue(TW_RESTORE_DATA_VAR, 1);
-        DataManager::SetValue(TW_RESTORE_CACHE_VAR, 1);
-        DataManager::SetValue(TW_RESTORE_RECOVERY_VAR, 1);
-        DataManager::SetValue(TW_RESTORE_WIMAX_VAR, 1);
-        DataManager::SetValue(TW_RESTORE_BOOT_VAR, 1);
-        DataManager::SetValue(TW_RESTORE_ANDSEC_VAR, 1);
-        DataManager::SetValue(TW_RESTORE_SDEXT_VAR, 1);
-        return 0;
-    }
-
-    if (mFunction == "set")
-    {
-        if (mArg.find('=') != string::npos)
-        {
-            string varName = mArg.substr(0, mArg.find('='));
-            string value = mArg.substr(mArg.find('=') + 1, string::npos);
-
-            DataManager::GetValue(value, value);
-            DataManager::SetValue(varName, value);
-        }
-        else
-            DataManager::SetValue(mArg, "1");
-        return 0;
-    }
-    if (mFunction == "clear")
-    {
-        DataManager::SetValue(mArg, "0");
-        return 0;
-    }
-
-    if (mFunction == "mount")
-    {
-        if (mArg == "usb")
-            ui_print("Mounted usb.\n");
-        else
-            ui_print("Mounted %s.\n", mArg.c_str());
-        return 0;
-    }
-
-    if (mFunction == "umount" || mFunction == "unmount")
-    {
-        if (mArg == "usb")
-            ui_print("Unmounted usb.\n");
-        else
-            ui_print("Unmounted %s.\n", mArg.c_str());
-        return 0;
-    }
-	
-	if (mFunction == "restoredefaultsettings")
-	{
-		DataManager::ResetDefaults();
-	}
-	
-	if (mFunction == "copylog")
-	{
-		ensure_path_mounted("/sdcard");
-		__system("cp /tmp/recovery.log /sdcard");
-		sync();
-		ui_print("Copied recovery log to /sdcard.\n");
-	}
-	
-	if (mFunction == "addsubtract")
-	{
-		if (mArg.find("+") != string::npos)
-        {
-            string varName = mArg.substr(0, mArg.find('+'));
-            string string_to_add = mArg.substr(mArg.find('+') + 1, string::npos);
-			int amount_to_add = atoi(string_to_add.c_str());
-			int value;
-
-			DataManager::GetValue(varName, value);
-            DataManager::SetValue(varName, value + amount_to_add);
-			return 0;
-        }
-		if (mArg.find("-") != string::npos)
-        {
-            string varName = mArg.substr(0, mArg.find('-'));
-            string string_to_subtract = mArg.substr(mArg.find('-') + 1, string::npos);
-			int amount_to_subtract = atoi(string_to_subtract.c_str());
-			int value;
-
-			DataManager::GetValue(varName, value);
-			value -= amount_to_subtract;
-			if ((value - amount_to_subtract) <= 0)
-				value = 0;
-            DataManager::SetValue(varName, value - amount_to_subtract);
-			return 0;
-        }
-	}
-
-    if (isThreaded)
-    {
-        if (mFunction == "flash")
-        {
-            DataManager::SetValue("ui_progress", 0);
-
-            std::string filename;
-            DataManager::GetValue("tw_filename", filename);
-
-            DataManager::SetValue("tw_operation", "Flashing");
-            DataManager::SetValue("tw_partition", filename);
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 0);
-
-            // We're going to jump to this page first, like a loading page
-            gui_changePage(mArg);
-
-            ui_print("Simulating 10-second zip install of file %s...\n", filename.c_str());
-
-            DataManager::SetValue("ui_progress_portion", 100);
-            DataManager::SetValue("ui_progress_frames", 300);
-
-            usleep(10000000);
-
-            DataManager::SetValue("ui_progress", 100);
-            DataManager::SetValue("ui_progress", 0);
-
-            DataManager::SetValue("tw_operation", "Done");
-            DataManager::SetValue("tw_partition", filename);
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 1);
-            return 0;
-        }
-        if (mFunction == "wipe")
-        {
-            DataManager::SetValue("ui_progress", 0);
-
-            DataManager::SetValue("tw_operation", "Format");
-            DataManager::SetValue("tw_partition", mArg);
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 0);
-
-            ui_print("Simulating 5-second wipe of %s\n", mArg.c_str());
-            DataManager::SetValue("ui_progress_portion", 100);
-            DataManager::SetValue("ui_progress_frames", 150);
-            usleep(5000000);
-
-            DataManager::SetValue("ui_progress", 100);
-
-            DataManager::SetValue("tw_operation", "Format");
-            DataManager::SetValue("tw_partition", mArg);
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 1);
-            return 0;
-        }
-        if (mFunction == "nandroid")
-        {
-            DataManager::SetValue("ui_progress", 0);
-
-            DataManager::SetValue("tw_operation", mArg);
-            DataManager::SetValue("tw_partition", "system");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 0);
-
-            ui_print("Simulating 10-second nandroid %s of system\n", mArg.c_str());
-            DataManager::SetValue("ui_progress_portion", 100);
-            DataManager::SetValue("ui_progress_frames", 300);
-            usleep(10000000);
-
-            DataManager::SetValue("ui_progress", 100);
-
-            DataManager::SetValue("tw_operation", "Completed");
-            DataManager::SetValue("tw_partition", mArg);
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 1);
-            return 0;
-        }
-		if (mFunction == "fixpermissions")
-		{
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "FixingPermissions");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 0);
-			LOGI("fix permissions started!\n");
-			usleep(10000000);
-			LOGI("fix permissions DONE!\n");
-			DataManager::SetValue("ui_progress", 100);
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "FixingPermissions");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 1);
-			return 0;
-		}
-		if (mFunction == "partitionsd")
-		{
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "partitionsd");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 0);
-			usleep(10000000);
-			DataManager::SetValue("ui_progress", 100);
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "partitionsd");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 1);
-			return 0;
-		}
-    }
-    else
-    {
-        pthread_t t;
-        pthread_create(&t, NULL, thread_start, this);
-        return 0;
-    }
-    return -1;
-}
-
 #endif
+			DataManager::SetValue("ui_progress", 100);
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "partitionsd");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 1);
+			return 0;
+		}
+    }
+    else
+    {
+        pthread_t t;
+        pthread_create(&t, NULL, thread_start, this);
+        return 0;
+    }
+    return -1;
+}
 
