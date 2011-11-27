@@ -36,6 +36,8 @@
 #define ASSUMED_UPDATE_BINARY_NAME  "META-INF/com/google/android/update-binary"
 #define PUBLIC_KEYS_FILE "/res/keys"
 
+static const char *LAST_INSTALL_FILE = "/cache/recovery/last_install";
+
 // If the package contains an update binary, extract it and run it.
 static int
 try_update_binary(const char *path, ZipArchive *zip) {

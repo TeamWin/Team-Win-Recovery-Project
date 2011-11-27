@@ -1,18 +1,18 @@
 /*
-* Copyright (C) 2007 The Android Open Source Project
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (C) 2007 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,13 +20,20 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <sys/mount.h> // for _IOW, _IOR, mount()
+#include <sys/mount.h>  // for _IOW, _IOR, mount()
 #include <sys/stat.h>
 #include <mtd/mtd-user.h>
 #undef NDEBUG
 #include <assert.h>
 
 #include "mtdutils.h"
+
+struct MtdPartition {
+    int device_index;
+    unsigned int size;
+    unsigned int erase_size;
+    char *name;
+};
 
 struct MtdReadContext {
     const MtdPartition *partition;
@@ -53,12 +60,12 @@ typedef struct {
 } MtdState;
 
 static MtdState g_mtd_state = {
-    NULL, // partitions
-    0, // partitions_allocd
-    -1 // partition_count
+    NULL,   // partitions
+    0,      // partitions_allocd
+    -1      // partition_count
 };
 
-#define MTD_PROC_FILENAME "/proc/mtd"
+#define MTD_PROC_FILENAME   "/proc/mtd"
 
 int
 mtd_scan_partitions()
@@ -83,9 +90,9 @@ mtd_scan_partitions()
     g_mtd_state.partition_count = 0;
 
     /* Initialize all of the entries to make things easier later.
-* (Lets us handle sparsely-numbered partitions, which
-* may not even be possible.)
-*/
+     * (Lets us handle sparsely-numbered partitions, which
+     * may not even be possible.)
+     */
     for (i = 0; i < g_mtd_state.partitions_allocd; i++) {
         MtdPartition *p = &g_mtd_state.partitions[i];
         if (p->name != NULL) {
@@ -96,7 +103,7 @@ mtd_scan_partitions()
     }
 
     /* Open and read the file contents.
-*/
+     */
     fd = open(MTD_PROC_FILENAME, O_RDONLY);
     if (fd < 0) {
         goto bail;
@@ -109,16 +116,16 @@ mtd_scan_partitions()
     buf[nbytes] = '\0';
 
     /* Parse the contents of the file, which looks like:
-*
-* # cat /proc/mtd
-* dev: size erasesize name
-* mtd0: 00080000 00020000 "bootloader"
-* mtd1: 00400000 00020000 "mfg_and_gsm"
-* mtd2: 00400000 00020000 "0000000c"
-* mtd3: 00200000 00020000 "0000000d"
-* mtd4: 04000000 00020000 "system"
-* mtd5: 03280000 00020000 "userdata"
-*/
+     *
+     *     # cat /proc/mtd
+     *     dev:    size   erasesize  name
+     *     mtd0: 00080000 00020000 "bootloader"
+     *     mtd1: 00400000 00020000 "mfg_and_gsm"
+     *     mtd2: 00400000 00020000 "0000000c"
+     *     mtd3: 00200000 00020000 "0000000d"
+     *     mtd4: 04000000 00020000 "system"
+     *     mtd5: 03280000 00020000 "userdata"
+     */
     bufp = buf;
     while (nbytes > 0) {
         int mtdnum, mtdsize, mtderasesize;
@@ -130,8 +137,8 @@ mtd_scan_partitions()
         matches = sscanf(bufp, "mtd%d: %x %x \"%63[^\"]",
                 &mtdnum, &mtdsize, &mtderasesize, mtdname);
         /* This will fail on the first line, which just contains
-* column headers.
-*/
+         * column headers.
+         */
         if (matches == 4) {
             MtdPartition *p = &g_mtd_state.partitions[mtdnum];
             p->device_index = mtdnum;
@@ -146,7 +153,7 @@ mtd_scan_partitions()
         }
 
         /* Eat the line.
-*/
+         */
         while (nbytes > 0 && *bufp != '\n') {
             bufp++;
             nbytes--;
@@ -203,11 +210,11 @@ mtd_mount_partition(const MtdPartition *partition, const char *mount_point,
             printf("Mount %s on %s read-only\n", devname, mount_point);
         }
     }
-#if 1 //TODO: figure out why this is happening; remove include of stat.h
+#if 1   //TODO: figure out why this is happening; remove include of stat.h
     if (rv >= 0) {
         /* For some reason, the x bits sometimes aren't set on the root
-* of mounted volumes.
-*/
+         * of mounted volumes.
+         */
         struct stat st;
         rv = stat(mount_point, &st);
         if (rv < 0) {
@@ -262,8 +269,8 @@ MtdReadContext *mtd_read_partition(const MtdPartition *partition)
     sprintf(mtddevname, "/dev/mtd/mtd%d", partition->device_index);
     ctx->fd = open(mtddevname, O_RDONLY);
     if (ctx->fd < 0) {
-        free(ctx);
         free(ctx->buffer);
+        free(ctx);
         return NULL;
     }
 
@@ -272,7 +279,7 @@ MtdReadContext *mtd_read_partition(const MtdPartition *partition)
     return ctx;
 }
 
-// Seeks to a location in the partition. Don't mix with reads of
+// Seeks to a location in the partition.  Don't mix with reads of
 // anything other than whole blocks; unpredictable things will result.
 void mtd_read_skip_to(const MtdReadContext* ctx, size_t offset) {
     lseek64(ctx->fd, offset, SEEK_SET);
@@ -309,7 +316,7 @@ static int read_block(const MtdPartition *partition, int fd, char *data)
                     "mtd: MEMGETBADBLOCK returned %d at 0x%08llx (errno=%d)\n",
                     mgbb, pos, errno);
         } else {
-            return 0; // Success!
+            return 0;  // Success!
         }
 
         pos += partition->erase_size;
@@ -338,7 +345,7 @@ ssize_t mtd_read_data(MtdReadContext *ctx, char *data, size_t len)
             read += ctx->partition->erase_size;
         }
 
-        if (read >= (int)len) {
+        if (read >= len) {
             return read;
         }
 
@@ -415,7 +422,7 @@ static int write_block(MtdWriteContext *ctx, const char *data)
                     "mtd: not writing bad block at 0x%08lx (ret %d errno %d)\n",
                     pos, ret, errno);
             pos += partition->erase_size;
-            continue; // Don't try to erase known factory-bad blocks.
+            continue;  // Don't try to erase known factory-bad blocks.
         }
 
         struct erase_info_user erase_info;
@@ -451,7 +458,7 @@ static int write_block(MtdWriteContext *ctx, const char *data)
                 fprintf(stderr, "mtd: wrote block after %d retries\n", retry);
             }
             fprintf(stderr, "mtd: successfully wrote block at %llx\n", pos);
-            return 0; // Success!
+            return 0;  // Success!
         }
 
         // Try to erase it once more as we give up on this block
@@ -521,7 +528,7 @@ off_t mtd_erase_blocks(MtdWriteContext *ctx, int blocks)
         if (ioctl(ctx->fd, MEMGETBADBLOCK, &bpos) > 0) {
             fprintf(stderr, "mtd: not erasing bad block at 0x%08lx\n", pos);
             pos += ctx->partition->erase_size;
-            continue; // Don't try to erase known factory-bad blocks.
+            continue;  // Don't try to erase known factory-bad blocks.
         }
 
         struct erase_info_user erase_info;
@@ -549,8 +556,8 @@ int mtd_write_close(MtdWriteContext *ctx)
 }
 
 /* Return the offset of the first good block at or after pos (which
-* might be pos itself).
-*/
+ * might be pos itself).
+ */
 off_t mtd_find_write_start(MtdWriteContext *ctx, off_t pos) {
     int i;
     for (i = 0; i < ctx->bad_block_count; ++i) {

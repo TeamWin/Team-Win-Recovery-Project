@@ -1,4 +1,4 @@
-# Copyright (C) 2008 The Android Open Source Project
+# Copyright (C) 2009 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,21 +13,15 @@
 # limitations under the License.
 
 LOCAL_PATH := $(call my-dir)
-
 include $(CLEAR_VARS)
-LOCAL_FORCE_STATIC_EXECUTABLE := true
-LOCAL_MODULE := add-property-tag
-LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
-LOCAL_MODULE_TAGS := debug
-LOCAL_SRC_FILES := add-property-tag.c
-LOCAL_STATIC_LIBRARIES := libc
-include $(BUILD_EXECUTABLE)
 
-include $(CLEAR_VARS)
-LOCAL_FORCE_STATIC_EXECUTABLE := true
-LOCAL_MODULE := check-lost+found
-LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
-LOCAL_MODULE_TAGS := debug
-LOCAL_SRC_FILES := check-lost+found.c
-LOCAL_STATIC_LIBRARIES := libcutils libc
-include $(BUILD_EXECUTABLE)
+LOCAL_SRC_FILES := \
+	Retouch.c
+
+LOCAL_C_INCLUDES += bootable/recovery
+
+LOCAL_MODULE := libminelf
+
+LOCAL_CFLAGS += -Wall
+
+include $(BUILD_STATIC_LIBRARY)

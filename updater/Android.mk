@@ -27,6 +27,7 @@ endif
 LOCAL_STATIC_LIBRARIES += $(TARGET_RECOVERY_UPDATER_LIBS) $(TARGET_RECOVERY_UPDATER_EXTRA_LIBS)
 LOCAL_STATIC_LIBRARIES += libapplypatch libedify libmtdutils libminzip libz
 LOCAL_STATIC_LIBRARIES += libmincrypt libbz
+LOCAL_STATIC_LIBRARIES += libminelf
 LOCAL_STATIC_LIBRARIES += libcutils libstdc++ libc
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/..
 
@@ -57,9 +58,9 @@ $(inc) : libs := $(TARGET_RECOVERY_UPDATER_LIBS)
 $(inc) : $(inc).list
 	$(hide) mkdir -p $(dir $@)
 	$(hide) echo "" > $@
-	$(hide) $(foreach lib,$(libs),echo "extern void Register_$(lib)(void);" >> $@)
+	$(hide) $(foreach lib,$(libs),echo "extern void Register_$(lib)(void);" >> $@;)
 	$(hide) echo "void RegisterDeviceExtensions() {" >> $@
-	$(hide) $(foreach lib,$(libs),echo "  Register_$(lib)();" >> $@)
+	$(hide) $(foreach lib,$(libs),echo "  Register_$(lib)();" >> $@;)
 	$(hide) echo "}" >> $@
 
 $(call intermediates-dir-for,EXECUTABLES,updater)/updater.o : $(inc)

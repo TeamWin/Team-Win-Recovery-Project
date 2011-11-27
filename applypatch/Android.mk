@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ifneq ($(TARGET_SIMULATOR),true)
-
-ifeq ($(TARGET_ARCH),arm)
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
@@ -31,8 +28,8 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := main.c
 LOCAL_MODULE := applypatch
 LOCAL_C_INCLUDES += bootable/recovery
-LOCAL_STATIC_LIBRARIES += libapplypatch libmincrypt libbz
-LOCAL_SHARED_LIBRARIES += libmtdutils libz libcutils libstdc++ libc
+LOCAL_STATIC_LIBRARIES += libapplypatch libmtdutils libmincrypt libbz libminelf
+LOCAL_SHARED_LIBRARIES += libz libcutils libstdc++ libc
 
 include $(BUILD_EXECUTABLE)
 
@@ -43,7 +40,7 @@ LOCAL_MODULE := applypatch_static
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 LOCAL_MODULE_TAGS := eng
 LOCAL_C_INCLUDES += bootable/recovery
-LOCAL_STATIC_LIBRARIES += libapplypatch libmtdutils libmincrypt libbz
+LOCAL_STATIC_LIBRARIES += libapplypatch libmtdutils libmincrypt libbz libminelf
 LOCAL_STATIC_LIBRARIES += libz libcutils libstdc++ libc
 
 include $(BUILD_EXECUTABLE)
@@ -58,6 +55,3 @@ LOCAL_C_INCLUDES += external/zlib external/bzip2
 LOCAL_STATIC_LIBRARIES += libz libbz
 
 include $(BUILD_HOST_EXECUTABLE)
-
-endif   # TARGET_ARCH == arm
-endif  # !TARGET_SIMULATOR

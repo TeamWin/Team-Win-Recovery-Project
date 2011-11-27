@@ -31,12 +31,10 @@ static int set_bootloader_message_block(const struct bootloader_message *in, con
 
 int get_bootloader_message(struct bootloader_message *out) {
     Volume* v = volume_for_path("/misc");
-    if (!v)
-    {
-        LOGE("Unable to locate /misc partition\n");
-        return -1;
+    if (v == NULL) {
+      LOGE("Cannot load volume /misc!\n");
+      return -1;
     }
-
     if (strcmp(v->fs_type, "mtd") == 0) {
         return get_bootloader_message_mtd(out, v);
     } else if (strcmp(v->fs_type, "emmc") == 0) {
@@ -48,12 +46,10 @@ int get_bootloader_message(struct bootloader_message *out) {
 
 int set_bootloader_message(const struct bootloader_message *in) {
     Volume* v = volume_for_path("/misc");
-    if (!v)
-    {
-        LOGE("Unable to locate /misc partition\n");
-        return -1;
+    if (v == NULL) {
+      LOGE("Cannot load volume /misc!\n");
+      return -1;
     }
-
     if (strcmp(v->fs_type, "mtd") == 0) {
         return set_bootloader_message_mtd(in, v);
     } else if (strcmp(v->fs_type, "emmc") == 0) {
@@ -145,8 +141,26 @@ static int set_bootloader_message_mtd(const struct bootloader_message *in,
 // for misc partitions on block devices
 // ------------------------------------
 
+static void wait_for_device(const char* fn) {
+    int tries = 0;
+    int ret;
+    struct stat buf;
+    do {
+        ++tries;
+        ret = stat(fn, &buf);
+        if (ret) {
+            printf("stat %s try %d: %s\n", fn, tries, strerror(errno));
+            sleep(1);
+        }
+    } while (ret && tries < 10);
+    if (ret) {
+        printf("failed to stat %s\n", fn);
+    }
+}
+
 static int get_bootloader_message_block(struct bootloader_message *out,
                                         const Volume* v) {
+    wait_for_device(v->device);
     FILE* f = fopen(v->device, "rb");
     if (f == NULL) {
         LOGE("Can't open %s\n(%s)\n", v->device, strerror(errno));
@@ -168,6 +182,7 @@ static int get_bootloader_message_block(struct bootloader_message *out,
 
 static int set_bootloader_message_block(const struct bootloader_message *in,
                                         const Volume* v) {
+    wait_for_device(v->device);
     FILE* f = fopen(v->device, "wb");
     if (f == NULL) {
         LOGE("Can't open %s\n(%s)\n", v->device, strerror(errno));
