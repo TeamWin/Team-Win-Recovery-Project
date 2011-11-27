@@ -129,7 +129,13 @@ static int vk_init(struct ev *e)
         LOGE("Unable to query event object.\n");
         return -1;
     }
-    LOGI("Event object: %s\n", e->deviceName);
+//    LOGI("Event object: %s\n", e->deviceName);
+
+    // Blacklist these "input" devices
+    if (strcmp(e->deviceName, "bma250") == 0)
+    {
+        e->ignored = 1;
+    }
 
     strcat(vk_path, e->deviceName);
 
@@ -260,11 +266,22 @@ static int vk_tp_to_screen(struct position *p, int *x, int *y)
         return 0;
     }
 
-    *x = (p->x - p->xi.minimum) * (gr_fb_width() - 1) / (p->xi.maximum - p->xi.minimum);
-    *y = (p->y - p->yi.minimum) * (gr_fb_height() - 1) / (p->yi.maximum - p->yi.minimum);
+//    LOGI("EV: p->x=%d  x-range=%d,%d  fb-width=%d\n", p->x, p->xi.minimum, p->xi.maximum, gr_fb_width());
 
-    if (*x >= 0 && *x < gr_fb_width() &&
-           *y >= 0 && *y < gr_fb_height())
+#ifndef RECOVERY_TOUCHSCREEN_SWAP_XY
+    int fb_width = gr_fb_width();
+    int fb_height = gr_fb_height();
+#else
+    // We need to swap the scaling sizes, too
+    int fb_width = gr_fb_height();
+    int fb_height = gr_fb_width();
+#endif
+
+    *x = (p->x - p->xi.minimum) * (fb_width - 1) / (p->xi.maximum - p->xi.minimum);
+    *y = (p->y - p->yi.minimum) * (fb_height - 1) / (p->yi.maximum - p->yi.minimum);
+
+    if (*x >= 0 && *x < fb_width &&
+        *y >= 0 && *y < fb_height)
     {
         return 0;
     }
@@ -421,6 +438,8 @@ static int vk_modify(struct ev *e, struct input_event *ev)
 #ifdef RECOVERY_TOUCHSCREEN_FLIP_Y
     y = gr_fb_height() - y;
 #endif
+
+//    LOGI("EV: x: %d  y: %d\n", x, y);
 
     // Clear the current sync states
     e->p.synced = e->mt_p.synced = 0;
