@@ -19,7 +19,9 @@ LOCAL_SRC_FILES := \
 
 LOCAL_MODULE := libgui
 
-# LOCAL_CFLAGS += -D_SIMULATE_ACTIONS
+ifeq ($(TWRP_SIMULATE_ACTIONS), true)
+LOCAL_CFLAGS += -D_SIMULATE_ACTIONS
+endif
 
 LOCAL_C_INCLUDES += bionic external/stlport/stlport $(commands_recovery_local_path)/gui/devices/$(DEVICE_RESOLUTION)
 

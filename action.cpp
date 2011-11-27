@@ -267,8 +267,7 @@ int GUIAction::doAction(int isThreaded)
 
     if (mFunction == "readBackup")
     {
-#ifdef _SIMULATE_ACTIONS
-#else
+#ifndef _SIMULATE_ACTIONS
         set_restore_files();
 #endif
         return 0;

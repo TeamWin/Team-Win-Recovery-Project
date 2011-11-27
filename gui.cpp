@@ -181,7 +181,7 @@ static void *input_thread(void *cookie)
             {
                 if (state == 0)
                 {
-                    LOGE("TOUCH_RELEASE: %d,%d\n", x, y);
+//                    LOGE("TOUCH_RELEASE: %d,%d\n", x, y);
                     PageManager::NotifyTouch(TOUCH_RELEASE, x, y);
                 }
                 state = 0;
@@ -191,7 +191,7 @@ static void *input_thread(void *cookie)
             {
                 if (!drag)
                 {
-                    LOGE("TOUCH_START: %d,%d\n", x, y);
+//                    LOGE("TOUCH_START: %d,%d\n", x, y);
                     if (PageManager::NotifyTouch(TOUCH_START, x, y) > 0)
                         state = 1;
                     drag = 1;
@@ -200,7 +200,7 @@ static void *input_thread(void *cookie)
                 {
                     if (state == 0)
                     {
-                        LOGE("TOUCH_DRAG: %d,%d\n", x, y);
+//                        LOGE("TOUCH_DRAG: %d,%d\n", x, y);
                         if (PageManager::NotifyTouch(TOUCH_DRAG, x, y) > 0)
                             state = 1;
                     }
@@ -210,7 +210,7 @@ static void *input_thread(void *cookie)
         else if (ev.type == EV_KEY)
         {
             // Handle key-press here
-            LOGE("TOUCH_KEY: %d\n", ev.code);
+//            LOGE("TOUCH_KEY: %d\n", ev.code);
             PageManager::NotifyKey(ev.code);
         }
     }
