@@ -790,7 +790,6 @@ prompt_and_wait() {
 	#define REALMENU_REBOOT     	 1
 
 	go_reboot = 0;
-    finish_recovery(NULL);
     //ui_reset_progress();
 
 	char** headers = prepend_title((const char**)MENU_HEADERS);
@@ -994,6 +993,8 @@ main(int argc, char **argv) {
         update_tz_environment_variables();
         set_theme(DataManager_GetStrValue(TW_COLOR_THEME_VAR));
 
+        // This clears up a bug about reboot coming back to recovery with the GUI
+        finish_recovery(NULL);
         if (gui_start())
             prompt_and_wait();
     }
