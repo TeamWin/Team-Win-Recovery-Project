@@ -712,7 +712,7 @@ int tw_backup(struct dInfo bMnt, char *bDir, float portion)
 		bUppr[i] = toupper(bUppr[i]);
 	}
 	ui_print("[%s (%d MB)]\n",bUppr,bPartSize/1024); // show size in MB
-    SetDataState("Backup up", bMnt.mnt, 0, 0);
+    SetDataState("Backup", bMnt.mnt, 0, 0);
 	int bProgTime;
 	time_t bStart, bStop;
 	char bOutput[1024];
