@@ -233,6 +233,33 @@ int GUIAction::doAction(int isThreaded)
         sync();
         finish_recovery("s");
 
+        // This is a special method...
+        struct stat st;
+        if (stat("/sbin/reboot.sh", &st) == 0)
+        {
+            char cmd[512];
+            sprintf(cmd, "/sbin/reboot.sh %s", mArg);
+            __system(cmd);
+            usleep(3000000);
+        }
+
+        if (stat("/sbin/reboot", &st) == 0)
+        {
+            if (mArg == "recovery")
+            {
+                __system("/sbin/reboot recovery");
+            }
+            if (mArg == "poweroff")
+            {
+                __system("/sbin/reboot poweroff");
+            }
+            if (mArg == "bootloader")
+            {
+                __system("/sbin/reboot bootloader");
+            }
+            usleep(3000000);
+        }
+
         if (mArg == "recovery")
         {
             // Reboot to recovery
