@@ -131,15 +131,24 @@ int gui_set_variable(const char*, const char*);
 #define SP1_BACKUP_METHOD none
 #define SP1_MOUNTABLE 0
 #endif
+#ifndef SP1_DISPLAY_NAME
+#define SP1_DISPLAY_NAME SP1_NAME
+#endif
 #ifndef SP2_NAME
 #define SP2_NAME
 #define SP2_BACKUP_METHOD none
 #define SP2_MOUNTABLE 0
 #endif
+#ifndef SP2_DISPLAY_NAME
+#define SP2_DISPLAY_NAME SP2_NAME
+#endif
 #ifndef SP3_NAME
 #define SP3_NAME
 #define SP3_BACKUP_METHOD none
 #define SP3_MOUNTABLE 0
+#endif
+#ifndef SP3_DISPLAY_NAME
+#define SP3_DISPLAY_NAME SP3_NAME
 #endif
 
 #endif  // RECOVERY_COMMON_H

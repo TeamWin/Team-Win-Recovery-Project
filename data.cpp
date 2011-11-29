@@ -307,9 +307,9 @@ void DataManager::SetDefaultValues()
     mConstValues.insert(make_pair(TW_VERSION_VAR, TW_VERSION_STR));
     mConstValues.insert(make_pair(TW_BACKUPS_FOLDER_VAR, str));
 
-    if (strlen(EXPAND(SP1_NAME)))    mConstValues.insert(make_pair(TW_SP1_PARTITION_NAME_VAR, EXPAND(SP1_NAME)));
-    if (strlen(EXPAND(SP2_NAME)))    mConstValues.insert(make_pair(TW_SP2_PARTITION_NAME_VAR, EXPAND(SP2_NAME)));
-    if (strlen(EXPAND(SP3_NAME)))    mConstValues.insert(make_pair(TW_SP3_PARTITION_NAME_VAR, EXPAND(SP3_NAME)));
+    if (strlen(EXPAND(SP1_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP1_PARTITION_NAME_VAR, EXPAND(SP1_DISPLAY_NAME)));
+    if (strlen(EXPAND(SP2_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP2_PARTITION_NAME_VAR, EXPAND(SP2_DISPLAY_NAME)));
+    if (strlen(EXPAND(SP3_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP3_PARTITION_NAME_VAR, EXPAND(SP3_DISPLAY_NAME)));
 
     mValues.insert(make_pair(TW_BACKUP_SYSTEM_VAR, make_pair("1", 1)));
     mValues.insert(make_pair(TW_BACKUP_DATA_VAR, make_pair("1", 1)));
