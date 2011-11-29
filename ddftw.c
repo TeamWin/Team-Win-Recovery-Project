@@ -98,7 +98,7 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
     }
 
     if (fstype)                 strcpy(loc->fst, fstype);
-    if (size)                   loc->sze = size;
+    if (size && loc->sze == 0)  loc->sze = size;
 
     return 0;
 }
@@ -122,7 +122,7 @@ int getSizesViaPartitions()
 
         if (strlen(line) < 7 || line[0] == 'm')     continue;
         sscanf(line + 1, "%d %d %d %s", &major, &minor, &blocks, device);
-
+		
         // Adjust block size to byte size
         blocks *= 1024;
         sprintf(tmpString, "%s%s", tw_block, device);
@@ -298,8 +298,7 @@ int getLocations()
     sp2.backup = SP2_BACKUP_METHOD;
     sp3.backup = SP3_BACKUP_METHOD;
 
-
-    if (getLocationsViaProc("emmc") != 0 && getLocationsViaProc("mtd") != 0 && getLocationsViafstab() != 0)
+    if (getLocationsViaProc("emmc") != 0 && getLocationsViaProc("mtd") != 0)
     {
         LOGE("E: Unable to get device locations.\n");
         return -1;
