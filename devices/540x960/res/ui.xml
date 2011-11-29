@@ -38,7 +38,7 @@
 		<variable name="row3_y" value="504" />
 		<variable name="row4_y" value="696" />
 		<variable name="col_progressbar_x" value="144" />
-		<variable name="row_progressbar_y" value="920" />
+		<variable name="row_progressbar_y" value="840" />
 		<variable name="col1_medium_x" value="10" />
 		<variable name="col2_medium_x" value="150" />
 		<variable name="col3_medium_x" value="290" />
@@ -1046,6 +1046,7 @@
             </object>
 			
 			<object type="checkbox">
+				<condition var1="tw_sp1_name" op=">" var2="" />
                 <placement x="%col1_x%" y="565" />
                 <font resource="font" color="white" />
                 <text>%tw_sp1_name%</text>
@@ -1054,6 +1055,7 @@
             </object>
 			
 			<object type="checkbox">
+				<condition var1="tw_sp2_name" op=">" var2="" />
                 <placement x="%col1_x%" y="605" />
                 <font resource="font" color="white" />
                 <text>%tw_sp2_name%</text>
@@ -1062,6 +1064,7 @@
             </object>
 			
 			<object type="checkbox">
+				<condition var1="tw_sp3_name" op=">" var2="" />
                 <placement x="%col1_x%" y="645" />
                 <font resource="font" color="white" />
                 <text>%tw_sp3_name%</text>
@@ -1330,6 +1333,14 @@
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 
+			<object type="checkbox">
+                <placement x="%col1_x%" y="725" />
+                <font resource="font" color="white" />
+                <text>Enable MD5 checking of backup files</text>
+                <data variable="tw_skip_md5_check" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+			
             <object type="action">
                 <touch key="home" />
                 <action function="page">main</action>
