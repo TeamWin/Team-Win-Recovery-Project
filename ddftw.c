@@ -298,7 +298,7 @@ int getLocations()
     sp2.backup = SP2_BACKUP_METHOD;
     sp3.backup = SP3_BACKUP_METHOD;
 
-    if (getLocationsViaProc("emmc") != 0 && getLocationsViaProc("mtd") != 0)
+    if (getLocationsViaProc("emmc") != 0 && getLocationsViaProc("mtd") != 0 && getLocationsViafstab() != 0)
     {
         LOGE("E: Unable to get device locations.\n");
         return -1;
