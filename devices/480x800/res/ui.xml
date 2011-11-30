@@ -64,6 +64,11 @@
     			<condition var1="tw_busy" var2="0" />
     			<action function="page">main</action>
     		</object>
+
+	     <object type="image">
+                <image resource="android" />
+                <placement x="%col1_x%" y="10" />
+            </object>
     
             <object type="text" color="white">
                 <font resource="font" />
@@ -71,7 +76,7 @@
                 <text>Team Win Recovery Project  v%tw_version%</text>
             </object>
 			
-			<object type="text" color="white">
+	     <object type="text" color="white">
                 <font resource="font" />
                 <placement x="100" y="75" />
                 <text>%tw_time%</text>
