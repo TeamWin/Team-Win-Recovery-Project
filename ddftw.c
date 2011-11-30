@@ -25,6 +25,7 @@
 #include "backstore.h"
 
 static int isMTDdevice = 0;
+static int fakeBootDevice = 0;
 
 struct dInfo* findDeviceByLabel(const char* label)
 {
@@ -89,6 +90,8 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
     // This is a simple 
     if (strcmp(loc->mnt, "boot") == 0 && fstype && strcmp(fstype, "vfat") == 0 && strlen(loc->blk) > 1)
     {
+        fakeBootDevice = 1;
+
         if (strcmp(loc->blk, loc->dev) == 0)
             fstype = "emmc";
         else
@@ -366,17 +369,18 @@ void createFstab()
         LOGI("=> Can not open /etc/fstab.\n");
     else 
 	{
-        if (sys.mountable)  createFstabEntry(fp, sys.blk, sys.mnt, sys.fst);
-		if (dat.mountable)  createFstabEntry(fp, dat.blk, dat.mnt, dat.fst);
-        if (cac.mountable)  createFstabEntry(fp, cac.blk, cac.mnt, cac.fst);
-        if (sdcext.mountable)  createFstabEntry(fp, sdcext.blk, sdcext.mnt, sdcext.fst);
-        if (sdcint.mountable)  createFstabEntry(fp, sdcint.blk, sdcint.mnt, sdcint.fst);
-        if (sde.mountable)  createFstabEntry(fp, sde.blk, sde.mnt, sde.fst);
-        if (sp1.mountable)  createFstabEntry(fp, sp1.blk, sp1.mnt, sp1.fst);
-        if (sp2.mountable)  createFstabEntry(fp, sp2.blk, sp1.mnt, sp2.fst);
-        if (sp3.mountable)  createFstabEntry(fp, sp3.blk, sp1.mnt, sp3.fst);
+        if (sys.mountable)      createFstabEntry(fp, sys.blk, sys.mnt, sys.fst);
+		if (dat.mountable)      createFstabEntry(fp, dat.blk, dat.mnt, dat.fst);
+        if (cac.mountable)      createFstabEntry(fp, cac.blk, cac.mnt, cac.fst);
+        if (sdcext.mountable)   createFstabEntry(fp, sdcext.blk, sdcext.mnt, sdcext.fst);
+        if (sdcint.mountable)   createFstabEntry(fp, sdcint.blk, sdcint.mnt, sdcint.fst);
+        if (sde.mountable)      createFstabEntry(fp, sde.blk, sde.mnt, sde.fst);
+        if (sp1.mountable)      createFstabEntry(fp, sp1.blk, sp1.mnt, sp1.fst);
+        if (sp2.mountable)      createFstabEntry(fp, sp2.blk, sp1.mnt, sp2.fst);
+        if (sp3.mountable)      createFstabEntry(fp, sp3.blk, sp1.mnt, sp3.fst);
 
-        createFstabEntry(fp, boo.blk, boo.mnt, "vfat");
+        if (!fakeBootDevice)    createFstabEntry(fp, boo.blk, boo.mnt, boo.fst);
+        else                    createFstabEntry(fp, boo.blk, boo.mnt, "vfat");
 	}
 	fclose(fp);
 }
