@@ -25,6 +25,10 @@ ifeq ($(TWRP_SIMULATE_ACTIONS), true)
 LOCAL_CFLAGS += -D_SIMULATE_ACTIONS
 endif
 
+ifeq ($(TWRP_EVENT_LOGGING), true)
+LOCAL_CFLAGS += -D_EVENT_LOGGING
+endif
+
 LOCAL_C_INCLUDES += bionic external/stlport/stlport $(commands_recovery_local_path)/gui/devices/$(DEVICE_RESOLUTION)
 
 include $(BUILD_STATIC_LIBRARY)
