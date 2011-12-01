@@ -327,7 +327,8 @@ int GUIAction::doAction(int isThreaded)
 #ifndef _SIMULATE_ACTIONS
         if (mArg == "usb")
         {
-            usb_storage_enable();
+            DataManager::SetValue(TW_ACTION_BUSY, 1);
+			usb_storage_enable();
         }
         else
         {
@@ -344,6 +345,7 @@ int GUIAction::doAction(int isThreaded)
         if (mArg == "usb")
         {
             usb_storage_disable();
+			DataManager::SetValue(TW_ACTION_BUSY, 0);
         }
         else
         {
