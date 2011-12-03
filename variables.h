@@ -77,3 +77,8 @@
 
 #endif  // _VARIABLES_HEADER_
 
+#ifdef  BOARD_HAS_NO_REAL_SDCARD
+#define TW_CAN_PARTITION_SDCARD     0
+#else
+#define TW_CAN_PARTITION_SDCARD     1
+#endif

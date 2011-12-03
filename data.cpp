@@ -43,6 +43,7 @@ extern "C"
 {
     #include "common.h"
     #include "data.h"
+	#include "ddftw.h"
 
     int get_battery_level(void);
     void get_device_id(void);
@@ -375,6 +376,22 @@ int DataManager::GetMagicValue(const string varName, string& value)
         value = tmp;
         return 0;
     }
+	if (varName == "tw_boot_is_mountable")
+	{
+		if (boo.mountable == 1)
+			value = "1";
+		else
+			value = "0";
+		return 0;
+	}
+	if (varName == "tw_allow_partition_sdcard")
+	{
+		if (TW_CAN_PARTITION_SDCARD == 1)
+			value = "1";
+		else
+			value = "0";
+		return 0;
+	}
     return -1;
 }
 
