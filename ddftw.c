@@ -290,8 +290,8 @@ void updateMntUsedSize(struct dInfo* mMnt)
     sprintf(path, "%s/.", mMnt->mnt);
     if (statfs(path, &st) != 0)    return;
 
-    mMnt->used = (unsigned long) ((st.f_blocks - st.f_bfree) * st.f_bsize);
-   
+    mMnt->used = ((st.f_blocks - st.f_bfree) * st.f_bsize);
+
     if (!mounted)   tw_unmount(*mMnt);
 
     return;
@@ -377,6 +377,18 @@ int getLocations()
 	createFstab(); // used for our busybox mount command
     LOGI("=> Update the usage statistics.\n\n");
     updateUsedSized();  // Retrieves the used space of all partitions
+
+    // Now, let's update the data manager...
+    DataManager_SetIntValue("tw_boot_is_mountable", boo.mountable ? 1 : 0);
+    DataManager_SetIntValue("tw_system_is_mountable", sys.mountable ? 1 : 0);
+    DataManager_SetIntValue("tw_data_is_mountable", dat.mountable ? 1 : 0);
+    DataManager_SetIntValue("tw_cache_is_mountable", cac.mountable ? 1 : 0);
+    DataManager_SetIntValue("tw_sdcext_is_mountable", sdcext.mountable ? 1 : 0);
+    DataManager_SetIntValue("tw_sdcint_is_mountable", sdcint.mountable ? 1 : 0);
+    DataManager_SetIntValue("tw_sd-ext_is_mountable", sde.mountable ? 1 : 0);
+    DataManager_SetIntValue("tw_sp1_is_mountable", sp1.mountable ? 1 : 0);
+    DataManager_SetIntValue("tw_sp2_is_mountable", sp2.mountable ? 1 : 0);
+    DataManager_SetIntValue("tw_sp3_is_mountable", sp3.mountable ? 1 : 0);
 
     return 0;
 }

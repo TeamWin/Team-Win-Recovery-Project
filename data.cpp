@@ -308,6 +308,12 @@ void DataManager::SetDefaultValues()
     mConstValues.insert(make_pair(TW_VERSION_VAR, TW_VERSION_STR));
     mConstValues.insert(make_pair(TW_BACKUPS_FOLDER_VAR, str));
 
+#ifdef BOARD_HAS_NO_REAL_SDCARD
+    mConstValues.insert(make_pair(TW_ALLOW_PARTITION_SDCARD, "0"));
+#else
+    mConstValues.insert(make_pair(TW_ALLOW_PARTITION_SDCARD, "1"));
+#endif
+
     if (strlen(EXPAND(SP1_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP1_PARTITION_NAME_VAR, EXPAND(SP1_DISPLAY_NAME)));
     if (strlen(EXPAND(SP2_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP2_PARTITION_NAME_VAR, EXPAND(SP2_DISPLAY_NAME)));
     if (strlen(EXPAND(SP3_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP3_PARTITION_NAME_VAR, EXPAND(SP3_DISPLAY_NAME)));
@@ -331,20 +337,22 @@ void DataManager::SetDefaultValues()
     mValues.insert(make_pair(TW_TIME_ZONE_VAR, make_pair("CST6CDT", 1)));
     mValues.insert(make_pair(TW_ZIP_LOCATION_VAR, make_pair("/sdcard", 1)));
     mValues.insert(make_pair(TW_SORT_FILES_BY_DATE_VAR, make_pair("0", 1)));
-	mValues.insert(make_pair(TW_GUI_SORT_ORDER, make_pair("1", 1)));
-	mValues.insert(make_pair(TW_RM_RF_VAR, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_GUI_SORT_ORDER, make_pair("1", 1)));
+    mValues.insert(make_pair(TW_RM_RF_VAR, make_pair("0", 1)));
     mValues.insert(make_pair(TW_SKIP_MD5_CHECK_VAR, make_pair("0", 1)));
-	mValues.insert(make_pair(TW_SDEXT_SIZE, make_pair("512", 1)));
-	mValues.insert(make_pair(TW_SWAP_SIZE, make_pair("32", 1)));
-	mValues.insert(make_pair(TW_SDPART_FILE_SYSTEM, make_pair("ext3", 1)));
-	mValues.insert(make_pair(TW_TIME_ZONE_GUISEL, make_pair("CST6;CDT", 1)));
-	mValues.insert(make_pair(TW_TIME_ZONE_GUIOFFSET, make_pair("0", 1)));
-	mValues.insert(make_pair(TW_TIME_ZONE_GUIDST, make_pair("1", 1)));
+    mValues.insert(make_pair(TW_SDEXT_SIZE, make_pair("512", 1)));
+    mValues.insert(make_pair(TW_SWAP_SIZE, make_pair("32", 1)));
+    mValues.insert(make_pair(TW_SDPART_FILE_SYSTEM, make_pair("ext3", 1)));
+    mValues.insert(make_pair(TW_TIME_ZONE_GUISEL, make_pair("CST6;CDT", 1)));
+    mValues.insert(make_pair(TW_TIME_ZONE_GUIOFFSET, make_pair("0", 1)));
+    mValues.insert(make_pair(TW_TIME_ZONE_GUIDST, make_pair("1", 1)));
     mValues.insert(make_pair(TW_ACTION_BUSY, make_pair("0", 0)));
-    mValues.insert(make_pair(TW_BACKUP_AVG_RATE, make_pair("3145728", 1)));
-    mValues.insert(make_pair(TW_BACKUP_AVG_COMP_RATE, make_pair("1048576", 1)));
-    mValues.insert(make_pair(TW_RESTORE_AVG_RATE, make_pair("3145728", 1)));
-    mValues.insert(make_pair(TW_RESTORE_AVG_COMP_RATE, make_pair("1048576", 1)));
+    mValues.insert(make_pair(TW_BACKUP_AVG_IMG_RATE, make_pair("15000000", 1)));
+    mValues.insert(make_pair(TW_BACKUP_AVG_FILE_RATE, make_pair("3000000", 1)));
+    mValues.insert(make_pair(TW_BACKUP_AVG_FILE_COMP_RATE, make_pair("2000000", 1)));
+    mValues.insert(make_pair(TW_RESTORE_AVG_IMG_RATE, make_pair("15000000", 1)));
+    mValues.insert(make_pair(TW_RESTORE_AVG_FILE_RATE, make_pair("3000000", 1)));
+    mValues.insert(make_pair(TW_RESTORE_AVG_FILE_COMP_RATE, make_pair("2000000", 1)));
 }
 
 // Magic Values
@@ -376,22 +384,6 @@ int DataManager::GetMagicValue(const string varName, string& value)
         value = tmp;
         return 0;
     }
-	if (varName == "tw_boot_is_mountable")
-	{
-		if (boo.mountable == 1)
-			value = "1";
-		else
-			value = "0";
-		return 0;
-	}
-	if (varName == "tw_allow_partition_sdcard")
-	{
-		if (TW_CAN_PARTITION_SDCARD == 1)
-			value = "1";
-		else
-			value = "0";
-		return 0;
-	}
     return -1;
 }
 

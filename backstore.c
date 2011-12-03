@@ -802,61 +802,70 @@ unsigned long long get_backup_size(struct dInfo* mnt)
     return 0;
 }
 
-int CalculateBackupDetails(int* total_partitions, unsigned long long* total_bytes)
+int CalculateBackupDetails(int* total_partitions, unsigned long long* total_img_bytes, unsigned long long* total_file_bytes)
 {
     *total_partitions = 0;
-    *total_bytes = 0;
 
     if (DataManager_GetIntValue(TW_BACKUP_SYSTEM_VAR) == 1)
     {
         *total_partitions = *total_partitions + 1;
-        *total_bytes += get_backup_size(&sys);
+        if (sys.backup == image)    *total_img_bytes += get_backup_size(&sys);
+        else                        *total_file_bytes += get_backup_size(&sys);
     }
 
     if (DataManager_GetIntValue(TW_BACKUP_DATA_VAR) == 1)
     {
         *total_partitions = *total_partitions + 1;
-        *total_bytes += get_backup_size(&dat);
+        if (dat.backup == image)    *total_img_bytes += get_backup_size(&dat);
+        else                        *total_file_bytes += get_backup_size(&dat);
     }
     if (DataManager_GetIntValue(TW_BACKUP_CACHE_VAR) == 1)
     {
         *total_partitions = *total_partitions + 1;
-        *total_bytes += get_backup_size(&cac);
+        if (cac.backup == image)    *total_img_bytes += get_backup_size(&cac);
+        else                        *total_file_bytes += get_backup_size(&cac);
     }
     if (DataManager_GetIntValue(TW_BACKUP_RECOVERY_VAR) == 1)
     {
         *total_partitions = *total_partitions + 1;
-        *total_bytes += get_backup_size(&rec);
+        if (rec.backup == image)    *total_img_bytes += get_backup_size(&rec);
+        else                        *total_file_bytes += get_backup_size(&rec);
     }
     if (DataManager_GetIntValue(TW_BACKUP_SP1_VAR) == 1)
     {
         *total_partitions = *total_partitions + 1;
-        *total_bytes += get_backup_size(&sp1);
+        if (sp1.backup == image)    *total_img_bytes += get_backup_size(&sp1);
+        else                        *total_file_bytes += get_backup_size(&sp1);
     }
     if (DataManager_GetIntValue(TW_BACKUP_SP2_VAR) == 1)
     {
         *total_partitions = *total_partitions + 1;
-        *total_bytes += get_backup_size(&sp2);
+        if (sp2.backup == image)    *total_img_bytes += get_backup_size(&sp2);
+        else                        *total_file_bytes += get_backup_size(&sp2);
     }
     if (DataManager_GetIntValue(TW_BACKUP_SP3_VAR) == 1)
     {
         *total_partitions = *total_partitions + 1;
-        *total_bytes += get_backup_size(&sp2);
+        if (sp3.backup == image)    *total_img_bytes += get_backup_size(&sp3);
+        else                        *total_file_bytes += get_backup_size(&sp3);
     }
     if (DataManager_GetIntValue(TW_BACKUP_BOOT_VAR) == 1)
     {
         *total_partitions = *total_partitions + 1;
-        *total_bytes += get_backup_size(&boo);
+        if (boo.backup == image)    *total_img_bytes += get_backup_size(&boo);
+        else                        *total_file_bytes += get_backup_size(&boo);
     }
     if (DataManager_GetIntValue(TW_BACKUP_ANDSEC_VAR) == 1)
     {
         *total_partitions = *total_partitions + 1;
-        *total_bytes += get_backup_size(&ase);
+        if (ase.backup == image)    *total_img_bytes += get_backup_size(&ase);
+        else                        *total_file_bytes += get_backup_size(&ase);
     }
     if (DataManager_GetIntValue(TW_BACKUP_SDEXT_VAR) == 1)
     {
         *total_partitions = *total_partitions + 1;
-        *total_bytes += get_backup_size(&sde);
+        if (sde.backup == image)    *total_img_bytes += get_backup_size(&sde);
+        else                        *total_file_bytes += get_backup_size(&sde);
     }
     return 0;
 }
@@ -885,27 +894,39 @@ int recursive_mkdir(const char* path)
     return 0;
 }
 
-int tw_do_backup(const char* enableVar, struct dInfo* mnt, const char* tw_image_dir, unsigned long long total_bytes, unsigned long long* bytes_remaining, unsigned long int* avgBytesPerSec)
+int tw_do_backup(const char* enableVar, struct dInfo* mnt, const char* tw_image_dir, unsigned long long img_bytes, unsigned long long file_bytes, unsigned long long* img_bytes_remaining, unsigned long long* file_bytes_remaining, unsigned long* img_byte_time, unsigned long* file_byte_time)
 {
     // Check if this partition is being backed up...
 	if (!DataManager_GetIntValue(enableVar))    return 0;
 
-    // Set the current UI position accurately
-    float pos = 1.0 - (((float) *bytes_remaining) / total_bytes);
+    // Let's calculate the percentage of the bar this section is expected to take
+    unsigned long int img_bps = DataManager_GetIntValue(TW_BACKUP_AVG_IMG_RATE);
+    unsigned long int file_bps;
+
+    if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR))    file_bps = DataManager_GetIntValue(TW_BACKUP_AVG_FILE_COMP_RATE);
+    else                                                    file_bps = DataManager_GetIntValue(TW_BACKUP_AVG_FILE_RATE);
+
+    // We know the speed for both, how far into the whole backup are we, based on time
+    unsigned long total_time = (img_bytes / img_bps) + (file_bytes / file_bps);
+    unsigned long remain_time = (*img_bytes_remaining / img_bps) + (*file_bytes_remaining / file_bps);
+
+    float pos = (total_time - remain_time) / (float) total_time;
     ui_set_progress(pos);
+
+    LOGI("Estimated Total time: %lu  Estimated remaining time: %lu\n", total_time, remain_time);
 
     // Determine how much we're about to process
     unsigned long long blocksize = get_backup_size(mnt);
 
-    // Move the bytes remaining and locate the target pos
-    *bytes_remaining = *bytes_remaining - blocksize;
-    pos = 1.0 - (((float) blocksize) / total_bytes);
+    // And get the time
+    unsigned long section_time;
+    if (mnt->backup == image)       section_time = blocksize / img_bps;
+    else                            section_time = blocksize / file_bps;
 
-    // Set the UI based on avgBytesPerSec
-    if (*avgBytesPerSec == 0)   *avgBytesPerSec = 1;
-    ui_show_progress(pos, ((unsigned long int) blocksize) / *avgBytesPerSec);
+    // Set the position
+    pos = section_time / (float) total_time;
+    ui_show_progress(pos, section_time);
 
-    // Record the timing so we can update avgBytesPerSec
     time_t start, stop;
     time(&start);
 
@@ -914,14 +935,22 @@ int tw_do_backup(const char* enableVar, struct dInfo* mnt, const char* tw_image_
         ui_print("-- Error occured, check recovery.log. Aborting.\n"); //oh noes! abort abort!
         return 1;
     }
-
-    // Compute how many seconds it took to do this
     time(&stop);
-    unsigned long seconds = (unsigned long) difftime(stop, start);
-    blocksize /= seconds;
 
-    // Update the average (1/5th)
-    *avgBytesPerSec = ((*avgBytesPerSec * 4) + blocksize) / 5;
+    LOGI("Partition Backup time: %d\n", (int) difftime(stop, start));
+
+    // Now, decrement out byte counts
+    if (mnt->backup == image)
+    {
+        *img_bytes_remaining -= blocksize;
+        *img_byte_time += (int) difftime(stop, start);
+    }
+    else
+    {
+        *file_bytes_remaining -= blocksize;
+        *file_byte_time += (int) difftime(stop, start);
+    }
+
     return 0;
 }
 
@@ -970,8 +999,9 @@ nandroid_back_exe()
 
     // Compute totals
     int tw_total = 0;
-    unsigned long long total_bytes = 0;
-    CalculateBackupDetails(&tw_total, &total_bytes);
+    unsigned long long total_img_bytes = 0, total_file_bytes = 0;
+    CalculateBackupDetails(&tw_total, &total_img_bytes, &total_file_bytes);
+    unsigned long long total_bytes = total_img_bytes + total_file_bytes;
 
     if (tw_total == 0 || total_bytes == 0)
     {
@@ -993,42 +1023,41 @@ nandroid_back_exe()
     }
 
     // Prepare progress bar...
-    unsigned long int avgBytesPerSec = DataManager_GetIntValue(TW_BACKUP_AVG_RATE);
-    if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR))    avgBytesPerSec = DataManager_GetIntValue(TW_BACKUP_AVG_COMP_RATE);
-    if (avgBytesPerSec == 0)                                avgBytesPerSec = 3145728;   // 3MB/sec
+    unsigned long long img_bytes_remaining = total_img_bytes;
+    unsigned long long file_bytes_remaining = total_file_bytes;
+    unsigned long img_byte_time = 0, file_byte_time = 0;
 
-    unsigned long long bytes_remaining = total_bytes;
     ui_set_progress(0.0);
 
 	// SYSTEM
-    if (tw_do_backup(TW_BACKUP_SYSTEM_VAR, &sys, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))      return 1;
+    if (tw_do_backup(TW_BACKUP_SYSTEM_VAR, &sys, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))       return 1;
 
 	// DATA
-    if (tw_do_backup(TW_BACKUP_DATA_VAR, &dat, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))        return 1;
+    if (tw_do_backup(TW_BACKUP_DATA_VAR, &dat, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))         return 1;
 
     // BOOT
-    if (tw_do_backup(TW_BACKUP_BOOT_VAR, &boo, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))        return 1;
+    if (tw_do_backup(TW_BACKUP_BOOT_VAR, &boo, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))         return 1;
 
     // RECOVERY
-    if (tw_do_backup(TW_BACKUP_RECOVERY_VAR, &rec, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))    return 1;
+    if (tw_do_backup(TW_BACKUP_RECOVERY_VAR, &rec, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))     return 1;
 
     // CACHE
-    if (tw_do_backup(TW_BACKUP_CACHE_VAR, &cac, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))       return 1;
+    if (tw_do_backup(TW_BACKUP_CACHE_VAR, &cac, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))        return 1;
 
     // SP1
-    if (tw_do_backup(TW_BACKUP_SP1_VAR, &sp1, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))         return 1;
+    if (tw_do_backup(TW_BACKUP_SP1_VAR, &sp1, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))          return 1;
 
     // SP2
-    if (tw_do_backup(TW_BACKUP_SP2_VAR, &sp2, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))         return 1;
+    if (tw_do_backup(TW_BACKUP_SP2_VAR, &sp2, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))          return 1;
 
     // SP3
-    if (tw_do_backup(TW_BACKUP_SP3_VAR, &sp3, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))         return 1;
+    if (tw_do_backup(TW_BACKUP_SP3_VAR, &sp3, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))          return 1;
 
     // ANDROID-SECURE
-    if (tw_do_backup(TW_BACKUP_ANDSEC_VAR, &ase, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))      return 1;
+    if (tw_do_backup(TW_BACKUP_ANDSEC_VAR, &ase, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))       return 1;
 
     // SD-EXT
-    if (tw_do_backup(TW_BACKUP_SDEXT_VAR, &sde, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))       return 1;
+    if (tw_do_backup(TW_BACKUP_SDEXT_VAR, &sde, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))        return 1;
 
     ui_print(" * Verifying filesystems...\n");
     verifyFst();
@@ -1038,19 +1067,26 @@ nandroid_back_exe()
 
     time(&stop);
 
-    // Instead of taking the average we've created along the way, we're going to take the grand total. 
-    // This is because small partitions can skew the results.
-    avgBytesPerSec = DataManager_GetIntValue(TW_BACKUP_AVG_RATE);
-    if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR))    avgBytesPerSec = DataManager_GetIntValue(TW_BACKUP_AVG_COMP_RATE);
-    if (avgBytesPerSec == 0)                                avgBytesPerSec = 3145728;   // 3MB/sec
+    // Average BPS
+    unsigned long int img_bps = total_img_bytes / img_byte_time;
+    unsigned long int file_bps = total_file_bytes / file_byte_time;
+
+    LOGI("img_bps = %lu  total_img_bytes = %llu  img_byte_time = %lu\n", img_bps, total_img_bytes, img_byte_time);
+    ui_print("Average backup rate for file systems: %lu MB/sec\n", (file_bps / (1024 * 1024)));
+    ui_print("Average backup rate for imaged drives: %lu MB/sec\n", (img_bps / (1024 * 1024)));
+
+    img_bps += (DataManager_GetIntValue(TW_BACKUP_AVG_IMG_RATE) * 4);
+    img_bps /= 5;
+
+    if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR))    file_bps += (DataManager_GetIntValue(TW_BACKUP_AVG_FILE_COMP_RATE) * 4);
+    else                                                    file_bps += (DataManager_GetIntValue(TW_BACKUP_AVG_FILE_RATE) * 4);
+    file_bps /= 5;
+
+    DataManager_SetIntValue(TW_BACKUP_AVG_IMG_RATE, img_bps);
+    if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR))    DataManager_SetIntValue(TW_BACKUP_AVG_FILE_COMP_RATE, file_bps);
+    else                                                    DataManager_SetIntValue(TW_BACKUP_AVG_FILE_RATE, file_bps);
 
     int total_time = (int) difftime(stop, start);
-    bytes_remaining = total_bytes / total_time;
-    avgBytesPerSec = ((avgBytesPerSec * 4) + bytes_remaining) / 5;
-
-    if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR))    DataManager_SetIntValue(TW_BACKUP_AVG_COMP_RATE, avgBytesPerSec);
-    else                                                    DataManager_SetIntValue(TW_BACKUP_AVG_RATE, avgBytesPerSec);
-
     unsigned long long new_sdc_free = (sdcext.sze - sdcext.used) / (1024 * 1024);
     sdc_free /= (1024 * 1024);
 

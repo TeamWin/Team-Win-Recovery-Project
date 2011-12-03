@@ -31,8 +31,9 @@
 #define TW_BACKUP_SP1_VAR           "tw_backup_sp1"
 #define TW_BACKUP_SP2_VAR           "tw_backup_sp2"
 #define TW_BACKUP_SP3_VAR           "tw_backup_sp3"
-#define TW_BACKUP_AVG_RATE          "tw_backup_avg_rate"
-#define TW_BACKUP_AVG_COMP_RATE     "tw_backup_avg_comp_rate"
+#define TW_BACKUP_AVG_IMG_RATE      "tw_backup_avg_img_rate"
+#define TW_BACKUP_AVG_FILE_RATE     "tw_backup_avg_file_rate"
+#define TW_BACKUP_AVG_FILE_COMP_RATE    "tw_backup_avg_file_comp_rate"
 
 #define TW_RESTORE_SYSTEM_VAR       "tw_restore_system"
 #define TW_RESTORE_DATA_VAR         "tw_restore_data"
@@ -44,8 +45,9 @@
 #define TW_RESTORE_SP1_VAR          "tw_restore_sp1"
 #define TW_RESTORE_SP2_VAR          "tw_restore_sp2"
 #define TW_RESTORE_SP3_VAR          "tw_restore_sp3"
-#define TW_RESTORE_AVG_RATE         "tw_restore_avg_rate"
-#define TW_RESTORE_AVG_COMP_RATE    "tw_restore_avg_comp_rate"
+#define TW_RESTORE_AVG_IMG_RATE     "tw_restore_avg_img_rate"
+#define TW_RESTORE_AVG_FILE_RATE    "tw_restore_avg_file_rate"
+#define TW_RESTORE_AVG_FILE_COMP_RATE    "tw_restore_avg_file_comp_rate"
 
 #define TW_SHOW_SPAM_VAR            "tw_show_spam"
 #define TW_COLOR_THEME_VAR          "tw_color_theme"
@@ -75,10 +77,19 @@
 
 #define TW_ACTION_BUSY              "tw_busy"
 
-#endif  // _VARIABLES_HEADER_
+#define TW_ALLOW_PARTITION_SDCARD   "tw_allow_partition_sdcard"
 
-#ifdef  BOARD_HAS_NO_REAL_SDCARD
-#define TW_CAN_PARTITION_SDCARD     0
-#else
-#define TW_CAN_PARTITION_SDCARD     1
-#endif
+
+// Also used:
+//   tw_boot_is_mountable
+//   tw_system_is_mountable
+//   tw_data_is_mountable
+//   tw_cache_is_mountable
+//   tw_sdcext_is_mountable
+//   tw_sdcint_is_mountable
+//   tw_sd-ext_is_mountable
+//   tw_sp1_is_mountable
+//   tw_sp2_is_mountable
+//   tw_sp3_is_mountable
+
+#endif  // _VARIABLES_HEADER_
