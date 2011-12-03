@@ -122,7 +122,7 @@
         <template name="footer">
             <object type="console">
                 <slideout resource="console_button" x="%console_button_x%" y="%console_button_y%" />
-                <placement x="25" y="95" w="974" h="495" />
+                <placement x="25" y="75" w="974" h="495" />
                 <color foreground="#B0B0B0" background="black" scroll="#000000" />
                 <font resource="fixed" />
             </object>
