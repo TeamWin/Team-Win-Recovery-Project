@@ -52,6 +52,7 @@ GUIAction::GUIAction(xml_node<>* node)
     : Conditional(node)
 {
     xml_node<>* child;
+    xml_node<>* actions;
     xml_attribute<>* attr;
 
     mKey = 0;
@@ -59,14 +60,25 @@ GUIAction::GUIAction(xml_node<>* node)
     if (!node)  return;
 
     // First, get the action
-    child = node->first_node("action");
+    actions = node->first_node("actions");
+    if (actions)    child = actions->first_node("action");
+    else            child = node->first_node("action");
+
     if (!child) return;
 
-    attr = child->first_attribute("function");
-    if (!attr)  return;
+    while (child)
+    {
+        Action action;
 
-    mFunction = attr->value();
-    mArg = child->value();
+        attr = child->first_attribute("function");
+        if (!attr)  return;
+    
+        action.mFunction = attr->value();
+        action.mArg = child->value();
+        mActions.push_back(action);
+
+        child = child->next_sibling("action");
+    }
 
     // Now, let's get either the key or region
     child = node->first_node("touch");
@@ -77,14 +89,7 @@ GUIAction::GUIAction(xml_node<>* node)
         {
             std::string key = attr->value();
     
-            if (key == "home")          mKey = KEY_HOME;
-            else if (key == "menu")     mKey = KEY_MENU;
-            else if (key == "back")     mKey = KEY_BACK;
-            else if (key == "search")   mKey = KEY_SEARCH;
-            else if (key == "voldown")  mKey = KEY_VOLUMEDOWN;
-            else if (key == "volup")    mKey = KEY_VOLUMEUP;
-            else if (key == "power")    mKey = KEY_POWER;
-            else                        mKey = atol(key.c_str());
+            mKey = getKeyByName(key);
         }
         else
         {
@@ -107,7 +112,7 @@ GUIAction::GUIAction(xml_node<>* node)
 int GUIAction::NotifyTouch(TOUCH_STATE state, int x, int y)
 {
     if (state == TOUCH_RELEASE)
-        doAction();
+        doActions();
 
     return 0;
 }
@@ -116,38 +121,26 @@ int GUIAction::NotifyKey(int key)
 {
     if (!mKey || key != mKey)    return 1;
 
-    doAction();
+    doActions();
     return 0;
 }
 
 int GUIAction::NotifyVarChange(std::string varName, std::string value)
 {
     if (varName.empty() && !isConditionValid() && !mKey && !mActionW)
-        doAction();
+        doActions();
 
     // This handles notifying the condition system of page start
     if (varName.empty() && isConditionValid())
         NotifyPageSet();
 
-    if ((GetConditionVariable() == varName || varName.empty()) && isConditionValid() && isConditionTrue())
-        doAction();
+    if ((varName.empty() || IsConditionVariable(varName)) && isConditionValid() && isConditionTrue())
+        doActions();
 
     return 0;
 }
 
-void* GUIAction::thread_start(void *cookie)
-{
-    GUIAction* ourThis = (GUIAction*) cookie;
-
-    LOGI("GUIAction thread has been started.\n");
-	DataManager::SetValue(TW_ACTION_BUSY, 1);
-    ourThis->doAction(1);
-	DataManager::SetValue(TW_ACTION_BUSY, 0);
-    LOGI("GUIAction thread is terminating.\n");
-    return NULL;
-}
-
-void GUIAction::flash_zip(std::string filename)
+void GUIAction::flash_zip(std::string filename, std::string pageName)
 {
     DataManager::SetValue("ui_progress", 0);
 
@@ -158,7 +151,7 @@ void GUIAction::flash_zip(std::string filename)
     }
 
     // We're going to jump to this page first, like a loading page
-    gui_changePage(mArg);
+    gui_changePage(pageName);
 
     int fd = -1;
     ZipArchive zip;
@@ -187,7 +180,7 @@ void GUIAction::flash_zip(std::string filename)
     {
         // In this case, we just use the default page
         mzCloseZipArchive(&zip);
-        gui_changePage(mArg);
+        gui_changePage(pageName);
     }
     if (fd >= 0)
         close(fd);
@@ -226,9 +219,45 @@ void GUIAction::flash_zip(std::string filename)
     return;
 }
 
-int GUIAction::doAction(int isThreaded)
+int GUIAction::doActions()
 {
-    if (mFunction == "reboot")
+    if (mActions.size() < 1)    return -1;
+    if (mActions.size() == 1)   return doAction(&mActions.at(0), 0);
+    
+    // For multi-action, we always use a thread
+    pthread_t t;
+
+    // Set current action to NULL, so we know that it's to run all actions
+    mCurrentAction = NULL;
+    pthread_create(&t, NULL, thread_start, this);
+
+    return 0;
+}
+
+void* GUIAction::thread_start(void *cookie)
+{
+    GUIAction* ourThis = (GUIAction*) cookie;
+
+    LOGI("GUIAction thread has been started.\n");
+	DataManager::SetValue(TW_ACTION_BUSY, 1);
+
+    if (ourThis->mCurrentAction == NULL)
+    {
+        std::vector<Action>::iterator iter;
+        for (iter = ourThis->mActions.begin(); iter != ourThis->mActions.end(); iter++)
+            ourThis->doAction(&(*iter), 1);
+    }
+    else
+        ourThis->doAction(ourThis->mCurrentAction, 1);
+
+	DataManager::SetValue(TW_ACTION_BUSY, 0);
+    LOGI("GUIAction thread is terminating.\n");
+    return NULL;
+}
+
+int GUIAction::doAction(Action* action, int isThreaded /* = 0 */)
+{
+    if (action->mFunction == "reboot")
     {
         curtainClose();
 
@@ -240,40 +269,40 @@ int GUIAction::doAction(int isThreaded)
         if (stat("/sbin/reboot.sh", &st) == 0)
         {
             char cmd[512];
-            sprintf(cmd, "/sbin/reboot.sh %s", mArg);
+            sprintf(cmd, "/sbin/reboot.sh %s", action->mArg.c_str());
             __system(cmd);
             usleep(3000000);
         }
 
         if (stat("/sbin/reboot", &st) == 0)
         {
-            if (mArg == "recovery")
+            if (action->mArg == "recovery")
             {
                 __system("/sbin/reboot recovery");
             }
-            if (mArg == "poweroff")
+            if (action->mArg == "poweroff")
             {
                 __system("/sbin/reboot poweroff");
             }
-            if (mArg == "bootloader")
+            if (action->mArg == "bootloader")
             {
                 __system("/sbin/reboot bootloader");
             }
             usleep(3000000);
         }
 
-        if (mArg == "recovery")
+        if (action->mArg == "recovery")
         {
             // Reboot to recovery
             ensure_path_unmounted("/sdcard");
             __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, (void*) "recovery");
         }
-        if (mArg == "poweroff")
+        if (action->mArg == "poweroff")
         {
             // Power off
             __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
         }
-        if (mArg == "bootloader")
+        if (action->mArg == "bootloader")
         {
             __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, (void*) "bootloader");
         }
@@ -281,20 +310,26 @@ int GUIAction::doAction(int isThreaded)
         reboot(RB_AUTOBOOT);
         return -1;
     }
-    if (mFunction == "home")
+    if (action->mFunction == "home")
     {
         PageManager::SelectPackage("TWRP");
         gui_changePage("main");
         return 0;
     }
 
-    if (mFunction == "page")
-        return gui_changePage(mArg);
+    if (action->mFunction == "key")
+    {
+        PageManager::NotifyKey(getKeyByName(action->mArg));
+        return 0;
+    }
 
-    if (mFunction == "reload")
+    if (action->mFunction == "page")
+        return gui_changePage(action->mArg);
+
+    if (action->mFunction == "reload")
         return PageManager::ReloadPackage("TWRP", "/sdcard/TWRP/theme/ui.zip");
 
-    if (mFunction == "readBackup")
+    if (action->mFunction == "readBackup")
     {
 #ifndef _SIMULATE_ACTIONS
         set_restore_files();
@@ -302,66 +337,66 @@ int GUIAction::doAction(int isThreaded)
         return 0;
     }
 
-    if (mFunction == "set")
+    if (action->mFunction == "set")
     {
-        if (mArg.find('=') != string::npos)
+        if (action->mArg.find('=') != string::npos)
         {
-            string varName = mArg.substr(0, mArg.find('='));
-            string value = mArg.substr(mArg.find('=') + 1, string::npos);
+            string varName = action->mArg.substr(0, action->mArg.find('='));
+            string value = action->mArg.substr(action->mArg.find('=') + 1, string::npos);
 
             DataManager::GetValue(value, value);
             DataManager::SetValue(varName, value);
         }
         else
-            DataManager::SetValue(mArg, "1");
+            DataManager::SetValue(action->mArg, "1");
         return 0;
     }
-    if (mFunction == "clear")
+    if (action->mFunction == "clear")
     {
-        DataManager::SetValue(mArg, "0");
+        DataManager::SetValue(action->mArg, "0");
         return 0;
     }
 
-    if (mFunction == "mount")
+    if (action->mFunction == "mount")
     {
 #ifndef _SIMULATE_ACTIONS
-        if (mArg == "usb")
+        if (action->mArg == "usb")
         {
             DataManager::SetValue(TW_ACTION_BUSY, 1);
 			usb_storage_enable();
         }
         else
         {
-            string cmd = "mount " + mArg;
+            string cmd = "mount " + action->mArg;
             __system(cmd.c_str());
         }
         return 0;
 #endif
     }
 
-    if (mFunction == "umount" || mFunction == "unmount")
+    if (action->mFunction == "umount" || action->mFunction == "unmount")
     {
 #ifndef _SIMULATE_ACTIONS
-        if (mArg == "usb")
+        if (action->mArg == "usb")
         {
             usb_storage_disable();
 			DataManager::SetValue(TW_ACTION_BUSY, 0);
         }
         else
         {
-            string cmd = "umount " + mArg;
+            string cmd = "umount " + action->mArg;
             __system(cmd.c_str());
         }
 #endif
         return 0;
     }
 	
-	if (mFunction == "restoredefaultsettings")
+	if (action->mFunction == "restoredefaultsettings")
 	{
 		DataManager::ResetDefaults();
 	}
 	
-	if (mFunction == "copylog")
+	if (action->mFunction == "copylog")
 	{
 #ifndef _SIMULATE_ACTIONS
 		ensure_path_mounted("/sdcard");
@@ -372,12 +407,12 @@ int GUIAction::doAction(int isThreaded)
 		return 0;
 	}
 	
-	if (mFunction == "addsubtract")
+	if (action->mFunction == "compute" || action->mFunction == "addsubtract")
 	{
-		if (mArg.find("+") != string::npos)
+		if (action->mArg.find("+") != string::npos)
         {
-            string varName = mArg.substr(0, mArg.find('+'));
-            string string_to_add = mArg.substr(mArg.find('+') + 1, string::npos);
+            string varName = action->mArg.substr(0, action->mArg.find('+'));
+            string string_to_add = action->mArg.substr(action->mArg.find('+') + 1, string::npos);
 			int amount_to_add = atoi(string_to_add.c_str());
 			int value;
 
@@ -385,10 +420,10 @@ int GUIAction::doAction(int isThreaded)
             DataManager::SetValue(varName, value + amount_to_add);
 			return 0;
         }
-		if (mArg.find("-") != string::npos)
+		if (action->mArg.find("-") != string::npos)
         {
-            string varName = mArg.substr(0, mArg.find('-'));
-            string string_to_subtract = mArg.substr(mArg.find('-') + 1, string::npos);
+            string varName = action->mArg.substr(0, action->mArg.find('-'));
+            string string_to_subtract = action->mArg.substr(action->mArg.find('-') + 1, string::npos);
 			int amount_to_subtract = atoi(string_to_subtract.c_str());
 			int value;
 
@@ -401,7 +436,7 @@ int GUIAction::doAction(int isThreaded)
         }
 	}
 	
-	if (mFunction == "setguitimezone")
+	if (action->mFunction == "setguitimezone")
 	{
 		string SelectedZone;
 		DataManager::GetValue(TW_TIME_ZONE_GUISEL, SelectedZone); // read the selected time zone into SelectedZone
@@ -428,7 +463,7 @@ int GUIAction::doAction(int isThreaded)
 
     if (isThreaded)
     {
-        if (mFunction == "flash")
+        if (action->mFunction == "flash")
         {
             std::string filename;
             DataManager::GetValue("tw_filename", filename);
@@ -438,31 +473,31 @@ int GUIAction::doAction(int isThreaded)
             DataManager::SetValue("tw_operation_status", 0);
             DataManager::SetValue("tw_operation_state", 0);
 
-            flash_zip(filename);
+            flash_zip(filename, action->mArg);
             return 0;
         }
-        if (mFunction == "wipe")
+        if (action->mFunction == "wipe")
         {
             DataManager::SetValue("tw_operation", "Format");
-            DataManager::SetValue("tw_partition", mArg);
+            DataManager::SetValue("tw_partition", action->mArg);
             DataManager::SetValue("tw_operation_status", 0);
             DataManager::SetValue("tw_operation_state", 0);
 
 #ifdef _SIMULATE_ACTIONS
             usleep(5000000);
 #else
-            if (mArg == "data")
+            if (action->mArg == "data")
                 wipe_data(0);
-            else if (mArg == "battery")
+            else if (action->mArg == "battery")
                 wipe_battery_stats();
-            else if (mArg == "rotate")
+            else if (action->mArg == "rotate")
                 wipe_rotate_data();
-            else if (mArg == "dalvik")
+            else if (action->mArg == "dalvik")
                 wipe_dalvik_cache();
             else
-                erase_volume(mArg.c_str());
+                erase_volume(action->mArg.c_str());
 			
-			if (mArg == "/sdcard") {
+			if (action->mArg == "/sdcard") {
 				ensure_path_mounted(SDCARD_ROOT);
 				mkdir("/sdcard/TWRP", 0777);
 				DataManager::Flush();
@@ -470,12 +505,12 @@ int GUIAction::doAction(int isThreaded)
 #endif
 
             DataManager::SetValue("tw_operation", "Format");
-            DataManager::SetValue("tw_partition", mArg);
+            DataManager::SetValue("tw_partition", action->mArg);
             DataManager::SetValue("tw_operation_status", 0);
             DataManager::SetValue("tw_operation_state", 1);
             return 0;
         }
-        if (mFunction == "nandroid")
+        if (action->mFunction == "nandroid")
         {
             DataManager::SetValue("ui_progress", 0);
 
@@ -488,9 +523,9 @@ int GUIAction::doAction(int isThreaded)
             DataManager::SetValue("tw_operation_status", 0);
             DataManager::SetValue("tw_operation_state", 1);
 #else
-            if (mArg == "backup")
+            if (action->mArg == "backup")
                 nandroid_back_exe();
-            else if (mArg == "restore")
+            else if (action->mArg == "restore")
                 nandroid_rest_exe();
             else
                 return -1;
@@ -498,7 +533,7 @@ int GUIAction::doAction(int isThreaded)
 
             return 0;
         }
-		if (mFunction == "fixpermissions")
+		if (action->mFunction == "fixpermissions")
 		{
 			DataManager::SetValue("ui_progress", 0);
 			DataManager::SetValue("tw_operation", "FixingPermissions");
@@ -518,7 +553,7 @@ int GUIAction::doAction(int isThreaded)
             DataManager::SetValue("tw_operation_state", 1);
 			return 0;
 		}
-		if (mFunction == "partitionsd")
+		if (action->mFunction == "partitionsd")
 		{
 			DataManager::SetValue("ui_progress", 0);
 			DataManager::SetValue("tw_operation", "partitionsd");
@@ -571,5 +606,18 @@ int GUIAction::doAction(int isThreaded)
         return 0;
     }
     return -1;
+}
+
+int GUIAction::getKeyByName(std::string key)
+{
+    if (key == "home")          return KEY_HOME;
+    else if (key == "menu")     return KEY_MENU;
+    else if (key == "back")     return KEY_BACK;
+    else if (key == "search")   return KEY_SEARCH;
+    else if (key == "voldown")  return KEY_VOLUMEDOWN;
+    else if (key == "volup")    return KEY_VOLUMEUP;
+    else if (key == "power")    return KEY_POWER;
+
+    return atol(key.c_str());
 }
 

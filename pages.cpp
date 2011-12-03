@@ -482,7 +482,6 @@ int PageSet::LoadVariables(xml_node<>* vars)
         DataManager::SetValue(child->first_attribute("name")->value(), child->first_attribute("value")->value());
         child = child->next_sibling("variable");
     }
-    DataManager::DumpValues();
     return 0;
 }
 

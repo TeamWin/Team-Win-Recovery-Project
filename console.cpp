@@ -110,10 +110,12 @@ GUIConsole::GUIConsole(xml_node<>* node)
     mSlideout = 0;
     mSlideoutState = 0;
 
+    mRenderX = 0; mRenderY = 0; mRenderW = gr_fb_width(); mRenderH = gr_fb_height();
+
     if (!node)
     {
-        mRenderX = 0; mRenderY = 0; mRenderW = gr_fb_width(); mRenderH = gr_fb_height();
-        mStubX = 0; mStubY = 0; mStubW = 0; mStubH = 0;
+        mSlideoutX = 0; mSlideoutY = 0; mSlideoutW = 0; mSlideoutH = 0;
+        mConsoleX = 0;  mConsoleY = 0;  mConsoleW = gr_fb_width();  mConsoleH = gr_fb_height();
     }
     else
     {
@@ -149,35 +151,28 @@ GUIConsole::GUIConsole(xml_node<>* node)
         }
 
         // Load the placement
-        LoadPlacement(node->first_node("placement"), &mRenderX, &mRenderY, &mRenderW, &mRenderH);
-
-        mStubX = mRenderX;    mStubY = mRenderY;    mStubW = mRenderW;    mStubH = mRenderH;
+        LoadPlacement(node->first_node("placement"), &mConsoleX, &mConsoleY, &mConsoleW, &mConsoleH);
 
         child = node->first_node("slideout");
         if (child)
         {
             mSlideout = 1;
-
-            attr = child->first_attribute("x");
-            if (attr)   mStubX = atol(attr->value());
-
-            attr = child->first_attribute("y");
-            if (attr)   mStubY = atol(attr->value());
+            LoadPlacement(child, &mSlideoutX, &mSlideoutY);
 
             attr = child->first_attribute("resource");
             if (attr)   mSlideoutImage = PageManager::FindResource(attr->value());
 
             if (mSlideoutImage && mSlideoutImage->GetResource())
             {
-                mStubW = gr_get_width(mSlideoutImage->GetResource());
-                mStubH = gr_get_height(mSlideoutImage->GetResource());
+                mSlideoutW = gr_get_width(mSlideoutImage->GetResource());
+                mSlideoutH = gr_get_height(mSlideoutImage->GetResource());
             }
         }
     }
 
     gr_getFontDetails(mFont, &mFontHeight, NULL);
-
-    SetRenderPos(mRenderX, mRenderY, mRenderW, mRenderH);
+    SetActionPos(mRenderX, mRenderY, mRenderW, mRenderH);
+    SetRenderPos(mConsoleX, mConsoleY);
     return;
 }
 
@@ -185,7 +180,7 @@ int GUIConsole::RenderSlideout(void)
 {
     if (!mSlideoutImage || !mSlideoutImage->GetResource())      return -1;
 
-    gr_blit(mSlideoutImage->GetResource(), 0, 0, mStubW, mStubH, mStubX, mStubY);
+    gr_blit(mSlideoutImage->GetResource(), 0, 0, mSlideoutW, mSlideoutH, mSlideoutX, mSlideoutY);
     return 0;
 }
 
@@ -196,10 +191,10 @@ int GUIConsole::RenderConsole(void)
 
     // We fill the background
     gr_color(mBackgroundColor.red, mBackgroundColor.green, mBackgroundColor.blue, 255);
-    gr_fill(mRenderX, mRenderY, mRenderW, mRenderH);
+    gr_fill(mConsoleX, mConsoleY, mConsoleW, mConsoleH);
 
     gr_color(mScrollColor.red, mScrollColor.green, mScrollColor.blue, mScrollColor.alpha);
-    gr_fill(mRenderX + (mRenderW * 9 / 10), mRenderY, (mRenderW / 10), mRenderH);
+    gr_fill(mConsoleX + (mConsoleW * 9 / 10), mConsoleY, (mConsoleW / 10), mConsoleH);
 
     // Render the lines
     gr_color(mForegroundColor.red, mForegroundColor.green, mForegroundColor.blue, mForegroundColor.alpha);
@@ -227,7 +222,7 @@ int GUIConsole::RenderConsole(void)
     {
         if ((start + (int) line) >= 0 && (start + (int) line) < (int) mLastCount)
         {
-            gr_text(mRenderX, mStartY + (line * mFontHeight), gConsole[start + line].c_str(), fontResource);
+            gr_text(mConsoleX, mStartY + (line * mFontHeight), gConsole[start + line].c_str(), fontResource);
         }
     }
     return (mSlideout ? RenderSlideout() : 0);
@@ -273,29 +268,22 @@ int GUIConsole::Update(void)
 int GUIConsole::SetRenderPos(int x, int y, int w, int h)
 {
     // Adjust the stub position accordingly
-    mStubX += (x - mRenderX);
-    mStubY += (y - mRenderY);
+    mSlideoutX += (x - mConsoleX);
+    mSlideoutY += (y - mConsoleY);
 
-    mRenderX = x;
-    mRenderY = y;
+    mConsoleX = x;
+    mConsoleY = y;
     if (w || h)
     {
-        mRenderW = w;
-        mRenderH = h;
+        mConsoleW = w;
+        mConsoleH = h;
     }
 
-    int height = mRenderH - (mSlideout ? mStubH : 0);
-
     // Calculate the max rows
-    mMaxRows = height / mFontHeight;
+    mMaxRows = mConsoleH / mFontHeight;
 
     // Adjust so we always fit to bottom
-    mStartY = mRenderY + (height % mFontHeight);
-
-    if (mSlideout && mSlideoutState == 0)
-        SetActionPos(mRenderX, mRenderY, mRenderW, mRenderH);
-    else
-        SetActionPos(mStubX, mStubY, mStubW, mStubH);
+    mStartY = mConsoleY + (mConsoleH % mFontHeight);
     return 0;
 }
 
@@ -303,11 +291,22 @@ int GUIConsole::SetRenderPos(int x, int y, int w, int h)
 //  Return 0 if this object handles the request, 1 if not
 int GUIConsole::IsInRegion(int x, int y)
 {
-    if (mSlideout && mSlideoutState == 1)
+    if (mSlideout)
     {
-        return (x < mRenderX || x > mRenderX + mRenderW || y < mRenderY || y > mRenderY + mRenderH) ? 0 : 1;
+        // Check if they tapped the slideout button
+        if (x >= mSlideoutX && x <= mSlideoutX + mSlideoutW && y >= mSlideoutY && y < mSlideoutY + mSlideoutH)
+        {
+            return 1;
+        }
+
+        // If we're only rendering the slideout, bail now
+        if (mSlideoutState == 0)
+        {
+            return 0;
+        }
     }
-    return (x < mStubX || x > mStubX + mStubW || y < mStubY || y > mStubY + mStubH) ? 0 : 1;
+
+    return (x < mConsoleX || x > mConsoleX + mConsoleW || y < mConsoleY || y > mConsoleY + mConsoleH) ? 0 : 1;
 }
 
 // NotifyTouch - Notify of a touch event
@@ -319,7 +318,6 @@ int GUIConsole::NotifyTouch(TOUCH_STATE state, int x, int y)
         if (state == TOUCH_START)
         {
             mSlideoutState = 3;
-            SetActionPos(mRenderX, mRenderY, mRenderW, mRenderH);
             return 1;
         }
     }
@@ -328,10 +326,9 @@ int GUIConsole::NotifyTouch(TOUCH_STATE state, int x, int y)
         // Are we sliding it back in?
         if (state == TOUCH_START)
         {
-            if (x > mStubX && x < (mStubX + mStubW) && y > mStubY && y < (mStubY + mStubH))
+            if (x > mSlideoutX && x < (mSlideoutX + mSlideoutW) && y > mSlideoutY && y < (mSlideoutY + mSlideoutH))
             {
                 mSlideoutState = 2;
-                SetActionPos(mStubX, mStubY, mStubW, mStubH);
                 return 1;
             }
         }
@@ -346,7 +343,7 @@ int GUIConsole::NotifyTouch(TOUCH_STATE state, int x, int y)
     case TOUCH_START:
         mLastTouchX = x;
         mLastTouchY = y;
-        if ((x - mRenderX) > ((9 * mRenderW) / 10))
+        if ((x - mConsoleX) > ((9 * mConsoleW) / 10))
             mSlideMultiplier = 10;
         else
             mSlideMultiplier = 1;

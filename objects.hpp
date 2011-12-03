@@ -101,22 +101,28 @@ class Conditional
 {
 public:
     Conditional(xml_node<>* node);
-    virtual ~Conditional();
 
 public:
-    std::string GetConditionVariable();
+    bool IsConditionVariable(std::string var);
     bool isConditionTrue();
     bool isConditionValid();
     void NotifyPageSet();
 
 protected:
-    std::string mVar1;
-    std::string mVar2;
-    std::string mCompareOp;
-    std::string mLastVal;
+    class Condition
+    {
+    public:
+        std::string mVar1;
+        std::string mVar2;
+        std::string mCompareOp;
+        std::string mLastVal;
+    };
+
+    std::vector<Condition> mConditions;
 
 protected:
     bool isMounted(std::string vol);
+    bool isConditionTrue(Condition* condition);
 
 };
 
@@ -203,14 +209,26 @@ public:
     virtual int NotifyVarChange(std::string varName, std::string value);
 
 protected:
-    virtual int doAction(int isThreaded = 0);
-    static void* thread_start(void *cookie);
-    void flash_zip(std::string filename);
+    class Action
+    {
+    public:
+        std::string mFunction;
+        std::string mArg;
+    };
+
+    std::vector<Action> mActions;
+    int mKey;
+
+    // Used for threading
+    Action* mCurrentAction;
 
 protected:
-    int mKey;
-    std::string mFunction;
-    std::string mArg;
+    int getKeyByName(std::string key);
+    virtual int doActions();
+    virtual int doAction(Action* action, int isThreaded = 0);
+    static void* thread_start(void *cookie);
+    void flash_zip(std::string filename, std::string pageName);
+
 };
 
 class GUIConsole : public RenderObject, public ActionObject
@@ -250,7 +268,9 @@ protected:
     unsigned int mLastCount;
     unsigned int mMaxRows;
     int mStartY;
-    int mStubX, mStubY, mStubW, mStubH;
+    int mSlideoutX, mSlideoutY, mSlideoutW, mSlideoutH;
+    int mSlideinX, mSlideinY, mSlideinW, mSlideinH;
+    int mConsoleX, mConsoleY, mConsoleW, mConsoleH;
     int mLastTouchX, mLastTouchY;
     int mSlideMultiplier;
     int mSlideout;
