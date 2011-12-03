@@ -156,6 +156,7 @@ void curtainClose()
     }
 #else
     gr_blit(gCurtain, 0, 0, gr_get_width(gCurtain), gr_get_height(gCurtain), 0, 0);
+    gr_flip();
 #endif
     return;
 }
