@@ -340,6 +340,10 @@ void DataManager::SetDefaultValues()
 	mValues.insert(make_pair(TW_TIME_ZONE_GUIOFFSET, make_pair("0", 1)));
 	mValues.insert(make_pair(TW_TIME_ZONE_GUIDST, make_pair("1", 1)));
     mValues.insert(make_pair(TW_ACTION_BUSY, make_pair("0", 0)));
+    mValues.insert(make_pair(TW_BACKUP_AVG_RATE, make_pair("3145728", 1)));
+    mValues.insert(make_pair(TW_BACKUP_AVG_COMP_RATE, make_pair("1048576", 1)));
+    mValues.insert(make_pair(TW_RESTORE_AVG_RATE, make_pair("3145728", 1)));
+    mValues.insert(make_pair(TW_RESTORE_AVG_COMP_RATE, make_pair("1048576", 1)));
 }
 
 // Magic Values

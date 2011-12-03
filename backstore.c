@@ -24,12 +24,15 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/reboot.h>
+#include <sys/vfs.h>
+#include <sys/mount.h>
 
 #include "backstore.h"
 #include "ddftw.h"
 #include "extra-functions.h"
 #include "roots.h"
 #include "format.h"
+#include "data.h"
 
 int getWordFromString(int word, const char* string, char* buffer, int bufferLen)
 {
@@ -40,12 +43,12 @@ int getWordFromString(int word, const char* string, char* buffer, int bufferLen)
         // Ignore leading whitespace
         while (*string > 0 && *string < 33)     ++string;
 
-        start = string;
+        start = (char*) string;
         while (*string > 32)                    ++string;
     } while (--word > 0);
 
     // Handle word not found
-    if (*start == NULL)
+    if (*start == '\0')
     {
         buffer[0] = '\0';
         return 0;
@@ -88,7 +91,7 @@ nandroid_menu()
 						  "<-- Back To Main Menu",
 						  NULL };
 	
-	char** headers = prepend_title(nan_headers);
+	char** headers = prepend_title((const char**) nan_headers);
 	
 	int chosen_item;
     inc_menu_loc(ITEM_MENU_BACK); // record back selection into array
@@ -164,7 +167,7 @@ nan_backup_menu(int pIdx)
 							 "<-- Back To Nandroid Menu",
 							 NULL };
 
-	char** headers = prepend_title(nan_b_headers);
+	char** headers = prepend_title((const char**) nan_b_headers);
 	
     inc_menu_loc(ITEM_NAN_BACK);
 	for (;;) {
@@ -358,7 +361,7 @@ nan_restore_menu(int pIdx)
 							"<-- Back To Nandroid Menu",
 							 NULL };
 
-	char** headers = prepend_title(nan_r_headers);
+	char** headers = prepend_title((const char**) nan_r_headers);
 	
     inc_menu_loc(ITEM_NAN_BACK);
 	for (;;) {
@@ -569,92 +572,92 @@ nan_img_set(int tw_setting, int tw_backstore)
 	return tmp_set;
 }
 
+int tw_isMounted(struct dInfo mMnt)
+{
+    // Do not try to mount non-mountable partitions
+    if (!mMnt.mountable)        return -1;
+
+    LOGI("=> Checking if /%s is mounted.\n",mMnt.mnt); // check it mounted
+
+    struct stat st1, st2;
+    char path[255];
+
+    sprintf(path, "/%s/.", mMnt.mnt);
+    if (stat(path, &st1) != 0)  return -1;
+
+    sprintf(path, "/%s/../.", mMnt.mnt);
+    if (stat(path, &st2) != 0)  return -1;
+
+    int ret = (st1.st_dev != st2.st_dev) ? 1 : 0;
+
+    if (ret)
+        LOGI("=> %s is mounted.\n", mMnt.mnt);
+    else
+        LOGI("=> %s is not mounted.\n", mMnt.mnt);
+
+    return ret;
+}
+
 /* Made my own mount, because aosp api "ensure_path_mounted" relies on recovery.fstab
 ** and we needed one that can mount based on what the file system really is (from blkid), 
 ** and not what's in fstab or recovery.fstab
 */
 int tw_mount(struct dInfo mMnt)
 {
+    char target[255];
+    int ret = 0;
+
     // Do not try to mount non-mountable partitions
     if (!mMnt.mountable)        return 0;
+    if (tw_isMounted(mMnt))     return 0;
 
-	FILE *fp;
-    char mCommand[255];
-    char mOutput[255];
-    LOGI("=> Checking if /%s is mounted.\n",mMnt.mnt); // check it mounted
-    sprintf(mCommand,"cat /proc/mounts | grep %s | awk '{ print $1 }'",mMnt.blk); // by checking for block in proc mounts
-    fp = __popen(mCommand, "r"); // run above command
-    if (fscanf(fp,"%s",mOutput) != 1) { // if we get a match
-        __pclose(fp);
-        LOGI("=> /%s is not mounted. Mounting...\n",mMnt.mnt);
-        sprintf(mCommand,"mount -t %s %s /%s",mMnt.fst,mMnt.blk,mMnt.mnt); // mount using filesystem stored in struct mMnt.fst
-        fp = __popen(mCommand, "r");
-        fgets(mOutput,sizeof(mOutput),fp); // get output
-        __pclose(fp);
-        if (mOutput[0] == 'm') { // if output starts with m, it's an error
-            ui_print("-- Error: %s",mOutput);
-            return 1;
-        } else {
-            LOGI("=> Mounted /%s.\n",mMnt.mnt); // output should be nothing, so it's succesful
-        }
-    } else {
-        __pclose(fp);
-        LOGI("=> /%s is already mounted.\n",mMnt.mnt);
+    LOGI("=> Mounting %s...\n", mMnt.mnt);
+
+    sprintf(target, "/%s", mMnt.mnt);
+    if (mount(mMnt.blk, target, mMnt.fst, 0, NULL) != 0)
+    {
+        LOGE("Unable to mount %s\n", target);
+        ret = 1;
     }
-	return 0;
+    return ret;
 }
 
 int tw_unmount(struct dInfo uMnt)
 {
+    char target[255];
+    int ret = 0;
+
     // Do not try to mount non-mountable partitions
     if (!uMnt.mountable)        return 0;
+    if (!tw_isMounted(uMnt))    return 0;
 
-    FILE *fp;
-    char uCommand[255];
-    char uOutput[255];
-    LOGI("=> Checking if /%s is mounted.\n",uMnt.mnt);
-    sprintf(uCommand,"cat /proc/mounts | grep %s | awk '{ print $1 }'",uMnt.blk);
-    fp = __popen(uCommand, "r");
-    if (fscanf(fp,"%s",uOutput) == 1) {
-        __pclose(fp);
-        sprintf(uCommand,"umount /%s",uMnt.mnt);
-        fp = __popen(uCommand, "r");
-        fgets(uOutput,sizeof(uOutput),fp);
-        __pclose(fp);
-        if (uOutput[0] == 'u') {
-            ui_print("-- Error: %s",uOutput);
-            return 1;
-        } else {
-            LOGI("=> Unmounted /%s\n",uMnt.mnt);
-        }
-    } else {
-        __pclose(fp);
-        LOGI("=> /%s is not mounted.\n\n",uMnt.mnt);
+    LOGI("=> Unmounting %s...\n", uMnt.mnt);
+
+    sprintf(target, "/%s", uMnt.mnt);
+    if (umount(target) != 0)
+    {
+        LOGE("Unable to unmount %s\n", target);
+        ret = 1;
     }
-	return 0;
+	return ret;
 }
 
 /* New backup function
 ** Condensed all partitions into one function
 */
-int tw_backup(struct dInfo bMnt, char *bDir, float portion)
+int tw_backup(struct dInfo bMnt, const char *bDir)
 {
-    if (ensure_path_mounted(SDCARD_ROOT) != 0) {
-		ui_print("-- Could not mount: %s.\n-- Aborting.\n",SDCARD_ROOT);
-		return 1;
-	}
-	int bDiv;
+    // set compression or not
 	char bTarArg[10];
-	if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR)) { // set compression or not
+	if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR)) {
 		strcpy(bTarArg,"-czvf");
-		bDiv = 512;
 	} else {
 		strcpy(bTarArg,"-cvf");
-		bDiv = 2048;
 	}
+
 	FILE *bFp;
     char str[512];
-	int bPartSize;
+	unsigned long long bPartSize;
 	char *bImage = malloc(sizeof(char)*50);
 	char *bMount = malloc(sizeof(char)*50);
 	char *bCommand = malloc(sizeof(char)*255);
@@ -671,28 +674,24 @@ int tw_backup(struct dInfo bMnt, char *bDir, float portion)
 			strcat(bMount,bMnt.mnt);
 			sprintf(bImage,"%s.%s.win",bMnt.mnt,bMnt.fst); // anything else that is mountable, will be partition.filesystem.win
             SetDataState("Mounting", bMnt.mnt, 0, 0);
-			if (tw_mount(bMnt)) {
+			if (tw_mount(bMnt))
+            {
 				ui_print("-- Could not mount: %s\n-- Aborting.\n",bMount);
 				free(bCommand);
 				free(bMount);
 				free(bImage);
 				return 1;
 			}
-			ui_print("-- Done.\n\n",bMount);
 		}
-		sprintf(bCommand,"du -sk %s | awk '{ print $1 }'",bMount); // check for partition/folder size
-		bFp = __popen(bCommand, "r");
-        fgets(str, sizeof(str), bFp);
-		bPartSize = atol(str);
-		__pclose(bFp);
+		bPartSize = bMnt.used;
 		sprintf(bCommand,"cd %s && tar %s %s%s ./*",bMount,bTarArg,bDir,bImage); // form backup command
 	} else if (bMnt.backup == image) {
 		strcpy(bMount,bMnt.mnt);
-		bPartSize = bMnt.sze / 1024;
+		bPartSize = bMnt.sze;
 		sprintf(bImage,"%s.%s.win",bMnt.mnt,bMnt.fst); // non-mountable partitions such as boot/sp1/recovery
 		if (strcmp(bMnt.fst,"mtd") == 0) {
 			sprintf(bCommand,"dump_image %s %s%s",bMnt.mnt,bDir,bImage); // if it's mtd, we use dump image
-		} else if (strcmp(bMnt.fst,"emmc") == 0 || memcmp(bMnt.fst,"ext",3) == 0) {
+		} else {
 			sprintf(bCommand,"dd bs=%s if=%s of=%s%s",bs_size,bMnt.blk,bDir,bImage); // if it's emmc, use dd
 		}
 		ui_print("\n");
@@ -704,92 +703,226 @@ int tw_backup(struct dInfo bMnt, char *bDir, float portion)
     }
 
 	LOGI("=> Filename: %s\n",bImage);
-	LOGI("=> Size of %s is %d KB.\n\n",bMount,bPartSize);
+	LOGI("=> Size of %s is %lu KB.\n\n", bMount, (unsigned long) (bPartSize / 1024));
 	int i;
 	char bUppr[20];
 	strcpy(bUppr,bMnt.mnt);
-	for (i = 0; i < strlen(bUppr); i++) { // make uppercase of mount name
+	for (i = 0; i < (int) strlen(bUppr); i++) { // make uppercase of mount name
 		bUppr[i] = toupper(bUppr[i]);
 	}
-	ui_print("[%s (%d MB)]\n",bUppr,bPartSize/1024); // show size in MB
+	ui_print("[%s (%lu MB)]\n", bUppr, (unsigned long) (bPartSize / (1024 * 1024))); // show size in MB
+
     SetDataState("Backup", bMnt.mnt, 0, 0);
 	int bProgTime;
 	time_t bStart, bStop;
 	char bOutput[1024];
-	if (sdSpace > bPartSize) { // Do we have enough space on sdcard?
-		time(&bStart); // start timer
-		bProgTime = bPartSize / bDiv; // not very accurate but better than nothing progress time for progress bar
-		ui_show_progress((portion * 3) / 4, bProgTime);
-		ui_print("...Backing up %s partition.\n",bMount);
-        LOGI("  Backup command: %s\n", bCommand);
-		bFp = __popen(bCommand, "r"); // sending backup command formed earlier above
-		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 2) { // if twrp spam is on, show all lines
-			while (fgets(bOutput,sizeof(bOutput),bFp) != NULL) {
-				ui_print_overwrite("%s",bOutput);
-			}
-		} else { // else just show single line
-			while (fscanf(bFp,"%s",bOutput) == 1) {
-				if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 1) ui_print_overwrite("%s",bOutput);
-			}
-		}
-		ui_print_overwrite("....Done.\n");
-		__pclose(bFp);
-		int pFileSize = 0;
-		ui_print("...Double checking backup file size.\n");
-        SetDataState("Verifying", bMnt.mnt, 0, 0);
-        ui_show_progress(portion / 4, bProgTime / 4);
-		sprintf(bCommand,"ls -l %s%s | awk '{ print $5 }'",bDir,bImage); // double checking to make sure we backed up something
-		bFp = __popen(bCommand, "r");
-        fgets(str, sizeof(str), bFp);
-		pFileSize = atol(str);
-		__pclose(bFp);
-		ui_print("....File size: %d bytes.\n",pFileSize); // file size
-		if (pFileSize > 0) { // larger than 0 bytes?
-			if (bMnt.backup == image) { // Only verify image sizes
-				LOGI("=> Expected size: %d Got: %d\n",bMnt.sze,pFileSize); // partition size matches file image size (they should match!)
-				if (pFileSize != bMnt.sze) {
-					ui_print("....File size is incorrect. Aborting...\n\n"); // they dont :(
-					free(bCommand);
-					free(bMount);
-					free(bImage);
-					return 1;
-				} else {
-					ui_print("....File size matches partition size.\n"); // they do, yay!
-				}
-			}
-			ui_print("...Generating %s md5...\n", bMnt.mnt);
-            SetDataState("Generating MD5", bMnt.mnt, 0, 0);
-			makeMD5(bDir,bImage); // make md5 file
-			ui_print("....Done.\n");
-			ui_print("...Verifying %s md5...\n", bMnt.mnt);
-            SetDataState("Verifying", bMnt.mnt, 0, 0);
-			checkMD5(bDir,bImage); // test the md5 we just made, just in case
-			ui_print("....Done.\n");
-			time(&bStop); // stop timer
-			ui_reset_progress(); // stop progress bar
-			ui_print("[%s DONE (%d SECONDS)]\n\n",bUppr,(int)difftime(bStop,bStart)); // done, finally. How long did it take?
-			tw_unmount(bMnt); // unmount partition we just restored to (if it's not a mountable partition, it will just bypass)
-			sdSpace -= bPartSize; // minus from sd space number (not accurate but, it's more than the real count so it will suffice)
-		} else {
-			ui_print("...File size is zero bytes. Aborting...\n\n"); // oh noes! file size is 0, abort! abort!
-			tw_unmount(bMnt);
-			free(bCommand);
-			free(bMount);
-			free(bImage);
-			return 1;
-		}
-	} else {
-		ui_print("...Not enough space on /sdcard. Aborting.\n"); // oh noes! no space left on sdcard, abort! abort!
-		tw_unmount(bMnt);
-		free(bCommand);
-		free(bMount);
-		free(bImage);
-		return 1;
-	}
-	free(bCommand);
+
+    time(&bStart); // start timer
+    ui_print("...Backing up %s partition.\n",bMount);
+    LOGI("  Backup command: %s\n", bCommand);
+    bFp = __popen(bCommand, "r"); // sending backup command formed earlier above
+    if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 2) { // if twrp spam is on, show all lines
+        while (fgets(bOutput,sizeof(bOutput),bFp) != NULL) {
+            ui_print_overwrite("%s",bOutput);
+        }
+    } else { // else just show single line
+        while (fscanf(bFp,"%s",bOutput) == 1) {
+            if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 1) ui_print_overwrite("%s",bOutput);
+        }
+    }
+    ui_print_overwrite(" * Done.\n");
+    __pclose(bFp);
+
+    ui_print(" * Verifying backup size.\n");
+    SetDataState("Verifying", bMnt.mnt, 0, 0);
+
+    sprintf(bCommand, "%s%s", bDir, bImage);
+    struct stat st;
+    if (stat(bCommand, &st) != 0 || st.st_size == 0)
+    {
+        ui_print("E: File size is zero bytes. Aborting...\n\n"); // oh noes! file size is 0, abort! abort!
+        tw_unmount(bMnt);
+        free(bCommand);
+        free(bMount);
+        free(bImage);
+        return 1;
+    }
+
+    ui_print(" * File size: %llu bytes.\n", st.st_size); // file size
+
+    // Only verify image sizes
+    if (bMnt.backup == image)
+    {
+        LOGI(" * Expected size: %llu Got: %lld\n", bMnt.sze, st.st_size);
+        if (bMnt.sze != (unsigned long long) st.st_size)
+        {
+            ui_print("E: File size is incorrect. Aborting.\n\n"); // they dont :(
+            free(bCommand);
+            free(bMount);
+            free(bImage);
+            return 1;
+        }
+    }
+
+    ui_print(" * Generating md5...\n");
+    SetDataState("Generating MD5", bMnt.mnt, 0, 0);
+    makeMD5(bDir, bImage); // make md5 file
+    time(&bStop); // stop timer
+    ui_print("[%s DONE (%d SECONDS)]\n\n",bUppr,(int)difftime(bStop,bStart)); // done, finally. How long did it take?
+    tw_unmount(bMnt); // unmount partition we just restored to (if it's not a mountable partition, it will just bypass)
+
+    free(bCommand);
 	free(bMount);
 	free(bImage);
 	return 0;
+}
+
+unsigned long long get_backup_size(struct dInfo* mnt)
+{
+    if (!mnt)
+    {
+        LOGE("Invalid call to get_backup_size with NULL parameter\n");
+        return 0;
+    }
+
+    switch (mnt->backup)
+    {
+    case files:
+        return mnt->used;
+    case image:
+        return (unsigned long long) mnt->sze;
+    case none:
+        LOGW("Request backup details for partition '%s' which has no backup method.", mnt->mnt);
+        break;
+
+    default:
+        LOGE("Backup type unknown for partition '%s'\n", mnt->mnt);
+        break;
+    }
+    return 0;
+}
+
+int CalculateBackupDetails(int* total_partitions, unsigned long long* total_bytes)
+{
+    *total_partitions = 0;
+    *total_bytes = 0;
+
+    if (DataManager_GetIntValue(TW_BACKUP_SYSTEM_VAR) == 1)
+    {
+        *total_partitions = *total_partitions + 1;
+        *total_bytes += get_backup_size(&sys);
+    }
+
+    if (DataManager_GetIntValue(TW_BACKUP_DATA_VAR) == 1)
+    {
+        *total_partitions = *total_partitions + 1;
+        *total_bytes += get_backup_size(&dat);
+    }
+    if (DataManager_GetIntValue(TW_BACKUP_CACHE_VAR) == 1)
+    {
+        *total_partitions = *total_partitions + 1;
+        *total_bytes += get_backup_size(&cac);
+    }
+    if (DataManager_GetIntValue(TW_BACKUP_RECOVERY_VAR) == 1)
+    {
+        *total_partitions = *total_partitions + 1;
+        *total_bytes += get_backup_size(&rec);
+    }
+    if (DataManager_GetIntValue(TW_BACKUP_SP1_VAR) == 1)
+    {
+        *total_partitions = *total_partitions + 1;
+        *total_bytes += get_backup_size(&sp1);
+    }
+    if (DataManager_GetIntValue(TW_BACKUP_SP2_VAR) == 1)
+    {
+        *total_partitions = *total_partitions + 1;
+        *total_bytes += get_backup_size(&sp2);
+    }
+    if (DataManager_GetIntValue(TW_BACKUP_SP3_VAR) == 1)
+    {
+        *total_partitions = *total_partitions + 1;
+        *total_bytes += get_backup_size(&sp2);
+    }
+    if (DataManager_GetIntValue(TW_BACKUP_BOOT_VAR) == 1)
+    {
+        *total_partitions = *total_partitions + 1;
+        *total_bytes += get_backup_size(&boo);
+    }
+    if (DataManager_GetIntValue(TW_BACKUP_ANDSEC_VAR) == 1)
+    {
+        *total_partitions = *total_partitions + 1;
+        *total_bytes += get_backup_size(&ase);
+    }
+    if (DataManager_GetIntValue(TW_BACKUP_SDEXT_VAR) == 1)
+    {
+        *total_partitions = *total_partitions + 1;
+        *total_bytes += get_backup_size(&sde);
+    }
+    return 0;
+}
+
+int recursive_mkdir(const char* path)
+{
+    char pathCpy[512];
+    char wholePath[512];
+    strcpy(pathCpy, path);
+    strcpy(wholePath, "/");
+
+    char* tok = strtok(pathCpy, "/");
+    while (tok)
+    {
+        strcat(wholePath, tok);
+        if (mkdir(wholePath, 0777) && errno != EEXIST)
+        {
+            LOGE("Unable to create folder: %s  (errno=%d)\n", wholePath, errno);
+            return -1;
+        }
+        strcat(wholePath, "/");
+
+        tok = strtok(NULL, "/");
+    }
+    if (mkdir(wholePath, 0777) && errno != EEXIST)      return -1;
+    return 0;
+}
+
+int tw_do_backup(const char* enableVar, struct dInfo* mnt, const char* tw_image_dir, unsigned long long total_bytes, unsigned long long* bytes_remaining, unsigned long int* avgBytesPerSec)
+{
+    // Check if this partition is being backed up...
+	if (!DataManager_GetIntValue(enableVar))    return 0;
+
+    // Set the current UI position accurately
+    float pos = 1.0 - (((float) *bytes_remaining) / total_bytes);
+    ui_set_progress(pos);
+
+    // Determine how much we're about to process
+    unsigned long long blocksize = get_backup_size(mnt);
+
+    // Move the bytes remaining and locate the target pos
+    *bytes_remaining = *bytes_remaining - blocksize;
+    pos = 1.0 - (((float) blocksize) / total_bytes);
+
+    // Set the UI based on avgBytesPerSec
+    if (*avgBytesPerSec == 0)   *avgBytesPerSec = 1;
+    ui_show_progress(pos, ((unsigned long int) blocksize) / *avgBytesPerSec);
+
+    // Record the timing so we can update avgBytesPerSec
+    time_t start, stop;
+    time(&start);
+
+    if (tw_backup(*mnt, tw_image_dir) == 1) { // did the backup process return an error ? 0 = no error
+        SetDataState("Backup failed", mnt->mnt, 1, 1);
+        ui_print("-- Error occured, check recovery.log. Aborting.\n"); //oh noes! abort abort!
+        return 1;
+    }
+
+    // Compute how many seconds it took to do this
+    time(&stop);
+    unsigned long seconds = (unsigned long) difftime(stop, start);
+    blocksize /= seconds;
+
+    // Update the average (1/5th)
+    *avgBytesPerSec = ((*avgBytesPerSec * 4) + blocksize) / 5;
+    return 0;
 }
 
 int
@@ -803,6 +936,7 @@ nandroid_back_exe()
 		return 1;
 	}
 
+    // Create backup folder
     struct tm *t;
     char timestamp[64];
 	char tw_image_dir[255];
@@ -812,170 +946,121 @@ nandroid_back_exe()
 	seconds = time(0);
     t = localtime(&seconds);
     sprintf(timestamp,"%04d-%02d-%02d--%02d-%02d-%02d",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min,t->tm_sec); // make time stamp
-	sprintf(tw_image_dir,"%s/%s/%s/",backup_folder,device_id,timestamp); // for backup folder
-	sprintf(exe,"mkdir -p %s",tw_image_dir); // make the folder with timestamp
-	if (__system(exe) != 0) {
-		ui_print("-- Could not create: %s.\n-- Aborting.",tw_image_dir);
+	sprintf(tw_image_dir,"%s/%s/%s/", backup_folder, device_id, timestamp); // for backup folder
+
+    if (recursive_mkdir(tw_image_dir))
+    {
+        LOGE("Unable to create folder: '%s'\n", backup_folder);
         SetDataState("Backup failed", tw_image_dir, 1, 1);
-		return 1;
-	} else {
-		LOGI("=> Created folder: %s\n",tw_image_dir);
-	}
-	FILE *fp;
-	char pOutput[26];
-	int sdSpaceFinal;
-	LOGI("=> Checking space on %s.\n",SDCARD_ROOT);
-	fp = __popen("df -k /sdcard | grep sdcard | awk '{ print $4 \" \" $3 }'", "r"); // how much space left on sdcard?
-	fgets(pOutput,25,fp);
-    // Force a NULL termination
-    pOutput[25] = 0;
-	__pclose(fp);
-    LOGI("=> Retrieved: %s.\n", pOutput);
-	if(pOutput[2] == '%') { // oh o, crespo devices report diskspace on the 3rd argument.
-		if (sscanf(pOutput,"%*s %d",&sdSpaceFinal) != 1) { // is it a number?
-			ui_print("-- Could not determine free space on %s.",SDCARD_ROOT); // oh noes! Can't find sdcard's free space.
-            SetDataState("Backup failed", "", 1, 1);
-			return 1;
-		}
-	} else {
-		if (sscanf(pOutput,"%d",&sdSpaceFinal) != 1) { // is it a number?
-			ui_print("-- Could not determine free space on %s.",SDCARD_ROOT); // oh noes! Can't find sdcard's free space.
-            SetDataState("Backup failed", "", 1, 1);
-			return 1;
-		}
-	}
-	LOGI("=> %s",pOutput);
-	sdSpace = sdSpaceFinal; // set starting and running count of sd space
-	LOGI("=> /sdcard has %d MB free.\n",sdSpace/1024);
-	time(&start);
+        return -1;
+    }
 
+    // Record the start time
+    time(&start);
+
+    // Prepare operation
+    ui_print("\n[BACKUP STARTED]\n");
+    ui_print(" * Backup Folder: %s\n", backup_folder);
+    ui_print(" * Verifying filesystems...\n");
+    verifyFst();
+    createFstab();
+    ui_print(" * Verifying partition sizes...\n");
+    updateUsedSized();
+    unsigned long long sdc_free = sdcext.sze - sdcext.used; 
+
+    // Compute totals
     int tw_total = 0;
-    tw_total += (DataManager_GetIntValue(TW_BACKUP_SYSTEM_VAR) == 1 ? 1 : 0);
-    tw_total += (DataManager_GetIntValue(TW_BACKUP_DATA_VAR) == 1 ? 1 : 0);
-    tw_total += (DataManager_GetIntValue(TW_BACKUP_CACHE_VAR) == 1 ? 1 : 0);
-    tw_total += (DataManager_GetIntValue(TW_BACKUP_RECOVERY_VAR) == 1 ? 1 : 0);
-    tw_total += (DataManager_GetIntValue(TW_BACKUP_SP1_VAR) == 1 ? 1 : 0);
-    tw_total += (DataManager_GetIntValue(TW_BACKUP_SP2_VAR) == 1 ? 1 : 0);
-    tw_total += (DataManager_GetIntValue(TW_BACKUP_SP3_VAR) == 1 ? 1 : 0);
-    tw_total += (DataManager_GetIntValue(TW_BACKUP_BOOT_VAR) == 1 ? 1 : 0);
-    tw_total += (DataManager_GetIntValue(TW_BACKUP_ANDSEC_VAR) == 1 ? 1 : 0);
-    tw_total += (DataManager_GetIntValue(TW_BACKUP_SDEXT_VAR) == 1 ? 1 : 0);
+    unsigned long long total_bytes = 0;
+    CalculateBackupDetails(&tw_total, &total_bytes);
 
-    float sections = 1.0 / tw_total;
-    LOGI("Sections as float: %f\n", sections);
-    LOGI("Sections: %d\n", tw_total);
+    if (tw_total == 0 || total_bytes == 0)
+    {
+        LOGE("Unable to compute target usage (%d partitions, %llu bytes)\n", tw_total, total_bytes);
+        SetDataState("Backup failed", tw_image_dir, 1, 1);
+        return -1;
+    }
 
-    ui_print("\n[BACKUP STARTED]\n\n");
-	ui_print("-- Verifying filesystems, please wait...\n");
-	verifyFst();
-	ui_print("-- Updating fstab.\n");
-	createFstab();
-	ui_print("-- Done.\n");
+    ui_print(" * Total number of partition to back up: %d\n", tw_total);
+    ui_print(" * Total size of all data, in KB: %llu\n", total_bytes / 1024);
+    ui_print(" * Available space on the SD card, in KB: %llu\n", sdc_free / 1024);
+
+    // Verify space
+    if (sdc_free < (total_bytes + 0x2000000))       // We require at least 32MB of additional space
+    {
+        LOGE("Insufficient space on SDCARD. Required space is %lluKB, available %lluKB\n", (total_bytes + 0x2000000) / 1024, sdc_free / 1024);
+        SetDataState("Backup failed", tw_image_dir, 1, 1);
+        return -1;
+    }
+
+    // Prepare progress bar...
+    unsigned long int avgBytesPerSec = DataManager_GetIntValue(TW_BACKUP_AVG_RATE);
+    if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR))    avgBytesPerSec = DataManager_GetIntValue(TW_BACKUP_AVG_COMP_RATE);
+    if (avgBytesPerSec == 0)                                avgBytesPerSec = 3145728;   // 3MB/sec
+
+    unsigned long long bytes_remaining = total_bytes;
+    ui_set_progress(0.0);
+
 	// SYSTEM
-	if (DataManager_GetIntValue(TW_BACKUP_SYSTEM_VAR)) { // was system backup enabled?
-		if (tw_backup(sys,tw_image_dir, sections) == 1) { // did the backup process return an error ? 0 = no error
-            SetDataState("Backup failed", "system", 1, 1);
-			ui_print("-- Error occured, check recovery.log. Aborting.\n"); //oh noes! abort abort!
-			return 1;
-		}
-	}
+    if (tw_do_backup(TW_BACKUP_SYSTEM_VAR, &sys, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))      return 1;
+
 	// DATA
-	if (DataManager_GetIntValue(TW_BACKUP_DATA_VAR)) {
-		if (tw_backup(dat,tw_image_dir, sections) == 1) {
-            SetDataState("Backup failed", "data", 1, 1);
-			ui_print("-- Error occured, check recovery.log. Aborting.\n");
-			return 1;
-		}
-	}
-	// BOOT
-	if (DataManager_GetIntValue(TW_BACKUP_BOOT_VAR)) {
-		if (tw_backup(boo,tw_image_dir, sections) == 1) {
-            SetDataState("Backup failed", "boot", 1, 1);
-			ui_print("-- Error occured, check recovery.log. Aborting.\n");
-			return 1;
-		}
-	}
-	// RECOVERY
-	if (DataManager_GetIntValue(TW_BACKUP_RECOVERY_VAR)) {
-		if (tw_backup(rec,tw_image_dir, sections) == 1) {
-            SetDataState("Backup failed", "recovery", 1, 1);
-			ui_print("-- Error occured, check recovery.log. Aborting.\n");
-			return 1;
-		}
-	}
-	// CACHE
-	if (DataManager_GetIntValue(TW_BACKUP_CACHE_VAR)) {
-		if (tw_backup(cac,tw_image_dir, sections) == 1) {
-            SetDataState("Backup failed", "cache", 1, 1);
-			ui_print("-- Error occured, check recovery.log. Aborting.\n");
-			return 1;
-		}
-	}
-	// SP1
-	if (DataManager_GetIntValue(TW_BACKUP_SP1_VAR)) {
-		if (tw_backup(sp1,tw_image_dir, sections) == 1) {
-            SetDataState("Backup failed", EXPAND(SP1_NAME), 1, 1);
-			ui_print("-- Error occured, check recovery.log. Aborting.\n");
-			return 1;
-		}
-	}
+    if (tw_do_backup(TW_BACKUP_DATA_VAR, &dat, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))        return 1;
+
+    // BOOT
+    if (tw_do_backup(TW_BACKUP_BOOT_VAR, &boo, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))        return 1;
+
+    // RECOVERY
+    if (tw_do_backup(TW_BACKUP_RECOVERY_VAR, &rec, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))    return 1;
+
+    // CACHE
+    if (tw_do_backup(TW_BACKUP_CACHE_VAR, &cac, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))       return 1;
+
+    // SP1
+    if (tw_do_backup(TW_BACKUP_SP1_VAR, &sp1, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))         return 1;
+
     // SP2
-    if (DataManager_GetIntValue(TW_BACKUP_SP2_VAR)) {
-        if (tw_backup(sp2,tw_image_dir, sections) == 1) {
-            SetDataState("Backup failed", EXPAND(SP2_NAME), 1, 1);
-            ui_print("-- Error occured, check recovery.log. Aborting.\n");
-            return 1;
-        }
-    }
+    if (tw_do_backup(TW_BACKUP_SP2_VAR, &sp2, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))         return 1;
+
     // SP3
-    if (DataManager_GetIntValue(TW_BACKUP_SP3_VAR)) {
-        if (tw_backup(sp3,tw_image_dir, sections) == 1) {
-            SetDataState("Backup failed", EXPAND(SP3_NAME), 1, 1);
-            ui_print("-- Error occured, check recovery.log. Aborting.\n");
-            return 1;
-        }
-    }
-	// ANDROID-SECURE
-	if (DataManager_GetIntValue(TW_BACKUP_ANDSEC_VAR)) {
-		if (tw_backup(ase,tw_image_dir, sections) == 1) {
-            SetDataState("Backup failed", ".android_secure", 1, 1);
-			ui_print("-- Error occured, check recovery.log. Aborting.\n");
-			return 1;
-		}
-	}
-	// SD-EXT
-	if (DataManager_GetIntValue(TW_BACKUP_SDEXT_VAR)) {
-		if (tw_backup(sde,tw_image_dir, sections) == 1) {
-            SetDataState("Backup failed", "sd-ext", 1, 1);
-			ui_print("-- Error occured, check recovery.log. Aborting.\n");
-			return 1;
-		}
-	}
-	LOGI("=> Checking /sdcard space again.\n\n");
-	fp = __popen("df -k /sdcard| grep sdcard | awk '{ print $4 \" \" $3 }'", "r");
-	fgets(pOutput,25,fp);
-	__pclose(fp);
-	if(pOutput[2] == '%') {
-		if (sscanf(pOutput,"%*s %d",&sdSpace) != 1) { // is it a number?
-			ui_print("-- Could not determine free space on %s.\n",SDCARD_ROOT); // oh noes! Can't find sdcard's free space.
-            SetDataState("Backup failed", "", 1, 1);
-			return 1;
-		}
-	} else {
-		if (sscanf(pOutput,"%d %*s",&sdSpace) != 1) { // is it a number?
-            SetDataState("Backup failed", "", 1, 1);
-			ui_print("-- Could not determine free space on %s.\n",SDCARD_ROOT); // oh noes! Can't find sdcard's free space.
-			return 1;
-		}
-	}
-	time(&stop);
-	ui_print("[%d MB TOTAL BACKED UP TO SDCARD]\n",(int)(sdSpaceFinal - sdSpace) / 1024);
-	ui_print("[BACKUP COMPLETED IN %d SECONDS]\n\n",(int)difftime(stop, start)); // the end
+    if (tw_do_backup(TW_BACKUP_SP3_VAR, &sp3, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))         return 1;
+
+    // ANDROID-SECURE
+    if (tw_do_backup(TW_BACKUP_ANDSEC_VAR, &ase, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))      return 1;
+
+    // SD-EXT
+    if (tw_do_backup(TW_BACKUP_SDEXT_VAR, &sde, tw_image_dir, total_bytes, &bytes_remaining, &avgBytesPerSec))       return 1;
+
+    ui_print(" * Verifying filesystems...\n");
+    verifyFst();
+    createFstab();
+    ui_print(" * Verifying partition sizes...\n");
+    updateUsedSized();
+
+    time(&stop);
+
+    // Instead of taking the average we've created along the way, we're going to take the grand total. 
+    // This is because small partitions can skew the results.
+    avgBytesPerSec = DataManager_GetIntValue(TW_BACKUP_AVG_RATE);
+    if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR))    avgBytesPerSec = DataManager_GetIntValue(TW_BACKUP_AVG_COMP_RATE);
+    if (avgBytesPerSec == 0)                                avgBytesPerSec = 3145728;   // 3MB/sec
+
+    int total_time = (int) difftime(stop, start);
+    bytes_remaining = total_bytes / total_time;
+    avgBytesPerSec = ((avgBytesPerSec * 4) + bytes_remaining) / 5;
+
+    if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR))    DataManager_SetIntValue(TW_BACKUP_AVG_COMP_RATE, avgBytesPerSec);
+    else                                                    DataManager_SetIntValue(TW_BACKUP_AVG_RATE, avgBytesPerSec);
+
+    unsigned long long new_sdc_free = (sdcext.sze - sdcext.used) / (1024 * 1024);
+    sdc_free /= (1024 * 1024);
+
+	ui_print("[%lu MB TOTAL BACKED UP TO SDCARD]\n",(unsigned long) (sdc_free - new_sdc_free));
+	ui_print("[BACKUP COMPLETED IN %d SECONDS]\n\n", total_time); // the end
     SetDataState("Backup Succeeded", "", 0, 1);
 	return 0;
 }
 
-int tw_restore(struct dInfo rMnt, char *rDir)
+int tw_restore(struct dInfo rMnt, const char *rDir)
 {
 	int i;
 	FILE *reFp;
@@ -987,7 +1072,7 @@ int tw_restore(struct dInfo rMnt, char *rDir)
 	char rOutput[255];
 	time_t rStart, rStop;
 	strcpy(rUppr,rMnt.mnt);
-	for (i = 0; i < strlen(rUppr); i++) {
+	for (i = 0; i < (int) strlen(rUppr); i++) {
 		rUppr[i] = toupper(rUppr[i]);
 	}
 	ui_print("[%s]\n",rUppr);
@@ -1229,7 +1314,7 @@ void choose_backup_folder()
     							   tw_dir,
                                    NULL };
     
-    char** headers = prepend_title(MENU_HEADERS);
+    char** headers = prepend_title((const char**) MENU_HEADERS);
     
     DIR* d;
     struct dirent* de;
@@ -1311,7 +1396,7 @@ void choose_backup_folder()
     dec_menu_loc();
 }
 
-int makeMD5(char *imgDir, const char *imgFile)
+int makeMD5(const char *imgDir, const char *imgFile)
 {
 	int bool = 1;
 	if (ensure_path_mounted("/sdcard") != 0) {
@@ -1336,7 +1421,7 @@ int makeMD5(char *imgDir, const char *imgFile)
 	return bool;
 }
 
-int checkMD5(char *imgDir, const char *imgFile)
+int checkMD5(const char *imgDir, const char *imgFile)
 {
 	int bool = 1;
 

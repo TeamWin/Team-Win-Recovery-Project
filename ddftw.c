@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <sys/vfs.h>
 
 #include "ddftw.h"
 #include "common.h"
@@ -25,7 +26,6 @@
 #include "backstore.h"
 
 static int isMTDdevice = 0;
-static int fakeBootDevice = 0;
 
 struct dInfo* findDeviceByLabel(const char* label)
 {
@@ -71,7 +71,7 @@ struct dInfo* findDeviceByBlockDevice(const char* blockDevice)
 #define SAFE_STR(str)       (str ? str : "<NULL>")
 
 // This routine handles the case where we can't open either /proc/mtd or /proc/emmc
-int setLocationData(const char* label, const char* blockDevice, const char* mtdDevice, const char* fstype, unsigned long size)
+int setLocationData(const char* label, const char* blockDevice, const char* mtdDevice, const char* fstype, unsigned long long size)
 {
     struct dInfo* loc = NULL;
 
@@ -88,16 +88,20 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
     if (mtdDevice)              strcpy(loc->dev, mtdDevice);
 
     // This is a simple 
-    if (strcmp(loc->mnt, "boot") == 0 && fstype && strcmp(fstype, "vfat") == 0 && strlen(loc->blk) > 1)
+    if (strcmp(loc->mnt, "boot") == 0 && fstype)
     {
-        fakeBootDevice = 1;
+        loc->mountable = 0;
+        if (strcmp(fstype, "vfat") == 0 && strlen(loc->blk) > 1)
+        {
+            if (strcmp(loc->blk, loc->dev) == 0)
+                fstype = "emmc";
+            else
+                fstype = "mtd";
+        }
 
-        if (strcmp(loc->blk, loc->dev) == 0)
-            fstype = "emmc";
-        else
-            fstype = "mtd";
-
-        LOGI(" ==>  Switching boot device to %s\n", fstype);
+        // On rare occasions, boot is mountable (see also: HP Touchpad)
+        if (memcmp(fstype, "ext", 3) == 0)
+            loc->mountable = 1;
     }
 
     if (fstype)                 strcpy(loc->fst, fstype);
@@ -124,12 +128,12 @@ int getSizesViaPartitions()
         char tmpString[64];
 
         if (strlen(line) < 7 || line[0] == 'm')     continue;
-        sscanf(line + 1, "%d %d %d %s", &major, &minor, &blocks, device);
+        sscanf(line + 1, "%lu %lu %lu %s", &major, &minor, &blocks, device);
 		
         // Adjust block size to byte size
-        blocks *= 1024;
+        unsigned long long size = blocks * 1024LL;
         sprintf(tmpString, "%s%s", tw_block, device);
-        setLocationData(NULL, tmpString, NULL, NULL, blocks);
+        setLocationData(NULL, tmpString, NULL, NULL, size);
     }
     fclose(fp);
     return 0;
@@ -178,7 +182,7 @@ int getLocationsViafstab()
         while (fgets(line, sizeof(line), fp) != NULL)
         {
             char isBoot[64], device[64], blocks[2][16], *pSizeBlock;
-            unsigned long size = 0;
+            unsigned long long size = 0;
     
             if (line[0] != '/')     continue;
             sscanf(line, "%s %s %*s %s %s", device, isBoot, blocks[0], blocks[1]);
@@ -193,7 +197,7 @@ int getLocationsViafstab()
             // This could be NULL if we decided the size wasn't accurate
             if (pSizeBlock)
             {
-                size = atoi(pSizeBlock) * 1024;
+                size = ((unsigned long long) atol(pSizeBlock)) * 1024;
             }
 
             if (size && (setLocationData(NULL, device, NULL, NULL, size) == 0))
@@ -235,7 +239,7 @@ int getLocationsViaProc(const char* fstype)
         char* fstype = NULL;
         int deviceId;
 
-        sscanf(line, "%s %x %*s %*c%s", device, &size, label);
+        sscanf(line, "%s %lx %*s %*c%s", device, &size, label);
 
         // Skip header and blank lines
         if ((strcmp(device, "dev:") == 0) || (strlen(line) < 8))
@@ -262,13 +266,50 @@ int getLocationsViaProc(const char* fstype)
         if (strcmp(label, "efs") == 0)
             fstype = "yaffs2";
 
-        setLocationData(label, device, mtdDevice, fstype, size);
+        setLocationData(label, device, mtdDevice, fstype, (unsigned long long) size);
     }
 
     fclose(fp);
 
     // We still proceed on to use the fstab to query devices as well
     return getLocationsViafstab();
+}
+
+void updateMntUsedSize(struct dInfo* mMnt)
+{
+    int mounted = tw_isMounted(*mMnt);
+
+    if (!mounted)
+    {
+        // If we fail, just move on
+        if (tw_mount(*mMnt))            return;
+    }
+
+    char path[512];
+    struct statfs st;
+    sprintf(path, "%s/.", mMnt->mnt);
+    if (statfs(path, &st) != 0)    return;
+
+    mMnt->used = (unsigned long) ((st.f_blocks - st.f_bfree) * st.f_bsize);
+   
+    if (!mounted)   tw_unmount(*mMnt);
+
+    return;
+}
+
+void updateUsedSized()
+{
+    if (boo.mountable)      updateMntUsedSize(&boo);
+    if (sys.mountable)      updateMntUsedSize(&sys);
+    if (dat.mountable)      updateMntUsedSize(&dat);
+    if (cac.mountable)      updateMntUsedSize(&cac);
+    if (sdcext.mountable)   updateMntUsedSize(&sdcext);
+    if (sdcint.mountable)   updateMntUsedSize(&sdcint);
+    if (sde.mountable)      updateMntUsedSize(&sde);
+    if (sp1.mountable)      updateMntUsedSize(&sp1);
+    if (sp2.mountable)      updateMntUsedSize(&sp2);
+    if (sp3.mountable)      updateMntUsedSize(&sp3);
+    return;
 }
 
 int getLocations()
@@ -278,7 +319,7 @@ int getLocations()
     dat.mountable = 1;
     cac.mountable = 1;
     sde.mountable = 1;
-    boo.mountable = 1;
+//    boo.mountable = 1;        // Boot it detected earlier
     rec.mountable = 0;
     sdcext.mountable = 1;
     sdcint.mountable = 1;
@@ -308,10 +349,10 @@ int getLocations()
     }
 
     // Handle adding .android_secure and sd-ext
-    strcpy(ase.dev,"/sdcard/.android_secure"); // android secure stuff
-    strcpy(ase.blk,ase.dev);
-    strcpy(ase.mnt,".android_secure");
-    strcpy(ase.fst,"vfat");
+    strcpy(ase.dev, "/sdcard/.android_secure"); // android secure stuff
+    strcpy(ase.blk, ase.dev);
+    strcpy(ase.mnt, ".android_secure");
+    strcpy(ase.fst, "vfat");
 
     if (strlen(sdcext.blk) > 0)
     {
@@ -321,7 +362,7 @@ int getLocations()
     
         // We make the base via sdcard block
         strcpy(sde.mnt, "sd-ext");
-        strcpy(tmpBase,sdcext.blk);
+        strcpy(tmpBase, sdcext.blk);
         tmpBase[strlen(tmpBase)-1] = '\0';
         sprintf(tmpWildCard,"%s%%d",tmpBase);
         sscanf(sdcext.blk, tmpWildCard, &tmpInt); // sdcard block used as sd-ext base
@@ -332,25 +373,31 @@ int getLocations()
 
 	LOGI("=> Let's update filesystem types.\n");
 	verifyFst(); // use blkid to REALLY REALLY determine partition filesystem type
-	LOGI("=> And update our fstab also.\n\n");
+	LOGI("=> And update our fstab also.\n");
 	createFstab(); // used for our busybox mount command
+    LOGI("=> Update the usage statistics.\n\n");
+    updateUsedSized();  // Retrieves the used space of all partitions
 
     return 0;
 }
 
-static void createFstabEntry(FILE* fp, char* blk, char* mnt, char* fst)
+static void createFstabEntry(FILE* fp, struct dInfo* mnt)
 {
     char tmpString[255];
     struct stat st;
 
-    if (!blk || !*blk)      return;
+    if (!*(mnt->blk))
+    {
+        mnt->mountable = 0;
+        return;
+    }
 
-    sprintf(tmpString,"%s /%s %s rw\n", blk, mnt, fst);
+    sprintf(tmpString,"%s /%s %s rw\n", mnt->blk, mnt->mnt, mnt->fst);
     fputs(tmpString, fp);
-    sprintf(tmpString, "/%s", mnt);
+    sprintf(tmpString, "/%s", mnt->mnt);
 
     // We only create the folder if the block device exists
-    if (stat(blk, &st) == 0 && stat(tmpString, &st) != 0)
+    if (stat(mnt->blk, &st) == 0 && stat(tmpString, &st) != 0)
     {
         if (mkdir(tmpString, 0777) == -1)
             LOGI("=> Can not create %s folder.\n", tmpString);
@@ -369,18 +416,16 @@ void createFstab()
         LOGI("=> Can not open /etc/fstab.\n");
     else 
 	{
-        if (sys.mountable)      createFstabEntry(fp, sys.blk, sys.mnt, sys.fst);
-		if (dat.mountable)      createFstabEntry(fp, dat.blk, dat.mnt, dat.fst);
-        if (cac.mountable)      createFstabEntry(fp, cac.blk, cac.mnt, cac.fst);
-        if (sdcext.mountable)   createFstabEntry(fp, sdcext.blk, sdcext.mnt, sdcext.fst);
-        if (sdcint.mountable)   createFstabEntry(fp, sdcint.blk, sdcint.mnt, sdcint.fst);
-        if (sde.mountable)      createFstabEntry(fp, sde.blk, sde.mnt, sde.fst);
-        if (sp1.mountable)      createFstabEntry(fp, sp1.blk, sp1.mnt, sp1.fst);
-        if (sp2.mountable)      createFstabEntry(fp, sp2.blk, sp1.mnt, sp2.fst);
-        if (sp3.mountable)      createFstabEntry(fp, sp3.blk, sp1.mnt, sp3.fst);
-
-        if (!fakeBootDevice)    createFstabEntry(fp, boo.blk, boo.mnt, boo.fst);
-        else                    createFstabEntry(fp, boo.blk, boo.mnt, "vfat");
+        if (boo.mountable)      createFstabEntry(fp, &boo);
+        if (sys.mountable)      createFstabEntry(fp, &sys);
+		if (dat.mountable)      createFstabEntry(fp, &dat);
+        if (cac.mountable)      createFstabEntry(fp, &cac);
+        if (sdcext.mountable)   createFstabEntry(fp, &sdcext);
+        if (sdcint.mountable)   createFstabEntry(fp, &sdcint);
+        if (sde.mountable)      createFstabEntry(fp, &sde);
+        if (sp1.mountable)      createFstabEntry(fp, &sp1);
+        if (sp2.mountable)      createFstabEntry(fp, &sp2);
+        if (sp3.mountable)      createFstabEntry(fp, &sp3);
 	}
 	fclose(fp);
 }

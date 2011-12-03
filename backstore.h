@@ -1,3 +1,10 @@
+// Header goes here
+
+#include "ddftw.h"
+
+#ifndef _BACKSTORE_HEADER
+#define _BACKSTORE_HEADER
+
 static const char backup_folder[] = "/sdcard/TWRP/BACKUPS";
 static const char bs_size[] = "4096";
 
@@ -16,5 +23,11 @@ char* nan_compress();
 
 int sdSpace;
 
-int makeMD5(char *imgDir, const char *imgFile);
-int checkMD5(char *imgDir, const char *imgFile);
+int makeMD5(const char *imgDir, const char *imgFile);
+int checkMD5(const char *imgDir, const char *imgFile);
+
+int tw_isMounted(struct dInfo mMnt);
+int tw_mount(struct dInfo mMnt);
+int tw_unmount(struct dInfo uMnt);
+
+#endif  // _BACKSTORE_HEADER

@@ -1,3 +1,8 @@
+// Header goes here
+
+#ifndef _DDFTW_HEADER
+#define _DDFTW_HEADER
+
 static const char tw_dinfo_file[] = "/etc/device.info";
 static const char tw_block[] = "/dev/block/";
 static const char tw_mtd[] = "/dev/mtd/";
@@ -17,8 +22,8 @@ struct dInfo {
 	char dev[100];
 	char fst[10];
 	char fnm[20];
-	unsigned long sze;
-    unsigned long used;
+	unsigned long long sze;
+    unsigned long long used;
     int mountable;
     enum backup_method backup;
 };
@@ -31,3 +36,7 @@ void readRecFstab();
 void verifyFst();
 void createFstab();
 int getLocations();
+void updateUsedSized();
+
+#endif  // _DDFTW_HEADER
+

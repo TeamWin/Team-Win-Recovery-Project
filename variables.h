@@ -31,6 +31,8 @@
 #define TW_BACKUP_SP1_VAR           "tw_backup_sp1"
 #define TW_BACKUP_SP2_VAR           "tw_backup_sp2"
 #define TW_BACKUP_SP3_VAR           "tw_backup_sp3"
+#define TW_BACKUP_AVG_RATE          "tw_backup_avg_rate"
+#define TW_BACKUP_AVG_COMP_RATE     "tw_backup_avg_comp_rate"
 
 #define TW_RESTORE_SYSTEM_VAR       "tw_restore_system"
 #define TW_RESTORE_DATA_VAR         "tw_restore_data"
@@ -42,6 +44,8 @@
 #define TW_RESTORE_SP1_VAR          "tw_restore_sp1"
 #define TW_RESTORE_SP2_VAR          "tw_restore_sp2"
 #define TW_RESTORE_SP3_VAR          "tw_restore_sp3"
+#define TW_RESTORE_AVG_RATE         "tw_restore_avg_rate"
+#define TW_RESTORE_AVG_COMP_RATE    "tw_restore_avg_comp_rate"
 
 #define TW_SHOW_SPAM_VAR            "tw_show_spam"
 #define TW_COLOR_THEME_VAR          "tw_color_theme"
