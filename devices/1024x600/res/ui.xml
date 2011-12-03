@@ -231,15 +231,69 @@
 			
 			<object type="text" color="#A0A0A0">
                 <font resource="font" />
-                <placement x="300" y="480" />
-                <text>WARNING: This operation may install incompatible</text>
+                <placement x="%col_textcenter_x%" y="72" placement="4" />
+                <text>WARNING: This operation may install incompatible software and render your device unusable.</text>
             </object>
 			
 			<object type="text" color="#A0A0A0">
                 <font resource="font" />
-                <placement x="300" y="510" />
-                <text>software and render your device unusable.</text>
+                <placement x="270" y="470" />
+                <text>Sort Ascending:</text>
             </object>
+			
+			<object type="button">
+                <placement x="460" y="465" />
+                <font resource="UItext" color="black" />
+                <text>Name</text>
+                <image resource="sort_button" />
+                <action function="set">tw_gui_sort_order=1</action>
+            </object>
+			
+			<object type="button">
+                <placement x="530" y="465" />
+                <font resource="UItext" color="black" />
+                <text>Date</text>
+                <image resource="sort_button" />
+                <action function="set">tw_gui_sort_order=2</action>
+            </object>
+			
+			<object type="button">
+                <placement x="600" y="465" />
+                <font resource="UItext" color="black" />
+                <text>Size</text>
+                <image resource="sort_button" />
+                <action function="set">tw_gui_sort_order=3</action>
+            </object>
+			
+			<object type="text" color="#A0A0A0">
+                <font resource="font" />
+                <placement x="270" y="520" />
+                <text>Sort Descending:</text>
+            </object>
+			
+			<object type="button">
+                <placement x="460" y="515" />
+                <font resource="UItext" color="black" />
+                <text>Name</text>
+                <image resource="sort_button" />
+                <action function="set">tw_gui_sort_order=-1</action>
+            </object>
+			
+			<object type="button">
+                <placement x="530" y="515" />
+                <font resource="UItext" color="black" />
+                <text>Date</text>
+                <image resource="sort_button" />
+                <action function="set">tw_gui_sort_order=-2</action>
+            </object>
+			
+			<object type="button">
+                <placement x="600" y="515" />
+                <font resource="UItext" color="black" />
+                <text>Size</text>
+                <image resource="sort_button" />
+                <action function="set">tw_gui_sort_order=-3</action>
+			</object>
 
             <object type="button">
                 <placement x="25" y="450" />
@@ -433,6 +487,30 @@
                 <text>   Unmount Cache</text>
                 <image resource="checkbox_true" />
                 <action function="umount">/cache</action>
+            </object>
+			
+			<object type="button">
+				<conditions>
+					<condition var1="tw_boot_is_mountable" var2="1" />
+					<condition var1="mounted" op="!=" var2="/boot" />
+				</conditions>
+                <placement x="%col1_x%" y="380" />
+                <font resource="font" color="#A0A0A0" />
+                <text>   Mount Boot</text>
+                <image resource="checkbox_false" />
+                <action function="mount">/boot</action>
+            </object>
+
+            <object type="button">
+				<conditions>
+					<condition var1="tw_boot_is_mountable" var2="1" />
+					<condition var1="mounted" op="=" var2="/boot" />
+				</conditions>
+                <placement x="%col1_x%" y="380" />
+                <font resource="font" color="#A0A0A0" />
+                <text>   Unmount Boot</text>
+                <image resource="checkbox_true" />
+                <action function="umount">/boot</action>
             </object>
 
             <object type="action">
@@ -1445,7 +1523,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="%nandcheck_col1%" y="%nandcheck_row2" />
+                <placement x="%nandcheck_col1%" y="%nandcheck_row2%" />
                 <font resource="font" color="#A0A0A0" />
                 <text>Data</text>
                 <condition var1="tw_restore_data" op=">=" var2="0" />
@@ -2170,6 +2248,7 @@
             </object>
 			
 			<object type="button">
+				<condition var1="tw_allow_partition_sdcard" var2="1" />
                 <placement x="%col1_x%" y="%row2_y%" />
                 <font resource="font" color="black" />
                 <text>Partition SD Card</text>
@@ -2272,6 +2351,7 @@
 			</object>
 			
 			<object type="button">
+				<condition var1="tw_allow_partition_sdcard" var2="1" />
                 <placement x="%col_center_x%" y="440" />
                 <font resource="font" color="black" />
                 <text>Partition SD</text>
