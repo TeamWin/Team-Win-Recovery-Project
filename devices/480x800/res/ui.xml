@@ -192,7 +192,7 @@
 			
 			<object type="button">
                 <placement x="200" y="690" />
-                <font resource="UItext" color="white" />
+                <font resource="UItext" color="black" />
                 <text>Name</text>
                 <image resource="sort_button" />
                 <action function="set">tw_gui_sort_order=1</action>
@@ -200,7 +200,7 @@
 			
 			<object type="button">
                 <placement x="280" y="690" />
-                <font resource="UItext" color="white" />
+                <font resource="UItext" color="black" />
                 <text>Date</text>
                 <image resource="sort_button" />
                 <action function="set">tw_gui_sort_order=2</action>
@@ -208,7 +208,7 @@
 			
 			<object type="button">
                 <placement x="360" y="690" />
-                <font resource="UItext" color="white" />
+                <font resource="UItext" color="black" />
                 <text>Size</text>
                 <image resource="sort_button" />
                 <action function="set">tw_gui_sort_order=3</action>
@@ -222,7 +222,7 @@
 			
 			<object type="button">
                 <placement x="200" y="730" />
-                <font resource="UItext" color="white" />
+                <font resource="UItext" color="black" />
                 <text>Name</text>
                 <image resource="sort_button" />
                 <action function="set">tw_gui_sort_order=-1</action>
@@ -230,7 +230,7 @@
 			
 			<object type="button">
                 <placement x="280" y="730" />
-                <font resource="UItext" color="white" />
+                <font resource="UItext" color="black" />
                 <text>Date</text>
                 <image resource="sort_button" />
                 <action function="set">tw_gui_sort_order=-2</action>
@@ -238,7 +238,7 @@
 			
 			<object type="button">
                 <placement x="360" y="730" />
-                <font resource="UItext" color="white" />
+                <font resource="UItext" color="black" />
                 <text>Size</text>
                 <image resource="sort_button" />
                 <action function="set">tw_gui_sort_order=-3</action>
@@ -276,10 +276,26 @@
                 <placement x="%col1_x%" y="145" />
                 <text>software and render your device unusable.</text>
             </object>
-
+			
+			<object type="checkbox">
+                <placement x="%col1_x%" y="180" />
+                <font resource="font" color="white" />
+                <text>Zip file signature verification?</text>
+                <data variable="tw_signed_zip_verify" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+			
+			<object type="checkbox">
+                <placement x="%col1_x%" y="220" />
+                <font resource="font" color="white" />
+                <text>Force MD5 check on all zips?</text>
+                <data variable="tw_force_md5_check" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+			
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col1_x%" y="250" />
+                <placement x="%col1_x%" y="400" />
                 <text>File to flash: %tw_filename%</text>
             </object>
 
@@ -338,14 +354,30 @@
             <object type="template" name="header" />
 
             <object type="console">
-                <placement x="0" y="%row1_y%" w="480" h="390" />
+                <placement x="0" y="%row1_y%" w="480" h="360" />
                 <color foreground="#B0B0B0" background="black" scroll="black" />
                 <font resource="fixed" />
             </object>
-
+			
+			<object type="button">
+                <placement x="%col1_x%" y="480" />
+                <font resource="font" color="black" />
+                <text>Wipe cache/dalvik</text>
+                <image resource="main_button" />
+                <action function="page">wipe_cachedalvik</action>
+            </object>
+			
+			<object type="button">
+                <placement x="%col2_x%" y="480" />
+                <font resource="font" color="black" />
+                <text>Reboot System</text>
+                <image resource="main_button" />
+                <action function="reboot">system</action>
+            </object>
+			
             <object type="button">
-                <placement x="%col_center_x%" y="560" />
-                <font resource="font" color="white" />
+                <placement x="%col_center_x%" y="620" />
+                <font resource="font" color="black" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
@@ -812,7 +844,10 @@
             </object>
 
             <object type="action">
-                <action function="wipe">/sdcard</action>
+				<actions>
+					<action function="set">tw_zip_location=/sdcard</action>
+					<action function="wipe">/sdcard</action>
+				</actions>
             </object>
                         
             <object type="template" name="footer" />
@@ -957,7 +992,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="550" />
-                <font resource="font" color="white" />
+                <font resource="font" color="black" />
                 <text>Back</text>
                 <image resource="main_button" />
                 <action function="page">wipe</action>
@@ -1150,7 +1185,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="570" />
-                <font resource="font" color="white" />
+                <font resource="font" color="black" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
@@ -1176,7 +1211,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="570" />
-                <font resource="font" color="white" />
+                <font resource="font" color="black" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
@@ -1411,7 +1446,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="570" />
-                <font resource="font" color="white" />
+                <font resource="font" color="black" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
@@ -1437,7 +1472,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="570" />
-                <font resource="font" color="white" />
+                <font resource="font" color="black" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
@@ -1502,9 +1537,69 @@
                 <image resource="checkbox_true" />
                 <action function="umount">/cache</action>
             </object>
+			
+			<object type="button">
+                <placement x="%col1_x%" y="240" />
+                <font resource="font" color="white" />
+                <condition var1="mounted" op="!=" var2="/sdcard" />
+                <text>Mount SDCard</text>
+                <image resource="checkbox_false" />
+                <action function="mount">/sdcard</action>
+            </object>
 
             <object type="button">
-                <placement x="%col1_x%" y="260" />
+                <placement x="%col1_x%" y="240" />
+                <font resource="font" color="white" />
+                <condition var1="mounted" op="=" var2="/sdcard" />
+                <text>Unmount SDCard</text>
+                <image resource="checkbox_true" />
+                <action function="umount">/sdcard</action>
+            </object>
+			
+			<object type="button">
+                <placement x="%col1_x%" y="280" />
+                <font resource="font" color="white" />
+                <condition var1="mounted" op="!=" var2="/sd-ext" />
+                <text>Mount SD-Ext</text>
+                <image resource="checkbox_false" />
+                <action function="mount">/sd-ext</action>
+            </object>
+
+            <object type="button">
+                <placement x="%col1_x%" y="280" />
+                <font resource="font" color="white" />
+                <condition var1="mounted" op="=" var2="/sd-ext" />
+                <text>Unmount SD-Ext</text>
+                <image resource="checkbox_true" />
+                <action function="umount">/sd-ext</action>
+            </object>
+			
+			<object type="button">
+				<conditions>
+					<condition var1="tw_boot_is_mountable" var2="1" />
+					<condition var1="mounted" op="!=" var2="/boot" />
+				</conditions>
+                <placement x="%col1_x%" y="320" />
+                <font resource="font" color="#A0A0A0" />
+                <text>   Mount Boot</text>
+                <image resource="checkbox_false" />
+                <action function="mount">/boot</action>
+            </object>
+
+            <object type="button">
+				<conditions>
+					<condition var1="tw_boot_is_mountable" var2="1" />
+					<condition var1="mounted" op="=" var2="/boot" />
+				</conditions>
+                <placement x="%col1_x%" y="320" />
+                <font resource="font" color="#A0A0A0" />
+                <text>   Unmount Boot</text>
+                <image resource="checkbox_true" />
+                <action function="umount">/boot</action>
+            </object>
+
+            <object type="button">
+                <placement x="%col1_x%" y="%row3_y%" />
                 <font resource="font" color="black" />
                 <text>Mount USB Storage</text>
                 <image resource="main_button" />
@@ -1614,21 +1709,13 @@
 			<object type="checkbox">
                 <placement x="%col1_x%" y="160" />
                 <font resource="font" color="white" />
-                <text>Reboot after flashing a zip?</text>
-                <data variable="tw_reboot_after_flash_option" />
-                <image checked="checkbox_true" unchecked="checkbox_false" />
-            </object>
-			
-			<object type="checkbox">
-                <placement x="%col1_x%" y="200" />
-                <font resource="font" color="white" />
                 <text>Force MD5 check on all zips?</text>
                 <data variable="tw_force_md5_check" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 			
 			<object type="checkbox">
-                <placement x="%col1_x%" y="240" />
+                <placement x="%col1_x%" y="200" />
                 <font resource="font" color="white" />
                 <text>Use rm -rf instead of formatting?</text>
                 <data variable="tw_rm_rf" />
@@ -2274,7 +2361,10 @@
 
             <object type="action">
                 <condition var1="tw_operation_state" var2="1" />
-                <action function="page">advanced</action>
+				<actions>
+					<action function="set">tw_zip_location=/sdcard</action>
+					<action function="page">advanced</action>
+				</actions>
             </object>
                         
             <object type="template" name="footer" />
