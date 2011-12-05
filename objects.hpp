@@ -219,13 +219,10 @@ protected:
     std::vector<Action> mActions;
     int mKey;
 
-    // Used for threading
-    Action* mCurrentAction;
-
 protected:
     int getKeyByName(std::string key);
     virtual int doActions();
-    virtual int doAction(Action* action, int isThreaded = 0);
+    virtual int doAction(Action action, int isThreaded = 0);
     static void* thread_start(void *cookie);
     void flash_zip(std::string filename, std::string pageName);
 
