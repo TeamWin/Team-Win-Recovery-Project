@@ -122,7 +122,7 @@
         <template name="footer">
             <object type="console">
                 <slideout resource="console_button" x="%console_button_x%" y="%console_button_y%" />
-                <placement x="25" y="75" w="974" h="495" />
+                <placement x="25" y="95" w="974" h="495" />
                 <color foreground="#B0B0B0" background="black" scroll="#000000" />
                 <font resource="fixed" />
             </object>
@@ -242,7 +242,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="460" y="465" />
+                <placement x="440" y="465" />
                 <font resource="UItext" color="black" />
                 <text>Name</text>
                 <image resource="sort_button" />
@@ -250,7 +250,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="530" y="465" />
+                <placement x="510" y="465" />
                 <font resource="UItext" color="black" />
                 <text>Date</text>
                 <image resource="sort_button" />
@@ -258,7 +258,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="600" y="465" />
+                <placement x="580" y="465" />
                 <font resource="UItext" color="black" />
                 <text>Size</text>
                 <image resource="sort_button" />
@@ -272,7 +272,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="460" y="515" />
+                <placement x="440" y="515" />
                 <font resource="UItext" color="black" />
                 <text>Name</text>
                 <image resource="sort_button" />
@@ -280,7 +280,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="530" y="515" />
+                <placement x="510" y="515" />
                 <font resource="UItext" color="black" />
                 <text>Date</text>
                 <image resource="sort_button" />
@@ -288,12 +288,28 @@
             </object>
 			
 			<object type="button">
-                <placement x="600" y="515" />
+                <placement x="580" y="515" />
                 <font resource="UItext" color="black" />
                 <text>Size</text>
                 <image resource="sort_button" />
                 <action function="set">tw_gui_sort_order=-3</action>
 			</object>
+			
+			<object type="checkbox">
+                <placement x="670" y="465" />
+                <font resource="font" color="#A0A0A0" />
+                <text>Zip file signature verification?</text>
+                <data variable="tw_signed_zip_verify" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+			
+			<object type="checkbox">
+                <placement x="670" y="515" />
+                <font resource="font" color="#A0A0A0" />
+                <text>Force MD5 check on all zips?</text>
+                <data variable="tw_force_md5_check" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
 
             <object type="button">
                 <placement x="25" y="450" />
@@ -354,7 +370,23 @@
                 <color foreground="#B0B0B0" background="black" scroll="black" />
                 <font resource="fixed" />
             </object>
-
+			
+			<object type="button">
+                <placement x="%col1_x%" y="450" />
+                <font resource="font" color="black" />
+                <text>Wipe Cache/Dalvik</text>
+                <image resource="main_button" />
+                <action function="page">wipe_cachedalvik</action>
+            </object>
+			
+			<object type="button">
+                <placement x="%col4_x%" y="450" />
+                <font resource="font" color="black" />
+                <text>Reboot System</text>
+                <image resource="main_button" />
+                <action function="reboot">system</action>
+            </object>
+			
             <object type="button">
                 <placement x="%col_center_x%" y="450" />
                 <font resource="font" color="black" />
@@ -490,11 +522,47 @@
             </object>
 			
 			<object type="button">
+                <placement x="%col1_x%" y="380" />
+                <font resource="font" color="#A0A0A0" />
+                <condition var1="mounted" op="!=" var2="/sdcard" />
+                <text>   Mount SDCard</text>
+                <image resource="checkbox_false" />
+                <action function="mount">/sdcard</action>
+            </object>
+
+            <object type="button">
+                <placement x="%col1_x%" y="380" />
+                <font resource="font" color="#A0A0A0" />
+                <condition var1="mounted" op="=" var2="/sdcard" />
+                <text>   Unmount SDCard</text>
+                <image resource="checkbox_true" />
+                <action function="umount">/sdcard</action>
+            </object>
+			
+			<object type="button">
+                <placement x="%col1_x%" y="420" />
+                <font resource="font" color="#A0A0A0" />
+                <condition var1="mounted" op="!=" var2="/sd-ext" />
+                <text>   Mount SD-Ext</text>
+                <image resource="checkbox_false" />
+                <action function="mount">/sd-ext</action>
+            </object>
+
+            <object type="button">
+                <placement x="%col1_x%" y="420" />
+                <font resource="font" color="#A0A0A0" />
+                <condition var1="mounted" op="=" var2="/sd-ext" />
+                <text>   Unmount SD-Ext</text>
+                <image resource="checkbox_true" />
+                <action function="umount">/sd-ext</action>
+            </object>
+			
+			<object type="button">
 				<conditions>
 					<condition var1="tw_boot_is_mountable" var2="1" />
 					<condition var1="mounted" op="!=" var2="/boot" />
 				</conditions>
-                <placement x="%col1_x%" y="380" />
+                <placement x="%col1_x%" y="460" />
                 <font resource="font" color="#A0A0A0" />
                 <text>   Mount Boot</text>
                 <image resource="checkbox_false" />
@@ -506,7 +574,7 @@
 					<condition var1="tw_boot_is_mountable" var2="1" />
 					<condition var1="mounted" op="=" var2="/boot" />
 				</conditions>
-                <placement x="%col1_x%" y="380" />
+                <placement x="%col1_x%" y="460" />
                 <font resource="font" color="#A0A0A0" />
                 <text>   Unmount Boot</text>
                 <image resource="checkbox_true" />
@@ -771,6 +839,43 @@
 			
 			<object type="action">
                 <action function="wipe">dalvik</action>
+            </object>
+			
+            <object type="template" name="footer" />
+        </page>
+		
+		<page name="wipe_cachedalvik">
+            <object type="template" name="header" />
+			
+			<object type="text" color="#A0A0A0">
+                <font resource="font" />
+                <placement x="%col_textcenter_x%" y="%row_progressbar_text%" placement="4" />
+                <text>Wiping cache and dalvik-cache...</text>
+            </object>
+			
+            <object type="progressbar">
+                <placement x="%col_progressbar_x%" y="%row_progressbar_y%" />
+                <resource  empty="progress_empty" full="progress_full" />
+                <data name="ui_progress" />
+            </object>
+
+            <object type="animation">
+                <placement x="%col_progressbar_x%" y="%row_progressbar_y%" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+			
+			<object type="action">
+                <condition var1="tw_operation_state" var2="1" />
+                <action function="page">wipe_done</action>
+            </object>
+			
+			<object type="action">
+				<actions>
+					<action function="wipe">/cache</action>
+					<action function="wipe">dalvik</action>
+				</actions>
             </object>
 			
             <object type="template" name="footer" />
@@ -1116,7 +1221,10 @@
 			
 			<object type="action">
                 <condition var1="tw_operation_state" var2="1" />
-                <action function="page">wipe_done</action>
+				<actions>
+					<action function="set">tw_zip_location=/sdcard</action>
+					<action function="page">wipe_done</action>
+				</actions>
             </object>
 			
 			<object type="action">
@@ -1750,21 +1858,13 @@
 			<object type="checkbox">
                 <placement x="%col1_x%" y="150" />
                 <font resource="font" color="#A0A0A0" />
-                <text>Reboot after flashing a zip?</text>
-                <data variable="tw_reboot_after_flash_option" />
-                <image checked="checkbox_true" unchecked="checkbox_false" />
-            </object>
-			
-			<object type="checkbox">
-                <placement x="%col1_x%" y="180" />
-                <font resource="font" color="#A0A0A0" />
                 <text>Force MD5 check on all zips?</text>
                 <data variable="tw_force_md5_check" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 			
 			<object type="checkbox">
-                <placement x="%col1_x%" y="210" />
+                <placement x="%col1_x%" y="180" />
                 <font resource="font" color="#A0A0A0" />
                 <text>Use rm -rf instead of formatting?</text>
                 <data variable="tw_rm_rf" />
@@ -2412,7 +2512,10 @@
 
             <object type="action">
                 <condition var1="tw_operation_state" var2="1" />
-                <action function="page">advanced</action>
+				<actions>
+					<action function="set">tw_zip_location=/sdcard</action>
+					<action function="page">advanced</action>
+				</actions>
             </object>
                         
             <object type="template" name="footer" />
