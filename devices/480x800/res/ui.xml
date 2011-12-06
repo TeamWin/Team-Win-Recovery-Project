@@ -2199,6 +2199,7 @@
             </object>
 			
 			<object type="button">
+                <condition var1="tw_allow_partition_sdcard" var2="1" />
                 <placement x="%col1_x%" y="%row2_y%" />
                 <font resource="font" color="black" />
                 <text>Partition SD Card</text>
@@ -2301,6 +2302,7 @@
 			</object>
 			
 			<object type="button">
+                <condition var1="tw_allow_partition_sdcard" var2="1" />
                 <placement x="%col_center_x%" y="540" />
                 <font resource="font" color="black" />
                 <text>Partition SD</text>
