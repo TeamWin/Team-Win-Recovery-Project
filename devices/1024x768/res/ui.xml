@@ -42,12 +42,12 @@
 		<variable name="col_center_x" value="392" />
 		<variable name="col_textcenter_x" value="512" />
 		<variable name="col_progressbar_x" value="386" />
-		<variable name="row_progressbar_y" value="540" />
-		<variable name="row_progressbar_text" value="510" />
-		<variable name="col1_medium_x" value="25" />
-		<variable name="col2_medium_x" value="155" />
-		<variable name="col3_medium_x" value="285" />
-		<variable name="col4_medium_x" value="415" />
+		<variable name="row_progressbar_y" value="700" />
+		<variable name="row_progressbar_text" value="670" />
+		<variable name="col1_medium_x" value="257" />
+		<variable name="col2_medium_x" value="387" />
+		<variable name="col3_medium_x" value="517" />
+		<variable name="col4_medium_x" value="647" />
 		<variable name="row1_medium_y" value="125" />
 		<variable name="row2_medium_y" value="195" />
 		<variable name="row3_medium_y" value="265" />
@@ -204,7 +204,7 @@
 			<object type="template" name="header" />
 
             <object type="fileselector">
-                <placement x="25" y="90" w="482" h="330" />
+                <placement x="25" y="90" w="482" h="490" />
                 <icon folder="folder_icon" file="file_icon" />
                 <background color="#303030" />
                 <font resource="font" spacing="18" color="#A0A0A0" />
@@ -214,7 +214,7 @@
             </object>
 
             <object type="fileselector">
-                <placement x="517" y="90" w="482" h="330" />
+                <placement x="517" y="90" w="482" h="490" />
                 <icon folder="folder_icon" file="file_icon" />
                 <background color="#303030" />
                 <font resource="font" spacing="18" color="#A0A0A0" />
@@ -225,7 +225,7 @@
 
             <object type="text" color="#A0A0A0">
                 <font resource="font" />
-                <placement x="25" y="430" />
+                <placement x="25" y="590" />
                 <text>Selection: %tw_filename%</text>
             </object>
 			
@@ -237,12 +237,12 @@
 			
 			<object type="text" color="#A0A0A0">
                 <font resource="font" />
-                <placement x="270" y="470" />
+                <placement x="270" y="630" />
                 <text>Sort Ascending:</text>
             </object>
 			
 			<object type="button">
-                <placement x="440" y="465" />
+                <placement x="440" y="625" />
                 <font resource="UItext" color="black" />
                 <text>Name</text>
                 <image resource="sort_button" />
@@ -250,7 +250,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="510" y="465" />
+                <placement x="510" y="625" />
                 <font resource="UItext" color="black" />
                 <text>Date</text>
                 <image resource="sort_button" />
@@ -258,7 +258,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="580" y="465" />
+                <placement x="580" y="625" />
                 <font resource="UItext" color="black" />
                 <text>Size</text>
                 <image resource="sort_button" />
@@ -267,12 +267,12 @@
 			
 			<object type="text" color="#A0A0A0">
                 <font resource="font" />
-                <placement x="270" y="520" />
+                <placement x="270" y="680" />
                 <text>Sort Descending:</text>
             </object>
 			
 			<object type="button">
-                <placement x="440" y="515" />
+                <placement x="440" y="675" />
                 <font resource="UItext" color="black" />
                 <text>Name</text>
                 <image resource="sort_button" />
@@ -280,7 +280,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="510" y="515" />
+                <placement x="510" y="675" />
                 <font resource="UItext" color="black" />
                 <text>Date</text>
                 <image resource="sort_button" />
@@ -288,7 +288,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="580" y="515" />
+                <placement x="580" y="675" />
                 <font resource="UItext" color="black" />
                 <text>Size</text>
                 <image resource="sort_button" />
@@ -296,7 +296,7 @@
 			</object>
 			
 			<object type="checkbox">
-                <placement x="670" y="465" />
+                <placement x="670" y="625" />
                 <font resource="font" color="#A0A0A0" />
                 <text>Zip file signature verification?</text>
                 <data variable="tw_signed_zip_verify" />
@@ -304,7 +304,7 @@
             </object>
 			
 			<object type="checkbox">
-                <placement x="670" y="515" />
+                <placement x="670" y="675" />
                 <font resource="font" color="#A0A0A0" />
                 <text>Force MD5 check on all zips?</text>
                 <data variable="tw_force_md5_check" />
@@ -312,7 +312,7 @@
             </object>
 
             <object type="button">
-                <placement x="25" y="450" />
+                <placement x="25" y="610" />
                 <font resource="font" color="black" />
                 <text>Flash</text>
                 <image resource="main_button" />
@@ -336,7 +336,7 @@
             <object type="template" name="header" />
 			
 			<object type="console">
-                <placement x="25" y="85" w="974" h="370" />
+                <placement x="25" y="85" w="974" h="530" />
                 <color foreground="#B0B0B0" background="black" scroll="black" />
                 <font resource="fixed" />
             </object>
@@ -366,13 +366,13 @@
             <object type="template" name="header" />
 
             <object type="console">
-                <placement x="25" y="85" w="974" h="370" />
+                <placement x="25" y="85" w="974" h="530" />
                 <color foreground="#B0B0B0" background="black" scroll="black" />
                 <font resource="fixed" />
             </object>
 			
 			<object type="button">
-                <placement x="%col1_x%" y="450" />
+                <placement x="%col1_x%" y="610" />
                 <font resource="font" color="black" />
                 <text>Wipe Cache/Dalvik</text>
                 <image resource="main_button" />
@@ -380,7 +380,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="%col4_x%" y="450" />
+                <placement x="%col4_x%" y="610" />
                 <font resource="font" color="black" />
                 <text>Reboot System</text>
                 <image resource="main_button" />
@@ -388,7 +388,7 @@
             </object>
 			
             <object type="button">
-                <placement x="%col_center_x%" y="450" />
+                <placement x="%col_center_x%" y="610" />
                 <font resource="font" color="black" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
@@ -1338,7 +1338,7 @@
             <object type="template" name="header" />
 			
 			<object type="button">
-                <placement x="%col1_x%" y="%row1_y%" />
+                <placement x="%col_center_x%" y="600" />
                 <font resource="font" color="black" />
                 <text>Backup now</text>
                 <image resource="main_button" />
@@ -1573,7 +1573,7 @@
             </object>
 
             <object type="fileselector">
-                <placement x="%col2_x%" y="125" w="460" h="430" />
+                <placement x="%col2_x%" y="125" w="460" h="590" />
 				<font resource="font" spacing="18" color="#A0A0A0" />
                 <icon folder="folder_icon" file="file_icon" />
                 <background color="#303030" />
@@ -1614,7 +1614,7 @@
             <object type="template" name="header" />
 			
 			<object type="button">
-                <placement x="%col1_x%" y="%row1_y%" />
+                <placement x="%col_center_x%" y="600" />
                 <font resource="font" color="black" />
                 <text>Restore  now</text>
                 <image resource="main_button" />
@@ -1904,7 +1904,7 @@
             <object type="template" name="header" />
 
             <object type="button">
-                <placement x="%col1_x%" y="%row1_y%" />
+                <placement x="%col2_x%" y="%row1_y%" />
                 <font resource="font" color="black" />
                 <text>Minus (GMT 0 to -11)</text>
                 <image resource="main_button" />
@@ -1912,7 +1912,7 @@
             </object>
 
             <object type="button">
-                <placement x="%col2_x%" y="%row1_y%" />
+                <placement x="%col3_x%" y="%row1_y%" />
                 <font resource="font" color="black" />
                 <text>Plus (GMT +1 to +12)</text>
                 <image resource="main_button" />
@@ -1937,7 +1937,7 @@
 			
 			<object type="text" color="#A0A0A0">
                 <font resource="font" />
-                <placement x="%col1_x%" y="95" />
+                <placement x="%col_textcenter_x%" y="95" placement="4" />
                 <text>Selected: %tw_time_zone_guisel%</text>
             </object>
 			
@@ -2046,7 +2046,7 @@
             </object>
 			
 			<object type="checkbox">
-                <placement x="%col1_x%" y="405" />
+                <placement x="300" y="405" />
                 <font resource="font" color="#A0A0A0" />
                 <text>Do you use daylight savings time (DST)?</text>
                 <data variable="tw_time_zone_guidst" />
@@ -2055,7 +2055,7 @@
 			
 			<object type="text" color="#A0A0A0">
                 <font resource="font" />
-                <placement x="%col1_x%" y="435" />
+                <placement x="%col_textcenter_x%" y="445" placement="4" />
                 <text>Offset (usually 0): %tw_time_zone_guioffset%</text>
             </object>
 			
@@ -2092,7 +2092,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="%col4_x%" y="row1_y" />
+                <placement x="%col_center_x%" y="600" />
                 <font resource="font" color="black" />
                 <text>Set Time Zone</text>
                 <image resource="main_button" />
@@ -2101,7 +2101,7 @@
 			
 			<object type="text" color="#A0A0A0">
                 <font resource="font" />
-                <placement x="%col1_x%" y="535" />
+                <placement x="%col_textcenter_x%" y="550" placement="4" />
                 <text>Current Time Zone: %tw_time_zone%</text>
             </object>
 			
@@ -2123,7 +2123,7 @@
 			
 			<object type="text" color="#A0A0A0">
                 <font resource="font" />
-                <placement x="%col1_x%" y="95" />
+                <placement x="%col_textcenter_x%" y="95" placement="4" />
                 <text>Selected: %tw_time_zone_guisel%</text>
             </object>
 			
@@ -2256,7 +2256,7 @@
             </object>
 			
 			<object type="checkbox">
-                <placement x="%col1_x%" y="405" />
+                <placement x="300" y="405" />
                 <font resource="font" color="#A0A0A0" />
                 <text>Do you use daylight savings time (DST)?</text>
                 <data variable="tw_time_zone_guidst" />
@@ -2265,7 +2265,7 @@
 			
 			<object type="text" color="#A0A0A0">
                 <font resource="font" />
-                <placement x="%col1_x%" y="435" />
+                <placement x="%col_textcenter_x%" y="445" placement="4" />
                 <text>Offset (usually 0): %tw_time_zone_guioffset%</text>
             </object>
 			
@@ -2302,7 +2302,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="%col4_x%" y="row1_y" />
+                <placement x="%col_center_x%" y="600" />
                 <font resource="font" color="black" />
                 <text>Set Time Zone</text>
                 <image resource="main_button" />
@@ -2311,7 +2311,7 @@
 			
 			<object type="text" color="#A0A0A0">
                 <font resource="font" />
-                <placement x="%col1_x%" y="535" />
+                <placement x="%col_textcenter_x%" y="540" placement="4" />
                 <text>Current Time Zone: %tw_time_zone%</text>
             </object>
 			
