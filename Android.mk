@@ -29,6 +29,10 @@ ifeq ($(TWRP_EVENT_LOGGING), true)
 LOCAL_CFLAGS += -D_EVENT_LOGGING
 endif
 
+ifneq ($(RECOVERY_SDCARD_ON_DATA),)
+	LOCAL_CFLAGS += -DRECOVERY_SDCARD_ON_DATA
+endif
+
 LOCAL_C_INCLUDES += bionic external/stlport/stlport $(commands_recovery_local_path)/gui/devices/$(DEVICE_RESOLUTION)
 
 include $(BUILD_STATIC_LIBRARY)

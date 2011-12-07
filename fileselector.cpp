@@ -221,7 +221,7 @@ int GUIFileSelector::Render(void)
         {
             gr_blit(icon->GetResource(), 0, 0, mIconWidth, mIconHeight, mRenderX, yPos);
         }
-        gr_text(mRenderX + mIconWidth + 5, yPos, label.c_str(), fontResource);
+        gr_textEx(mRenderX + mIconWidth + 5, yPos, label.c_str(), fontResource);
 
         // Move the yPos
         yPos += mLineHeight + mLineSpacing;

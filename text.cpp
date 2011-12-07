@@ -97,7 +97,7 @@ int GUIText::Render(void)
     mVarChanged = 0;
 
     int x = mRenderX, y = mRenderY;
-    int width = gr_measure(mLastValue.c_str(), fontResource);
+    int width = gr_measureEx(mLastValue.c_str(), fontResource);
 
     if (mPlacement != TOP_LEFT && mPlacement != BOTTOM_LEFT)
     {
@@ -115,7 +115,7 @@ int GUIText::Render(void)
     }
 
     gr_color(mColor.red, mColor.green, mColor.blue, mColor.alpha);
-    gr_text(x, y, mLastValue.c_str(), fontResource);
+    gr_textEx(x, y, mLastValue.c_str(), fontResource);
     return 0;
 }
 
@@ -147,7 +147,7 @@ int GUIText::GetCurrentBounds(int& w, int& h)
     if (mFont)  fontResource = mFont->GetResource();
 
     h = mFontHeight;
-    w = gr_measure(mLastValue.c_str(), fontResource);
+    w = gr_measureEx(mLastValue.c_str(), fontResource);
     return 0;
 }
 

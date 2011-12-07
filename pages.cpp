@@ -38,6 +38,9 @@ int ConvertStrToColor(std::string str, COLOR* color)
     memset(color, 0, sizeof(COLOR));
     color->alpha = 255;
 
+    // Translate variables
+    DataManager::GetValue(str, str);
+    
     // Look for some defaults
     if (str == "black")         return 0;
     else if (str == "white")    { color->red = color->green = color->blue = 255; return 0; }

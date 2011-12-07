@@ -1753,8 +1753,24 @@
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 			
+            <object type="checkbox">
+                <placement x="%col1_x%" y="240" />
+                <font resource="font" color="white" />
+                <text>Ignore MD5 check on restore</text>
+                <data variable="tw_skip_md5_check" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+
+            <object type="checkbox">
+                <placement x="%col1_x%" y="280" />
+                <font resource="font" color="white" />
+                <text>Skip MD5 generation on backups</text>
+                <data variable="tw_skip_md5_generate" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+
 			<object type="button">
-                <placement x="%col1_x%" y="%row2_y%" />
+                <placement x="%col1_x%" y="%row3_y%" />
                 <font resource="font" color="black" />
                 <text>Time Zone</text>
                 <image resource="main_button" />

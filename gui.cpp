@@ -18,6 +18,7 @@
 #include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
@@ -46,7 +47,6 @@ extern "C" {
 
 
 #include "curtain.h"
-#include "watermark.h"
 
 
 const static int CURTAIN_RATE = 16;
@@ -56,7 +56,6 @@ using namespace rapidxml;
 
 // Global values
 static gr_surface gCurtain = NULL;
-static gr_surface gWatermark = NULL;
 static int gGuiInitialized = 0;
 static int gForceRender = 0;
 static int gNoAnimation = 0;
@@ -64,7 +63,6 @@ static int gNoAnimation = 0;
 static int gRecorder = -1;
 
 extern "C" void gr_write_frame_to_file(int fd);
-extern "C" void gr_watermark(gr_surface source, int sx, int sy, int w, int h, int dx, int dy);
 
 void flip(void)
 {
@@ -75,8 +73,6 @@ void flip(void)
         write(gRecorder, &time, sizeof(timespec));
         gr_write_frame_to_file(gRecorder);
     }
-    if (gWatermark)
-        gr_watermark(gWatermark, 0, 0, gr_get_width(gWatermark), gr_get_height(gWatermark), 0, 0);
     gr_flip();
     return;
 }
@@ -299,7 +295,7 @@ static int runPages(void)
             int ret;
 
             ret = PageManager::Update();
-            if (ret > 1 || (ret > 0 && gWatermark != NULL))
+            if (ret > 1)
                 PageManager::Render();
 
             if (ret > 0)
@@ -346,7 +342,7 @@ extern "C" int gui_init()
     gr_init();
     ev_init();
 
-    // We need to write out the curtain and watermark blobs
+    // We need to write out the curtain blob
     if (sizeof(gCurtainBlob) > 32)
     {
         fd = open("/tmp/extract.jpg", O_CREAT | O_WRONLY | O_TRUNC);
@@ -367,17 +363,6 @@ extern "C" int gui_init()
         if (res_create_surface("bootup", &gCurtain))
             return 0;
     }
-
-    if (sizeof(gWatermarkBlob) > 32)
-    {
-        fd = open("/tmp/extract.png", O_CREAT | O_WRONLY | O_TRUNC);
-        if (fd < 0)
-            return 0;
-
-        write(fd, gWatermarkBlob, sizeof(gWatermarkBlob));
-        close(fd);
-        res_create_surface("/tmp/extract.png", &gWatermark);
-    }
     unlink("/tmp/extract.png");
 
     curtainSet();
@@ -387,11 +372,19 @@ extern "C" int gui_init()
 extern "C" int gui_loadResources()
 {
     // Make sure the sdcard is mounted before we continue
+#ifdef RECOVERY_SDCARD_ON_DATA
+    LOGI("Symlinking /mnt/data-sdc/media to /sdcard");
+    if (symlink("/mnt/data-sdc/media", "/sdcard"))
+    {
+        LOGE("Unable to symlink (errno %d)\n", errno);
+    }
+#else
     if (ensure_path_mounted("/sdcard") < 0)
     {
         usleep(500000);
         ensure_path_mounted("/sdcard");
     }
+#endif
 
 //    unlink("/sdcard/video.last");
 //    rename("/sdcard/video.bin", "/sdcard/video.last");
