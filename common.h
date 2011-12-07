@@ -125,6 +125,28 @@ void wipe_data(int confirm);
 int gui_set_variable(const char*, const char*);
 
 
+// From ICS common, allows building custom recovery_ui.c files
+typedef struct {
+    // number of frames in indeterminate progress bar animation
+    int indeterminate_frames;
+
+    // number of frames per second to try to maintain when animating
+    int update_fps;
+
+    // number of frames in installing animation.  may be zero for a
+    // static installation icon.
+    int installing_frames;
+
+    // the install icon is animated by drawing images containing the
+    // changing part over the base icon.  These specify the
+    // coordinates of the upper-left corner.
+    int install_overlay_offset_x;
+    int install_overlay_offset_y;
+
+} UIParameters;
+
+
+
 // This handles the special partitions
 #ifndef SP1_NAME
 #define SP1_NAME

@@ -56,7 +56,8 @@ int res_create_surface_png(const char* name, gr_surface* pSurface) {
         snprintf(resPath, sizeof(resPath)-1, "/res/images/%s.png", name);
         resPath[sizeof(resPath)-1] = '\0';
         fp = fopen(resPath, "rb");
-        if (fp == NULL) {
+        if (fp == NULL)
+        {
             result = -1;
             goto exit;
         }
@@ -132,7 +133,7 @@ int res_create_surface_png(const char* name, gr_surface* pSurface) {
 
     int y;
     if (channels < 4) {
-        for (y = 0; y < height; ++y) {
+        for (y = 0; y < (int) height; ++y) {
             unsigned char* pRow = pData + y * stride;
             png_read_row(png_ptr, pRow, NULL);
 
@@ -151,7 +152,7 @@ int res_create_surface_png(const char* name, gr_surface* pSurface) {
             }
         }
     } else {
-        for (y = 0; y < height; ++y) {
+        for (y = 0; y < (int) height; ++y) {
             unsigned char* pRow = pData + y * stride;
             png_read_row(png_ptr, pRow, NULL);
         }
@@ -225,7 +226,7 @@ int res_create_surface_jpg(const char* name, gr_surface* pSurface) {
     surface->format = GGL_PIXEL_FORMAT_RGBX_8888;
 
     int y;
-    for (y = 0; y < height; ++y) {
+    for (y = 0; y < (int) height; ++y) {
         unsigned char* pRow = pData + y * stride;
         jpeg_read_scanlines(&cinfo, &pRow, 1);
 

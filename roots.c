@@ -124,6 +124,10 @@ Volume* volume_for_device(const char* device)
 }
 
 int ensure_path_mounted(const char* path) {
+#ifdef RECOVERY_SDCARD_ON_DATA
+    if (strcmp(path, "/sdcard") == 0)   return 0;
+#endif
+
     Volume* v = volume_for_path(path);
     if (v == NULL) {
         LOGE("unknown volume for path [%s]\n", path);

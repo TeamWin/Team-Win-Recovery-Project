@@ -183,7 +183,7 @@ void gr_color(unsigned char r, unsigned char g, unsigned char b, unsigned char a
     gl->color4xv(gl, color);
 }
 
-int gr_measure(const char *s, void* font)
+int gr_measureEx(const char *s, void* font)
 {
     GRFont* fnt = (GRFont*) font;
     int total = 0;
@@ -201,7 +201,7 @@ int gr_measure(const char *s, void* font)
     return total;
 }
 
-int gr_text(int x, int y, const char *s, void* pFont)
+int gr_textEx(int x, int y, const char *s, void* pFont)
 {
     GGLContext *gl = gr_context;
     GRFont *font = (GRFont*) pFont;

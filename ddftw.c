@@ -277,8 +277,18 @@ int getLocationsViaProc(const char* fstype)
 
 void updateMntUsedSize(struct dInfo* mMnt)
 {
-    int mounted = tw_isMounted(*mMnt);
+#ifdef RECOVERY_SDCARD_ON_DATA
+    if (mMnt == &sdcext)
+    {
+        struct statfs st;
+        if (statfs("/mnt/data-sdc/.", &st) != 0)    return;
 
+        mMnt->used = ((st.f_blocks - st.f_bfree) * st.f_bsize);
+        return;
+    }
+#endif
+
+    int mounted = tw_isMounted(*mMnt);
     if (!mounted)
     {
         // If we fail, just move on

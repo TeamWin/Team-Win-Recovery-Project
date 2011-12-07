@@ -764,8 +764,33 @@ wipe_data(int confirm) {
     ui_print("\n-- Factory reset started.\n");
     ui_set_background(BACKGROUND_ICON_WIPE);
     ui_print("Formatting /data...\n");
+
     //device_wipe_data(); // ??
+
+    // For the Tuna boards, we can't do this! The sdcard is actually /data/media
+#ifdef RECOVERY_SDCARD_ON_DATA
+    tw_mount(dat);
+    __system("rm -f /data/NVM*");
+    __system("rm -rf /data/app ");
+    __system("rm -rf /data/app-private");
+    __system("rm -rf /data/backup");
+    __system("rm -rf /data/dalvik-cache");
+    __system("rm -rf /data/data");
+    __system("rm -rf /data/dontpanic");
+    __system("rm -rf /data/drm");
+    __system("rm -rf /data/local");
+    __system("rm -rf /data/lost+found");
+    __system("rm -rf /data/misc");
+    __system("rm -rf /data/property");
+    __system("rm -rf /data/radio");
+    __system("rm -rf /data/resource-cache");
+    __system("rm -rf /data/smc");
+    __system("rm -rf /data/system");
+    __system("rm -rf /data/user");
+    tw_unmount(dat);
+#else
     erase_volume("/data");
+#endif
     ui_print("Formatting /cache...\n");
     erase_volume("/cache");
     struct stat st;

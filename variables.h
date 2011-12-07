@@ -57,6 +57,7 @@
 #define TW_ZIP_LOCATION_VAR         "tw_zip_location"
 #define TW_FORCE_MD5_CHECK_VAR      "tw_force_md5_check"
 #define TW_SKIP_MD5_CHECK_VAR       "tw_skip_md5_check"
+#define TW_SKIP_MD5_GENERATE_VAR    "tw_skip_md5_generate"
 #define TW_SIGNED_ZIP_VERIFY_VAR    "tw_signed_zip_verify"
 #define TW_REBOOT_AFTER_FLASH_VAR   "tw_reboot_after_flash_option"
 #define TW_TIME_ZONE_VAR            "tw_time_zone"
@@ -79,6 +80,7 @@
 
 #define TW_ALLOW_PARTITION_SDCARD   "tw_allow_partition_sdcard"
 
+#define TW_SCREEN_OFF               "tw_screen_off"
 
 // Also used:
 //   tw_boot_is_mountable

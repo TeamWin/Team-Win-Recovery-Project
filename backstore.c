@@ -648,14 +648,27 @@ int tw_unmount(struct dInfo uMnt)
 int tw_backup(struct dInfo bMnt, const char *bDir)
 {
     // set compression or not
-	char bTarArg[10];
+	char bTarArg[32];
 	if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR)) {
-		strcpy(bTarArg,"-czvf");
+		strcpy(bTarArg,"-czv");
 	} else {
-		strcpy(bTarArg,"-cvf");
+		strcpy(bTarArg,"-cv");
 	}
+    FILE *bFp;
 
-	FILE *bFp;
+#ifdef RECOVERY_SDCARD_ON_DATA
+    strcat(bTarArg, " -X /tmp/excludes.lst");
+
+    bFp = fopen("/tmp/excludes.lst", "wt");
+    if (bFp)
+    {
+        fprintf(bFp, "/data/media\n");
+        fprintf(bFp, "./media\n");
+        fprintf(bFp, "media\n");
+        fclose(bFp);
+    }
+#endif
+
     char str[512];
 	unsigned long long bPartSize;
 	char *bImage = malloc(sizeof(char)*50);
@@ -684,7 +697,7 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
 			}
 		}
 		bPartSize = bMnt.used;
-		sprintf(bCommand,"cd %s && tar %s %s%s ./*",bMount,bTarArg,bDir,bImage); // form backup command
+		sprintf(bCommand,"cd %s && tar %s -f %s%s ./*",bMount,bTarArg,bDir,bImage); // form backup command
 	} else if (bMnt.backup == image) {
 		strcpy(bMount,bMnt.mnt);
 		bPartSize = bMnt.sze;
@@ -906,6 +919,13 @@ int tw_do_backup(const char* enableVar, struct dInfo* mnt, const char* tw_image_
     if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR))    file_bps = DataManager_GetIntValue(TW_BACKUP_AVG_FILE_COMP_RATE);
     else                                                    file_bps = DataManager_GetIntValue(TW_BACKUP_AVG_FILE_RATE);
 
+    if (DataManager_GetIntValue(TW_SKIP_MD5_GENERATE_VAR) == 1)
+    {
+        // If we're skipping MD5 generation, our BPS is faster by about 1.65
+        file_bps = (unsigned long) (file_bps * 1.65);
+        img_bps = (unsigned long) (img_bps * 1.65);
+    }
+
     // We know the speed for both, how far into the whole backup are we, based on time
     unsigned long total_time = (img_bytes / img_bps) + (file_bytes / file_bps);
     unsigned long remain_time = (*img_bytes_remaining / img_bps) + (*file_bytes_remaining / file_bps);
@@ -1074,6 +1094,13 @@ nandroid_back_exe()
     LOGI("img_bps = %lu  total_img_bytes = %llu  img_byte_time = %lu\n", img_bps, total_img_bytes, img_byte_time);
     ui_print("Average backup rate for file systems: %lu MB/sec\n", (file_bps / (1024 * 1024)));
     ui_print("Average backup rate for imaged drives: %lu MB/sec\n", (img_bps / (1024 * 1024)));
+
+    if (DataManager_GetIntValue(TW_SKIP_MD5_GENERATE_VAR) == 1)
+    {
+        // If we're skipping MD5 generation, our BPS is faster by about 1.65
+        file_bps = (unsigned long) (file_bps / 1.65);
+        img_bps = (unsigned long) (img_bps / 1.65);
+    }
 
     img_bps += (DataManager_GetIntValue(TW_BACKUP_AVG_IMG_RATE) * 4);
     img_bps /= 5;
@@ -1435,6 +1462,12 @@ void choose_backup_folder()
 int makeMD5(const char *imgDir, const char *imgFile)
 {
 	int bool = 1;
+
+    if (DataManager_GetIntValue(TW_SKIP_MD5_GENERATE_VAR) == 1) {
+        // When skipping the generate, we return success
+        return 0;
+    }
+
 	if (ensure_path_mounted("/sdcard") != 0) {
 		LOGI("=> Can not mount sdcard.\n");
 		return bool;

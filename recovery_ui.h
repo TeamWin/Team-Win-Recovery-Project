@@ -68,6 +68,9 @@ int device_wipe_data();
 #define HOME_MENU           -6
 #define MENU_MENU           -7
 
+// Again, just to keep custom recovery builds happy
+#define ITEM_APPLY_CACHE     4
+
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];
 

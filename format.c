@@ -24,9 +24,7 @@
 #include "common.h"
 #include "mtdutils/mtdutils.h"
 #include "mtdutils/mounts.h"
-#ifdef USE_EXT4
-#include "make_ext4fs.h"
-#endif
+#include "ddftw.h"
 
 static int file_exists(const char* file)
 {
@@ -142,25 +140,20 @@ static int tw_format_ext23(const char* fstype, const char* device)
 
 static int tw_format_ext4(const char* device)
 {
-#ifdef USE_EXT4
-    reset_ext4fs_info();
-    int status = make_ext4fs(device, NULL, NULL, 0, 0, 0);
-    if (status != 0) {
-        LOGE("%s: make_ext4fs failed (%d) on %s", __FUNCTION__, status, device);
-        return -1;
-    }
-    return 0;
-#else
     return tw_format_ext23("ext4", device);
-#endif
 }
 
 int tw_format(const char *fstype, const char *fsblock)
 {
     int result = -1;
 
-    LOGI("%s: Formatting \"%s\" as \"%s\"\n", __FUNCTION__, fsblock, fstype);
+    if (strcmp(sdcext.blk, fsblock) == 0)
+    {
+        wipe_data(0);
+        return 0;
+    }
 
+    LOGI("%s: Formatting \"%s\" as \"%s\"\n", __FUNCTION__, fsblock, fstype);
     Volume* v = volume_for_device(fsblock);
     if (v)
     {

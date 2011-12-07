@@ -53,7 +53,9 @@ endif
 ifneq ($(SP3_DISPLAY_NAME),)
 	LOCAL_CFLAGS += -DSP3_DISPLAY_NAME=$(SP3_DISPLAY_NAME)
 endif
-
+ifneq ($(RECOVERY_SDCARD_ON_DATA),)
+	LOCAL_CFLAGS += -DRECOVERY_SDCARD_ON_DATA
+endif
 
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.

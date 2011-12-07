@@ -103,19 +103,25 @@ int vibrate(int timeout_ms)
 /* Returns empty tokens */
 static char *vk_strtok_r(char *str, const char *delim, char **save_str)
 {
-    if(!str) {
-        if(!*save_str) return NULL;
+    if(!str)
+    {
+        if(!*save_str)
+            return NULL;
+
         str = (*save_str) + 1;
     }
     *save_str = strpbrk(str, delim);
-    if(*save_str) **save_str = '\0';
+
+    if (*save_str)
+        **save_str = '\0';
+
     return str;
 }
 
 static int vk_init(struct ev *e)
 {
     char vk_path[PATH_MAX] = "/sys/board_properties/virtualkeys.";
-    char vks[2048], *ts;
+    char vks[2048], *ts = NULL;
     ssize_t len;
     int vk_fd;
     int i;

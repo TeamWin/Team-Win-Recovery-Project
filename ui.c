@@ -31,8 +31,8 @@
 #include "themes.h"
 #include "data.h"
 
-#define MAX_COLS 50
-#define MAX_ROWS 40
+#define MAX_COLS 96
+#define MAX_ROWS 50
 
 #define MENU_MAX_COLS 50
 #define MENU_MAX_ROWS 500
@@ -159,7 +159,7 @@ static void draw_progress_locked()
 
 static void draw_text_line(int row, const char* t) {
   if (t[0] != '\0') {
-    gr_text(0, row*CHAR_HEIGHT+1, t, NULL);
+    gr_text(0, row*CHAR_HEIGHT+1, t);
   }
 }
 
