@@ -1034,6 +1034,8 @@ nandroid_back_exe()
     ui_print(" * Total size of all data, in KB: %llu\n", total_bytes / 1024);
     ui_print(" * Available space on the SD card, in KB: %llu\n", sdc_free / 1024);
 
+    // We can't verify sufficient space on devices where sdcard is a portion of the data partition
+#ifndef RECOVERY_SDCARD_ON_DATA
     // Verify space
     if (sdc_free < (total_bytes + 0x2000000))       // We require at least 32MB of additional space
     {
@@ -1041,6 +1043,9 @@ nandroid_back_exe()
         SetDataState("Backup failed", tw_image_dir, 1, 1);
         return -1;
     }
+#else
+    ui_print(" * This device does not support verifying available free space.\n");
+#endif
 
     // Prepare progress bar...
     unsigned long long img_bytes_remaining = total_img_bytes;

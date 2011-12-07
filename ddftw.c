@@ -81,7 +81,7 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
     if (!loc)
         return -1;
 
-//    LOGI(" setLocationData ==> %s = %s, %s, %s, %d\n", SAFE_STR(label), SAFE_STR(blockDevice), SAFE_STR(mtdDevice), SAFE_STR(fstype), size);
+    LOGI(" setLocationData ==> %s = %s, %s, %s, %d\n", SAFE_STR(label), SAFE_STR(blockDevice), SAFE_STR(mtdDevice), SAFE_STR(fstype), size);
 
     if (label)                  strcpy(loc->mnt, label);
     if (blockDevice)            strcpy(loc->blk, blockDevice);
@@ -155,11 +155,21 @@ int getLocationsViafstab()
 
     while (fgets(line, sizeof(line), fp) != NULL)
     {
-        char mount[32], fstype[32], device[64];
+        char mount[32], fstype[32], device[256];
         char* pDevice = device;
 
         if (line[0] != '/')     continue;
         sscanf(line + 1, "%s %s %s", mount, fstype, device);
+
+        // Attempt to flip mounts until we find the block device
+        char realDevice[256];
+        memset(realDevice, 0, sizeof(realDevice));
+        while (readlink(device, realDevice, sizeof(realDevice)) > 0)
+        {
+            LOGI(" Device '%s' linked to '%s'\n", device, realDevice);
+            strcpy(device, realDevice);
+            memset(realDevice, 0, sizeof(realDevice));
+        }
 
         if (device[0] != '/')   pDevice = NULL;
         setLocationData(mount, pDevice, pDevice, fstype, 0);
