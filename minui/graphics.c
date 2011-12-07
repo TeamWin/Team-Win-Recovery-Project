@@ -33,8 +33,12 @@
 #include "font_10x18.h"
 #include "minui.h"
 
-int PIXEL_FORMAT = GGL_PIXEL_FORMAT_RGB_565;
-int PIXEL_SIZE = 2;
+#ifndef PIXEL_FORMAT
+#define PIXEL_FORMAT    GGL_PIXEL_FORMAT_RGB_565
+#endif
+#ifndef PIXEL_SIZE
+#define PIXEL_SIZE      2
+#endif
 
 typedef struct {
     GGLSurface texture;
@@ -71,21 +75,6 @@ static int get_framebuffer(GGLSurface *fb)
         perror("failed to get fb0 info");
         close(fd);
         return -1;
-    }
-
-    fprintf(stderr, "FB bpp=%d  red.offset=%d\n", vi.bits_per_pixel, vi.red.offset);
-    if (vi.bits_per_pixel == 32)
-    {
-        if (vi.red.offset == 8)
-        {
-            PIXEL_FORMAT = GGL_PIXEL_FORMAT_BGRA_8888;
-            PIXEL_SIZE = 4;
-        }
-        else if (vi.red.offset == 24)
-        {
-            PIXEL_FORMAT = GGL_PIXEL_FORMAT_RGBX_8888;
-            PIXEL_SIZE = 4;
-        }
     }
 
     vi.bits_per_pixel = PIXEL_SIZE * 8;
