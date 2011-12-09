@@ -1150,9 +1150,16 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
 	}
 	ui_print("[%s]\n",rUppr);
 	time(&rStart);
-    SetDataState("Verifying MD5", rMnt.mnt, 0, 0);
-	ui_print("...Verifying md5 hash for %s.\n",rMnt.mnt);
-	if(checkMD5(rDir, rMnt.fnm) == 0) // verify md5, check if no error; 0 = no error.
+    int md5_result;
+	if (DataManager_GetIntValue(TW_SKIP_MD5_CHECK_VAR)) {
+		SetDataState("Verifying MD5", rMnt.mnt, 0, 0);
+		ui_print("...Verifying md5 hash for %s.\n",rMnt.mnt);
+		md5_result = checkMD5(rDir, rMnt.fnm); // verify md5, check if no error; 0 = no error.
+	} else {
+		md5_result = 0;
+		ui_print("Skipping MD5 check based on user setting.\n");
+	}
+	if(md5_result == 0)
 	{
 		strcpy(rFilename,rDir);
         if (rFilename[strlen(rFilename)-1] != '/')
