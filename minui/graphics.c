@@ -77,35 +77,55 @@ static int get_framebuffer(GGLSurface *fb)
         return -1;
     }
 
+    fprintf(stderr, "Pixel format: %dx%d @ %dbpp\n", vi.xres, vi.yres, vi.bits_per_pixel);
+
     vi.bits_per_pixel = PIXEL_SIZE * 8;
     if (PIXEL_FORMAT == GGL_PIXEL_FORMAT_BGRA_8888) {
-      vi.red.offset     = 8;
-      vi.red.length     = 8;
-      vi.green.offset   = 16;
-      vi.green.length   = 8;
-      vi.blue.offset    = 24;
-      vi.blue.length    = 8;
-      vi.transp.offset  = 0;
-      vi.transp.length  = 8;
+        fprintf(stderr, "Pixel format: BGRA_8888\n");
+        if (PIXEL_SIZE != 4)    fprintf(stderr, "E: Pixel Size mismatch!\n");
+        vi.red.offset     = 8;
+        vi.red.length     = 8;
+        vi.green.offset   = 16;
+        vi.green.length   = 8;
+        vi.blue.offset    = 24;
+        vi.blue.length    = 8;
+        vi.transp.offset  = 0;
+        vi.transp.length  = 8;
     } else if (PIXEL_FORMAT == GGL_PIXEL_FORMAT_RGBX_8888) {
-      vi.red.offset     = 24;
-      vi.red.length     = 8;
-      vi.green.offset   = 16;
-      vi.green.length   = 8;
-      vi.blue.offset    = 8;
-      vi.blue.length    = 8;
-      vi.transp.offset  = 0;
-      vi.transp.length  = 8;
-    } else { /* RGB565*/
-      vi.red.offset     = 11;
-      vi.red.length     = 5;
-      vi.green.offset   = 5;
-      vi.green.length   = 6;
-      vi.blue.offset    = 0;
-      vi.blue.length    = 5;
-      vi.transp.offset  = 0;
-      vi.transp.length  = 0;
+        fprintf(stderr, "Pixel format: RGBX_8888\n");
+        if (PIXEL_SIZE != 4)    fprintf(stderr, "E: Pixel Size mismatch!\n");
+        vi.red.offset     = 24;
+        vi.red.length     = 8;
+        vi.green.offset   = 16;
+        vi.green.length   = 8;
+        vi.blue.offset    = 8;
+        vi.blue.length    = 8;
+        vi.transp.offset  = 0;
+        vi.transp.length  = 8;
+    } else if (PIXEL_FORMAT == GGL_PIXEL_FORMAT_RGB_565) {
+        fprintf(stderr, "Pixel format: RGB_565\n");
+        if (PIXEL_SIZE != 2)    fprintf(stderr, "E: Pixel Size mismatch!\n");
+        vi.blue.offset    = 11;
+        vi.green.offset   = 5;
+        vi.red.offset     = 0;
+        vi.blue.length    = 5;
+        vi.green.length   = 6;
+        vi.red.length     = 5;
+        vi.blue.msb_right = 0;
+        vi.green.msb_right = 0;
+        vi.red.msb_right = 0;
+        vi.transp.offset  = 0;
+        vi.transp.length  = 0;
     }
+    else
+    {
+        perror("unknown pixel format");
+        close(fd);
+        return -1;
+    }
+
+    vi.vmode = FB_VMODE_NONINTERLACED;
+    vi.activate = FB_ACTIVATE_NOW | FB_ACTIVATE_FORCE;
 
     if (ioctl(fd, FBIOPUT_VSCREENINFO, &vi) < 0) {
         perror("failed to put fb0 info");
@@ -126,23 +146,27 @@ static int get_framebuffer(GGLSurface *fb)
         return -1;
     }
 
+#ifdef RECOVERY_GRAPHICS_USE_LINELENGTH
+    vi.xres_virtual = fi.line_length / PIXEL_SIZE;
+#endif
+
     fb->version = sizeof(*fb);
     fb->width = vi.xres;
     fb->height = vi.yres;
-    fb->stride = fi.line_length/PIXEL_SIZE;
+    fb->stride = vi.xres_virtual;
     fb->data = bits;
     fb->format = PIXEL_FORMAT;
-    memset(fb->data, 0, vi.yres * fi.line_length);
+    memset(fb->data, 0, vi.yres * fb->stride * PIXEL_SIZE);
 
     fb++;
 
     fb->version = sizeof(*fb);
     fb->width = vi.xres;
     fb->height = vi.yres;
-    fb->stride = fi.line_length/PIXEL_SIZE;
-    fb->data = (void*) (((unsigned) bits) + vi.yres * fi.line_length);
+    fb->stride = vi.xres_virtual;
+    fb->data = (void*) (((unsigned) bits) + vi.yres * fb->stride * PIXEL_SIZE);
     fb->format = PIXEL_FORMAT;
-    memset(fb->data, 0, vi.yres * fi.line_length);
+    memset(fb->data, 0, vi.yres * fb->stride * PIXEL_SIZE);
 
     return fd;
 }
@@ -151,8 +175,8 @@ static void get_memory_surface(GGLSurface* ms) {
   ms->version = sizeof(*ms);
   ms->width = vi.xres;
   ms->height = vi.yres;
-  ms->stride = fi.line_length/PIXEL_SIZE;
-  ms->data = malloc(fi.line_length * vi.yres);
+  ms->stride = vi.xres_virtual;
+  ms->data = malloc(vi.xres_virtual * vi.yres * PIXEL_SIZE);
   ms->format = PIXEL_FORMAT;
 }
 
@@ -161,7 +185,7 @@ static void set_active_framebuffer(unsigned n)
     if (n > 1) return;
     vi.yres_virtual = vi.yres * PIXEL_SIZE;
     vi.yoffset = n * vi.yres;
-    vi.bits_per_pixel = PIXEL_SIZE * 8;
+//    vi.bits_per_pixel = PIXEL_SIZE * 8;
     if (ioctl(gr_fb_fd, FBIOPUT_VSCREENINFO, &vi) < 0) {
         perror("active fb swap failed");
     }
@@ -177,7 +201,7 @@ void gr_flip(void)
     /* copy data from the in-memory surface to the buffer we're about
      * to make active. */
     memcpy(gr_framebuffer[gr_active_fb].data, gr_mem_surface.data,
-           fi.line_length * vi.yres);
+           vi.xres_virtual * vi.yres * PIXEL_SIZE);
 
     /* inform the display driver */
     set_active_framebuffer(gr_active_fb);
@@ -410,7 +434,6 @@ int gr_init(void)
     gr_vt_fd = open("/dev/tty0", O_RDWR | O_SYNC);
     if (gr_vt_fd < 0) {
         // This is non-fatal; post-Cupcake kernels don't have tty0.
-        perror("can't open /dev/tty0");
     } else if (ioctl(gr_vt_fd, KDSETMODE, (void*) KD_GRAPHICS)) {
         // However, if we do open tty0, we expect the ioctl to work.
         perror("failed KDSETMODE to KD_GRAPHICS on tty0");
@@ -439,8 +462,8 @@ int gr_init(void)
     gl->enable(gl, GGL_BLEND);
     gl->blendFunc(gl, GGL_SRC_ALPHA, GGL_ONE_MINUS_SRC_ALPHA);
 
-    gr_fb_blank(true);
-    gr_fb_blank(false);
+//    gr_fb_blank(true);
+//    gr_fb_blank(false);
 
     return 0;
 }

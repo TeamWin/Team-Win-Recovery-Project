@@ -302,10 +302,15 @@ set_restore_files()
             extn = ptr;
         }
 
+        LOGI(" Extension: '%s'  Label: '%s'\n", extn ? extn : "<nul>", label ? label : "<nul>");
         if (extn == NULL || strcmp(extn, "win") != 0)   continue;
 
         dev = findDeviceByLabel(label);
-        if (dev == NULL)                                continue;
+        if (dev == NULL)
+        {
+            LOGE(" Unable to locate device by label\n");
+            continue;
+        }
 
         strcpy(dev->fnm, rfOutput);
 
