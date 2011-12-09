@@ -37,6 +37,7 @@ struct dInfo* findDeviceByLabel(const char* label)
     if (strcmp(label, "recovery") == 0)     return &rec;
     if (strcmp(label, "cache") == 0)        return &cac;
     if (strcmp(label, "sd-ext") == 0)       return &sde;
+	if (strcmp(label, "and-sec") == 0)      return &ase;
 
     // New sdcard methods
     if (strcmp(label, "sdcard") == 0)       return &sdcext;
@@ -298,16 +299,26 @@ void updateMntUsedSize(struct dInfo* mMnt)
     }
 #endif
 
-    int mounted = tw_isMounted(*mMnt);
+    struct dInfo* mntPnt;
+	if (strcmp(mMnt->mnt, ".android_secure") == 0)
+		mntPnt = &sdcext;
+	else
+		mntPnt = &mMnt;
+		
+	int mounted = tw_isMounted(*mntPnt);
     if (!mounted)
     {
         // If we fail, just move on
-        if (tw_mount(*mMnt))            return;
+        if (tw_mount(*mntPnt))            return;
     }
 
     char path[512];
     struct statfs st;
-    sprintf(path, "%s/.", mMnt->mnt);
+	if (strcmp(mMnt->mnt, ".android_secure") == 0)
+		sprintf(path, "%s/.", mMnt->dev);
+	else
+		sprintf(path, "%s/.", mMnt->mnt);
+	
     if (statfs(path, &st) != 0)    return;
 
     mMnt->used = ((st.f_blocks - st.f_bfree) * st.f_bsize);
@@ -326,6 +337,7 @@ void updateUsedSized()
     if (sdcext.mountable)   updateMntUsedSize(&sdcext);
     if (sdcint.mountable)   updateMntUsedSize(&sdcint);
     if (sde.mountable)      updateMntUsedSize(&sde);
+	updateMntUsedSize(&ase);
     if (sp1.mountable)      updateMntUsedSize(&sp1);
     if (sp2.mountable)      updateMntUsedSize(&sp2);
     if (sp3.mountable)      updateMntUsedSize(&sp3);
@@ -373,6 +385,15 @@ int getLocations()
     strcpy(ase.blk, ase.dev);
     strcpy(ase.mnt, ".android_secure");
     strcpy(ase.fst, "vfat");
+	
+	/*char path[512];
+    struct statfs st;
+    sprintf(path, "%s/.", ase.dev);
+    if (statfs(path, &st) != 0) {
+		ase.used = 0;
+	} else {
+		ase.used = ((st.f_blocks - st.f_bfree) * st.f_bsize);
+	}*/
 
     if (strlen(sdcext.blk) > 0)
     {
