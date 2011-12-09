@@ -299,29 +299,42 @@ void updateMntUsedSize(struct dInfo* mMnt)
     }
 #endif
 
-    struct dInfo* mntPnt;
-	if (strcmp(mMnt->mnt, ".android_secure") == 0)
-		mntPnt = &sdcext;
-	else
-		mntPnt = &mMnt;
-		
-	int mounted = tw_isMounted(*mntPnt);
-    if (!mounted)
-    {
-        // If we fail, just move on
-        if (tw_mount(*mntPnt))            return;
-    }
-
-    char path[512];
+	char path[512];
     struct statfs st;
-	if (strcmp(mMnt->mnt, ".android_secure") == 0)
-		sprintf(path, "%s/.", mMnt->dev);
-	else
-		sprintf(path, "%s/.", mMnt->mnt);
+	int mounted;
 	
-    if (statfs(path, &st) != 0)    return;
-
-    mMnt->used = ((st.f_blocks - st.f_bfree) * st.f_bsize);
+	if (strcmp(mMnt->mnt, ".android_secure") == 0) {
+		// android_secure is a little different - we mount sdcard and use du to figure out how much space is being taken up by android_secure
+		mounted = tw_isMounted(sdcext);
+		if (!mounted)
+		{
+			// If we fail, just move on
+			if (tw_mount(sdcext))            return;
+		}
+		
+		sprintf(path, "%s", "du /sdcard/.android_secure | awk '{ print $1 }'");
+		FILE *reFp;
+		int blocks;
+		unsigned long ase_size = 0;
+		reFp = __popen(path, "r");
+		if (fscanf(reFp,"%s",path) == 1) { // if we get a match, store filesystem type
+			blocks = atoi(path);
+			ase_size = blocks * 1024; // multiply blocks by bytes to get actual size
+		}
+		__pclose(reFp);
+		mMnt->used = ase_size;
+	} else {
+		mounted = tw_isMounted(*mMnt);
+		if (!mounted)
+		{
+			// If we fail, just move on
+			if (tw_mount(*mMnt))            return;
+		}
+		
+		sprintf(path, "%s/.", mMnt->dev);
+		if (statfs(path, &st) != 0)    return;
+		mMnt->used = ((st.f_blocks - st.f_bfree) * st.f_bsize);
+	}
 
     if (!mounted)   tw_unmount(*mMnt);
 
@@ -385,15 +398,6 @@ int getLocations()
     strcpy(ase.blk, ase.dev);
     strcpy(ase.mnt, ".android_secure");
     strcpy(ase.fst, "vfat");
-	
-	/*char path[512];
-    struct statfs st;
-    sprintf(path, "%s/.", ase.dev);
-    if (statfs(path, &st) != 0) {
-		ase.used = 0;
-	} else {
-		ase.used = ((st.f_blocks - st.f_bfree) * st.f_bsize);
-	}*/
 
     if (strlen(sdcext.blk) > 0)
     {
