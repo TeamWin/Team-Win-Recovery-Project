@@ -2,9 +2,9 @@
 
 <recovery>
     <details>
-        <resolution width="540" height="960" />
-        <author>TeamWin</author>
-        <title>Backup Naowz</title>
+        <resolution width="320" height="480" />
+        <author>KbZonA</author>
+        <title>ThunderG Naowz</title>
         <description>Default basic theme</description>
         <preview>preview.jpg</preview>
     </details>
@@ -13,7 +13,7 @@
         <resource name="font" type="font" filename="bluehighway-25" />
 		<resource name="filelist" type="font" filename="bluehighway-40" />
         <resource name="android" type="image" filename="android" />
-        <resource name="main_button" type="image" filename="qhd-menu-button" />
+        <resource name="main_button" type="image" filename="hdpi-menu-button" />
         <resource name="file_icon" type="image" filename="file" />
         <resource name="folder_icon" type="image" filename="folder" />
         <resource name="slideout" type="image" filename="slideout" />
@@ -22,34 +22,34 @@
         <resource name="progress_full" type="image" filename="progress_fill" />
         <resource name="checkbox_false" type="image" filename="checkbox_empty" />
         <resource name="checkbox_true" type="image" filename="checkbox_checked" />
-		<resource name="small_button" type="image" filename="qhd-small-button" />
-		<resource name="medium_button" type="image" filename="qhd-medium-button" />
-		<resource name="sort_button" type="image" filename="qhd-sort-button" />
-		<resource name="minus_button" type="image" filename="qhd-minus-button" />
-		<resource name="plus_button" type="image" filename="qhd-plus-button" />
+		<resource name="small_button" type="image" filename="hdpi-small-button" />
+		<resource name="medium_button" type="image" filename="hdpi-medium-button" />
+		<resource name="sort_button" type="image" filename="hdpi-sort-button" />
+		<resource name="minus_button" type="image" filename="hdpi-minus-button" />
+		<resource name="plus_button" type="image" filename="hdpi-plus-button" />
     </resources>
 	
 	<variables>
 		<variable name="col1_x" value="10" />
-		<variable name="col2_x" value="277" />
-		<variable name="col_center_x" value="143" />
-		<variable name="row1_y" value="120" />
-		<variable name="row2_y" value="312" />
-		<variable name="row3_y" value="504" />
-		<variable name="row4_y" value="696" />
-		<variable name="col_progressbar_x" value="144" />
-		<variable name="row_progressbar_y" value="840" />
+		<variable name="col2_x" value="156" />
+		<variable name="col_center_x" value="25" />
+		<variable name="row1_y" value="72" />
+		<variable name="row2_y" value="168" />
+		<variable name="row3_y" value="264" />
+		<variable name="row4_y" value="360" />
+		<variable name="col_progressbar_x" value="34" />
+		<variable name="row_progressbar_y" value="432" />
 		<variable name="col1_medium_x" value="10" />
-		<variable name="col2_medium_x" value="150" />
-		<variable name="col3_medium_x" value="290" />
-		<variable name="col4_medium_x" value="430" />
-		<variable name="row1_medium_y" value="130" />
-		<variable name="row2_medium_y" value="230" />
-		<variable name="row3_medium_y" value="330" />
-		<variable name="row4_medium_y" value="430" />
-		<variable name="row5_medium_y" value="530" />
-		<variable name="row6_medium_y" value="630" />
-		<variable name="row7_medium_y" value="730" />
+		<variable name="col2_medium_x" value="81" />
+		<variable name="col3_medium_x" value="156" />
+		<variable name="col4_medium_x" value="230" />
+		<variable name="row1_medium_y" value="78" />
+		<variable name="row2_medium_y" value="123" />
+		<variable name="row3_medium_y" value="168" />
+		<variable name="row4_medium_y" value="213" />
+		<variable name="row5_medium_y" value="258" />
+		<variable name="row6_medium_y" value="303" />
+		<variable name="row7_medium_y" value="348" />
 	</variables>
 
     <templates>
@@ -64,27 +64,27 @@
     			<condition var1="tw_busy" var2="0" />
     			<action function="page">main</action>
     		</object>
-    
-            <object type="image">
+
+	     <object type="image">
                 <image resource="android" />
                 <placement x="%col1_x%" y="10" />
             </object>
     
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="100" y="10" />
-                <text>Team Win Recovery Project  v%tw_version%</text>
+                <placement x="60" y="10" />
+                <text>TWRP-ThunderG-v%tw_version%</text>
             </object>
 			
-			<object type="text" color="white">
+	     <object type="text" color="white">
                 <font resource="font" />
-                <placement x="100" y="75" />
+                <placement x="60" y="45" />
                 <text>%tw_time%</text>
             </object>
     
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="250" y="75" />
+                <placement x="150" y="45" />
                 <condition var1="tw_battery" op=">" var2="0" />
                 <text>Battery: %tw_battery%</text>
             </object>
@@ -92,8 +92,8 @@
 
         <template name="footer">
             <object type="console">
-                <slideout resource="slideout" x="240" y="920" />
-                <placement x="0" y="0" w="540" h="960" />
+                <slideout resource="slideout" x="136" y="456" />
+                <placement x="0" y="0" w="380" h="455" />
                 <color foreground="#B0B0B0" background="black" scroll="#303030" />
                 <font resource="fixed" />
             </object>
@@ -175,10 +175,10 @@
             <object type="template" name="header" />
 
             <object type="fileselector">
-                <placement x="5" y="%row1_y%" w="530" h="660" />
+                <placement x="1" y="%row1_y%" w="325" h="330" />
                 <icon folder="folder_icon" file="file_icon" />
                 <background color="#454545" />
-                <font resource="filelist" spacing="18" color="white" />
+                <font resource="font" spacing="8" color="white" />
                 <filter extn=".zip" folders="1" files="1" />
                 <path name="tw_zip_location" default="/sdcard" />
                 <data name="tw_filename" />
@@ -186,12 +186,12 @@
 			
 			<object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col1_x%" y="810" />
+                <placement x="%col1_x%" y="406" />
                 <text>Sort Ascending:</text>
             </object>
 			
 			<object type="button">
-                <placement x="200" y="800" />
+                <placement x="180" y="406" />
                 <font resource="UItext" color="black" />
                 <text>Name</text>
                 <image resource="sort_button" />
@@ -199,7 +199,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="280" y="800" />
+                <placement x="230" y="406" />
                 <font resource="UItext" color="black" />
                 <text>Date</text>
                 <image resource="sort_button" />
@@ -207,7 +207,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="360" y="800" />
+                <placement x="280" y="406" />
                 <font resource="UItext" color="black" />
                 <text>Size</text>
                 <image resource="sort_button" />
@@ -216,12 +216,12 @@
 			
 			<object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col1_x%" y="860" />
+                <placement x="%col1_x%" y="430" />
                 <text>Sort Descending:</text>
             </object>
 			
 			<object type="button">
-                <placement x="200" y="850" />
+                <placement x="180" y="430" />
                 <font resource="UItext" color="black" />
                 <text>Name</text>
                 <image resource="sort_button" />
@@ -229,7 +229,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="280" y="850" />
+                <placement x="230" y="430" />
                 <font resource="UItext" color="black" />
                 <text>Date</text>
                 <image resource="sort_button" />
@@ -237,7 +237,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="360" y="850" />
+                <placement x="280" y="430" />
                 <font resource="UItext" color="black" />
                 <text>Size</text>
                 <image resource="sort_button" />
@@ -273,18 +273,12 @@
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col1_x%" y="140" />
+                <placement x="%col1_x%" y="87" />
                 <text>software and render your device unusable.</text>
-            </object>
-
-            <object type="text" color="white">
-                <font resource="font" />
-                <placement x="%col1_x%" y="400" />
-                <text>File to flash: %tw_filename%</text>
             </object>
 			
 			<object type="checkbox">
-                <placement x="%col1_x%" y="180" />
+                <placement x="%col1_x%" y="108" />
                 <font resource="font" color="white" />
                 <text>Zip file signature verification?</text>
                 <data variable="tw_signed_zip_verify" />
@@ -292,15 +286,21 @@
             </object>
 			
 			<object type="checkbox">
-                <placement x="%col1_x%" y="220" />
+                <placement x="%col1_x%" y="132" />
                 <font resource="font" color="white" />
                 <text>Force MD5 check on all zips?</text>
                 <data variable="tw_force_md5_check" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
+			
+            <object type="text" color="white">
+                <font resource="font" />
+                <placement x="%col1_x%" y="240" />
+                <text>File to flash: %tw_filename%</text>
+            </object>
 
             <object type="button">
-                <placement x="%col_center_x%" y="550" />
+                <placement x="80" y="330" />
                 <font resource="font" color="black" />
                 <text>Flash now</text>
                 <image resource="main_button" />
@@ -324,7 +324,7 @@
             <object type="template" name="header" />
 
             <object type="console">
-                <placement x="0" y="%row1_y%" w="540" h="620" />
+                <placement x="0" y="%row1_y%" w="362" h="354" />
                 <color foreground="#B0B0B0" background="black" scroll="#303030" />
                 <font resource="fixed" />
             </object>
@@ -352,15 +352,15 @@
 
         <page name="flash_done">
             <object type="template" name="header" />
-			
+
             <object type="console">
-                <placement x="0" y="%row1_y%" w="540" h="390" />
+                <placement x="0" y="%row1_y%" w="312" h="146" />
                 <color foreground="#B0B0B0" background="black" scroll="black" />
                 <font resource="fixed" />
             </object>
 			
 			<object type="button">
-                <placement x="%col1_x%" y="530" />
+                <placement x="%col1_x%" y="248" />
                 <font resource="font" color="black" />
                 <text>Wipe cache/dalvik</text>
                 <image resource="main_button" />
@@ -368,15 +368,15 @@
             </object>
 			
 			<object type="button">
-                <placement x="%col2_x%" y="530" />
+                <placement x="%col2_x%" y="248" />
                 <font resource="font" color="black" />
                 <text>Reboot System</text>
                 <image resource="main_button" />
                 <action function="reboot">system</action>
             </object>
-
+			
             <object type="button">
-                <placement x="%col_center_x%" y="690" />
+                <placement x="80" y="342" />
                 <font resource="font" color="black" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
@@ -471,18 +471,18 @@
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_center_x%" y="490" />
+                <placement x="%col_center_x%" y="94" />
                 <text>Wipe cache?</text>
             </object>
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_center_x%" y="520" />
+                <placement x="%col_center_x%" y="112" />
                 <text>Press back button to cancel.</text>
             </object>
 
             <object type="button">
-                <placement x="%col_center_x%" y="550" />
+                <placement x="80" y="130" />
                 <font resource="font" color="black" />
                 <text>Wipe cache!</text>
                 <image resource="main_button" />
@@ -507,12 +507,12 @@
 			
 			<object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_progressbar_x%" y="440" />
+                <placement x="%col_progressbar_x%" y="264" />
                 <text>Wiping cache...</text>
             </object>
 			
             <object type="animation">
-                <placement x="%col_progressbar_x%" y="470" />
+                <placement x="%col_progressbar_x%" y="290" />
                 <resource name="progress" />
                 <speed fps="15" render="2" />
                 <loop frame="1" />
@@ -535,18 +535,18 @@
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_center_x%" y="490" />
+                <placement x="%col_center_x%" y="94" />
                 <text>Wipe dalvik-cache?</text>
             </object>
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_center_x%" y="520" />
+                <placement x="%col_center_x%" y="112" />
                 <text>Press back button to cancel.</text>
             </object>
 
             <object type="button">
-                <placement x="%col_center_x%" y="550" />
+                <placement x="80" y="130" />
                 <font resource="font" color="black" />
                 <text>Wipe dalvik!</text>
                 <image resource="main_button" />
@@ -571,12 +571,12 @@
 			
 			<object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_progressbar_x%" y="440" />
+                <placement x="%col_progressbar_x%" y="264" />
                 <text>Wiping dalvik cache...</text>
             </object>
 			
             <object type="animation">
-                <placement x="%col_progressbar_x%" y="470" />
+                <placement x="%col_progressbar_x%" y="290" />
                 <resource name="progress" />
                 <speed fps="15" render="2" />
                 <loop frame="1" />
@@ -594,54 +594,23 @@
             <object type="template" name="footer" />
         </page>
 		
-		<page name="wipe_cachedalvik">
-            <object type="template" name="header" />
-			
-			<object type="text" color="white">
-                <font resource="font" />
-                <placement x="%col_progressbar_x%" y="440" />
-                <text>Wiping cache...</text>
-            </object>
-			
-            <object type="animation">
-                <placement x="%col_progressbar_x%" y="470" />
-                <resource name="progress" />
-                <speed fps="15" render="2" />
-                <loop frame="1" />
-            </object>
-
-            <object type="action">
-                <condition var1="tw_operation_state" var2="1" />
-                <action function="page">wipe_done</action>
-            </object>
-
-            <object type="action">
-				<actions>
-					<action function="wipe">/cache</action>
-					<action function="wipe">dalvik</action>
-				</actions>
-            </object>
-                        
-            <object type="template" name="footer" />
-        </page>
-		
 		<page name="wipe_rotate_confirm">
             <object type="template" name="header" />
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_center_x%" y="490" />
+                <placement x="%col_center_x%" y="94" />
                 <text>Wipe rotation data?</text>
             </object>
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_center_x%" y="520" />
+                <placement x="%col_center_x%" y="112" />
                 <text>Press back button to cancel.</text>
             </object>
 
             <object type="button">
-                <placement x="%col_center_x%" y="550" />
+                <placement x="80" y="130" />
                 <font resource="font" color="black" />
                 <text>Wipe rotate!</text>
                 <image resource="main_button" />
@@ -666,12 +635,12 @@
 			
 			<object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_progressbar_x%" y="440" />
+                <placement x="%col_progressbar_x%" y="264" />
                 <text>Wiping rotation data...</text>
             </object>
 			
             <object type="animation">
-                <placement x="%col_progressbar_x%" y="470" />
+                <placement x="%col_progressbar_x%" y="290" />
                 <resource name="progress" />
                 <speed fps="15" render="2" />
                 <loop frame="1" />
@@ -694,18 +663,18 @@
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_center_x%" y="490" />
+                <placement x="%col_center_x%" y="94" />
                 <text>Wipe data (factory reset)?</text>
             </object>
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_center_x%" y="520" />
+                <placement x="%col_center_x%" y="112" />
                 <text>Press back button to cancel.</text>
             </object>
 
             <object type="button">
-                <placement x="%col_center_x%" y="550" />
+                <placement x="80" y="130" />
                 <font resource="font" color="black" />
                 <text>Wipe data!</text>
                 <image resource="main_button" />
@@ -730,12 +699,12 @@
 			
 			<object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_progressbar_x%" y="440" />
+                <placement x="%col_progressbar_x%" y="264" />
                 <text>Wiping data...</text>
             </object>
 			
             <object type="animation">
-                <placement x="%col_progressbar_x%" y="470" />
+                <placement x="%col_progressbar_x%" y="290" />
                 <resource name="progress" />
                 <speed fps="15" render="2" />
                 <loop frame="1" />
@@ -758,18 +727,18 @@
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_center_x%" y="490" />
+                <placement x="%col_center_x%" y="94" />
                 <text>Wipe system?</text>
             </object>
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_center_x%" y="520" />
+                <placement x="%col_center_x%" y="112" />
                 <text>Press back button to cancel.</text>
             </object>
 
             <object type="button">
-                <placement x="%col_center_x%" y="550" />
+                <placement x="%col_center_x%" y="130" />
                 <font resource="font" color="black" />
                 <text>Wipe system!</text>
                 <image resource="main_button" />
@@ -794,12 +763,12 @@
 			
 			<object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_progressbar_x%" y="440" />
+                <placement x="%col_progressbar_x%" y="264" />
                 <text>Wiping system...</text>
             </object>
 			
             <object type="animation">
-                <placement x="%col_progressbar_x%" y="470" />
+                <placement x="%col_progressbar_x%" y="290" />
                 <resource name="progress" />
                 <speed fps="15" render="2" />
                 <loop frame="1" />
@@ -822,18 +791,18 @@
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_center_x%" y="490" />
+                <placement x="%col_center_x%" y="94" />
                 <text>Wipe sdcard?</text>
             </object>
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_center_x%" y="520" />
+                <placement x="%col_center_x%" y="112" />
                 <text>Press back button to cancel.</text>
             </object>
 
             <object type="button">
-                <placement x="%col_center_x%" y="550" />
+                <placement x="%col_center_x%" y="130" />
                 <font resource="font" color="black" />
                 <text>Wipe sdcard!</text>
                 <image resource="main_button" />
@@ -858,12 +827,12 @@
 			
 			<object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_progressbar_x%" y="440" />
+                <placement x="%col_progressbar_x%" y="264" />
                 <text>Wiping sdcard...</text>
             </object>
 			
             <object type="animation">
-                <placement x="%col_progressbar_x%" y="470" />
+                <placement x="%col_progressbar_x%" y="290" />
                 <resource name="progress" />
                 <speed fps="15" render="2" />
                 <loop frame="1" />
@@ -889,18 +858,18 @@
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_center_x%" y="490" />
+                <placement x="%col_center_x%" y="94" />
                 <text>Wipe sd-ext?</text>
             </object>
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_center_x%" y="520" />
+                <placement x="%col_center_x%" y="112" />
                 <text>Press back button to cancel.</text>
             </object>
 
             <object type="button">
-                <placement x="%col_center_x%" y="550" />
+                <placement x="%col_center_x%" y="130" />
                 <font resource="font" color="black" />
                 <text>Wipe sd-ext!</text>
                 <image resource="main_button" />
@@ -925,12 +894,12 @@
 			
 			<object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_progressbar_x%" y="440" />
+                <placement x="%col_progressbar_x%" y="264" />
                 <text>Wiping sd-ext...</text>
             </object>
 			
             <object type="animation">
-                <placement x="%col_progressbar_x%" y="470" />
+                <placement x="%col_progressbar_x%" y="290" />
                 <resource name="progress" />
                 <speed fps="15" render="2" />
                 <loop frame="1" />
@@ -953,18 +922,18 @@
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_center_x%" y="490" />
+                <placement x="%col_center_x%" y="94" />
                 <text>Wipe battery stats?</text>
             </object>
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_center_x%" y="520" />
+                <placement x="%col_center_x%" y="112" />
                 <text>Press back button to cancel.</text>
             </object>
 
             <object type="button">
-                <placement x="%col_center_x%" y="550" />
+                <placement x="%col_center_x%" y="130" />
                 <font resource="font" color="black" />
                 <text>Wipe battery!</text>
                 <image resource="main_button" />
@@ -989,12 +958,12 @@
 			
 			<object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col_progressbar_x%" y="440" />
+                <placement x="%col_progressbar_x%" y="264" />
                 <text>Wiping battery stats...</text>
             </object>
 			
             <object type="animation">
-                <placement x="%col_progressbar_x%" y="470" />
+                <placement x="%col_progressbar_x%" y="290" />
                 <resource name="progress" />
                 <speed fps="15" render="2" />
                 <loop frame="1" />
@@ -1017,12 +986,12 @@
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="270" y="540" placement="4" />
+                <placement x="160" y="224" placement="4" />
                 <text>Wipe complete</text>
             </object>
 
             <object type="button">
-                <placement x="%col_center_x%" y="550" />
+                <placement x="80" y="330" />
                 <font resource="font" color="black" />
                 <text>Back</text>
                 <image resource="main_button" />
@@ -1054,7 +1023,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="%col1_x%" y="285" />
+                <placement x="%col1_x%" y="171" />
                 <font resource="font" color="white" />
                 <text>System</text>
                 <data variable="tw_backup_system" />
@@ -1062,7 +1031,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="%col1_x%" y="325" />
+                <placement x="%col1_x%" y="195" />
                 <font resource="font" color="white" />
                 <text>Data</text>
                 <data variable="tw_backup_data" />
@@ -1070,7 +1039,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="%col1_x%" y="365" />
+                <placement x="%col1_x%" y="219" />
                 <font resource="font" color="white" />
                 <text>Boot</text>
                 <data variable="tw_backup_boot" />
@@ -1078,7 +1047,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="%col1_x%" y="405" />
+                <placement x="%col1_x%" y="243" />
                 <font resource="font" color="white" />
                 <text>Recovery</text>
                 <data variable="tw_backup_recovery" />
@@ -1086,7 +1055,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="%col1_x%" y="445" />
+                <placement x="%col1_x%" y="267" />
                 <font resource="font" color="white" />
                 <text>Cache</text>
                 <data variable="tw_backup_cache" />
@@ -1094,7 +1063,7 @@
             </object>
 			
             <object type="checkbox">
-                <placement x="%col1_x%" y="485" />
+                <placement x="%col1_x%" y="291" />
                 <font resource="font" color="white" />
                 <text>.android_secure</text>
                 <condition var1="fileexists" var2="/sdcard/.android_secure" />
@@ -1103,7 +1072,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="%col1_x%" y="525" />
+                <placement x="%col1_x%" y="315" />
                 <font resource="font" color="white" />
                 <text>sd-ext</text>
                 <condition var1="fileexists" var2="/sd-ext" />
@@ -1113,7 +1082,7 @@
 			
 			<object type="checkbox">
 				<condition var1="tw_sp1_name" op=">" var2="" />
-                <placement x="%col1_x%" y="565" />
+                <placement x="%col1_x%" y="339" />
                 <font resource="font" color="white" />
                 <text>%tw_sp1_name%</text>
                 <data variable="tw_backup_sp1" />
@@ -1122,7 +1091,7 @@
 			
 			<object type="checkbox">
 				<condition var1="tw_sp2_name" op=">" var2="" />
-                <placement x="%col1_x%" y="605" />
+                <placement x="%col1_x%" y="363" />
                 <font resource="font" color="white" />
                 <text>%tw_sp2_name%</text>
                 <data variable="tw_backup_sp2" />
@@ -1131,7 +1100,7 @@
 			
 			<object type="checkbox">
 				<condition var1="tw_sp3_name" op=">" var2="" />
-                <placement x="%col1_x%" y="645" />
+                <placement x="%col1_x%" y="387" />
                 <font resource="font" color="white" />
                 <text>%tw_sp3_name%</text>
                 <data variable="tw_backup_sp3" />
@@ -1139,7 +1108,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="%col1_x%" y="725" />
+                <placement x="%col1_x%" y="410" />
                 <font resource="font" color="white" />
                 <text>Enable Compression (Requires more time)</text>
                 <data variable="tw_use_compression" />
@@ -1164,18 +1133,18 @@
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="270" y="440" placement="4" />
+                <placement x="150" y="264" placement="4" />
                 <text>%tw_operation% %tw_partition%</text>
             </object>
 
             <object type="progressbar">
-                <placement x="%col_progressbar_x%" y="470" />
+                <placement x="%col_progressbar_x%" y="290" />
                 <resource  empty="progress_empty" full="progress_full" />
                 <data name="ui_progress" />
             </object>
 
             <object type="animation">
-                <placement x="%col_progressbar_x%" y="470" />
+                <placement x="%col_progressbar_x%" y="290" />
                 <resource name="progress" />
                 <speed fps="15" render="2" />
                 <loop frame="1" />
@@ -1210,12 +1179,12 @@
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="270" y="445" placement="4" />
+                <placement x="150" y="267" placement="4" />
                 <text>Your backup was successful!</text>
             </object>
 
             <object type="button">
-                <placement x="%col_center_x%" y="570" />
+                <placement x="80" y="342" />
                 <font resource="font" color="black" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
@@ -1230,18 +1199,18 @@
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="270" y="445" placement="4" />
+                <placement x="150" y="267" placement="4" />
                 <text>Your backup failed.</text>
             </object>
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="270" y="475" placement="4" />
+                <placement x="150" y="285" placement="4" />
                 <text>Pull up the console for more details</text>
             </object>
 
             <object type="button">
-                <placement x="%col_center_x%" y="570" />
+                <placement x="%col_center_x%" y="342" />
                 <font resource="font" color="black" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
@@ -1261,7 +1230,7 @@
             </object>
 
             <object type="fileselector">
-                <placement x="5" y="140" w="530" h="780" />
+                <placement x="5" y="100" w="335" h="332" />
                 <icon folder="folder_icon" file="file_icon" />
                 <background color="#303030" />
                 <font resource="filelist" spacing="18" color="white" />
@@ -1310,7 +1279,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="%col1_x%" y="285" />
+                <placement x="%col1_x%" y="171" />
                 <font resource="font" color="white" />
                 <text>System</text>
                 <condition var1="tw_restore_system" op=">=" var2="0" />
@@ -1319,7 +1288,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="%col1_x%" y="325" />
+                <placement x="%col1_x%" y="195" />
                 <font resource="font" color="white" />
                 <text>Data</text>
                 <condition var1="tw_restore_data" op=">=" var2="0" />
@@ -1328,7 +1297,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="%col1_x%" y="365" />
+                <placement x="%col1_x%" y="219" />
                 <font resource="font" color="white" />
                 <text>Boot</text>
                 <condition var1="tw_restore_boot" op=">=" var2="0" />
@@ -1337,7 +1306,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="%col1_x%" y="405" />
+                <placement x="%col1_x%" y="243" />
                 <font resource="font" color="white" />
                 <text>Recovery</text>
                 <condition var1="tw_restore_recovery" op=">=" var2="0" />
@@ -1346,7 +1315,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="%col1_x%" y="445" />
+                <placement x="%col1_x%" y="267" />
                 <font resource="font" color="white" />
                 <text>Cache</text>
                 <condition var1="tw_restore_cache" op=">=" var2="0" />
@@ -1355,7 +1324,7 @@
             </object>
 			
             <object type="checkbox">
-                <placement x="%col1_x%" y="485" />
+                <placement x="%col1_x%" y="291" />
                 <font resource="font" color="white" />
                 <text>.android_secure</text>
                 <condition var1="tw_restore_andsec" op=">=" var2="0" />
@@ -1364,7 +1333,7 @@
             </object>
 
             <object type="checkbox">
-                <placement x="%col1_x%" y="525" />
+                <placement x="%col1_x%" y="315" />
                 <font resource="font" color="white" />
                 <text>sd-ext</text>
                 <condition var1="tw_restore_sdext" op=">=" var2="0" />
@@ -1373,7 +1342,7 @@
             </object>
 			
 			<object type="checkbox">
-                <placement x="%col1_x%" y="565" />
+                <placement x="%col1_x%" y="339" />
                 <font resource="font" color="white" />
                 <text>%tw_sp1_name%</text>
                 <condition var1="tw_restore_sp1" op=">=" var2="0" />
@@ -1382,7 +1351,7 @@
             </object>
 			
 			<object type="checkbox">
-                <placement x="%col1_x%" y="605" />
+                <placement x="%col1_x%" y="363" />
                 <font resource="font" color="white" />
                 <text>%tw_sp2_name%</text>
                 <condition var1="tw_restore_sp2" op=">=" var2="0" />
@@ -1391,7 +1360,7 @@
             </object>
 			
 			<object type="checkbox">
-                <placement x="%col1_x%" y="645" />
+                <placement x="%col1_x%" y="387" />
                 <font resource="font" color="white" />
                 <text>%tw_sp3_name%</text>
                 <condition var1="tw_restore_sp3" op=">=" var2="0" />
@@ -1400,7 +1369,7 @@
             </object>
 
 			<object type="checkbox">
-                <placement x="%col1_x%" y="725" />
+                <placement x="%col1_x%" y="435" />
                 <font resource="font" color="white" />
                 <text>Enable MD5 checking of backup files</text>
                 <data variable="tw_skip_md5_check" />
@@ -1425,18 +1394,18 @@
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="270" y="440" placement="4" />
+                <placement x="150" y="264" placement="4" />
                 <text>%tw_operation% %tw_partition%</text>
             </object>
 
             <object type="progressbar">
-                <placement x="%col_progressbar_x%" y="470" />
+                <placement x="%col_progressbar_x%" y="290" />
                 <resource  empty="progress_empty" full="progress_full" />
                 <data name="ui_progress" />
             </object>
 
             <object type="animation">
-                <placement x="%col_progressbar_x%" y="470" />
+                <placement x="%col_progressbar_x%" y="290" />
                 <resource name="progress" />
                 <speed fps="15" render="2" />
                 <loop frame="1" />
@@ -1471,12 +1440,12 @@
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="270" y="440" placement="4" />
+                <placement x="150" y="264" placement="4" />
                 <text>Your restore was successful!</text>
             </object>
 
             <object type="button">
-                <placement x="%col_center_x%" y="570" />
+                <placement x="%col_center_x%" y="342" />
                 <font resource="font" color="black" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
@@ -1491,18 +1460,18 @@
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="270" y="440" placement="4" />
+                <placement x="150" y="264" placement="4" />
                 <text>Your restore failed.</text>
             </object>
 
             <object type="text" color="white">
                 <font resource="font" />
-                <placement x="270" y="475" placement="4" />
+                <placement x="150" y="285" placement="4" />
                 <text>Pull up the console for more details</text>
             </object>
 
             <object type="button">
-                <placement x="%col_center_x%" y="570" />
+                <placement x="80" y="332" />
                 <font resource="font" color="black" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
@@ -1534,7 +1503,7 @@
             </object>
 
             <object type="button">
-                <placement x="%col1_x%" y="160" />
+                <placement x="%col1_x%" y="115" />
                 <font resource="font" color="white" />
                 <condition var1="mounted" op="!=" var2="/data" />
                 <text>Mount Data</text>
@@ -1543,7 +1512,7 @@
             </object>
 
             <object type="button">
-                <placement x="%col1_x%" y="160" />
+                <placement x="%col1_x%" y="115" />
                 <font resource="font" color="white" />
                 <condition var1="mounted" op="=" var2="/data" />
                 <text>Unmount Data</text>
@@ -1552,7 +1521,7 @@
             </object>
 
             <object type="button">
-                <placement x="%col1_x%" y="200" />
+                <placement x="%col1_x%" y="155" />
                 <font resource="font" color="white" />
                 <condition var1="mounted" op="!=" var2="/cache" />
                 <text>Mount Cache</text>
@@ -1561,7 +1530,7 @@
             </object>
 
             <object type="button">
-                <placement x="%col1_x%" y="200" />
+                <placement x="%col1_x%" y="155" />
                 <font resource="font" color="white" />
                 <condition var1="mounted" op="=" var2="/cache" />
                 <text>Unmount Cache</text>
@@ -1570,7 +1539,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="%col1_x%" y="240" />
+                <placement x="%col1_x%" y="195" />
                 <font resource="font" color="white" />
                 <condition var1="mounted" op="!=" var2="/sdcard" />
                 <text>Mount SDCard</text>
@@ -1579,7 +1548,7 @@
             </object>
 
             <object type="button">
-                <placement x="%col1_x%" y="240" />
+                <placement x="%col1_x%" y="195" />
                 <font resource="font" color="white" />
                 <condition var1="mounted" op="=" var2="/sdcard" />
                 <text>Unmount SDCard</text>
@@ -1588,7 +1557,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="%col1_x%" y="280" />
+                <placement x="%col1_x%" y="235" />
                 <font resource="font" color="white" />
                 <condition var1="mounted" op="!=" var2="/sd-ext" />
                 <text>Mount SD-Ext</text>
@@ -1597,7 +1566,7 @@
             </object>
 
             <object type="button">
-                <placement x="%col1_x%" y="280" />
+                <placement x="%col1_x%" y="235" />
                 <font resource="font" color="white" />
                 <condition var1="mounted" op="=" var2="/sd-ext" />
                 <text>Unmount SD-Ext</text>
@@ -1610,7 +1579,7 @@
 					<condition var1="tw_boot_is_mountable" var2="1" />
 					<condition var1="mounted" op="!=" var2="/boot" />
 				</conditions>
-                <placement x="%col1_x%" y="320" />
+                <placement x="%col1_x%" y="275" />
                 <font resource="font" color="#A0A0A0" />
                 <text>   Mount Boot</text>
                 <image resource="checkbox_false" />
@@ -1622,15 +1591,15 @@
 					<condition var1="tw_boot_is_mountable" var2="1" />
 					<condition var1="mounted" op="=" var2="/boot" />
 				</conditions>
-                <placement x="%col1_x%" y="320" />
+                <placement x="%col1_x%" y="275" />
                 <font resource="font" color="#A0A0A0" />
                 <text>   Unmount Boot</text>
                 <image resource="checkbox_true" />
                 <action function="umount">/boot</action>
             </object>
-			
+
             <object type="button">
-                <placement x="%col1_x%" y="row3_y" />
+                <placement x="%col1_x%" y="290" />
                 <font resource="font" color="black" />
                 <text>Mount USB Storage</text>
                 <image resource="main_button" />
@@ -1738,7 +1707,7 @@
             </object>
 			
 			<object type="checkbox">
-                <placement x="%col1_x%" y="160" />
+                <placement x="%col1_x%" y="115" />
                 <font resource="font" color="white" />
                 <text>Force MD5 check on all zips?</text>
                 <data variable="tw_force_md5_check" />
@@ -1746,31 +1715,15 @@
             </object>
 			
 			<object type="checkbox">
-                <placement x="%col1_x%" y="200" />
+                <placement x="%col1_x%" y="155" />
                 <font resource="font" color="white" />
                 <text>Use rm -rf instead of formatting?</text>
                 <data variable="tw_rm_rf" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 			
-            <object type="checkbox">
-                <placement x="%col1_x%" y="240" />
-                <font resource="font" color="white" />
-                <text>Ignore MD5 check on restore</text>
-                <data variable="tw_skip_md5_check" />
-                <image checked="checkbox_true" unchecked="checkbox_false" />
-            </object>
-
-            <object type="checkbox">
-                <placement x="%col1_x%" y="280" />
-                <font resource="font" color="white" />
-                <text>Skip MD5 generation on backups</text>
-                <data variable="tw_skip_md5_generate" />
-                <image checked="checkbox_true" unchecked="checkbox_false" />
-            </object>
-
 			<object type="button">
-                <placement x="%col1_x%" y="%row3_y%" />
+                <placement x="%col1_x%" y="195" />
                 <font resource="font" color="black" />
                 <text>Time Zone</text>
                 <image resource="main_button" />
@@ -1778,7 +1731,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="%col_center_x%" y="%row4_y%" />
+                <placement x="80" y="%row4_y%" />
                 <font resource="font" color="black" />
                 <text>Restore Defaults</text>
                 <image resource="main_button" />
@@ -1874,7 +1827,7 @@
 			<object type="button">
                 <placement x="%col1_medium_x%" y="%row2_medium_y%" />
                 <font resource="font" color="black" />
-                <text>GRNLNDST -3</text>
+                <text>GRNLND -3</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=GRNLNDST3;GRNLNDDT</action>
             </object>
@@ -1953,12 +1906,12 @@
 			
 			<object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col1_x%" y="580" />
+                <placement x="%col1_x%" y="321" />
                 <text>Offset (usually 0): %tw_time_zone_guioffset%</text>
             </object>
 			
 			<object type="button">
-                <placement x="%col1_medium_x%" y="%row6_medium_y%" />
+                <placement x="%col1_medium_x%" y="276" />
                 <font resource="font" color="black" />
                 <text>None</text>
                 <image resource="medium_button" />
@@ -1966,7 +1919,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="%col2_medium_x%" y="%row6_medium_y%" />
+                <placement x="%col2_medium_x%" y="276" />
                 <font resource="font" color="black" />
                 <text>15</text>
                 <image resource="medium_button" />
@@ -1974,7 +1927,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="%col3_medium_x%" y="%row6_medium_y%" />
+                <placement x="%col3_medium_x%" y="276" />
                 <font resource="font" color="black" />
                 <text>30</text>
                 <image resource="medium_button" />
@@ -1982,7 +1935,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="%col4_medium_x%" y="%row6_medium_y%" />
+                <placement x="%col4_medium_x%" y="276" />
                 <font resource="font" color="black" />
                 <text>45</text>
                 <image resource="medium_button" />
@@ -1990,7 +1943,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="%col_center_x%" y="720" />
+                <placement x="80" y="339" />
                 <font resource="font" color="black" />
                 <text>Set Time Zone</text>
                 <image resource="main_button" />
@@ -1999,7 +1952,7 @@
 			
 			<object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col1_x%" y="880" />
+                <placement x="%col1_x%" y="432" />
                 <text>Current Time Zone: %tw_time_zone%</text>
             </object>
 			
@@ -2163,12 +2116,12 @@
 			
 			<object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col1_x%" y="580" />
+                <placement x="%col1_x%" y="321" />
                 <text>Offset (usually 0): %tw_time_zone_guioffset%</text>
             </object>
 			
 			<object type="button">
-                <placement x="%col1_medium_x%" y="%row6_medium_y%" />
+                <placement x="%col1_medium_x%" y="276" />
                 <font resource="font" color="black" />
                 <text>None</text>
                 <image resource="medium_button" />
@@ -2176,7 +2129,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="%col2_medium_x%" y="%row6_medium_y%" />
+                <placement x="%col2_medium_x%" y="276" />
                 <font resource="font" color="black" />
                 <text>15</text>
                 <image resource="medium_button" />
@@ -2184,7 +2137,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="%col3_medium_x%" y="%row6_medium_y%" />
+                <placement x="%col3_medium_x%" y="276" />
                 <font resource="font" color="black" />
                 <text>30</text>
                 <image resource="medium_button" />
@@ -2192,7 +2145,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="%col4_medium_x%" y="%row6_medium_y%" />
+                <placement x="%col4_medium_x%" y="276" />
                 <font resource="font" color="black" />
                 <text>45</text>
                 <image resource="medium_button" />
@@ -2200,7 +2153,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="%col_center_x%" y="720" />
+                <placement x="80" y="339" />
                 <font resource="font" color="black" />
                 <text>Set Time Zone</text>
                 <image resource="main_button" />
@@ -2209,7 +2162,7 @@
 			
 			<object type="text" color="white">
                 <font resource="font" />
-                <placement x="%col1_x%" y="880" />
+                <placement x="%col1_x%" y="432" />
                 <text>Current Time Zone: %tw_time_zone%</text>
             </object>
 			
@@ -2288,7 +2241,7 @@
 			
 			<object type="text" color="white">
 				<font resource="font" />
-				<placement x="84" y="130" />
+				<placement x="80" y="130" />
 				<text>EXT Size: %tw_sdext_size%</text>
 			</object>
 			
@@ -2310,7 +2263,7 @@
 			
 			<object type="text" color="white">
 				<font resource="font" />
-				<placement x="84" y="190" />
+				<placement x="80" y="190" />
 				<text>Swap Size: %tw_swap_size%</text>
 			</object>
 			
@@ -2338,19 +2291,19 @@
 			
 			<object type="text" color="white">
 				<font resource="font" />
-				<placement x="%col1_x%" y="460" />
+				<placement x="%col1_x%" y="276" />
 				<text>You will lose all files on your SD card!</text>
 			</object>
 			
 			<object type="text" color="white">
 				<font resource="font" />
-				<placement x="%col1_x%" y="500" />
+				<placement x="%col1_x%" y="300" />
 				<text>This action cannot be undone!</text>
 			</object>
 			
 			<object type="button">
 				<condition var1="tw_allow_partition_sdcard" var2="1" />
-                <placement x="%col_center_x%" y="540" />
+                <placement x="%col_center_x%" y="324" />
                 <font resource="font" color="black" />
                 <text>Partition SD</text>
                 <image resource="main_button" />
