@@ -273,9 +273,17 @@ set_restore_files()
     int tw_restore_sp2 = -1;
     int tw_restore_sp3 = -1;
 
-	sprintf(rfCommand,"cd %s && ls -l *.win | awk '{ print $9 }'",nan_dir); // form scan for *.win files command
-	rfFp = __popen(rfCommand, "r"); // open pipe with scan command
-	while (fscanf(rfFp,"%s",rfOutput) == 1) { // while there is output
+    DIR* d;
+    d = opendir(nan_dir);
+    if (d == NULL)
+    {
+        LOGE("error opening %s\n", nan_dir);
+        return;
+    }
+
+    struct dirent* de;
+    while ((de = readdir(d)) != NULL)
+    {
         // Strip off three components
         char str[20];
         char* label;
@@ -284,7 +292,7 @@ set_restore_files()
         char* ptr;
         struct dInfo* dev = NULL;
 
-        strcpy(str, rfOutput);
+        strcpy(str, de->d_name);
         label = str;
         ptr = label;
         while (*ptr && *ptr != '.')     ptr++;
@@ -302,7 +310,7 @@ set_restore_files()
             extn = ptr;
         }
 
-        LOGI(" Extension: '%s'  Label: '%s'\n", extn ? extn : "<nul>", label ? label : "<nul>");
+        LOGI(" Filename: '%s'  Extension: '%s'  Label: '%s'\n", de->d_name, extn ? extn : "<nul>", label ? label : "<nul>");
         if (extn == NULL || strcmp(extn, "win") != 0)   continue;
 
         dev = findDeviceByLabel(label);
@@ -327,8 +335,7 @@ set_restore_files()
 
         if (strcmp(label, "and-sec") == 0)      tw_restore_andsec = 1;
     }
-
-	__pclose(rfFp);
+    closedir(d);
 
     // Set the final values
     DataManager_SetIntValue(TW_RESTORE_SYSTEM_VAR, tw_restore_system);

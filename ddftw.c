@@ -18,12 +18,16 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/vfs.h>
+#include <unistd.h>
 
 #include "ddftw.h"
 #include "common.h"
 #include "extra-functions.h"
 #include "bootloader.h"
 #include "backstore.h"
+#include "data.h"
+
+void dumpPartitionTable(void);
 
 static int isMTDdevice = 0;
 
@@ -82,7 +86,7 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
     if (!loc)
         return -1;
 
-    LOGI(" setLocationData ==> %s = %s, %s, %s, %d\n", SAFE_STR(label), SAFE_STR(blockDevice), SAFE_STR(mtdDevice), SAFE_STR(fstype), size);
+    LOGI(" setLocationData ==> %s = %s, %s, %s, %lu\n", SAFE_STR(label), SAFE_STR(blockDevice), SAFE_STR(mtdDevice), SAFE_STR(fstype), (unsigned long) size);
 
     if (label)                  strcpy(loc->mnt, label);
     if (blockDevice)            strcpy(loc->blk, blockDevice);
@@ -286,6 +290,24 @@ int getLocationsViaProc(const char* fstype)
     return getLocationsViafstab();
 }
 
+unsigned long long getUsedSizeViaDu(const char* path)
+{
+    char cmd[512];
+    sprintf(cmd, "du %s | awk '{ print $1 }'", path);
+
+    FILE *fp;
+    fp = __popen(cmd, "r");
+    
+    char str[512];
+    fgets(str, sizeof(str), fp);
+    __pclose(fp);
+
+    unsigned long long size = atol(str);
+    size *= 1024;
+
+    return size;
+}
+
 void updateMntUsedSize(struct dInfo* mMnt)
 {
 #ifdef RECOVERY_SDCARD_ON_DATA
@@ -299,61 +321,66 @@ void updateMntUsedSize(struct dInfo* mMnt)
     }
 #endif
 
-	char path[512];
-    struct statfs st;
-	int mounted;
-	
-	if (strcmp(mMnt->mnt, ".android_secure") == 0) {
+	if (strcmp(mMnt->mnt, ".android_secure") == 0)
+    {
 		// android_secure is a little different - we mount sdcard and use du to figure out how much space is being taken up by android_secure
-		mounted = tw_isMounted(sdcext);
-		if (!mounted)
-		{
-			// If we fail, just move on
-			if (tw_mount(sdcext))            return;
-		}
-		
-		sprintf(path, "%s", "du /sdcard/.android_secure | awk '{ print $1 }'");
-		FILE *reFp;
-		int blocks;
-		unsigned long ase_size = 0;
-		reFp = __popen(path, "r");
-		if (fscanf(reFp,"%s",path) == 1) { // if we get a match, store filesystem type
-			blocks = atoi(path);
-			ase_size = blocks * 1024; // multiply blocks by bytes to get actual size
-		}
-		__pclose(reFp);
-		mMnt->used = ase_size;
-	} else {
-		mounted = tw_isMounted(*mMnt);
-		if (!mounted)
-		{
-			// If we fail, just move on
-			if (tw_mount(*mMnt))            return;
-		}
-		
-		sprintf(path, "%s/.", mMnt->dev);
-		if (statfs(path, &st) != 0)    return;
-		mMnt->used = ((st.f_blocks - st.f_bfree) * st.f_bsize);
+        
+        // We can ignore any error from this, it doesn't matter
+        tw_mount(sdcext);
+
+        mMnt->used = getUsedSizeViaDu("/sdcard/.android_secure");
+        mMnt->sze = mMnt->used;
+        return;
 	}
 
-    if (!mounted)   tw_unmount(*mMnt);
+    char path[512];
+    struct statfs st;
+    int mounted;
 
+    if (!mMnt->mountable)
+    {
+        // Since this partition isn't mountable, we're going to mark it's used size as it's standard size
+        mMnt->used = mMnt->sze;
+        return;
+    }
+
+    mounted = tw_isMounted(*mMnt);
+    if (!mounted)
+    {
+        // If we fail, just move on
+        if (tw_mount(*mMnt))
+            return;
+    }
+    
+    sprintf(path, "/%s/.", mMnt->mnt);
+    if (statfs(path, &st) != 0)
+    {
+        LOGE("Unable to stat '%s'\n", path);
+        return;
+    }
+
+    mMnt->used = ((st.f_blocks - st.f_bfree) * st.f_bsize);
+
+    if (!mounted)   tw_unmount(*mMnt);
     return;
 }
 
 void updateUsedSized()
 {
-    if (boo.mountable)      updateMntUsedSize(&boo);
-    if (sys.mountable)      updateMntUsedSize(&sys);
-    if (dat.mountable)      updateMntUsedSize(&dat);
-    if (cac.mountable)      updateMntUsedSize(&cac);
-    if (sdcext.mountable)   updateMntUsedSize(&sdcext);
-    if (sdcint.mountable)   updateMntUsedSize(&sdcint);
-    if (sde.mountable)      updateMntUsedSize(&sde);
+    updateMntUsedSize(&boo);
+    updateMntUsedSize(&sys);
+    updateMntUsedSize(&dat);
+    updateMntUsedSize(&cac);
+    updateMntUsedSize(&rec);
+    updateMntUsedSize(&sdcext);
+    updateMntUsedSize(&sdcint);
+    updateMntUsedSize(&sde);
 	updateMntUsedSize(&ase);
-    if (sp1.mountable)      updateMntUsedSize(&sp1);
-    if (sp2.mountable)      updateMntUsedSize(&sp2);
-    if (sp3.mountable)      updateMntUsedSize(&sp3);
+    updateMntUsedSize(&sp1);
+    updateMntUsedSize(&sp2);
+    updateMntUsedSize(&sp3);
+
+    dumpPartitionTable();
     return;
 }
 
@@ -552,3 +579,51 @@ void verifyFst()
 	__pclose(fp);
 }
 
+char backupToChar(enum backup_method method)
+{
+    switch (method)
+    {
+    case unknown:
+    default:
+        return 'u';
+    case none:
+        return 'n';
+    case image:
+        return 'i';
+    case files:
+        return 'f';
+    }
+    return 'u';
+}
+
+void dumpPartitionEntry(struct dInfo* mnt)
+{
+    char* mntName = mnt->mnt;
+    if (strcmp(mntName, ".android_secure") == 0)    mntName = (char*) "andsec";
+
+    fprintf(stderr, "| %8s | %27s | %4s | %8lu | %8lu | %d | %c |\n", 
+            mntName, mnt->blk, mnt->fst, (unsigned long) (mnt->sze / 1024), (unsigned long) (mnt->used / 1024), mnt->mountable ? 1 : 0, 
+            backupToChar(mnt->backup));
+}
+
+void dumpPartitionTable(void)
+{
+    fprintf(stderr, "+----------+-----------------------------+------+----------+----------+---+---+\n");
+    fprintf(stderr, "| Mount    | Block Device                | fst  | Size(KB) | Used(KB) | M | B |\n");
+    fprintf(stderr, "+----------+-----------------------------+------+----------+----------+---+---+\n");
+
+    dumpPartitionEntry(&tmp);
+    dumpPartitionEntry(&sys);
+    dumpPartitionEntry(&dat);
+    dumpPartitionEntry(&boo);
+    dumpPartitionEntry(&rec);
+    dumpPartitionEntry(&cac);
+    dumpPartitionEntry(&sdcext);
+    dumpPartitionEntry(&sdcint);
+    dumpPartitionEntry(&ase);
+    dumpPartitionEntry(&sde);
+    dumpPartitionEntry(&sp1);
+    dumpPartitionEntry(&sp2);
+    dumpPartitionEntry(&sp3);
+    fprintf(stderr, "+----------+-----------------------------+------+----------+----------+---+---+\n");
+}

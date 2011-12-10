@@ -242,5 +242,5 @@ int format_volume(const char* volume) {
         else if (strcmp(v->mount_point,"/cache") == 0)  fs_type = cac.fst;
     }
 
-    return tw_format(v->fs_type, v->device);
+    return tw_format(fs_type, v->device);
 }
