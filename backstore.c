@@ -1178,24 +1178,29 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
 		}
 		__pclose(reFp);
 
-		if (DataManager_GetIntValue(TW_RM_RF_VAR) == 1 && (strcmp(rMnt.mnt,"system") == 0 || strcmp(rMnt.mnt,"data") == 0 || strcmp(rMnt.mnt,"cache") == 0)) { // we'll use rm -rf instead of formatting for system, data and cache if the option is set
+		if ((DataManager_GetIntValue(TW_RM_RF_VAR) == 1 && (strcmp(rMnt.mnt,"system") == 0 || strcmp(rMnt.mnt,"data") == 0 || strcmp(rMnt.mnt,"cache") == 0)) || strcmp(rMnt.mnt,".android_secure") == 0) { // we'll use rm -rf instead of formatting for system, data and cache if the option is set, always use rm -rf for android secure
+			char rCommand2[255];
 			ui_print("...using rm -rf to wipe %s\n", rMnt.mnt);
-			tw_mount(rMnt); // mount the partition first
-			sprintf(rCommand,"rm -rf %s%s/*", "/", rMnt.mnt);
-			LOGI("rm rf command: %s\n", rCommand);
-            SetDataState("Formatting", rMnt.mnt, 0, 0);
-			reFp = __popen(rCommand, "r");
-			while (fscanf(reFp,"%s",rOutput) == 1) {
-				ui_print_overwrite("%s",rOutput);
+			if (strcmp(rMnt.mnt,".android_secure") == 0) {
+				tw_mount(sdcext); // for android secure we must make sure that the sdcard is mounted
+				sprintf(rCommand, "rm -rf %s/*", rMnt.dev);
+				sprintf(rCommand2, "rm -rf %s/.*", rMnt.dev);
+			} else {
+				tw_mount(rMnt); // mount the partition first
+				sprintf(rCommand,"rm -rf %s%s/*", "/", rMnt.mnt);
+				sprintf(rCommand2,"rm -rf %s%s/.*", "/", rMnt.mnt);
 			}
-			__pclose(reFp);
+			LOGI("rm -rf command: '%s' and '%s'\n", rCommand, rCommand2);
+            SetDataState("Wiping", rMnt.mnt, 0, 0);
+			__system(rCommand);
+			__system(rCommand2);
+			ui_print("....done wiping.\n");
 		} else {
 			ui_print("...Formatting %s\n",rMnt.mnt);
             SetDataState("Formatting", rMnt.mnt, 0, 0);
 			tw_format(rFilesystem,rMnt.blk); // let's format block, based on filesystem from filename above
+			ui_print("....done formatting.\n");
 		}
-		ui_print("....Done.\n");
-
 
         if (rMnt.backup == files)
         {
@@ -1219,7 +1224,7 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
             return 1;
         }
 
-		ui_print("...Restoring %s\n",rMount);
+		ui_print("...Restoring %s\n\n",rMount);
         SetDataState("Restoring", rMnt.mnt, 0, 0);
 		reFp = __popen(rCommand, "r");
 		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 2) { // twrp spam
@@ -1232,7 +1237,7 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
 			}
 		}
 		__pclose(reFp);
-		ui_print_overwrite("....Done.\n");
+		ui_print_overwrite("....done restoring.\n");
 		if (strcmp(rMnt.mnt,".android_secure") != 0) { // any partition other than android secure,
 			tw_unmount(rMnt); // let's unmount (unmountable partitions won't matter)
 		}
