@@ -594,6 +594,37 @@
             <object type="template" name="footer" />
         </page>
 		
+		<page name="wipe_cachedalvik">
+            <object type="template" name="header" />
+			
+			<object type="text" color="white">
+                <font resource="font" />
+                <placement x="%col_progressbar_x%" y="440" />
+                <text>Wiping cache...</text>
+            </object>
+			
+            <object type="animation">
+                <placement x="%col_progressbar_x%" y="470" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+
+            <object type="action">
+                <condition var1="tw_operation_state" var2="1" />
+                <action function="page">wipe_done</action>
+            </object>
+
+            <object type="action">
+				<actions>
+					<action function="wipe">/cache</action>
+					<action function="wipe">dalvik</action>
+				</actions>
+            </object>
+                        
+            <object type="template" name="footer" />
+        </page>
+		
 		<page name="wipe_rotate_confirm">
             <object type="template" name="header" />
 
