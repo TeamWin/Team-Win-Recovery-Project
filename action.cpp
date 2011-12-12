@@ -256,6 +256,9 @@ void* GUIAction::thread_start(void *cookie)
 
 int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 {
+#ifdef _SIMULATE_ACTIONS
+    ui_print("Simulating actions...\n");
+#endif
     if (action.mFunction == "reboot")
     {
         curtainClose();
