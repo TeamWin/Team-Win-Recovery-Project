@@ -255,10 +255,6 @@ nan_backup_menu(int pIdx)
 void
 set_restore_files()
 {
-	FILE *rfFp;
-	char rfCommand[255];
-	char rfOutput[20];
-
     const char* nan_dir = DataManager_GetStrValue("tw_restore");
 
     // Start with the default values
@@ -285,7 +281,7 @@ set_restore_files()
     while ((de = readdir(d)) != NULL)
     {
         // Strip off three components
-        char str[20];
+        char str[256];
         char* label;
         char* fstype = NULL;
         char* extn = NULL;
@@ -320,7 +316,8 @@ set_restore_files()
             continue;
         }
 
-        strcpy(dev->fnm, rfOutput);
+        strncpy(dev->fnm, de->d_name, 256);
+        dev->fnm[255] = '\0';
 
         // Now, we just need to find the correct label
         if (dev == &sys)        tw_restore_system = 1;
@@ -332,8 +329,7 @@ set_restore_files()
         if (dev == &sp1)        tw_restore_sp1 = 1;
         if (dev == &sp2)        tw_restore_sp2 = 1;
         if (dev == &sp3)        tw_restore_sp3 = 1;
-
-        if (strcmp(label, "and-sec") == 0)      tw_restore_andsec = 1;
+        if (dev == &ase)        tw_restore_andsec = 1;
     }
     closedir(d);
 

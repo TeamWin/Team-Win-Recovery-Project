@@ -21,7 +21,7 @@ struct dInfo {
 	char blk[100];
 	char dev[100];
 	char fst[10];
-	char fnm[20];
+	char fnm[256];
 	unsigned long long sze;
     unsigned long long used;
     int mountable;
