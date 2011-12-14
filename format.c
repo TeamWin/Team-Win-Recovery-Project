@@ -147,12 +147,6 @@ int tw_format(const char *fstype, const char *fsblock)
 {
     int result = -1;
 
-    if (strcmp(sdcext.blk, fsblock) == 0)
-    {
-        wipe_data(0);
-        return 0;
-    }
-
     LOGI("%s: Formatting \"%s\" as \"%s\"\n", __FUNCTION__, fsblock, fstype);
     Volume* v = volume_for_device(fsblock);
     if (v)
