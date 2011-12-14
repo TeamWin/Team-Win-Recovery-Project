@@ -23,10 +23,10 @@
 #include <dirent.h>
 #include <errno.h>
 #include <time.h>
-#include <sys/reboot.h>
 #include <sys/vfs.h>
 #include <sys/mount.h>
 
+#include "tw_reboot.h"
 #include "backstore.h"
 #include "ddftw.h"
 #include "extra-functions.h"
@@ -106,7 +106,7 @@ nandroid_menu()
                 choose_backup_folder();
 				break;
 			case ITEM_MENU_RBOOT:
-				tw_reboot();
+				tw_reboot(rb_system);
                 break;
 			case ITEM_MENU_BACK:
 				dec_menu_loc();

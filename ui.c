@@ -20,12 +20,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/reboot.h>
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
 
 #include "common.h"
+#include "tw_reboot.h"
 #include "minui/minui.h"
 #include "recovery_ui.h"
 #include "themes.h"
@@ -365,7 +365,7 @@ static void *input_thread(void *cookie)
         }
 
         if (ev.value > 0 && device_reboot_now(key_pressed, ev.code)) {
-            reboot(RB_AUTOBOOT);
+            tw_reboot(rb_system);
         }
     }
     return NULL;

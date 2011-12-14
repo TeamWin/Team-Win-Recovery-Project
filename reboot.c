@@ -5,53 +5,55 @@
 #include <reboot/reboot.h>
 #include <unistd.h>
 
-int reboot_main(int argc, char *argv[])
+#include "tw_reboot.h"
+#include "recovery_ui.h"
+
+// isRebootCommandSupported: Return 1 if command is supported, 0 if the command is not supported, -1 on error
+int tw_isRebootCommandSupported(RebootCommand command)
 {
-    int ret;
-    int nosync = 0;
-    int poweroff = 0;
+    switch (command)
+    {
+    case rb_system:
+    case rb_recovery:
+    case rb_poweroff:
+    case rb_bootloader:
+        return 1;
 
-    opterr = 0;
-    do {
-        int c;
-
-        c = getopt(argc, argv, "np");
-        
-        if (c == EOF) {
-            break;
-        }
-        
-        switch (c) {
-        case 'n':
-            nosync = 1;
-            break;
-        case 'p':
-            poweroff = 1;
-            break;
-        case '?':
-            fprintf(stderr, "usage: %s [-n] [-p] [rebootcommand]\n", argv[0]);
-            exit(EXIT_FAILURE);
-        }
-    } while (1);
-
-    if(argc > optind + 1) {
-        fprintf(stderr, "%s: too many arguments\n", argv[0]);
-        exit(EXIT_FAILURE);
+    default:
+        return 0;
     }
-
-    if(!nosync)
-        sync();
-
-    if(poweroff)
-        ret = __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
-    else if(argc > optind) {
-        ret = reboot_wrapper(argv[optind]);
-    } else
-        ret = reboot_wrapper(NULL);
-    if(ret < 0) {
-        perror("reboot");
-        exit(EXIT_FAILURE);
-    }
-    fprintf(stderr, "reboot returned\n");
-    return 0;
+    return -1;
 }
+
+// setRebootMode: Set the reboot state (without rebooting). Return 0 on success, -1 on error or unsupported
+int tw_setRebootMode(RebootCommand command)
+{
+    return -1;
+}
+
+// reboot: Reboot the system. Return -1 on error, no return on success
+int tw_reboot(RebootCommand command)
+{
+    // Always force a sync before we reboot
+    sync();
+    ensure_path_unmounted("/sdcard");
+
+    switch (command)
+    {
+    case rb_current:
+    case rb_system:
+        finish_recovery("s");
+        return reboot(RB_AUTOBOOT);
+    case rb_recovery:
+        return __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, (void*) "recovery");
+    case rb_bootloader:
+        return __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, (void*) "bootloader");
+    case rb_poweroff:
+        return reboot(RB_POWER_OFF);
+
+    default:
+        return -1;
+    }
+    return -1;
+}
+

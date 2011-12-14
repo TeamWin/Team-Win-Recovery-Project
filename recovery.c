@@ -37,8 +37,11 @@
 #include "minui/minui.h"
 #include "minzip/DirUtil.h"
 #include "roots.h"
+#include "format.h"
+#include "themes.h"
 #include "recovery_ui.h"
 #include "encryptedfs_provisioning.h"
+#include "tw_reboot.h"
 
 #include "extra-functions.h"
 #include "data.h"
@@ -50,6 +53,9 @@ int notError;
 int gui_init(void);
 int gui_loadResources(void);
 int gui_start(void);
+int gui_console_only(void);
+
+int check_md5(char* path);
 
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
@@ -419,12 +425,12 @@ prepend_title(const char** headers) {
     int count = 0;
     char** p;
     for (p = title; *p; ++p, ++count);
-    for (p = headers; *p; ++p, ++count);
+    for (p = (char**) headers; *p; ++p, ++count);
 
     char** new_headers = malloc((count+1) * sizeof(char*));
     char** h = new_headers;
     for (p = title; *p; ++p, ++h) *h = *p;
-    for (p = headers; *p; ++p, ++h) *h = *p;
+    for (p = (char**) headers; *p; ++p, ++h) *h = *p;
     *h = NULL;
 
     return new_headers;
@@ -632,7 +638,7 @@ sdcard_directory(const char* path) {
             // go up but continue browsing (if the caller is sdcard_directory)
         	if (get_new_zip_dir > 0)
         	{
-        		DataManager_SetStrValue(TW_ZIP_LOCATION_VAR, path);
+        		DataManager_SetStrValue(TW_ZIP_LOCATION_VAR, (char*) path);
                 return 1;
         	} else {
             	dec_menu_loc();
@@ -694,7 +700,7 @@ int install_zip_package(const char* zip_path_filename) {
 	
     ensure_path_mounted(SDCARD_ROOT);
 	ui_print("\n-- Verify md5 for %s", zip_path_filename);
-	int md5chk = check_md5(zip_path_filename);
+	int md5chk = check_md5((char*) zip_path_filename);
 	bool md5_req = DataManager_GetIntValue(TW_FORCE_MD5_CHECK_VAR);
 	if (md5chk > 0 || (!md5_req && md5chk == -1)) {
 		if (md5chk == 1)
@@ -894,7 +900,7 @@ main(int argc, char **argv) {
         LOGE("Failing out of recovery.\n");
         return -1;
     }
-    
+
     int previous_runs = 0;
     const char *send_intent = NULL;
     const char *update_package = NULL;
@@ -949,6 +955,7 @@ main(int argc, char **argv) {
     int status = INSTALL_SUCCESS;
 
     if (toggle_secure_fs) {
+        gui_console_only();
         if (strcmp(encrypted_fs_mode,"on") == 0) {
             encrypted_fs_data.mode = MODE_ENCRYPTED_FS_ENABLED;
             ui_print("Enabling Encrypted FS.\n");
@@ -985,14 +992,17 @@ main(int argc, char **argv) {
             }
         }
     } else if (update_package != NULL) {
+        gui_console_only();
         status = install_package(update_package);
         if (status != INSTALL_SUCCESS) ui_print("Installation aborted.\n");
     } else if (wipe_data) {
+        gui_console_only();
         if (device_wipe_data()) status = INSTALL_ERROR;
         if (erase_volume("/data")) status = INSTALL_ERROR;
         if (wipe_cache && erase_volume("/cache")) status = INSTALL_ERROR;
         if (status != INSTALL_SUCCESS) ui_print("Data wipe failed.\n");
     } else if (wipe_cache) {
+        gui_console_only();
         if (wipe_cache && erase_volume("/cache")) status = INSTALL_ERROR;
         if (status != INSTALL_SUCCESS) ui_print("Cache wipe failed.\n");
     } else {

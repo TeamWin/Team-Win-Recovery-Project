@@ -64,13 +64,12 @@ int datIsMounted;
 int cacIsMounted;
 int sdcIsMounted;
 int sdeIsMounted;
-char* multi_zip_array[10][255];
+char multi_zip_array[10][255];
 int multi_zip_index;
 
 int get_new_zip_dir;
 
 char* checkTheme(int tw_theme);
-void tw_reboot();
 
 void fix_perms();
 char* toggle_spam();

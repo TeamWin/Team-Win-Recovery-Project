@@ -8,6 +8,10 @@ commands_recovery_local_path := $(LOCAL_PATH)
 
 TARGET_RECOVERY_GUI := true
 
+LOCAL_MODULE := recovery
+
+LOCAL_C_INCLUDES += bionic external/stlport/stlport
+
 LOCAL_SRC_FILES := \
     recovery.c \
     bootloader.c \
@@ -16,7 +20,6 @@ LOCAL_SRC_FILES := \
     ui.c \
     verifier.c \
     encryptedfs_provisioning.c \
-    reboot.c \
     extra-functions.c \
     ddftw.c \
     backstore.c \
@@ -24,9 +27,11 @@ LOCAL_SRC_FILES := \
     format.c \
     data.cpp
 
-LOCAL_MODULE := recovery
-
-LOCAL_C_INCLUDES += bionic external/stlport/stlport
+ifeq ($(TARGET_RECOVERY_REBOOT_SRC),)
+  LOCAL_SRC_FILES += reboot.c
+else
+  LOCAL_SRC_FILES += $(TARGET_RECOVERY_REBOOT_SRC)
+endif
 
 RECOVERY_API_VERSION := 2
 LOCAL_CFLAGS += -DRECOVERY_API_VERSION=$(RECOVERY_API_VERSION)
@@ -68,6 +73,10 @@ LOCAL_MODULE_TAGS := eng
 LOCAL_STATIC_LIBRARIES :=
 LOCAL_SHARED_LIBRARIES :=
 
+LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
+LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libjpeg
+LOCAL_SHARED_LIBRARIES += libz libmtdutils libc libstlport libcutils libstdc++
+
 ifeq ($(TARGET_RECOVERY_UI_LIB),)
   LOCAL_SRC_FILES += default_recovery_ui.c
 else
@@ -79,10 +88,6 @@ ifeq ($(TARGET_RECOVERY_GUI),true)
 else
   LOCAL_SRC_FILES += gui_stub.c
 endif
-
-LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
-LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libjpeg
-LOCAL_SHARED_LIBRARIES += libz libmtdutils libc libstlport libcutils libstdc++
 
 include $(BUILD_EXECUTABLE)
 

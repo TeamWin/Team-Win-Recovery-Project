@@ -15,7 +15,6 @@
  */
 
 #include <stdio.h>
-#include <sys/reboot.h>
 
 #include "common.h"
 #include "themes.h"

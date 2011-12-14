@@ -35,10 +35,10 @@
 #include <linux/input.h>
 #include <signal.h>
 #include <sys/limits.h>
-#include <sys/reboot.h>
 #include <termios.h>
 #include <time.h>
 
+#include "tw_reboot.h"
 #include "bootloader.h"
 #include "common.h"
 #include "extra-functions.h"
@@ -385,7 +385,7 @@ void show_fake_main_menu() {
 			return;
 
 	case ITEM_SHUTDOWN:
-		__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
+		tw_reboot(rb_poweroff);
 	break;
 	}
 	if (go_menu) {
@@ -538,14 +538,6 @@ char* rm_rf_option()
     return tmp_set;
 }
 
-void tw_reboot()
-{
-    ui_print("Rebooting...\n");
-    sync();
-    finish_recovery("s");
-    reboot(RB_AUTOBOOT);
-}
-
 void install_zip_menu(int pIdx)
 {
 	// INSTALL ZIP MENU
@@ -616,7 +608,7 @@ void install_zip_menu(int pIdx)
 						return;  // reboot if logs aren't visible
 					} else {
 						if (DataManager_GetIntValue(TW_REBOOT_AFTER_FLASH_VAR)) {
-							tw_reboot();
+							tw_reboot(rb_system);
 							return;
 						}
 						if (go_home != 1) {
@@ -649,7 +641,7 @@ void install_zip_menu(int pIdx)
                 DataManager_ToggleIntValue(TW_FORCE_MD5_CHECK_VAR);
                 break;            
             case ITEM_ZIP_RBOOT:
-				tw_reboot();
+                tw_reboot(rb_system);
                 break;
             case ITEM_ZIP_BACK:
     	        dec_menu_loc();
@@ -735,20 +727,19 @@ void reboot_menu()
         switch (chosen_item)
         {
             case ITEM_RECOVERY:
-            	ensure_path_unmounted("/sdcard");
-                __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
+                tw_reboot(rb_recovery);
                 break;
 
             case ITEM_BOOTLOADER:
-                __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "bootloader");
+                tw_reboot(rb_bootloader);
                 break;
 
             case ITEM_POWEROFF:
-                __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
+                tw_reboot(rb_poweroff);
                 break;
 
             case ITEM_SYSTEM:
-            	tw_reboot();
+                tw_reboot(rb_system);
                 break;
 
             case ITEM_BACKK:
