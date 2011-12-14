@@ -125,7 +125,21 @@ int ActionObject::SetActionPos(int x, int y, int w, int h)
 
 Page::Page(xml_node<>* page, xml_node<>* templates /* = NULL */)
 {
-    if (!page)      return;
+    mTouchStart = NULL;
+
+    // We can memset the whole structure, because the alpha channel is ignored
+    memset(&mBackground, 0, sizeof(COLOR));
+
+    // With NULL, we make a console-only display
+    if (!page)
+    {
+        mName = "console";
+
+        GUIConsole* element = new GUIConsole(NULL);
+        mRenders.push_back(element);
+        mActions.push_back(element);
+        return;
+    }
 
     if (page->first_attribute("name"))
         mName = page->first_attribute("name")->value();
@@ -136,11 +150,6 @@ Page::Page(xml_node<>* page, xml_node<>* templates /* = NULL */)
     }
 
     LOGI("Loading page %s\n", mName.c_str());
-
-    mTouchStart = NULL;
-
-    // We can memset the whole structure, because the alpha channel is ignored
-    memset(&mBackground, 0, sizeof(COLOR));
 
     // This is a recursive routine for template handling
     ProcessNode(page, templates);
@@ -392,9 +401,10 @@ PageSet::PageSet(char* xmlFile)
     mCurrentPage = NULL;
 
     mXmlFile = xmlFile;
-//    mDoc = new TiXmlDocument(mXmlFile);
-//    mDoc->LoadFile();
-    mDoc.parse<0>(mXmlFile);
+    if (xmlFile)
+        mDoc.parse<0>(mXmlFile);
+    else
+        mCurrentPage = new Page(NULL);
 }
 
 PageSet::~PageSet()
@@ -704,6 +714,14 @@ Resource* PageManager::FindResource(std::string package, std::string name)
 
     tmp = FindPackage(name);
     return (tmp ? tmp->FindResource(name) : NULL);
+}
+
+int PageManager::SwitchToConsole(void)
+{
+    PageSet* console = new PageSet(NULL);
+
+    mCurrentSet = console;
+    return 0;
 }
 
 int PageManager::IsCurrentPage(Page* page)

@@ -57,6 +57,8 @@ using namespace rapidxml;
 // Global values
 static gr_surface gCurtain = NULL;
 static int gGuiInitialized = 0;
+static int gGuiConsoleRunning = 0;
+static int gGuiConsoleTerminate = 0;
 static int gForceRender = 0;
 static int gNoAnimation = 0;
 
@@ -415,10 +417,66 @@ extern "C" int gui_start()
 {
     if (!gGuiInitialized)   return -1;
 
+    gGuiConsoleTerminate = 1;
+    while (gGuiConsoleRunning)  loopTimer();
+
+    // Set the default package
+    PageManager::SelectPackage("TWRP");
+
     // Start by spinning off an input handler.
     pthread_t t;
     pthread_create(&t, NULL, input_thread, NULL);
 
     return runPages();
+}
+
+static void *console_thread(void *cookie)
+{
+    PageManager::SwitchToConsole();
+
+    LOGI("Switching to GUI console-only mode.\n");
+
+    while (!gGuiConsoleTerminate)
+    {
+        loopTimer();
+
+        if (!gForceRender)
+        {
+            int ret;
+
+            ret = PageManager::Update();
+            if (ret > 1)
+                PageManager::Render();
+
+            if (ret > 0)
+                flip();
+
+            if (ret < 0)
+                LOGE("An update has failed.\n");
+        }
+        else
+        {
+            gForceRender = 0;
+            PageManager::Render();
+            flip();
+        }
+    }
+    gGuiConsoleRunning = 0;
+    LOGI("GUI console-only mode completed.\n");
+    return NULL;
+}
+
+extern "C" int gui_console_only()
+{
+    if (!gGuiInitialized)   return -1;
+
+    gGuiConsoleTerminate = 0;
+    gGuiConsoleRunning = 1;
+
+    // Start by spinning off an input handler.
+    pthread_t t;
+    pthread_create(&t, NULL, console_thread, NULL);
+
+    return 0;
 }
 

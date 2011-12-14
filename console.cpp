@@ -108,7 +108,7 @@ GUIConsole::GUIConsole(xml_node<>* node)
     mScrollColor.alpha = 255;
     mLastCount = 0;
     mSlideout = 0;
-    mSlideoutState = 0;
+    mSlideoutState = hidden;
 
     mRenderX = 0; mRenderY = 0; mRenderW = gr_fb_width(); mRenderH = gr_fb_height();
 
@@ -230,7 +230,7 @@ int GUIConsole::RenderConsole(void)
 
 int GUIConsole::Render(void)
 {
-    if (mSlideout && mSlideoutState == 0)
+    if (mSlideout && mSlideoutState == hidden)
     {
         return RenderSlideout();
     }
@@ -239,15 +239,20 @@ int GUIConsole::Render(void)
 
 int GUIConsole::Update(void)
 {
-    if (mSlideout && mSlideoutState != 1)
+    if (mSlideout && mSlideoutState != visible)
     {
-        if (mSlideoutState > 1)
-        {
-            // We need a full update
-            mSlideoutState -= 2;
-            return 2;
-        }
-        return 0;
+        if (mSlideoutState == hidden)
+            return 0;
+
+        if (mSlideoutState == request_hide)
+            mSlideoutState = hidden;
+
+        if (mSlideoutState == request_show)
+            mSlideoutState = visible;
+
+        // Any time we activate the slider, we reset the position
+        mCurrentLine = -1;
+        return 2;
     }
 
     if (mCurrentLine == -1 && mLastCount != gConsole.size())
@@ -295,15 +300,11 @@ int GUIConsole::IsInRegion(int x, int y)
     {
         // Check if they tapped the slideout button
         if (x >= mSlideoutX && x <= mSlideoutX + mSlideoutW && y >= mSlideoutY && y < mSlideoutY + mSlideoutH)
-        {
             return 1;
-        }
 
         // If we're only rendering the slideout, bail now
-        if (mSlideoutState == 0)
-        {
+        if (mSlideoutState == hidden)
             return 0;
-        }
     }
 
     return (x < mConsoleX || x > mConsoleX + mConsoleW || y < mConsoleY || y > mConsoleY + mConsoleH) ? 0 : 1;
@@ -313,24 +314,21 @@ int GUIConsole::IsInRegion(int x, int y)
 //  Return 0 on success, >0 to ignore remainder of touch, and <0 on error
 int GUIConsole::NotifyTouch(TOUCH_STATE state, int x, int y)
 {
-    if (mSlideout && mSlideoutState == 0)
+    if (mSlideout && mSlideoutState == hidden)
     {
         if (state == TOUCH_START)
         {
-            mSlideoutState = 3;
+            mSlideoutState = request_show;
             return 1;
         }
     }
-    else if (mSlideout)
+    else if (mSlideout && mSlideoutState == visible)
     {
         // Are we sliding it back in?
-        if (state == TOUCH_START)
+        if (state == TOUCH_START && x > mSlideoutX && x < (mSlideoutX + mSlideoutW) && y > mSlideoutY && y < (mSlideoutY + mSlideoutH))
         {
-            if (x > mSlideoutX && x < (mSlideoutX + mSlideoutW) && y > mSlideoutY && y < (mSlideoutY + mSlideoutH))
-            {
-                mSlideoutState = 2;
-                return 1;
-            }
+            mSlideoutState = request_hide;
+            return 1;
         }
     }
 

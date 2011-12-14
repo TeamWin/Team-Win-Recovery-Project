@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
-#include <sys/reboot.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/mman.h>
@@ -22,6 +21,7 @@
 extern "C" {
 #include "../common.h"
 #include "../roots.h"
+#include "../tw_reboot.h"
 #include "../minui/minui.h"
 #include "../recovery_ui.h"
 
@@ -266,50 +266,16 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
         sync();
         finish_recovery("s");
 
-        // This is a special method...
-        struct stat st;
-        if (stat("/sbin/reboot.sh", &st) == 0)
-        {
-            char cmd[512];
-            sprintf(cmd, "/sbin/reboot.sh %s", action.mArg.c_str());
-            __system(cmd);
-            usleep(3000000);
-        }
-
-        if (stat("/sbin/reboot", &st) == 0)
-        {
-            if (action.mArg == "recovery")
-            {
-                __system("/sbin/reboot recovery");
-            }
-            if (action.mArg == "poweroff")
-            {
-                __system("/sbin/reboot poweroff");
-            }
-            if (action.mArg == "bootloader")
-            {
-                __system("/sbin/reboot bootloader");
-            }
-            usleep(3000000);
-        }
-
         if (action.mArg == "recovery")
-        {
-            // Reboot to recovery
-            ensure_path_unmounted("/sdcard");
-            __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, (void*) "recovery");
-        }
-        if (action.mArg == "poweroff")
-        {
-            // Power off
-            __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
-        }
-        if (action.mArg == "bootloader")
-        {
-            __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, (void*) "bootloader");
-        }
+            tw_reboot(rb_recovery);
+        else if (action.mArg == "poweroff")
+            tw_reboot(rb_poweroff);
+        else if (action.mArg == "bootloader")
+            tw_reboot(rb_bootloader);
+        else
+            tw_reboot(rb_system);
 
-        reboot(RB_AUTOBOOT);
+        // This should never occur
         return -1;
     }
     if (action.mFunction == "home")
@@ -497,7 +463,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
             else if (action.mArg == "dalvik")
                 wipe_dalvik_cache();
             else
-				erase_volume(action.mArg.c_str());
+                erase_volume(action.mArg.c_str());
 			
 			if (action.mArg == "/sdcard") {
 				ensure_path_mounted(SDCARD_ROOT);
@@ -556,7 +522,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			return 0;
 		}
 		if (action.mFunction == "partitionsd")
-		{	
+		{
 			DataManager::SetValue("ui_progress", 0);
 			DataManager::SetValue("tw_operation", "partitionsd");
             DataManager::SetValue("tw_operation_status", 0);

@@ -255,6 +255,13 @@ public:
     virtual int NotifyTouch(TOUCH_STATE state, int x, int y);
 
 protected:
+    enum SlideoutState
+    {
+        hidden = 0,
+        visible,
+        request_hide,
+        request_show
+    };
     Resource* mFont;
     Resource* mSlideoutImage;
     COLOR mForegroundColor;
@@ -271,7 +278,7 @@ protected:
     int mLastTouchX, mLastTouchY;
     int mSlideMultiplier;
     int mSlideout;
-    int mSlideoutState;
+    SlideoutState mSlideoutState;
 
 protected:
     virtual int RenderSlideout(void);
