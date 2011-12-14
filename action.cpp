@@ -497,7 +497,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
             else if (action.mArg == "dalvik")
                 wipe_dalvik_cache();
             else
-                erase_volume(action.mArg.c_str());
+				erase_volume(action.mArg.c_str());
 			
 			if (action.mArg == "/sdcard") {
 				ensure_path_mounted(SDCARD_ROOT);
@@ -556,7 +556,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			return 0;
 		}
 		if (action.mFunction == "partitionsd")
-		{
+		{	
 			DataManager::SetValue("ui_progress", 0);
 			DataManager::SetValue("tw_operation", "partitionsd");
             DataManager::SetValue("tw_operation_status", 0);
@@ -565,33 +565,39 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 #ifdef _SIMULATE_ACTIONS
             usleep(10000000);
 #else
-            // Below seen in Koush's recovery
-			char sddevice[256];
-			Volume *vol = volume_for_path("/sdcard");
-			strcpy(sddevice, vol->device);
-			// Just need block not whole partition
-			sddevice[strlen("/dev/block/mmcblkX")] = NULL;
+			int allow_partition;
+			DataManager::GetValue(TW_ALLOW_PARTITION_SDCARD, allow_partition);
+			if (allow_partition == 0) {
+				ui_print("This device does not have a real SD Card!\nAborting!\n");
+			} else {
+				// Below seen in Koush's recovery
+				char sddevice[256];
+				Volume *vol = volume_for_path("/sdcard");
+				strcpy(sddevice, vol->device);
+				// Just need block not whole partition
+				sddevice[strlen("/dev/block/mmcblkX")] = NULL;
 
-			char es[64];
-			std::string ext_format;
-			int ext, swap;
-			DataManager::GetValue("tw_sdext_size", ext);
-			DataManager::GetValue("tw_swap_size", swap);
-			DataManager::GetValue("tw_sdpart_file_system", ext_format);
-			sprintf(es, "/sbin/sdparted -es %dM -ss %dM -efs %s -s > /cache/part.log",ext,swap,ext_format.c_str());
-			LOGI("\nrunning script: %s\n", es);
-			run_script("\nContinue partitioning?",
-				   "\nPartitioning sdcard : ",
-				   es,
-				   "\nunable to execute parted!\n(%s)\n",
-				   "\nOops... something went wrong!\nPlease check the recovery log!\n",
-				   "\nPartitioning complete!\n\n",
-				   "\nPartitioning aborted!\n\n", 0);
-			
-			// recreate TWRP folder and rewrite settings - these will be gone after sdcard is partitioned
-			ensure_path_mounted(SDCARD_ROOT);
-			mkdir("/sdcard/TWRP", 0777);
-			DataManager::Flush();
+				char es[64];
+				std::string ext_format;
+				int ext, swap;
+				DataManager::GetValue("tw_sdext_size", ext);
+				DataManager::GetValue("tw_swap_size", swap);
+				DataManager::GetValue("tw_sdpart_file_system", ext_format);
+				sprintf(es, "/sbin/sdparted -es %dM -ss %dM -efs %s -s > /cache/part.log",ext,swap,ext_format.c_str());
+				LOGI("\nrunning script: %s\n", es);
+				run_script("\nContinue partitioning?",
+					   "\nPartitioning sdcard : ",
+					   es,
+					   "\nunable to execute parted!\n(%s)\n",
+					   "\nOops... something went wrong!\nPlease check the recovery log!\n",
+					   "\nPartitioning complete!\n\n",
+					   "\nPartitioning aborted!\n\n", 0);
+				
+				// recreate TWRP folder and rewrite settings - these will be gone after sdcard is partitioned
+				ensure_path_mounted(SDCARD_ROOT);
+				mkdir("/sdcard/TWRP", 0777);
+				DataManager::Flush();
+			}
 #endif
 			DataManager::SetValue("ui_progress", 100);
 			DataManager::SetValue("ui_progress", 0);

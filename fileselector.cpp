@@ -483,7 +483,6 @@ int GUIFileSelector::GetFileList(const std::string folder)
     closedir(d);
 
     mSortOrder = DataManager::GetIntValue(TW_GUI_SORT_ORDER);
-	LOGI("sort order value: '%i'\n", mSortOrder);
 	std::sort(mFolderList.begin(), mFolderList.end(), fileSort);
     std::sort(mFileList.begin(), mFileList.end(), fileSort);
     return 0;
@@ -495,7 +494,8 @@ void GUIFileSelector::SetPageFocus(int inFocus)
     {
         std::string value;
         DataManager::GetValue(mPathVar, value);
-        GetFileList(value);
+        if (GetFileList(value) != 0)
+			GetFileList("/sdcard");
     }
 }
 
