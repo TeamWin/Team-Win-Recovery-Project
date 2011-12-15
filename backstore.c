@@ -306,7 +306,6 @@ set_restore_files()
             extn = ptr;
         }
 
-        LOGI(" Filename: '%s'  Extension: '%s'  Label: '%s'\n", de->d_name, extn ? extn : "<nul>", label ? label : "<nul>");
         if (extn == NULL || strcmp(extn, "win") != 0)   continue;
 
         dev = findDeviceByLabel(label);
@@ -585,8 +584,6 @@ int tw_isMounted(struct dInfo mMnt)
     // Do not try to mount non-mountable partitions
     if (!mMnt.mountable)        return -1;
 
-    LOGI("=> Checking if /%s is mounted.\n",mMnt.mnt); // check it mounted
-
     struct stat st1, st2;
     char path[255];
 
@@ -597,11 +594,6 @@ int tw_isMounted(struct dInfo mMnt)
     if (stat(path, &st2) != 0)  return -1;
 
     int ret = (st1.st_dev != st2.st_dev) ? 1 : 0;
-
-    if (ret)
-        LOGI("=> %s is mounted.\n", mMnt.mnt);
-    else
-        LOGI("=> %s is not mounted.\n", mMnt.mnt);
 
     return ret;
 }
@@ -618,8 +610,6 @@ int tw_mount(struct dInfo mMnt)
     // Do not try to mount non-mountable partitions
     if (!mMnt.mountable)        return 0;
     if (tw_isMounted(mMnt))     return 0;
-
-    LOGI("=> Mounting %s...\n", mMnt.mnt);
 
     sprintf(target, "/%s", mMnt.mnt);
     if (mount(mMnt.blk, target, mMnt.fst, 0, NULL) != 0)
@@ -638,8 +628,6 @@ int tw_unmount(struct dInfo uMnt)
     // Do not try to mount non-mountable partitions
     if (!uMnt.mountable)        return 0;
     if (!tw_isMounted(uMnt))    return 0;
-
-    LOGI("=> Unmounting %s...\n", uMnt.mnt);
 
     sprintf(target, "/%s", uMnt.mnt);
     if (umount(target) != 0)
@@ -740,7 +728,6 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
 
     time(&bStart); // start timer
     ui_print("...Backing up %s partition.\n",bMount);
-    LOGI("  Backup command: %s\n", bCommand);
     bFp = __popen(bCommand, "r"); // sending backup command formed earlier above
     if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 2) { // if twrp spam is on, show all lines
         while (fgets(bOutput,sizeof(bOutput),bFp) != NULL) {
@@ -1193,7 +1180,6 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
 				sprintf(rCommand,"rm -rf %s%s/*", "/", rMnt.mnt);
 				sprintf(rCommand2,"rm -rf %s%s/.*", "/", rMnt.mnt);
 			}
-			LOGI("rm -rf command: '%s' and '%s'\n", rCommand, rCommand2);
             SetDataState("Wiping", rMnt.mnt, 0, 0);
 			__system(rCommand);
 			__system(rCommand2);
@@ -1278,8 +1264,6 @@ nandroid_rest_exe()
     tw_total += (DataManager_GetIntValue(TW_RESTORE_SDEXT_VAR) == 1 ? 1 : 0);
 
     float sections = 1.0 / tw_total;
-    LOGI("Sections as float: %f\n", sections);
-    LOGI("Sections: %d\n", tw_total);
 
 	time_t rStart, rStop;
 	time(&rStart);

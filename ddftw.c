@@ -86,8 +86,6 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
     if (!loc)
         return -1;
 
-    LOGI(" setLocationData ==> %s = %s, %s, %s, %lu\n", SAFE_STR(label), SAFE_STR(blockDevice), SAFE_STR(mtdDevice), SAFE_STR(fstype), (unsigned long) size);
-
     if (label)                  strcpy(loc->mnt, label);
     if (blockDevice)            strcpy(loc->blk, blockDevice);
     if (mtdDevice)              strcpy(loc->dev, mtdDevice);
@@ -171,7 +169,6 @@ int getLocationsViafstab()
         memset(realDevice, 0, sizeof(realDevice));
         while (readlink(device, realDevice, sizeof(realDevice)) > 0)
         {
-            LOGI(" Device '%s' linked to '%s'\n", device, realDevice);
             strcpy(device, realDevice);
             memset(realDevice, 0, sizeof(realDevice));
         }
@@ -627,3 +624,4 @@ void dumpPartitionTable(void)
     dumpPartitionEntry(&sp3);
     fprintf(stderr, "+----------+-----------------------------+------+----------+----------+---+---+\n");
 }
+
