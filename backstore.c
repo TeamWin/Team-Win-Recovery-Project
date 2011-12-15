@@ -1059,6 +1059,7 @@ nandroid_back_exe()
     unsigned long long img_bytes_remaining = total_img_bytes;
     unsigned long long file_bytes_remaining = total_file_bytes;
     unsigned long img_byte_time = 0, file_byte_time = 0;
+	struct stat st;
 
     ui_set_progress(0.0);
 
@@ -1087,10 +1088,12 @@ nandroid_back_exe()
     if (tw_do_backup(TW_BACKUP_SP3_VAR, &sp3, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))          return 1;
 
     // ANDROID-SECURE
-    if (tw_do_backup(TW_BACKUP_ANDSEC_VAR, &ase, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))       return 1;
+	if (stat(ase.dev, &st) ==0)
+		if (tw_do_backup(TW_BACKUP_ANDSEC_VAR, &ase, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))       return 1;
 
     // SD-EXT
-    if (tw_do_backup(TW_BACKUP_SDEXT_VAR, &sde, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))        return 1;
+	if (stat(sde.dev, &st) ==0)
+		if (tw_do_backup(TW_BACKUP_SDEXT_VAR, &sde, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))        return 1;
 
     ui_print(" * Verifying filesystems...\n");
     verifyFst();
