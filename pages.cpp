@@ -292,7 +292,7 @@ int Page::Render(void)
     for (iter = mRenders.begin(); iter != mRenders.end(); iter++)
     {
         if ((*iter)->Render())
-            LOGE("A render operation has failed.\n");
+            LOGE("A render request has failed.\n");
     }
     return 0;
 }
@@ -306,7 +306,7 @@ int Page::Update(void)
     {
         int ret = (*iter)->Update();
         if (ret < 0)
-            LOGE("An update operation has failed.\n");
+            LOGE("An update request has failed.\n");
         else if (ret > retCode)
             retCode = ret;
     }
@@ -364,7 +364,7 @@ int Page::NotifyKey(int key)
         if (ret == 0)
             return 0;
         else if (ret < 0)
-            LOGE("An action handler errored ");
+            LOGE("An action handler has returned an error");
     }
     return 1;
 }

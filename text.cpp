@@ -37,11 +37,7 @@ GUIText::GUIText(xml_node<>* node)
     mVarChanged = 0;
     mFontHeight = 0;
 
-    if (!node)
-    {
-        LOGE("GUIText created without XML node\n");
-        return;
-    }
+    if (!node)      return;
 
     // Initialize color to solid black
     memset(&mColor, 0, sizeof(COLOR));
@@ -75,7 +71,6 @@ GUIText::GUIText(xml_node<>* node)
 
     child = node->first_node("text");
     if (child)  mText = child->value();
-    else        LOGE("Text field created without any text\n");
 
     // Simple way to check for static state
     mLastValue = parseText();

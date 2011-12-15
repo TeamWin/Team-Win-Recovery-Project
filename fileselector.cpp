@@ -333,12 +333,10 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
                     if (mShowNavFolders == 0 && mShowFiles == 0)
                     {
                         // This is a "folder" selection
-                        LOGI("Selecting folder: %s\n", cwd.c_str());
                         DataManager::SetValue(mVariable, cwd);
                     }
                     else
                     {
-                        LOGI("Changing folder to: %s\n", cwd.c_str());
                         DataManager::SetValue(mPathVar, cwd);
                         if (GetFileList(cwd) != 0)
                         {

@@ -235,7 +235,6 @@ void* GUIAction::thread_start(void *cookie)
 {
     GUIAction* ourThis = (GUIAction*) cookie;
 
-    LOGI("GUIAction thread has been started.\n");
 	DataManager::SetValue(TW_ACTION_BUSY, 1);
 
     if (ourThis->mActions.size() > 1)
@@ -250,7 +249,6 @@ void* GUIAction::thread_start(void *cookie)
     }
 
 	DataManager::SetValue(TW_ACTION_BUSY, 0);
-    LOGI("GUIAction thread is terminating.\n");
     return NULL;
 }
 

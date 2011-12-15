@@ -302,9 +302,6 @@ static int runPages(void)
 
             if (ret > 0)
                 flip();
-
-            if (ret < 0)
-                LOGE("An update has failed.\n");
         }
         else
         {
@@ -324,7 +321,7 @@ int gui_forceRender(void)
 
 int gui_changePage(std::string newPage)
 {
-    LOGI("Changing page to %s\n", newPage.c_str());
+    LOGI("Set page: '%s'\n", newPage.c_str());
     PageManager::ChangePage(newPage);
     gForceRender = 1;
     return 0;
@@ -375,7 +372,6 @@ extern "C" int gui_loadResources()
 {
     // Make sure the sdcard is mounted before we continue
 #ifdef RECOVERY_SDCARD_ON_DATA
-    LOGI("Symlinking /mnt/data-sdc/media to /sdcard");
     if (symlink("/mnt/data-sdc/media", "/sdcard"))
     {
         LOGE("Unable to symlink (errno %d)\n", errno);
@@ -434,8 +430,6 @@ static void *console_thread(void *cookie)
 {
     PageManager::SwitchToConsole();
 
-    LOGI("Switching to GUI console-only mode.\n");
-
     while (!gGuiConsoleTerminate)
     {
         loopTimer();
@@ -452,7 +446,7 @@ static void *console_thread(void *cookie)
                 flip();
 
             if (ret < 0)
-                LOGE("An update has failed.\n");
+                LOGE("An update request has failed.\n");
         }
         else
         {
@@ -462,7 +456,6 @@ static void *console_thread(void *cookie)
         }
     }
     gGuiConsoleRunning = 0;
-    LOGI("GUI console-only mode completed.\n");
     return NULL;
 }
 
