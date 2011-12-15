@@ -791,7 +791,7 @@ wipe_data(int confirm) {
 
             char cmd[256];
             sprintf(cmd, "rm -fr /data/%s", de->d_name);
-            __system(cmd)
+            __system(cmd);
         }
         closedir(d);
     }
