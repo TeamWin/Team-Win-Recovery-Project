@@ -66,6 +66,8 @@
 		<variable name="nandcheck_row3" value="300" />
 		<variable name="nandcheck_row4" value="375" />
 		<variable name="nandcheck_row5" value="450" />
+		<variable name="button_text_color" value="#000000" />
+		<variable name="text_color" value="#A0A0A0" />
     </variables>
 
     <templates>
@@ -80,27 +82,31 @@
                 <placement x="0" y="0" />
             </object>
     
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="250" y="5" />
                 <text>Team Win Recovery Project (twrp)  v%tw_version%</text>
             </object>
     
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="250" y="30" />
+				<conditions>
+					<condition var1="tw_battery" op=">" var2="0" />
+					<condition var1="tw_battery" op="<" var2="100" />
+				</conditions>
                 <text>Battery Level: %tw_battery%</text>
             </object>
     
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
-                <placement x="450" y="35" />
+                <placement x="450" y="30" />
                 <text>%tw_time%</text>
             </object>
 			
             <object type="button">
                 <placement x="%home_button_x%" y="%home_button_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text></text>
                 <icon resource="home_icon" />
                 <image resource="small_button" />
@@ -110,7 +116,7 @@
 
             <object type="button">
                 <placement x="%back_button_x%" y="%back_button_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text></text>
                 <icon resource="back_icon" />
                 <image resource="small_button" />
@@ -122,8 +128,8 @@
         <template name="footer">
             <object type="console">
                 <slideout resource="console_button" x="%console_button_x%" y="%console_button_y%" />
-                <placement x="25" y="95" w="974" h="495" />
-                <color foreground="#B0B0B0" background="black" scroll="#000000" />
+                <placement x="25" y="75" w="974" h="665" />
+                <color foreground="%text_color%" background="#303030" scroll="#303030" />
                 <font resource="fixed" />
             </object>
         </template>
@@ -135,7 +141,7 @@
 
             <object type="button">
                 <placement x="%col1_x%" y="%row1_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Install</text>
                 <image resource="main_button" />
                 <action function="page">install</action>
@@ -143,7 +149,7 @@
 
             <object type="button">
                 <placement x="%col2_x%" y="%row1_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Backup</text>
                 <image resource="main_button" />
                 <action function="page">backup</action>
@@ -151,7 +157,7 @@
 
             <object type="button">
                 <placement x="%col3_x%" y="%row1_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Restore</text>
                 <image resource="main_button" />
                 <action function="page">restore</action>
@@ -159,7 +165,7 @@
 
             <object type="button">
                 <placement x="%col4_x%" y="%row1_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Wipe</text>
                 <image resource="main_button" />
                 <action function="page">wipe</action>
@@ -167,7 +173,7 @@
 
             <object type="button">
                 <placement x="%col1_x%" y="%row2_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Mount</text>
                 <image resource="main_button" />
                 <action function="page">mount</action>
@@ -175,7 +181,7 @@
 
             <object type="button">
                 <placement x="%col2_x%" y="%row2_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Settings</text>
                 <image resource="main_button" />
                 <action function="page">settings</action>
@@ -183,7 +189,7 @@
 			
 			<object type="button">
                 <placement x="%col3_x%" y="%row2_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Advanced</text>
                 <image resource="main_button" />
                 <action function="page">advanced</action>
@@ -191,7 +197,7 @@
 			
 			<object type="button">
                 <placement x="%col4_x%" y="%row2_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Reboot</text>
                 <image resource="main_button" />
                 <action function="page">reboot</action>
@@ -207,7 +213,7 @@
                 <placement x="25" y="90" w="482" h="490" />
                 <icon folder="folder_icon" file="file_icon" />
                 <background color="#303030" />
-                <font resource="font" spacing="18" color="#A0A0A0" />
+                <font resource="font" spacing="18" color="%text_color%" />
                 <filter folders="1" files="0" />
                 <path name="wd" default="/sdcard" />
                 <data name="select" />
@@ -217,25 +223,25 @@
                 <placement x="517" y="90" w="482" h="490" />
                 <icon folder="folder_icon" file="file_icon" />
                 <background color="#303030" />
-                <font resource="font" spacing="18" color="#A0A0A0" />
+                <font resource="font" spacing="18" color="%text_color%" />
                 <filter extn=".zip" folders="0" files="1" />
                 <path name="wd" />
                 <data name="tw_filename" />
             </object>
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="25" y="590" />
                 <text>Selection: %tw_filename%</text>
             </object>
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="72" placement="4" />
                 <text>WARNING: This operation may install incompatible software and render your device unusable.</text>
             </object>
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="270" y="630" />
                 <text>Sort Ascending:</text>
@@ -243,7 +249,7 @@
 			
 			<object type="button">
                 <placement x="440" y="625" />
-                <font resource="UItext" color="black" />
+                <font resource="UItext" color="%button_text_color%" />
                 <text>Name</text>
                 <image resource="sort_button" />
                 <action function="set">tw_gui_sort_order=1</action>
@@ -251,7 +257,7 @@
 			
 			<object type="button">
                 <placement x="510" y="625" />
-                <font resource="UItext" color="black" />
+                <font resource="UItext" color="%button_text_color%" />
                 <text>Date</text>
                 <image resource="sort_button" />
                 <action function="set">tw_gui_sort_order=2</action>
@@ -259,13 +265,13 @@
 			
 			<object type="button">
                 <placement x="580" y="625" />
-                <font resource="UItext" color="black" />
+                <font resource="UItext" color="%button_text_color%" />
                 <text>Size</text>
                 <image resource="sort_button" />
                 <action function="set">tw_gui_sort_order=3</action>
             </object>
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="270" y="680" />
                 <text>Sort Descending:</text>
@@ -273,7 +279,7 @@
 			
 			<object type="button">
                 <placement x="440" y="675" />
-                <font resource="UItext" color="black" />
+                <font resource="UItext" color="%button_text_color%" />
                 <text>Name</text>
                 <image resource="sort_button" />
                 <action function="set">tw_gui_sort_order=-1</action>
@@ -281,7 +287,7 @@
 			
 			<object type="button">
                 <placement x="510" y="675" />
-                <font resource="UItext" color="black" />
+                <font resource="UItext" color="%button_text_color%" />
                 <text>Date</text>
                 <image resource="sort_button" />
                 <action function="set">tw_gui_sort_order=-2</action>
@@ -289,7 +295,7 @@
 			
 			<object type="button">
                 <placement x="580" y="675" />
-                <font resource="UItext" color="black" />
+                <font resource="UItext" color="%button_text_color%" />
                 <text>Size</text>
                 <image resource="sort_button" />
                 <action function="set">tw_gui_sort_order=-3</action>
@@ -297,7 +303,7 @@
 			
 			<object type="checkbox">
                 <placement x="670" y="625" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Zip file signature verification?</text>
                 <data variable="tw_signed_zip_verify" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
@@ -305,7 +311,7 @@
 			
 			<object type="checkbox">
                 <placement x="670" y="675" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Force MD5 check on all zips?</text>
                 <data variable="tw_force_md5_check" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
@@ -313,7 +319,7 @@
 
             <object type="button">
                 <placement x="25" y="610" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Flash</text>
                 <image resource="main_button" />
                 <action function="flash">flash_zip</action>
@@ -337,7 +343,7 @@
 			
 			<object type="console">
                 <placement x="25" y="85" w="974" h="530" />
-                <color foreground="#B0B0B0" background="black" scroll="black" />
+                <color foreground="%text_color%" background="#303030" scroll="#303030" />
                 <font resource="fixed" />
             </object>
 			
@@ -358,8 +364,6 @@
                 <condition var1="tw_operation_state" var2="1" />
                 <action function="page">flash_done</action>
             </object>
-
-			<object type="template" name="footer" />
         </page>
 
         <page name="flash_done">
@@ -367,13 +371,13 @@
 
             <object type="console">
                 <placement x="25" y="85" w="974" h="530" />
-                <color foreground="#B0B0B0" background="black" scroll="black" />
+                <color foreground="%text_color%" background="#303030" scroll="#303030" />
                 <font resource="fixed" />
             </object>
 			
 			<object type="button">
                 <placement x="%col1_x%" y="610" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Wipe Cache/Dalvik</text>
                 <image resource="main_button" />
                 <action function="page">wipe_cachedalvik</action>
@@ -381,7 +385,7 @@
 			
 			<object type="button">
                 <placement x="%col4_x%" y="610" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Reboot System</text>
                 <image resource="main_button" />
                 <action function="reboot">system</action>
@@ -389,7 +393,7 @@
 			
             <object type="button">
                 <placement x="%col_center_x%" y="610" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
@@ -404,8 +408,73 @@
                 <touch key="home" />
                 <action function="page">main</action>
             </object>
+        </page>
+		
+		<page name="wipe_cachedalvik">
+            <object type="template" name="header" />
 			
-			<object type="template" name="footer" />
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col_textcenter_x%" y="%row_progressbar_text%" placement="4" />
+                <text>Wiping cache and dalvik-cache...</text>
+            </object>
+			
+            <object type="progressbar">
+                <placement x="%col_progressbar_x%" y="%row_progressbar_y%" />
+                <resource  empty="progress_empty" full="progress_full" />
+                <data name="ui_progress" />
+            </object>
+
+            <object type="animation">
+                <placement x="%col_progressbar_x%" y="%row_progressbar_y%" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+			
+			<object type="action">
+                <condition var1="tw_operation_state" var2="1" />
+                <action function="page">wipe_installdone</action>
+            </object>
+			
+			<object type="action">
+				<actions>
+					<action function="wipe">/cache</action>
+					<action function="wipe">dalvik</action>
+				</actions>
+            </object>
+			
+            <object type="template" name="footer" />
+        </page>
+		
+		<page name="wipe_installdone">
+            <object type="template" name="header" />
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col_textcenter_x%" y="330" placement="4" />
+                <text>Wipe complete</text>
+            </object>
+
+            <object type="button">
+                <placement x="%col_center_x%" y="360" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Back</text>
+                <image resource="main_button" />
+                <action function="page">flash_done</action>
+            </object>
+
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">flash_done</action>
+            </object>
+            
+            <object type="template" name="footer" />
         </page>
 
         <page name="reboot">
@@ -413,7 +482,7 @@
 			
 			<object type="button">
                 <placement x="%col1_x%" y="%row1_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>System</text>
                 <image resource="main_button" />
                 <action function="reboot">system</action>
@@ -421,7 +490,7 @@
 
             <object type="button">
                 <placement x="%col2_x%" y="%row1_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Power Off</text>
                 <image resource="main_button" />
                 <action function="reboot">poweroff</action>
@@ -429,7 +498,7 @@
 
             <object type="button">
                 <placement x="%col1_x%" y="%row2_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Recovery</text>
                 <image resource="main_button" />
                 <action function="reboot">recovery</action>
@@ -437,7 +506,7 @@
 
             <object type="button">
                 <placement x="%col2_x%" y="%row2_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Bootloader</text>
                 <image resource="main_button" />
                 <action function="reboot">bootloader</action>
@@ -461,7 +530,7 @@
 			
 			<object type="button">
                 <placement x="%col1_x%" y="%row1_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Mount USB Storage</text>
                 <image resource="main_button" />
                 <action function="page">usb_mount</action>
@@ -469,7 +538,7 @@
 			
 			<object type="button">
                 <placement x="%col1_x%" y="260" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <condition var1="mounted" op="!=" var2="/system" />
                 <text>   Mount System</text>
                 <image resource="checkbox_false" />
@@ -478,7 +547,7 @@
 
             <object type="button">
                 <placement x="%col1_x%" y="260" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <condition var1="mounted" op="=" var2="/system" />
                 <text>   Unmount System</text>
                 <image resource="checkbox_true" />
@@ -487,7 +556,7 @@
 
             <object type="button">
                 <placement x="%col1_x%" y="300" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <condition var1="mounted" op="!=" var2="/data" />
                 <text>   Mount Data</text>
                 <image resource="checkbox_false" />
@@ -496,7 +565,7 @@
 
             <object type="button">
                 <placement x="%col1_x%" y="300" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <condition var1="mounted" op="=" var2="/data" />
                 <text>   Unmount Data</text>
                 <image resource="checkbox_true" />
@@ -505,7 +574,7 @@
 
             <object type="button">
                 <placement x="%col1_x%" y="340" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <condition var1="mounted" op="!=" var2="/cache" />
                 <text>   Mount Cache</text>
                 <image resource="checkbox_false" />
@@ -514,7 +583,7 @@
 
             <object type="button">
                 <placement x="%col1_x%" y="340" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <condition var1="mounted" op="=" var2="/cache" />
                 <text>   Unmount Cache</text>
                 <image resource="checkbox_true" />
@@ -523,7 +592,7 @@
 			
 			<object type="button">
                 <placement x="%col1_x%" y="380" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <condition var1="mounted" op="!=" var2="/sdcard" />
                 <text>   Mount SDCard</text>
                 <image resource="checkbox_false" />
@@ -532,7 +601,7 @@
 
             <object type="button">
                 <placement x="%col1_x%" y="380" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <condition var1="mounted" op="=" var2="/sdcard" />
                 <text>   Unmount SDCard</text>
                 <image resource="checkbox_true" />
@@ -541,7 +610,7 @@
 			
 			<object type="button">
                 <placement x="%col1_x%" y="420" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <condition var1="mounted" op="!=" var2="/sd-ext" />
                 <text>   Mount SD-Ext</text>
                 <image resource="checkbox_false" />
@@ -550,7 +619,7 @@
 
             <object type="button">
                 <placement x="%col1_x%" y="420" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <condition var1="mounted" op="=" var2="/sd-ext" />
                 <text>   Unmount SD-Ext</text>
                 <image resource="checkbox_true" />
@@ -563,7 +632,7 @@
 					<condition var1="mounted" op="!=" var2="/boot" />
 				</conditions>
                 <placement x="%col1_x%" y="460" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>   Mount Boot</text>
                 <image resource="checkbox_false" />
                 <action function="mount">/boot</action>
@@ -575,7 +644,7 @@
 					<condition var1="mounted" op="=" var2="/boot" />
 				</conditions>
                 <placement x="%col1_x%" y="460" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>   Unmount Boot</text>
                 <image resource="checkbox_true" />
                 <action function="umount">/boot</action>
@@ -599,7 +668,7 @@
 
             <object type="button">
                 <placement x="%col1_x%" y="%row1_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Unmount</text>
                 <image resource="main_button" />
                 <action function="page">usb_umount</action>
@@ -629,7 +698,7 @@
 			
 			<object type="button">
                 <placement x="%col1_x%" y="%row1_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Cache</text>
                 <image resource="main_button" />
                 <action function="page">wipe_cache_confirm</action>
@@ -637,7 +706,7 @@
 
             <object type="button">
                 <placement x="%col2_x%" y="%row1_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Dalvik Cache</text>
                 <image resource="main_button" />
                 <action function="page">wipe_dalvik_confirm</action>
@@ -645,7 +714,7 @@
 
             <object type="button">
                 <placement x="%col3_x%" y="%row1_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Factory Reset</text>
                 <image resource="main_button" />
                 <action function="page">wipe_data_confirm</action>
@@ -653,7 +722,7 @@
 
             <object type="button">
                 <placement x="%col4_x%" y="%row1_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Battery Stats</text>
                 <image resource="main_button" />
                 <action function="page">wipe_battery_confirm</action>
@@ -661,7 +730,7 @@
 
             <object type="button">
                 <placement x="%col1_x%" y="%row2_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Rotation</text>
                 <image resource="main_button" />
                 <action function="page">wipe_rotate_confirm</action>
@@ -669,7 +738,7 @@
 
             <object type="button">
                 <placement x="%col2_x%" y="%row2_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>System</text>
                 <image resource="main_button" />
                 <action function="page">wipe_system_confirm</action>
@@ -677,7 +746,7 @@
 
             <object type="button">
                 <placement x="%col3_x%" y="%row2_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>SD Card</text>
                 <image resource="main_button" />
                 <action function="page">wipe_sdcard_confirm</action>
@@ -685,7 +754,7 @@
 
             <object type="button">
                 <placement x="%col4_x%" y="%row2_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>SD Ext</text>
                 <image resource="main_button" />
                 <action function="page">wipe_sdext_confirm</action>
@@ -707,13 +776,13 @@
 		<page name="wipe_cache_confirm">
             <object type="template" name="header" />
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="300" placement="4" />
                 <text>Wipe cache?</text>
             </object>
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="330" placement="4" />
                 <text>Press back button to cancel.</text>
@@ -721,7 +790,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="360" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Wipe cache!</text>
                 <image resource="main_button" />
                 <action function="page">wipe_cache</action>
@@ -743,7 +812,7 @@
 		<page name="wipe_cache">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="%row_progressbar_text%" placement="4" />
                 <text>Wiping cache...</text>
@@ -777,13 +846,13 @@
         <page name="wipe_dalvik_confirm">
             <object type="template" name="header" />
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="300" placement="4" />
                 <text>Wipe dalvik-cache?</text>
             </object>
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="330" placement="4" />
                 <text>Press back button to cancel.</text>
@@ -791,7 +860,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="360" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Wipe dalvik-cache!</text>
                 <image resource="main_button" />
                 <action function="page">wipe_dalvik</action>
@@ -813,7 +882,7 @@
 		<page name="wipe_dalvik">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="%row_progressbar_text%" placement="4" />
                 <text>Wiping dalvik-cache...</text>
@@ -844,53 +913,16 @@
             <object type="template" name="footer" />
         </page>
 		
-		<page name="wipe_cachedalvik">
-            <object type="template" name="header" />
-			
-			<object type="text" color="#A0A0A0">
-                <font resource="font" />
-                <placement x="%col_textcenter_x%" y="%row_progressbar_text%" placement="4" />
-                <text>Wiping cache and dalvik-cache...</text>
-            </object>
-			
-            <object type="progressbar">
-                <placement x="%col_progressbar_x%" y="%row_progressbar_y%" />
-                <resource  empty="progress_empty" full="progress_full" />
-                <data name="ui_progress" />
-            </object>
-
-            <object type="animation">
-                <placement x="%col_progressbar_x%" y="%row_progressbar_y%" />
-                <resource name="progress" />
-                <speed fps="15" render="2" />
-                <loop frame="1" />
-            </object>
-			
-			<object type="action">
-                <condition var1="tw_operation_state" var2="1" />
-                <action function="page">wipe_done</action>
-            </object>
-			
-			<object type="action">
-				<actions>
-					<action function="wipe">/cache</action>
-					<action function="wipe">dalvik</action>
-				</actions>
-            </object>
-			
-            <object type="template" name="footer" />
-        </page>
-		
 		<page name="wipe_data_confirm">
             <object type="template" name="header" />
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="300" placement="4" />
                 <text>Factory Reset (Wipe Data)?</text>
             </object>
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="330" placement="4" />
                 <text>Press back button to cancel.</text>
@@ -898,7 +930,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="360" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Factory Reset!</text>
                 <image resource="main_button" />
                 <action function="page">wipe_data</action>
@@ -920,7 +952,7 @@
 		<page name="wipe_data">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="%row_progressbar_text%" placement="4" />
                 <text>Wiping data...</text>
@@ -954,13 +986,13 @@
 		<page name="wipe_battery_confirm">
             <object type="template" name="header" />
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="300" placement="4" />
                 <text>Wipe battery stats?</text>
             </object>
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="330" placement="4" />
                 <text>Press back button to cancel.</text>
@@ -968,7 +1000,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="360" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Wipe Battery Stats!</text>
                 <image resource="main_button" />
                 <action function="page">wipe_battery</action>
@@ -990,7 +1022,7 @@
 		<page name="wipe_battery">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="%row_progressbar_text%" placement="4" />
                 <text>Wiping battery stats...</text>
@@ -1024,13 +1056,13 @@
 		<page name="wipe_rotate_confirm">
             <object type="template" name="header" />
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="300" placement="4" />
                 <text>Wipe rotation data?</text>
             </object>
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="330" placement="4" />
                 <text>Press back button to cancel.</text>
@@ -1038,7 +1070,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="360" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Wipe Rotation Data!</text>
                 <image resource="main_button" />
                 <action function="page">wipe_rotate</action>
@@ -1060,7 +1092,7 @@
 		<page name="wipe_rotate">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="%row_progressbar_text%" placement="4" />
                 <text>Wiping rotation data...</text>
@@ -1094,13 +1126,13 @@
 		<page name="wipe_system_confirm">
             <object type="template" name="header" />
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="300" placement="4" />
                 <text>Wipe system?</text>
             </object>
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="330" placement="4" />
                 <text>Press back button to cancel.</text>
@@ -1108,7 +1140,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="360" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Wipe system!</text>
                 <image resource="main_button" />
                 <action function="page">wipe_system</action>
@@ -1130,7 +1162,7 @@
 		<page name="wipe_system">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="%row_progressbar_text%" placement="4" />
                 <text>Wiping system...</text>
@@ -1164,13 +1196,13 @@
 		<page name="wipe_sdcard_confirm">
             <object type="template" name="header" />
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="300" placement="4" />
                 <text>Wipe SD card?</text>
             </object>
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="330" placement="4" />
                 <text>Press back button to cancel.</text>
@@ -1178,7 +1210,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="360" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Wipe SD Card!</text>
                 <image resource="main_button" />
                 <action function="page">wipe_sdcard</action>
@@ -1200,7 +1232,7 @@
 		<page name="wipe_sdcard">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="%row_progressbar_text%" placement="4" />
                 <text>Wiping SD card...</text>
@@ -1221,10 +1253,7 @@
 			
 			<object type="action">
                 <condition var1="tw_operation_state" var2="1" />
-				<actions>
-					<action function="set">tw_zip_location=/sdcard</action>
-					<action function="page">wipe_done</action>
-				</actions>
+				<action function="page">wipe_done</action>
             </object>
 			
 			<object type="action">
@@ -1237,13 +1266,13 @@
 		<page name="wipe_sdext_confirm">
             <object type="template" name="header" />
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="300" placement="4" />
                 <text>Wipe SD Ext?</text>
             </object>
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="330" placement="4" />
                 <text>Press back button to cancel.</text>
@@ -1251,7 +1280,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="360" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Wipe SD Ext!</text>
                 <image resource="main_button" />
                 <action function="page">wipe_sdext</action>
@@ -1273,7 +1302,7 @@
 		<page name="wipe_sdext">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="%row_progressbar_text%" placement="4" />
                 <text>Wiping SD Ext...</text>
@@ -1307,7 +1336,7 @@
         <page name="wipe_done">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="330" placement="4" />
                 <text>Wipe complete</text>
@@ -1315,7 +1344,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="360" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Back</text>
                 <image resource="main_button" />
                 <action function="page">wipe</action>
@@ -1339,7 +1368,7 @@
 			
 			<object type="button">
                 <placement x="%col_center_x%" y="600" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Backup now</text>
                 <image resource="main_button" />
                 <action function="page">backup_run</action>
@@ -1347,7 +1376,7 @@
 
             <object type="checkbox">
                 <placement x="%nandcheck_col1%" y="%nandcheck_row1%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>System</text>
                 <data variable="tw_backup_system" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
@@ -1355,7 +1384,7 @@
 
             <object type="checkbox">
                 <placement x="%nandcheck_col1%" y="%nandcheck_row2%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Data</text>
                 <data variable="tw_backup_data" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
@@ -1363,7 +1392,7 @@
 
             <object type="checkbox">
                 <placement x="%nandcheck_col1%" y="%nandcheck_row3%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Boot</text>
                 <data variable="tw_backup_boot" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
@@ -1371,7 +1400,7 @@
 
             <object type="checkbox">
                 <placement x="%nandcheck_col1%" y="%nandcheck_row4%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Recovery</text>
                 <data variable="tw_backup_recovery" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
@@ -1379,7 +1408,7 @@
 
             <object type="checkbox">
                 <placement x="%nandcheck_col1%" y="%nandcheck_row5%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Cache</text>
                 <data variable="tw_backup_cache" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
@@ -1387,7 +1416,7 @@
 
             <object type="checkbox">
                 <placement x="%nandcheck_col2%" y="%nandcheck_row1%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>.android_secure</text>
                 <condition var1="fileexists" var2="/sdcard/.android_secure" />
                 <data variable="tw_backup_andsec" />
@@ -1396,7 +1425,7 @@
 
             <object type="checkbox">
                 <placement x="%nandcheck_col2%" y="%nandcheck_row2%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>sd-ext</text>
                 <condition var1="fileexists" var2="/sd-ext" />
                 <data variable="tw_backup_sdext" />
@@ -1406,7 +1435,7 @@
 			<object type="checkbox">
 				<condition var1="tw_sp1_name" op=">" var2="" />
                 <placement x="%nandcheck_col2%" y="%nandcheck_row3%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>%tw_sp1_name%</text>
                 <data variable="tw_backup_sp1" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
@@ -1415,7 +1444,7 @@
 			<object type="checkbox">
 				<condition var1="tw_sp2_name" op=">" var2="" />
                 <placement x="%nandcheck_col2%" y="%nandcheck_row4%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>%tw_sp2_name%</text>
                 <data variable="tw_backup_sp2" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
@@ -1424,7 +1453,7 @@
 			<object type="checkbox">
 				<condition var1="tw_sp3_name" op=">" var2="" />
                 <placement x="%nandcheck_col2%" y="%nandcheck_row5%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>%tw_sp3_name%</text>
                 <data variable="tw_backup_sp3" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
@@ -1432,9 +1461,17 @@
 
             <object type="checkbox">
                 <placement x="%col1_x%" y="%nandcheck_row3%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Enable Compression (Requires more time)</text>
                 <data variable="tw_use_compression" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+			
+			<object type="checkbox">
+                <placement x="%col1_x%" y="%nandcheck_row4%" />
+                <font resource="font" color="%text_color%" />
+                <text>Skip MD5 generation on backups</text>
+                <data variable="tw_skip_md5_generate" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 
@@ -1454,7 +1491,7 @@
         <page name="backup_run">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="%row_progressbar_text%" placement="4" />
                 <text>%tw_operation% %tw_partition%</text>
@@ -1500,7 +1537,7 @@
         <page name="backup_success">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="330" placement="4" />
                 <text>Your backup was successful!</text>
@@ -1508,7 +1545,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="350" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
@@ -1530,13 +1567,13 @@
         <page name="backup_failed">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="310" placement="4" />
                 <text>Your backup failed.</text>
             </object>
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="330" placement="4" />
                 <text>Open the console for more details</text>
@@ -1544,7 +1581,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="350" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
@@ -1566,7 +1603,7 @@
         <page name="restore">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col2_x%" y="95" />
                 <text>Select packge to restore:</text>
@@ -1574,7 +1611,7 @@
 
             <object type="fileselector">
                 <placement x="%col2_x%" y="125" w="460" h="590" />
-				<font resource="font" spacing="18" color="#A0A0A0" />
+				<font resource="font" spacing="18" color="%text_color%" />
                 <icon folder="folder_icon" file="file_icon" />
                 <background color="#303030" />
                 <filter folders="1" files="0" nav="0" />
@@ -1615,7 +1652,7 @@
 			
 			<object type="button">
                 <placement x="%col_center_x%" y="600" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Restore  now</text>
                 <image resource="main_button" />
                 <action function="page">restore_run</action>
@@ -1623,7 +1660,7 @@
 
             <object type="checkbox">
                 <placement x="%nandcheck_col1%" y="%nandcheck_row1%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>System</text>
                 <condition var1="tw_restore_system" op=">=" var2="0" />
                 <data variable="tw_restore_system" />
@@ -1632,7 +1669,7 @@
 
             <object type="checkbox">
                 <placement x="%nandcheck_col1%" y="%nandcheck_row2%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Data</text>
                 <condition var1="tw_restore_data" op=">=" var2="0" />
                 <data variable="tw_restore_data" />
@@ -1641,7 +1678,7 @@
 
             <object type="checkbox">
                 <placement x="%nandcheck_col1%" y="%nandcheck_row3%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Boot</text>
                 <condition var1="tw_restore_boot" op=">=" var2="0" />
                 <data variable="tw_restore_boot" />
@@ -1650,7 +1687,7 @@
 
             <object type="checkbox">
                 <placement x="%nandcheck_col1%" y="%nandcheck_row4%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Recovery</text>
                 <condition var1="tw_restore_recovery" op=">=" var2="0" />
                 <data variable="tw_restore_recovery" />
@@ -1659,7 +1696,7 @@
 
             <object type="checkbox">
                 <placement x="%nandcheck_col1%" y="%nandcheck_row5%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Cache</text>
                 <condition var1="tw_restore_cache" op=">=" var2="0" />
                 <data variable="tw_restore_cache" />
@@ -1668,7 +1705,7 @@
 
             <object type="checkbox">
                 <placement x="%nandcheck_col2%" y="%nandcheck_row1%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>.android_secure</text>
                 <condition var1="tw_restore_andsec" op=">=" var2="0" />
                 <data variable="tw_restore_andsec" />
@@ -1677,7 +1714,7 @@
 
             <object type="checkbox">
                 <placement x="%nandcheck_col2%" y="%nandcheck_row2%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>sd-ext</text>
                 <condition var1="tw_restore_sdext" op=">=" var2="0" />
                 <data variable="tw_restore_sdext" />
@@ -1686,7 +1723,7 @@
 			
 			<object type="checkbox">
                 <placement x="%nandcheck_col2%" y="%nandcheck_row3%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>%tw_sp1_name%</text>
                 <condition var1="tw_restore_sp1" op=">=" var2="0" />
                 <data variable="tw_restore_sp1" />
@@ -1695,7 +1732,7 @@
 			
 			<object type="checkbox">
                 <placement x="%nandcheck_col2%" y="%nandcheck_row4%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>%tw_sp2_name%</text>
                 <condition var1="tw_restore_sp2" op=">=" var2="0" />
                 <data variable="tw_restore_sp2" />
@@ -1704,7 +1741,7 @@
 			
 			<object type="checkbox">
                 <placement x="%nandcheck_col2%" y="%nandcheck_row5%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>%tw_sp3_name%</text>
                 <condition var1="tw_restore_sp3" op=">=" var2="0" />
                 <data variable="tw_restore_sp3" />
@@ -1713,7 +1750,7 @@
 
 			<object type="checkbox">
                 <placement x="%col1_x%" y="%nandcheck_row3%" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Enable MD5 checking of backup files</text>
                 <data variable="tw_skip_md5_check" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
@@ -1735,7 +1772,7 @@
         <page name="restore_run">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="%row_progressbar_text%" placement="4" />
                 <text>%tw_operation% %tw_partition%</text>
@@ -1781,7 +1818,7 @@
         <page name="restore_success">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="330" placement="4" />
                 <text>Your restore was successful!</text>
@@ -1789,7 +1826,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="350" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
@@ -1811,13 +1848,13 @@
         <page name="restore_failed">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="310" placement="4" />
                 <text>Your restore failed.</text>
             </object>
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="330" placement="4" />
                 <text>Open the console for more details</text>
@@ -1825,7 +1862,7 @@
 
             <object type="button">
                 <placement x="%col_center_x%" y="350" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
@@ -1849,7 +1886,7 @@
 
             <object type="checkbox">
                 <placement x="%col1_x%" y="120" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Zip file signature verification?</text>
                 <data variable="tw_signed_zip_verify" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
@@ -1857,7 +1894,7 @@
 			
 			<object type="checkbox">
                 <placement x="%col1_x%" y="150" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Force MD5 check on all zips?</text>
                 <data variable="tw_force_md5_check" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
@@ -1865,15 +1902,31 @@
 			
 			<object type="checkbox">
                 <placement x="%col1_x%" y="180" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Use rm -rf instead of formatting?</text>
                 <data variable="tw_rm_rf" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 			
+			<object type="checkbox">
+                <placement x="%col1_x%" y="210" />
+                <font resource="font" color="%text_color%" />
+                <text>Skip MD5 generation on backups</text>
+                <data variable="tw_skip_md5_generate" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+			
+			<object type="checkbox">
+                <placement x="%col1_x%" y="240" />
+                <font resource="font" color="%text_color%" />
+                <text>Enable MD5 checking of backup files</text>
+                <data variable="tw_skip_md5_check" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+			
 			<object type="button">
                 <placement x="%col1_x%" y="%row2_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Time Zone</text>
                 <image resource="main_button" />
                 <action function="page">timezonemain</action>
@@ -1881,7 +1934,7 @@
 			
 			<object type="button">
                 <placement x="%col_center_x%" y="440" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Restore Defaults</text>
                 <image resource="main_button" />
                 <action function="restoredefaultsettings"></action>
@@ -1905,7 +1958,7 @@
 
             <object type="button">
                 <placement x="%col2_x%" y="%row1_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Minus (GMT 0 to -11)</text>
                 <image resource="main_button" />
                 <action function="page">timezoneminus</action>
@@ -1913,7 +1966,7 @@
 
             <object type="button">
                 <placement x="%col3_x%" y="%row1_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Plus (GMT +1 to +12)</text>
                 <image resource="main_button" />
                 <action function="page">timezoneplus</action>
@@ -1935,7 +1988,7 @@
 		<page name="timezoneminus">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="95" placement="4" />
                 <text>Selected: %tw_time_zone_guisel%</text>
@@ -1943,7 +1996,7 @@
 			
             <object type="button">
                 <placement x="%col1_medium_x%" y="%row1_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>GMT 0 CUT</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=CUT0;GDT</action>
@@ -1951,7 +2004,7 @@
 			
 			<object type="button">
                 <placement x="%col2_medium_x%" y="%row1_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>GMT 0</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=GMT0;BST</action>
@@ -1959,7 +2012,7 @@
 			
 			<object type="button">
                 <placement x="%col3_medium_x%" y="%row1_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>AZOREST -1</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=AZOREST1;AZOREDT</action>
@@ -1967,7 +2020,7 @@
 			
 			<object type="button">
                 <placement x="%col4_medium_x%" y="%row1_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>FALKST -2</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=FALKST2;FALKDT</action>
@@ -1975,7 +2028,7 @@
 			
 			<object type="button">
                 <placement x="%col1_medium_x%" y="%row2_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>GRNLND -3</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=GRNLNDST3;GRNLNDDT</action>
@@ -1983,7 +2036,7 @@
 			
 			<object type="button">
                 <placement x="%col2_medium_x%" y="%row2_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>AST -4</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=AST4;ADT</action>
@@ -1991,7 +2044,7 @@
 			
 			<object type="button">
                 <placement x="%col3_medium_x%" y="%row2_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>EST -5</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=EST5;EDT</action>
@@ -1999,7 +2052,7 @@
 			
 			<object type="button">
                 <placement x="%col4_medium_x%" y="%row2_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>CST -6</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=CST6;CDT</action>
@@ -2007,7 +2060,7 @@
 			
 			<object type="button">
                 <placement x="%col1_medium_x%" y="%row3_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>MST -7</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=MST7;MDT</action>
@@ -2015,7 +2068,7 @@
 			
 			<object type="button">
                 <placement x="%col2_medium_x%" y="%row3_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>PST -8</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=PST8;PDT</action>
@@ -2023,7 +2076,7 @@
 			
 			<object type="button">
                 <placement x="%col3_medium_x%" y="%row3_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>AST -9</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=AST9;ADT</action>
@@ -2031,7 +2084,7 @@
 			
 			<object type="button">
                 <placement x="%col4_medium_x%" y="%row3_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>HST -10</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=HST10;HDT</action>
@@ -2039,7 +2092,7 @@
 			
 			<object type="button">
                 <placement x="%col1_medium_x%" y="%row4_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>BST -11</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=BST11;BDT</action>
@@ -2047,13 +2100,13 @@
 			
 			<object type="checkbox">
                 <placement x="300" y="405" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Do you use daylight savings time (DST)?</text>
                 <data variable="tw_time_zone_guidst" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="445" placement="4" />
                 <text>Offset (usually 0): %tw_time_zone_guioffset%</text>
@@ -2061,7 +2114,7 @@
 			
 			<object type="button">
                 <placement x="%col1_medium_x%" y="%row_offsetmedium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>0</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guioffset=0</action>
@@ -2069,7 +2122,7 @@
 			
 			<object type="button">
                 <placement x="%col2_medium_x%" y="%row_offsetmedium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>15</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guioffset=15</action>
@@ -2077,7 +2130,7 @@
 			
 			<object type="button">
                 <placement x="%col3_medium_x%" y="%row_offsetmedium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>30</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guioffset=30</action>
@@ -2085,7 +2138,7 @@
 			
 			<object type="button">
                 <placement x="%col4_medium_x%" y="%row_offsetmedium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>45</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guioffset=45</action>
@@ -2093,13 +2146,13 @@
 			
 			<object type="button">
                 <placement x="%col_center_x%" y="600" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Set Time Zone</text>
                 <image resource="main_button" />
                 <action function="setguitimezone"></action>
             </object>
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="550" placement="4" />
                 <text>Current Time Zone: %tw_time_zone%</text>
@@ -2121,7 +2174,7 @@
 		<page name="timezoneplus">
             <object type="template" name="header" />
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="95" placement="4" />
                 <text>Selected: %tw_time_zone_guisel%</text>
@@ -2129,7 +2182,7 @@
 			
             <object type="button">
                 <placement x="%col1_medium_x%" y="%row1_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>NFT +1</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=NFT-1;DFT</action>
@@ -2137,7 +2190,7 @@
 			
 			<object type="button">
                 <placement x="%col2_medium_x%" y="%row1_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>USAST +2</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=USAST-2;USADT</action>
@@ -2145,7 +2198,7 @@
 			
 			<object type="button">
                 <placement x="%col3_medium_x%" y="%row1_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>WET +2</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=WET-2;WET</action>
@@ -2153,7 +2206,7 @@
 			
 			<object type="button">
                 <placement x="%col4_medium_x%" y="%row1_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>SAUST +3</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=SAUST-3;SAUDT</action>
@@ -2161,7 +2214,7 @@
 			
 			<object type="button">
                 <placement x="%col1_medium_x%" y="%row2_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>MEST +3</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=MEST-3;MEDT</action>
@@ -2169,7 +2222,7 @@
 			
 			<object type="button">
                 <placement x="%col2_medium_x%" y="%row2_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>WST +4</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=WST-4;WDT</action>
@@ -2177,7 +2230,7 @@
 			
 			<object type="button">
                 <placement x="%col3_medium_x%" y="%row2_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>PAKST +5</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=PAKST-5;PAKDT</action>
@@ -2185,7 +2238,7 @@
 			
 			<object type="button">
                 <placement x="%col4_medium_x%" y="%row2_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>TASHST +6</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=TASHST-6;TASHDT</action>
@@ -2193,7 +2246,7 @@
 			
 			<object type="button">
                 <placement x="%col1_medium_x%" y="%row3_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>THAIST +7</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=THAIST-7;THAIDT</action>
@@ -2201,7 +2254,7 @@
 			
 			<object type="button">
                 <placement x="%col2_medium_x%" y="%row3_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>TAIST +8</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=TAIST-8;TAIDT</action>
@@ -2209,7 +2262,7 @@
 			
 			<object type="button">
                 <placement x="%col3_medium_x%" y="%row3_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>WAUST +8</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=WAUST-8;WAUDT</action>
@@ -2217,7 +2270,7 @@
 			
 			<object type="button">
                 <placement x="%col4_medium_x%" y="%row3_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>KORST +9</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=KORST-9;KORDT</action>
@@ -2225,7 +2278,7 @@
 			
 			<object type="button">
                 <placement x="%col1_medium_x%" y="%row4_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>JST +9</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=JST-9;JSTDT</action>
@@ -2233,7 +2286,7 @@
 			
 			<object type="button">
                 <placement x="%col2_medium_x%" y="%row4_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>EET +10</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=EET-10;EETDT</action>
@@ -2241,7 +2294,7 @@
 			
 			<object type="button">
                 <placement x="%col3_medium_x%" y="%row4_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>MET+11</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=MET-11;METDT</action>
@@ -2249,7 +2302,7 @@
 			
 			<object type="button">
                 <placement x="%col4_medium_x%" y="%row4_medium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>NZST +12</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guisel=NZST-12;NZDT</action>
@@ -2257,13 +2310,13 @@
 			
 			<object type="checkbox">
                 <placement x="300" y="405" />
-                <font resource="font" color="#A0A0A0" />
+                <font resource="font" color="%text_color%" />
                 <text>Do you use daylight savings time (DST)?</text>
                 <data variable="tw_time_zone_guidst" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="445" placement="4" />
                 <text>Offset (usually 0): %tw_time_zone_guioffset%</text>
@@ -2271,7 +2324,7 @@
 			
 			<object type="button">
                 <placement x="%col1_medium_x%" y="%row_offsetmedium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>0</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guioffset=0</action>
@@ -2279,7 +2332,7 @@
 			
 			<object type="button">
                 <placement x="%col2_medium_x%" y="%row_offsetmedium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>15</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guioffset=15</action>
@@ -2287,7 +2340,7 @@
 			
 			<object type="button">
                 <placement x="%col3_medium_x%" y="%row_offsetmedium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>30</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guioffset=30</action>
@@ -2295,7 +2348,7 @@
 			
 			<object type="button">
                 <placement x="%col4_medium_x%" y="%row_offsetmedium_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>45</text>
                 <image resource="medium_button" />
                 <action function="set">tw_time_zone_guioffset=45</action>
@@ -2303,13 +2356,13 @@
 			
 			<object type="button">
                 <placement x="%col_center_x%" y="600" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Set Time Zone</text>
                 <image resource="main_button" />
                 <action function="setguitimezone"></action>
             </object>
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="%col_textcenter_x%" y="540" placement="4" />
                 <text>Current Time Zone: %tw_time_zone%</text>
@@ -2333,15 +2386,18 @@
 
             <object type="button">
                 <placement x="%col1_x%" y="%row1_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Copy Log to SD</text>
                 <image resource="main_button" />
-                <action function="copylog"></action>
+                <actions>
+					<action function="copylog"></action>
+					<action function="page">copylog_done</action>
+				</actions>
             </object>
 			
 			<object type="button">
                 <placement x="%col2_x%" y="%row1_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Fix Permissions</text>
                 <image resource="main_button" />
                 <action function="page">fixperms</action>
@@ -2350,7 +2406,7 @@
 			<object type="button">
 				<condition var1="tw_allow_partition_sdcard" var2="1" />
                 <placement x="%col1_x%" y="%row2_y%" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Partition SD Card</text>
                 <image resource="main_button" />
                 <action function="page">partsdcard</action>
@@ -2368,13 +2424,43 @@
             
             <object type="template" name="footer" />
         </page>
+		
+		<page name="copylog_done">
+            <object type="template" name="header" />
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col_textcenter_x%" y="330" placement="4" />
+                <text>Log copied to SD card</text>
+            </object>
+
+            <object type="button">
+                <placement x="%col_center_x%" y="360" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Back</text>
+                <image resource="main_button" />
+                <action function="page">advanced</action>
+            </object>
+
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">advanced</action>
+            </object>
+            
+            <object type="template" name="footer" />
+        </page>
 
 		<page name="partsdcard">
             <object type="template" name="header" />
 
             <object type="button">
                 <placement x="380" y="115" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text></text>
                 <image resource="minus_button" />
                 <action function="addsubtract">tw_sdext_size-128</action>
@@ -2382,13 +2468,13 @@
 			
 			<object type="button">
                 <placement x="590" y="115" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text></text>
                 <image resource="plus_button" />
                 <action function="addsubtract">tw_sdext_size+128</action>
             </object>
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
 				<font resource="font" />
 				<placement x="%col_textcenter_x%" y="130" placement="4" />
 				<text>EXT Size: %tw_sdext_size%</text>
@@ -2396,7 +2482,7 @@
 			
 			<object type="button">
                 <placement x="380" y="180" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text></text>
                 <image resource="minus_button" />
                 <action function="addsubtract">tw_swap_size-32</action>
@@ -2404,19 +2490,19 @@
 			
 			<object type="button">
                 <placement x="590" y="180" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text></text>
                 <image resource="plus_button" />
                 <action function="addsubtract">tw_swap_size+32</action>
             </object>
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
 				<font resource="font" />
 				<placement x="%col_textcenter_x%" y="195" placement="4" />
 				<text>Swap Size: %tw_swap_size%</text>
 			</object>
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
 				<font resource="font" />
 				<placement x="%col_textcenter_x%" y="240" placement="4" />
 				<text>File system: %tw_sdpart_file_system%</text>
@@ -2424,7 +2510,7 @@
 			
 			<object type="button">
                 <placement x="387" y="280" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>EXT3</text>
                 <image resource="medium_button" />
                 <action function="set">tw_sdpart_file_system=ext3</action>
@@ -2432,19 +2518,19 @@
 			
 			<object type="button">
                 <placement x="517" y="280" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>EXT4</text>
                 <image resource="medium_button" />
                 <action function="set">tw_sdpart_file_system=ext4</action>
             </object>
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
 				<font resource="font" />
 				<placement x="%col_textcenter_x%" y="380" placement="4" />
 				<text>You will lose all files on your SD card!</text>
 			</object>
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
 				<font resource="font" />
 				<placement x="%col_textcenter_x%" y="410" placement="4" />
 				<text>This action cannot be undone!</text>
@@ -2453,7 +2539,7 @@
 			<object type="button">
 				<condition var1="tw_allow_partition_sdcard" var2="1" />
                 <placement x="%col_center_x%" y="440" />
-                <font resource="font" color="black" />
+                <font resource="font" color="%button_text_color%" />
                 <text>Partition SD</text>
                 <image resource="main_button" />
                 <action function="page">partsdcardaction</action>
@@ -2475,19 +2561,19 @@
 		<page name="partsdcardaction">
             <object type="template" name="header" />
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
 				<font resource="font" />
 				<placement x="%col_textcenter_x%" y="120" placement="4" />
 				<text>Partitioning SD Card . . .</text>
 			</object>
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
 				<font resource="font" />
 				<placement x="%col_textcenter_x%" y="150" placement="4" />
 				<text>This may take a couple minutes.</text>
 			</object>
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
 				<font resource="font" />
 				<placement x="%col_textcenter_x%" y="180" placement="4" />
 				<text>The progress bar may not be accurate.</text>
@@ -2512,31 +2598,58 @@
 
             <object type="action">
                 <condition var1="tw_operation_state" var2="1" />
-				<actions>
-					<action function="set">tw_zip_location=/sdcard</action>
-					<action function="page">advanced</action>
-				</actions>
+				<action function="page">partsdcard_done</action>
             </object>
                         
+            <object type="template" name="footer" />
+        </page>
+		
+		<page name="partsdcard_done">
+            <object type="template" name="header" />
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col_textcenter_x%" y="330" placement="4" />
+                <text>Paritioning complete</text>
+            </object>
+
+            <object type="button">
+                <placement x="%col_center_x%" y="360" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Back</text>
+                <image resource="main_button" />
+                <action function="page">partsdcard</action>
+            </object>
+
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">partsdcard</action>
+            </object>
+            
             <object type="template" name="footer" />
         </page>
 		
 		<page name="fixperms">
             <object type="template" name="header" />
 
-            <object type="text" color="#A0A0A0">
+            <object type="text" color="%text_color%">
 				<font resource="font" />
 				<placement x="%col_textcenter_x%" y="120" placement="4" />
 				<text>Fixing Permissions . . .</text>
 			</object>
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
 				<font resource="font" />
 				<placement x="%col_textcenter_x%" y="150" placement="4" />
 				<text>This may take several minutes.</text>
 			</object>
 			
-			<object type="text" color="#A0A0A0">
+			<object type="text" color="%text_color%">
 				<font resource="font" />
 				<placement x="%col_textcenter_x%" y="180" placement="4" />
 				<text>The progress bar may not be accurate.</text>
@@ -2561,9 +2674,39 @@
 
             <object type="action">
                 <condition var1="tw_operation_state" var2="1" />
-                <action function="page">advanced</action>
+                <action function="page">fixperms_done</action>
             </object>
                         
+            <object type="template" name="footer" />
+        </page>
+		
+		<page name="fixperms_done">
+            <object type="template" name="header" />
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col_textcenter_x%" y="330" placement="4" />
+                <text>Fix permissions complete</text>
+            </object>
+
+            <object type="button">
+                <placement x="%col_center_x%" y="360" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Back</text>
+                <image resource="main_button" />
+                <action function="page">advanced</action>
+            </object>
+
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">advanced</action>
+            </object>
+            
             <object type="template" name="footer" />
         </page>
 

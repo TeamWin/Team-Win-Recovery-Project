@@ -100,7 +100,7 @@
             <object type="console">
                 <slideout resource="slideout" x="240" y="920" />
                 <placement x="0" y="0" w="540" h="920" />
-                <color foreground="#B0B0B0" background="black" scroll="#000000" />
+                <color foreground="#A0A0A0" background="#303030" scroll="#303030" />
                 <font resource="fixed" />
             </object>
         </template>
@@ -183,7 +183,7 @@
             <object type="fileselector">
                 <placement x="5" y="%row1_y%" w="530" h="660" />
                 <icon folder="folder_icon" file="file_icon" />
-                <background color="#222222" />
+                <background color="#303030" />
                 <font resource="filelist" spacing="18" color="%text_color%" />
                 <filter extn=".zip" folders="1" files="1" />
                 <path name="tw_zip_location" default="/sdcard" />
@@ -331,7 +331,7 @@
 
             <object type="console">
                 <placement x="0" y="%row1_y%" w="540" h="620" />
-                <color foreground="#B0B0B0" background="black" scroll="#000000" />
+                <color foreground="#A0A0A0" background="#303030" scroll="#303030" />
                 <font resource="fixed" />
             </object>
 
@@ -352,8 +352,6 @@
                 <condition var1="tw_operation_state" var2="1" />
                 <action function="page">flash_done</action>
             </object>
-                        
-            <object type="template" name="footer" />
         </page>
 
         <page name="flash_done">
@@ -361,7 +359,7 @@
 			
             <object type="console">
                 <placement x="0" y="%row1_y%" w="540" h="390" />
-                <color foreground="#B0B0B0" background="black" scroll="black" />
+                <color foreground="#A0A0A0" background="#303030" scroll="#303030" />
                 <font resource="fixed" />
             </object>
 			
@@ -388,8 +386,6 @@
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
-                        
-            <object type="template" name="footer" />
         </page>
 		
 		<page name="wipe_cachedalvik">
@@ -1265,6 +1261,16 @@
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
+			
+			<object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">backup</action>
+            </object>
                         
             <object type="template" name="footer" />
         </page>
@@ -1290,6 +1296,16 @@
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
+            </object>
+			
+			<object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">backup</action>
             </object>
                         
             <object type="template" name="footer" />
@@ -1526,6 +1542,16 @@
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
+			
+			<object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">restore_select</action>
+            </object>
                         
             <object type="template" name="footer" />
         </page>
@@ -1551,6 +1577,16 @@
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
+            </object>
+			
+			<object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">restore_select</action>
             </object>
                         
             <object type="template" name="footer" />

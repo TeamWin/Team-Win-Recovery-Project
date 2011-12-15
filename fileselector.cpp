@@ -163,7 +163,7 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
 	// Fetch the file/folder list
     std::string value;
     DataManager::GetValue(mPathVar, value);
-    if (GetFileList(value) != 0)
+    if (GetFileList(value) != 0 && (mShowNavFolders != 0 || mShowFiles != 0))
 		GetFileList("/sdcard");
 }
 
@@ -494,7 +494,7 @@ void GUIFileSelector::SetPageFocus(int inFocus)
     {
         std::string value;
         DataManager::GetValue(mPathVar, value);
-        if (GetFileList(value) != 0)
+        if (GetFileList(value) != 0 && (mShowNavFolders != 0 || mShowFiles != 0))
 			GetFileList("/sdcard");
     }
 }

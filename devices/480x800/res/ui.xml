@@ -101,7 +101,7 @@
             <object type="console">
                 <slideout resource="slideout" x="210" y="760" />
                 <placement x="0" y="0" w="480" h="760" />
-                <color foreground="#B0B0B0" background="black" scroll="#000000" />
+                <color foreground="#A0A0A0" background="#303030" scroll="#303030" />
                 <font resource="fixed" />
             </object>
         </template>
@@ -184,7 +184,7 @@
             <object type="fileselector">
                 <placement x="5" y="%row1_y%" w="470" h="560" />
                 <icon folder="folder_icon" file="file_icon" />
-                <background color="#454545" />
+                <background color="#303030" />
                 <font resource="font" spacing="14" color="%text_color%" />
                 <filter extn=".zip" folders="1" files="1" />
                 <path name="tw_zip_location" default="/sdcard" />
@@ -332,7 +332,7 @@
 
             <object type="console">
                 <placement x="0" y="%row1_y%" w="480" h="590" />
-                <color foreground="#B0B0B0" background="black" scroll="black" />
+                <color foreground="#A0A0A0" background="#303030" scroll="#303030" />
                 <font resource="fixed" />
             </object>
 
@@ -362,7 +362,7 @@
 
             <object type="console">
                 <placement x="0" y="%row1_y%" w="480" h="360" />
-                <color foreground="#B0B0B0" background="black" scroll="black" />
+                <color foreground="#A0A0A0" background="#303030" scroll="#303030" />
                 <font resource="fixed" />
             </object>
 			
@@ -1263,6 +1263,15 @@
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
+			<object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">backup</action>
+            </object>
                         
             <object type="template" name="footer" />
         </page>
@@ -1288,6 +1297,16 @@
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
+            </object>
+			
+			<object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">backup</action>
             </object>
                         
             <object type="template" name="footer" />
@@ -1524,6 +1543,16 @@
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
+			
+			<object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">restore_select</action>
+            </object>
                         
             <object type="template" name="footer" />
         </page>
@@ -1549,6 +1578,16 @@
                 <text>Main Menu</text>
                 <image resource="main_button" />
                 <action function="page">main</action>
+            </object>
+			
+			<object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">restore_select</action>
             </object>
                         
             <object type="template" name="footer" />
