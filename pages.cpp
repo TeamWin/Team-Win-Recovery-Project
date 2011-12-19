@@ -26,6 +26,7 @@ extern "C" {
 #include "rapidxml.hpp"
 #include "objects.hpp"
 
+extern int gGuiRunning;
 
 std::map<std::string, PageSet*> PageManager::mPageSets;
 PageSet* PageManager::mCurrentSet;
@@ -756,6 +757,8 @@ int PageManager::NotifyVarChange(std::string varName, std::string value)
 
 extern "C" void gui_notifyVarChange(const char *name, const char* value)
 {
+    if (!gGuiRunning)   return;
+
     PageManager::NotifyVarChange(name, value);
 }
 

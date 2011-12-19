@@ -388,6 +388,7 @@
                 <font resource="font" color="%button_text_color%" />
                 <text>Reboot System</text>
                 <image resource="main_button" />
+                <condition var1="tw_reboot_system" var2="1" />
                 <action function="reboot">system</action>
             </object>
 			
@@ -485,6 +486,7 @@
                 <font resource="font" color="%button_text_color%" />
                 <text>System</text>
                 <image resource="main_button" />
+                <condition var1="tw_reboot_system" var2="1" />
                 <action function="reboot">system</action>
             </object>
 
@@ -493,6 +495,7 @@
                 <font resource="font" color="%button_text_color%" />
                 <text>Power Off</text>
                 <image resource="main_button" />
+                <condition var1="tw_reboot_poweroff" var2="1" />
                 <action function="reboot">poweroff</action>
             </object>
 
@@ -501,6 +504,7 @@
                 <font resource="font" color="%button_text_color%" />
                 <text>Recovery</text>
                 <image resource="main_button" />
+                <condition var1="tw_reboot_recovery" var2="1" />
                 <action function="reboot">recovery</action>
             </object>
 
@@ -509,6 +513,7 @@
                 <font resource="font" color="%button_text_color%" />
                 <text>Bootloader</text>
                 <image resource="main_button" />
+                <condition var1="tw_reboot_bootloader" var2="1" />
                 <action function="reboot">bootloader</action>
             </object>
 

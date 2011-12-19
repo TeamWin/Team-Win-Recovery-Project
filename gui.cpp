@@ -28,6 +28,7 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include <sys/mount.h>
 #include <time.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -36,6 +37,7 @@
 extern "C" {
 #include "../common.h"
 #include "../roots.h"
+#include "../ddftw.h"
 #include "../minui/minui.h"
 #include "../recovery_ui.h"
 #include "../minzip/Zip.h"
@@ -44,7 +46,7 @@ extern "C" {
 
 #include "rapidxml.hpp"
 #include "objects.hpp"
-
+#include "../data.hpp"
 
 #include "curtain.h"
 
@@ -61,6 +63,9 @@ static int gGuiConsoleRunning = 0;
 static int gGuiConsoleTerminate = 0;
 static int gForceRender = 0;
 static int gNoAnimation = 0;
+
+// Needed by pages.cpp too
+int gGuiRunning = 0;
 
 static int gRecorder = -1;
 
@@ -288,6 +293,10 @@ static int runPages(void)
         gr_free_surface(surface);
     }
 
+    gGuiRunning = 1;
+
+    DataManager::SetValue("tw_loaded", 1);
+
     for (;;)
     {
         loopTimer();
@@ -310,6 +319,8 @@ static int runPages(void)
             flip();
         }
     }
+
+    gGuiRunning = 0;
     return 0;
 }
 
@@ -372,6 +383,8 @@ extern "C" int gui_loadResources()
 {
     // Make sure the sdcard is mounted before we continue
 #ifdef RECOVERY_SDCARD_ON_DATA
+    mkdir("/mnt/data-sdc", 0777);
+    mount(dat.blk, "/mnt/data-sdc", dat.fst, 0, NULL);
     if (symlink("/mnt/data-sdc/media", "/sdcard"))
     {
         LOGE("Unable to symlink (errno %d)\n", errno);
@@ -388,12 +401,15 @@ extern "C" int gui_loadResources()
 //    rename("/sdcard/video.bin", "/sdcard/video.last");
 //    gRecorder = open("/sdcard/video.bin", O_CREAT | O_WRONLY);
 
-    if (PageManager::LoadPackage("TWRP", "/sdcard/TWRP/theme/ui.zip"))
+    if (PageManager::LoadPackage("TWRP", "/script/ui.xml"))
     {
-        if (PageManager::LoadPackage("TWRP", "/res/ui.xml"))
+        if (PageManager::LoadPackage("TWRP", "/sdcard/TWRP/theme/ui.zip"))
         {
-            LOGE("Failed to load base packages.\n");
-            goto error;
+            if (PageManager::LoadPackage("TWRP", "/res/ui.xml"))
+            {
+                LOGE("Failed to load base packages.\n");
+                goto error;
+            }
         }
     }
 

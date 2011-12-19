@@ -519,6 +519,24 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
             DataManager::SetValue("tw_operation_state", 1);
 			return 0;
 		}
+        if (action.mFunction == "dd")
+        {
+            DataManager::SetValue("ui_progress", 0);
+            DataManager::SetValue("tw_operation", "imaging");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 0);
+
+            char cmd[512];
+            sprintf(cmd, "dd %s", action.mArg.c_str());
+            __system(cmd);
+
+            DataManager::SetValue("ui_progress", 100);
+            DataManager::SetValue("ui_progress", 0);
+            DataManager::SetValue("tw_operation", "imaging");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 1);
+            return 0;
+        }
 		if (action.mFunction == "partitionsd")
 		{
 			DataManager::SetValue("ui_progress", 0);
