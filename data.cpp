@@ -43,6 +43,7 @@ extern "C"
     #include "common.h"
     #include "data.h"
 	#include "ddftw.h"
+    #include "tw_reboot.h"
 
     int get_battery_level(void);
     void get_device_id(void);
@@ -316,6 +317,11 @@ void DataManager::SetDefaultValues()
     if (strlen(EXPAND(SP1_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP1_PARTITION_NAME_VAR, EXPAND(SP1_DISPLAY_NAME)));
     if (strlen(EXPAND(SP2_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP2_PARTITION_NAME_VAR, EXPAND(SP2_DISPLAY_NAME)));
     if (strlen(EXPAND(SP3_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP3_PARTITION_NAME_VAR, EXPAND(SP3_DISPLAY_NAME)));
+
+    mConstValues.insert(make_pair(TW_REBOOT_SYSTEM, tw_isRebootCommandSupported(rb_system) ? "1" : "0"));
+    mConstValues.insert(make_pair(TW_REBOOT_RECOVERY, tw_isRebootCommandSupported(rb_recovery) ? "1" : "0"));
+    mConstValues.insert(make_pair(TW_REBOOT_POWEROFF, tw_isRebootCommandSupported(rb_poweroff) ? "1" : "0"));
+    mConstValues.insert(make_pair(TW_REBOOT_BOOTLOADER, tw_isRebootCommandSupported(rb_bootloader) ? "1" : "0"));
 
     mValues.insert(make_pair(TW_BACKUP_SYSTEM_VAR, make_pair("1", 1)));
     mValues.insert(make_pair(TW_BACKUP_DATA_VAR, make_pair("1", 1)));

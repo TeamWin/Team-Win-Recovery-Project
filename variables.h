@@ -82,6 +82,11 @@
 
 #define TW_SCREEN_OFF               "tw_screen_off"
 
+#define TW_REBOOT_SYSTEM            "tw_reboot_system"
+#define TW_REBOOT_RECOVERY          "tw_reboot_recovery"
+#define TW_REBOOT_POWEROFF          "tw_reboot_poweroff"
+#define TW_REBOOT_BOOTLOADER        "tw_reboot_bootloader"
+
 // Also used:
 //   tw_boot_is_mountable
 //   tw_system_is_mountable

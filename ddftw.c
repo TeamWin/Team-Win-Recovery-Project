@@ -27,6 +27,9 @@
 #include "backstore.h"
 #include "data.h"
 
+struct dInfo tmp, sys, dat, boo, rec, cac, sdcext, sdcint, ase, sde, sp1, sp2, sp3;
+char tw_device_name[20];
+
 void dumpPartitionTable(void);
 
 static int isMTDdevice = 0;
@@ -94,16 +97,7 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
     if (strcmp(loc->mnt, "boot") == 0 && fstype)
     {
         loc->mountable = 0;
-        if (strcmp(fstype, "vfat") == 0 && strlen(loc->blk) > 1)
-        {
-            if (strcmp(loc->blk, loc->dev) == 0)
-                fstype = "emmc";
-            else
-                fstype = "mtd";
-        }
-
-        // On rare occasions, boot is mountable (see also: HP Touchpad)
-        if (memcmp(fstype, "ext", 3) == 0)
+        if (strcmp(fstype, "vfat") == 0 || memcmp(fstype, "ext", 3) == 0)
             loc->mountable = 1;
     }
 
