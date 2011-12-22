@@ -161,8 +161,13 @@ int tw_format(const char *fstype, const char *fsblock)
     // Verify the block exists
     if (!file_exists(fsblock))
     {
-        LOGE("%s: failed to locate device \"%s\"\n", __FUNCTION__, fsblock);
-        return -1;
+        if (strcmp(fsblock, "userdata") == 0 && strcmp(fstype, "yaffs2") == 0) {
+			// userdata doesn't exist in the file system, but it's the name used for fsblock MTD devices.
+			// there is handling in tw_format_mtd if the fsblock doesn't exist, so we'll just keep going.
+		} else {
+			LOGE("%s: failed to locate device \"%s\"\n", __FUNCTION__, fsblock);
+			return -1;
+		}
     }
 
     // Let's handle the different types
