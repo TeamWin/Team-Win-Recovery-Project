@@ -32,7 +32,7 @@ char tw_device_name[20];
 
 void dumpPartitionTable(void);
 
-static int isMTDdevice = 0;
+static int isMTDdevice = 0, isEMMCdevice = 0;
 
 struct dInfo* findDeviceByLabel(const char* label)
 {
@@ -91,7 +91,17 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
 
     if (label)                  strcpy(loc->mnt, label);
     if (blockDevice)            strcpy(loc->blk, blockDevice);
-    if (mtdDevice)              strcpy(loc->dev, mtdDevice);
+    if (mtdDevice){
+		strcpy(loc->dev, mtdDevice);
+		loc->memory_type = mtd;
+		if (strcmp(loc->mnt, "data") == 0)
+			strcpy(loc->format_location, "userdata");
+		else
+			strcpy(loc->format_location, loc->mnt);
+	} else {
+		loc->memory_type = emmc;
+		strcpy(loc->format_location, loc->blk);
+	}
 
     // This is a simple 
     if (strcmp(loc->mnt, "boot") == 0 && fstype)
@@ -176,7 +186,7 @@ int getLocationsViafstab()
     getSizesViaPartitions();
 
     // Now, let's retrieve base partition sizes
-    if (!isMTDdevice)
+    if (isEMMCdevice)
     {
         fp = __popen("fdisk -l /dev/block/mmcblk0","r");
         if (fp == NULL)
@@ -265,7 +275,8 @@ int getLocationsViaProc(const char* fstype)
         }
         else
         {
-            strcpy(mtdDevice, device);
+            isEMMCdevice = 1;
+			strcpy(mtdDevice, device);
             fstype = "emmc";
         }
 
@@ -375,6 +386,12 @@ void updateUsedSized()
     return;
 }
 
+void listMntInfo(struct dInfo* mMnt, char* variable_name)
+{
+	LOGI("%s information:\n   mnt: '%s'\n   blk: '%s'\n   dev: '%s'\n   fst: '%s'\n   fnm: '%s'\n   format location: '%s'\n   mountable: %i\n   backup method: %i\n   memory type: %i\n\n", variable_name, mMnt->mnt, mMnt->blk, mMnt->dev, mMnt->fst, mMnt->fnm, mMnt->format_location, mMnt->mountable, mMnt->backup, mMnt->memory_type);
+};
+	
+
 int getLocations()
 {
     // This decides if a partition can be mounted and appears in the fstab
@@ -453,6 +470,18 @@ int getLocations()
     DataManager_SetIntValue("tw_sp2_is_mountable", sp2.mountable ? 1 : 0);
     DataManager_SetIntValue("tw_sp3_is_mountable", sp3.mountable ? 1 : 0);
 
+    listMntInfo(&boo, "boot");
+    listMntInfo(&sys, "system");
+    listMntInfo(&dat, "data");
+    listMntInfo(&cac, "cache");
+    listMntInfo(&rec, "recovery");
+    listMntInfo(&sdcext, "sdcext");
+    listMntInfo(&sdcint, "sdcint");
+    listMntInfo(&sde, "sd-ext");
+	listMntInfo(&ase, "android_secure");
+    listMntInfo(&sp1, "special 1");
+    listMntInfo(&sp2, "special 2");
+    listMntInfo(&sp3, "special 3");
     return 0;
 }
 
@@ -592,16 +621,16 @@ void dumpPartitionEntry(struct dInfo* mnt)
     char* mntName = mnt->mnt;
     if (strcmp(mntName, ".android_secure") == 0)    mntName = (char*) "andsec";
 
-    fprintf(stderr, "| %8s | %27s | %4s | %8lu | %8lu | %d | %c |\n", 
+    fprintf(stderr, "| %8s | %27s | %6s | %8lu | %8lu | %d | %c |\n", 
             mntName, mnt->blk, mnt->fst, (unsigned long) (mnt->sze / 1024), (unsigned long) (mnt->used / 1024), mnt->mountable ? 1 : 0, 
             backupToChar(mnt->backup));
 }
 
 void dumpPartitionTable(void)
 {
-    fprintf(stderr, "+----------+-----------------------------+------+----------+----------+---+---+\n");
-    fprintf(stderr, "| Mount    | Block Device                | fst  | Size(KB) | Used(KB) | M | B |\n");
-    fprintf(stderr, "+----------+-----------------------------+------+----------+----------+---+---+\n");
+    fprintf(stderr, "+----------+-----------------------------+--------+----------+----------+---+---+\n");
+    fprintf(stderr, "| Mount    | Block Device                | fst    | Size(KB) | Used(KB) | M | B |\n");
+    fprintf(stderr, "+----------+-----------------------------+--------+----------+----------+---+---+\n");
 
     dumpPartitionEntry(&tmp);
     dumpPartitionEntry(&sys);
