@@ -8,7 +8,7 @@ LOCAL_SRC_FILES := flashutils.c
 LOCAL_MODULE := libflashutils
 LOCAL_MODULE_TAGS := eng
 LOCAL_C_INCLUDES += bootable/recovery
-LOCAL_SHARED_LIBRARIES := libc libmmcutils libmtdutils libbmlutils 
+LOCAL_SHARED_LIBRARIES := libc libmmcutils libmtdutils libbmlutils
 
 BOARD_RECOVERY_DEFINES := BOARD_BML_BOOT BOARD_BML_RECOVERY
 

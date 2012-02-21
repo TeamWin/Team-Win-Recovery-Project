@@ -2126,3 +2126,34 @@ void run_script(char *str1,char *str2,char *str3,char *str4,char *str5,char *str
        	        }
 		if (!ui_text_visible()) return;
 }
+
+void install_htc_dumlock(void)
+{
+	ui_print("Installing HTC Dumlock to system\n");
+	ensure_path_mounted("/system");
+	__system("cp /res/htcdumlock /system/bin && chmod 755 /system/bin/htcdumlock");
+	__system("cp /res/flash_image /system/bin && chmod 755 /system/bin/flash_image");
+	__system("cp /res/dump_image /system/bin && chmod 755 /system/bin/dump_image");
+	__system("cp /res/libbmlutils.so /system/lib && chmod 755 /system/lib/libbmlutils.so");
+	__system("cp /res/libflashutils.so /system/lib && chmod 755 /system/lib/libflashutils.so");
+	__system("cp /res/libmmcutils.so /system/lib && chmod 755 /system/lib/libmmcutils.so");
+	__system("cp /res/libmtdutils.so /system/lib && chmod 755 /system/lib/libmtdutils.so");
+	ensure_path_mounted("/data");
+	__system("cp /res/HTCDumlock.apk /data/app/com.teamwin.htcdumlock.apk");
+	sync();
+	ui_print("HTC Dumlock is installed to system\n");
+}
+
+void htc_dumlock_restore_original_boot(void)
+{
+	ui_print("Restoring original boot...\n");
+	__system("htcdumlock restore");
+	ui_print("Original boot restored.\n");
+}
+
+void htc_dumlock_reflash_recovery_to_boot(void)
+{
+	ui_print("Reflashing recovery to boot...\n");
+	__system("htcdumlock recovery noreboot");
+	ui_print("Recovery is flashed to boot.\n");
+}

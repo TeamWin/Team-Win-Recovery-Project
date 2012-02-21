@@ -741,7 +741,7 @@ int install_zip_package(const char* zip_path_filename) {
 		result = INSTALL_ERROR;
 	}
     ensure_path_mounted(SDCARD_ROOT);
-    finish_recovery(NULL);
+    //finish_recovery(NULL);
 	return result;
 }
 

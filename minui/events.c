@@ -27,6 +27,8 @@
 
 #include "minui.h"
 
+#define _EVENT_LOGGING
+
 #define MAX_DEVICES 16
 
 #define VIBRATOR_TIMEOUT_FILE	"/sys/class/timed_output/vibrator/enable"
@@ -39,6 +41,7 @@
 #define ABS_MT_TOUCH_MAJOR 0x30
 #define ABS_MT_WIDTH_MAJOR 0x32
 #define SYN_MT_REPORT 2
+#define ABS_MT_PRESSURE    0x3a
 
 enum {
     DOWN_NOT,
@@ -362,6 +365,10 @@ static int vk_modify(struct ev *e, struct input_event *ev)
         case ABS_MT_TOUCH_MAJOR:
 #ifdef _EVENT_LOGGING
             LOGI("EV: %s => EV_ABS  ABS_MT_TOUCH_MAJOR  %d\n", e->deviceName, ev->value);
+#endif
+        case ABS_MT_PRESSURE:
+#ifdef _EVENT_LOGGING
+            LOGI("EV: %s => EV_ABS  ABS_MT_PRESSURE  %d\n", e->deviceName, ev->value);
 #endif
             if (ev->value == 0)
             {
