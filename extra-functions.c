@@ -37,6 +37,7 @@
 #include <sys/limits.h>
 #include <termios.h>
 #include <time.h>
+#include <sys/vfs.h>
 
 #include "tw_reboot.h"
 #include "bootloader.h"
@@ -2129,19 +2130,38 @@ void run_script(char *str1,char *str2,char *str3,char *str4,char *str5,char *str
 
 void install_htc_dumlock(void)
 {
-	ui_print("Installing HTC Dumlock to system\n");
+	struct statfs fs1, fs2;
+	int need_libs = 0;
+
+	ui_print("Installing HTC Dumlock to system...\n");
 	ensure_path_mounted("/system");
-	__system("cp /res/htcdumlock /system/bin && chmod 755 /system/bin/htcdumlock");
-	__system("cp /res/flash_image /system/bin && chmod 755 /system/bin/flash_image");
-	__system("cp /res/dump_image /system/bin && chmod 755 /system/bin/dump_image");
-	__system("cp /res/libbmlutils.so /system/lib && chmod 755 /system/lib/libbmlutils.so");
-	__system("cp /res/libflashutils.so /system/lib && chmod 755 /system/lib/libflashutils.so");
-	__system("cp /res/libmmcutils.so /system/lib && chmod 755 /system/lib/libmmcutils.so");
-	__system("cp /res/libmtdutils.so /system/lib && chmod 755 /system/lib/libmtdutils.so");
+	__system("cp /res/htcd/htcdumlock /system/bin && chmod 755 /system/bin/htcdumlock");
+	if (statfs("/system/bin/flash_image", &fs1) != 0) {
+		ui_print("Installing flash_image...\n");
+		__system("cp /res/htcd/flash_image /system/bin && chmod 755 /system/bin/flash_image");
+		need_libs = 1;
+	} else
+		ui_print("flash_image is already installed, skipping...\n");
+	if (statfs("/system/bin/dump_image", &fs2) != 0) {
+		ui_print("Installing dump_image...\n");
+		__system("cp /res/htcd/dump_image /system/bin && chmod 755 /system/bin/dump_image");
+		need_libs = 1;
+	} else
+		ui_print("dump_image is already installed, skipping...\n");
+	if (need_libs) {
+		ui_print("Installing libs needed for flash_image and dump_image...\n");
+		__system("cp /res/htcd/libbmlutils.so /system/lib && chmod 755 /system/lib/libbmlutils.so");
+		__system("cp /res/htcd/libflashutils.so /system/lib && chmod 755 /system/lib/libflashutils.so");
+		__system("cp /res/htcd/libmmcutils.so /system/lib && chmod 755 /system/lib/libmmcutils.so");
+		__system("cp /res/htcd/libmtdutils.so /system/lib && chmod 755 /system/lib/libmtdutils.so");
+	}
+	ui_print("Installing HTC Dumlock app...\n");
 	ensure_path_mounted("/data");
-	__system("cp /res/HTCDumlock.apk /data/app/com.teamwin.htcdumlock.apk");
+	mkdir("/data/app", 0777);
+	__system("rm /data/app/com.teamwin.htcdumlock*");
+	__system("cp /res/htcd/HTCDumlock.apk /data/app/com.teamwin.htcdumlock.apk");
 	sync();
-	ui_print("HTC Dumlock is installed to system\n");
+	ui_print("HTC Dumlock is installed.\n");
 }
 
 void htc_dumlock_restore_original_boot(void)
