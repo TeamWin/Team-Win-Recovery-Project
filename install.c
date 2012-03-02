@@ -32,6 +32,7 @@
 #include "mtdutils/mtdutils.h"
 #include "roots.h"
 #include "verifier.h"
+#include "data.h"
 
 #define ASSUMED_UPDATE_BINARY_NAME  "META-INF/com/google/android/update-binary"
 #define PUBLIC_KEYS_FILE "/res/keys"

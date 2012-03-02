@@ -21,6 +21,7 @@
 
 #define TW_USE_COMPRESSION_VAR      "tw_use_compression"
 
+#define TW_BACKUP_NAME		        "tw_backup_name"
 #define TW_BACKUP_SYSTEM_VAR        "tw_backup_system"
 #define TW_BACKUP_DATA_VAR          "tw_backup_data"
 #define TW_BACKUP_BOOT_VAR          "tw_backup_boot"

@@ -27,7 +27,7 @@
 
 #include "minui.h"
 
-#define _EVENT_LOGGING
+//#define _EVENT_LOGGING
 
 #define MAX_DEVICES 16
 

@@ -989,9 +989,18 @@ nandroid_back_exe()
 	time_t seconds;
 	seconds = time(0);
     t = localtime(&seconds);
-    sprintf(timestamp,"%04d-%02d-%02d--%02d-%02d-%02d",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min,t->tm_sec); // make time stamp
+	LOGI("DataManager_GetStrValue(TW_BACKUP_NAME) = '%s'\n", DataManager_GetStrValue(TW_BACKUP_NAME));
+	if (strcmp(DataManager_GetStrValue(TW_BACKUP_NAME), "0") == 0) {
+		sprintf(timestamp,"%04d-%02d-%02d--%02d-%02d-%02d",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min,t->tm_sec); // make time stamp
+	} else {
+		int copy_size = strlen(DataManager_GetStrValue(TW_BACKUP_NAME));
+		if (copy_size > sizeof(timestamp))
+			copy_size = sizeof(timestamp);
+		memset(timestamp, 0 , sizeof(timestamp));
+		strncpy(timestamp, DataManager_GetStrValue(TW_BACKUP_NAME), copy_size);
+	}
 	sprintf(tw_image_dir,"%s/%s/%s/", backup_folder, device_id, timestamp); // for backup folder
-
+	LOGI("Attempt to create folder '%s'\n", tw_image_dir);
     if (recursive_mkdir(tw_image_dir))
     {
         LOGE("Unable to create folder: '%s'\n", backup_folder);
@@ -1253,7 +1262,7 @@ nandroid_rest_exe()
     SetDataState("", "", 0, 0);
 
     const char* nan_dir = DataManager_GetStrValue("tw_restore");
-
+	ui_print("Restore folder: '%s'\n", nan_dir);
 	if (ensure_path_mounted(SDCARD_ROOT) != 0) {
 		ui_print("-- Could not mount: %s.\n-- Aborting.\n",SDCARD_ROOT);
 		return 1;

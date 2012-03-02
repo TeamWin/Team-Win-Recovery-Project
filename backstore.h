@@ -30,4 +30,6 @@ int tw_isMounted(struct dInfo mMnt);
 int tw_mount(struct dInfo mMnt);
 int tw_unmount(struct dInfo uMnt);
 
+int recursive_mkdir(const char* path);
+
 #endif  // _BACKSTORE_HEADER

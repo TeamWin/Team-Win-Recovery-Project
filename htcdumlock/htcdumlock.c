@@ -33,6 +33,9 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
+// Number of bytes in the ramdisks to compare
+#define SCAN_SIZE 60
+
 #define CMDLINE_SERIALNO        "androidboot.serialno="
 #define CMDLINE_SERIALNO_LEN    (strlen(CMDLINE_SERIALNO))
 #define CPUINFO_SERIALNO        "Serial"
@@ -140,6 +143,70 @@ void reboot_device() {
 	system("reboot system");
 }
 
+void scan_for_ramdisk_data(char *filename, char *ramdisk) {
+	FILE *pFile;
+	unsigned long lSize;
+	unsigned char *buffer;
+	size_t result;
+	int i;
+
+	pFile = fopen(filename, "rb");
+	if(pFile==NULL){
+		printf("Unabled to open image.\nFailed\n");
+		exit(1);
+	}
+
+	fseek (pFile , 0 , SEEK_END);
+	lSize = ftell(pFile);
+	rewind(pFile);
+
+	//printf("\n\nFile is %ld bytes big\n\n", lSize);
+
+	buffer = (unsigned char*)malloc(sizeof(unsigned char) * lSize);
+	if(buffer == NULL){
+		printf("File read error!\nFailed\n");
+		exit(2);
+	}
+
+	result = fread (buffer, 1, lSize, pFile);
+	if (result != lSize) {
+		printf("Error reading file '%s'\nFailed\n", filename);
+		exit(3);
+	}
+
+	unsigned char needle[6] = {0x00, 0x00, 0x00, 0x00, 0x1f, 0x8b};
+	unsigned char *last_needle = NULL;
+	//char *p = memmem(needle, lSize, buffer, sizeof(needle));
+	unsigned char *p = memmem(buffer + 2048, lSize - 2048, needle, sizeof(needle));
+	if (!p) {
+		fclose(pFile);
+		printf("Ramdisk not found in '%s', error!\nFailed\n", filename);
+		exit(4);
+	} else {
+		//printf("Ramdisk found in '%s'!\n", filename);
+	}
+
+	memcpy(ramdisk, p, sizeof(char) * SCAN_SIZE);
+	fclose(pFile);
+	free(buffer);
+}
+
+int compare_ramdisks(char *boot_path, char *recovery_path) {
+	char boot_data[SCAN_SIZE], recovery_data[SCAN_SIZE];
+
+	scan_for_ramdisk_data(boot_path, (char*)&boot_data);
+	scan_for_ramdisk_data(recovery_path, (char*)&recovery_data);
+	if (memcmp(boot_data, recovery_data, sizeof(boot_data)) == 0) {
+		if (verbose)
+			printf("Boot and recovery are the same.\n");
+		return 0;
+	} else {
+		if (verbose)
+			printf("Boot and recovery are NOT the same.\n");
+		return 1;
+	}
+}
+
 void flash_recovery_to_boot(int no_flash, int no_reboot) {
 	char twrp_device_path[255], recovery_path[255], boot_path[255],
 		exec[255], md5recovery[255], md5boot[255],
@@ -218,25 +285,12 @@ void flash_recovery_to_boot(int no_flash, int no_reboot) {
 		printf("md5sum of recovery.img: '%s'\n", md5recovery);
 	fclose(fp);
 
-	// Get md5sum of boot stored in temp location
-	strcpy(exec, "md5sum ");
-	strcat(exec, tempimg);
-	fp = popen(exec, "r");
-	if (fgets(md5boot, sizeof(md5boot), fp) == NULL)
-    {
-		printf("Unable to get md5sum of boot.img\nFailed\n");
-		return;
-	}
-	if (verbose)
-		printf("md5sum of boot.img: '%s'\n", md5boot);
-	fclose(fp);
-
-	// Compare md5sums
-	if (strncmp(md5recovery, md5boot, 32) != 0) {
-		if (verbose) {
-			printf("md5sums of boot and recovery do not match so recovery is not flashed to boot yet...\n");
-			printf("Note that on some devices, boot and recovery partitions are not the same size so md5sums never match!\n");
-		}
+	// Compare the ramdisks of the images from boot and recovery to make sure they are different
+	// If they are the same, then recovery is already flashed to boot and we don't want to wipe
+	// out our existing backup of boot
+	if (compare_ramdisks(tempimg, recoveryimg) != 0) {
+		if (verbose)
+			printf("Boot and recovery do not match so recovery is not flashed to boot yet...\n");
 		strcpy(exec, "mv ");
 		strcat(exec, tempimg);
 		strcat(exec, " ");
@@ -250,7 +304,7 @@ void flash_recovery_to_boot(int no_flash, int no_reboot) {
 		}
 	} else {
 		if (!java)
-			printf("md5sum of recovery and boot matches! Recovery is already flashed to boot!\n");
+			printf("Ramdisk recovery and boot matches! Recovery is already flashed to boot!\n");
 		if (!no_reboot)
 			reboot_device();
 		return;
@@ -306,10 +360,14 @@ int main(int argc, char** argv)
 		arg_error = 1;
 	else {
 		for (i=1; i<argc; i++) {
-			if (strcmp(argv[i], "recovery") == 0)
+			if (strcmp(argv[i], "recovery") == 0) {
+				// Check to see if restore option is already set
+				// Do not allow user to do recovery and restore at the same time
+				if (restore_boot)
+					arg_error = 1;
 				recovery = 1;
-			else if (strcmp(argv[i], "restore") == 0) {
-				// Check to see if recovery option was set
+			} else if (strcmp(argv[i], "restore") == 0) {
+				// Check to see if recovery option is already set
 				// Do not allow user to do recovery and restore at the same time
 				if (recovery)
 					arg_error = 1;
