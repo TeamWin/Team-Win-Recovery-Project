@@ -357,7 +357,7 @@ void updateMntUsedSize(struct dInfo* mMnt)
     sprintf(path, "/%s/.", mMnt->mnt);
     if (statfs(path, &st) != 0)
     {
-        LOGE("Unable to stat '%s'\n", path);
+        if ((path, "/sd-ext", 7) != 0) LOGE("Unable to stat '%s'\n", path);
         return;
     }
 
