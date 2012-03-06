@@ -866,9 +866,9 @@ print_property(const char *key, const char *name, void *cookie) {
     printf("%s=%s\n", key, name);
 }
 
-// openscript file code
-static const char *SCRIPT_FILE_CACHE = "/cache/recovery/openscript";
-static const char *SCRIPT_FILE_TMP = "/tmp/openscript";
+// open recovery script file code
+static const char *SCRIPT_FILE_CACHE = "/cache/recovery/openrecoveryscript";
+static const char *SCRIPT_FILE_TMP = "/tmp/openrecoveryscript";
 #define SCRIPT_COMMAND_SIZE 512
 
 int check_for_script_file(void) {
@@ -1182,7 +1182,7 @@ int run_script_file(void) {
 	return ret_val;
 }
 
-// openscript file code
+// end open recovery script file code
 
 int
 main(int argc, char **argv) {
