@@ -29,6 +29,9 @@
 #include <time.h>
 #include <unistd.h>
 #include <dirent.h>
+#ifdef RECOVERY_SDCARD_ON_DATA
+#include <sys/statfs.h>
+#endif
 
 #include "bootloader.h"
 #include "common.h"
@@ -776,26 +779,7 @@ wipe_data(int confirm) {
 
     // For the Tuna boards, we can't do this! The sdcard is actually /data/media
 #ifdef RECOVERY_SDCARD_ON_DATA
-    tw_mount(dat);
-    __system("rm -f /data/*");
-    __system("rm -f /data/.*");
-
-    DIR* d;
-    d = opendir("/data");
-    if (d != NULL)
-    {
-        struct dirent* de;
-        while ((de = readdir(d)) != NULL)
-        {
-            if (strcmp(de->d_name, "media") == 0)   continue;
-
-            char cmd[256];
-            sprintf(cmd, "rm -fr /data/%s", de->d_name);
-            __system(cmd);
-        }
-        closedir(d);
-    }
-    tw_unmount(dat);
+    wipe_data_without_wiping_media();
 #else
     erase_volume("/data");
 #endif
@@ -1360,6 +1344,16 @@ main(int argc, char **argv) {
     }
 
     // Otherwise, get ready to boot the main system...
+#ifdef RECOVERY_SDCARD_ON_DATA
+	struct statfs st;
+	if (statfs("/sbin/itsmagic", &st) == 0) {
+		ui_print("Running itsmagic...");
+		__system("itsmagic");
+		ui_print("DONE\n");
+		LOGI("itsmagic ran!\n");
+		sleep(30);
+	}
+#endif
     finish_recovery(send_intent);
     ui_print("Rebooting...\n");
     sync();

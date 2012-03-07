@@ -14,4 +14,8 @@
  * limitations under the License.
  */
 
+#ifdef RECOVERY_SDCARD_ON_DATA
+void wipe_data_without_wiping_media(void);
+#endif
+
 int tw_format(const char *fstype, const char *fsblock);

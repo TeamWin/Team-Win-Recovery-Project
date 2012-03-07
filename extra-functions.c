@@ -2135,16 +2135,16 @@ void install_htc_dumlock(void)
 
 	ui_print("Installing HTC Dumlock to system...\n");
 	ensure_path_mounted("/system");
-	__system("cp /res/htcd/htcdumlock /system/bin && chmod 755 /system/bin/htcdumlock");
+	__system("cp /res/htcd/htcdumlocksys /system/bin && chmod 755 /system/bin/htcdumlock");
 	if (statfs("/system/bin/flash_image", &fs1) != 0) {
 		ui_print("Installing flash_image...\n");
-		__system("cp /res/htcd/flash_image /system/bin && chmod 755 /system/bin/flash_image");
+		__system("cp /res/htcd/flash_imagesys /system/bin && chmod 755 /system/bin/flash_image");
 		need_libs = 1;
 	} else
 		ui_print("flash_image is already installed, skipping...\n");
 	if (statfs("/system/bin/dump_image", &fs2) != 0) {
 		ui_print("Installing dump_image...\n");
-		__system("cp /res/htcd/dump_image /system/bin && chmod 755 /system/bin/dump_image");
+		__system("cp /res/htcd/dump_imagesys /system/bin && chmod 755 /system/bin/dump_image");
 		need_libs = 1;
 	} else
 		ui_print("dump_image is already installed, skipping...\n");

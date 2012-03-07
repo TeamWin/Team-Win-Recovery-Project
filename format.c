@@ -18,6 +18,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 #include "format.h"
 #include "extra-functions.h"
@@ -143,11 +145,44 @@ static int tw_format_ext4(const char* device)
     return tw_format_ext23("ext4", device);
 }
 
+#ifdef RECOVERY_SDCARD_ON_DATA
+void wipe_data_without_wiping_media(void) {
+	// This handles wiping data on devices with "sdcard" in /data/media
+    ui_print("Wiping data without wiping /data/media\n");
+	tw_mount(dat);
+    __system("rm -f /data/*");
+    __system("rm -f /data/.*");
+
+    DIR* d;
+    d = opendir("/data");
+    if (d != NULL)
+    {
+        struct dirent* de;
+        while ((de = readdir(d)) != NULL)
+        {
+            if (strcmp(de->d_name, "media") == 0)   continue;
+
+            char cmd[256];
+            sprintf(cmd, "rm -fr /data/%s", de->d_name);
+            __system(cmd);
+        }
+        closedir(d);
+    }
+    tw_unmount(dat);
+}
+#endif
+
 int tw_format(const char *fstype, const char *fsblock)
 {
     int result = -1;
 
     LOGI("%s: Formatting \"%s\" as \"%s\"\n", __FUNCTION__, fsblock, fstype);
+#ifdef RECOVERY_SDCARD_ON_DATA
+	if (strcmp(dat.blk, fsblock) == 0) {
+		wipe_data_without_wiping_media();
+		return 0;
+	}
+#endif
     Volume* v = volume_for_device(fsblock);
     if (v)
     {

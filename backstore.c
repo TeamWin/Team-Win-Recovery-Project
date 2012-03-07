@@ -644,7 +644,7 @@ int tw_unmount(struct dInfo uMnt)
 int tw_backup(struct dInfo bMnt, const char *bDir)
 {
     // set compression or not
-	char bTarArg[32];
+	char bTarArg[255];
 	if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR)) {
 		strcpy(bTarArg,"-czv");
 	} else {
@@ -653,22 +653,23 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
     FILE *bFp;
 
 #ifdef RECOVERY_SDCARD_ON_DATA
-    strcat(bTarArg, " -X /tmp/excludes.lst");
+    //strcat(bTarArg, " --exclude='data/media*'");
+	/*strcat(bTarArg, " -X /tmp/excludes.lst");
 
     bFp = fopen("/tmp/excludes.lst", "wt");
     if (bFp)
     {
-        fprintf(bFp, "/data/media\n");
+        fprintf(bFp, "data/media\n");
         fprintf(bFp, "./media\n");
         fprintf(bFp, "media\n");
         fclose(bFp);
-    }
+    }*/
 #endif
 
     char str[512];
 	unsigned long long bPartSize;
-	char *bImage = malloc(sizeof(char)*50);
-	char *bMount = malloc(sizeof(char)*50);
+	char *bImage = malloc(sizeof(char)*255);
+	char *bMount = malloc(sizeof(char)*255);
 	char *bCommand = malloc(sizeof(char)*255);
 
     if (bMnt.backup == files)
@@ -693,6 +694,12 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
 			}
 		}
 		bPartSize = bMnt.used;
+#ifdef RECOVERY_SDCARD_ON_DATA
+		if (strcmp(bMount, "/data") == 0) {
+			LOGI("Using special tar command for /data/media setups.\n");
+			sprintf(bCommand, "cd /data && tar %s ./ --exclude='media*' -f %s%s", bTarArg, bDir, bImage);
+		} else
+#endif
 		sprintf(bCommand,"cd %s && tar %s -f %s%s ./*",bMount,bTarArg,bDir,bImage); // form backup command
 	} else if (bMnt.backup == image) {
 		strcpy(bMount,bMnt.mnt);
@@ -714,7 +721,7 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
 	LOGI("=> Filename: %s\n",bImage);
 	LOGI("=> Size of %s is %lu KB.\n\n", bMount, (unsigned long) (bPartSize / 1024));
 	int i;
-	char bUppr[20];
+	char bUppr[255];
 	strcpy(bUppr,bMnt.mnt);
 	for (i = 0; i < (int) strlen(bUppr); i++) { // make uppercase of mount name
 		bUppr[i] = toupper(bUppr[i]);
@@ -728,6 +735,7 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
 
     time(&bStart); // start timer
     ui_print("...Backing up %s partition.\n",bMount);
+	LOGI("Backup command: '%s'\n", bCommand);
     bFp = __popen(bCommand, "r"); // sending backup command formed earlier above
     if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 2) { // if twrp spam is on, show all lines
         while (fgets(bOutput,sizeof(bOutput),bFp) != NULL) {
@@ -1177,6 +1185,12 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
 		}
 		__pclose(reFp);
 
+#ifdef RECOVERY_SDCARD_ON_DATA
+		if (strcmp(rMnt.mnt,"data") == 0) {
+			wipe_data_without_wiping_media();
+		} else
+#endif
+		{
 		if ((DataManager_GetIntValue(TW_RM_RF_VAR) == 1 && (strcmp(rMnt.mnt,"system") == 0 || strcmp(rMnt.mnt,"data") == 0 || strcmp(rMnt.mnt,"cache") == 0)) || strcmp(rMnt.mnt,".android_secure") == 0) { // we'll use rm -rf instead of formatting for system, data and cache if the option is set, always use rm -rf for android secure
 			char rCommand2[255];
 			ui_print("...using rm -rf to wipe %s\n", rMnt.mnt);
@@ -1207,6 +1221,7 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
             }
 			ui_print("....done formatting.\n");
 		}
+		}
 
         if (rMnt.backup == files)
         {
@@ -1232,6 +1247,7 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
 
 		ui_print("...Restoring %s\n\n",rMount);
         SetDataState("Restoring", rMnt.mnt, 0, 0);
+		LOGI("Restore command is: '%s'\n", rCommand);
 		reFp = __popen(rCommand, "r");
 		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 2) { // twrp spam
 			while (fgets(rOutput,sizeof(rOutput),reFp) != NULL) {
