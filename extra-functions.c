@@ -53,6 +53,7 @@
 #include "ddftw.h"
 #include "backstore.h"
 #include "themes.h"
+#include "data.h"
 
 //kang system() from bionic/libc/unistd and rename it __system() so we can be even more hackish :)
 #undef _PATH_BSHELL
@@ -1883,80 +1884,6 @@ int check_md5(char* path) {
     return o;
 }
 
-static void
-show_menu_partition()
-{
-// I KNOW THAT this menu seems a bit redundant, but it allows us to display the warning message & we're planning to add ext3 to 4 upgrade option and maybe file system error fixing later
-    static char* SDheaders[] = { "Choose partition item,",
-			       "",
-			       "",
-			       NULL };
-
-// these constants correspond to elements of the items[] list.
-#define ITEM_PART_SD       0
-#define ITEM_PART_BACK     1
-
-    ext_format = 3; // default this to 3
-	
-	static char* items[] = { "Partition SD Card",
-							 "<-- Back to Advanced Menu",
-                             NULL };
-
-    char** headers = prepend_title(SDheaders);
-	
-	ui_print("\nBack up your sdcard before partitioning!\nAll files will be lost!\n");
-    
-    inc_menu_loc(ITEM_PART_BACK);
-    for (;;)
-    {
-        int chosen_item = get_menu_selection(headers, items, 0, 0);
-        switch (chosen_item)
-        {
-			case ITEM_PART_SD:
-				swap = 32;
-				ui_print("\n");
-				choose_swap_size(1);
-				if (swap == -1) break; // swap size was cancelled, abort
-				
-				ext = 512;
-				ui_print("\n");
-				choose_ext_size(1);
-				if (ext == -1) break; // ext size was cancelled, abort
-				
-                // Below seen in Koush's recovery
-                char sddevice[256];
-                Volume *vol = volume_for_path("/sdcard");
-                strcpy(sddevice, vol->device);
-                // Just need block not whole partition
-                sddevice[strlen("/dev/block/mmcblkX")] = NULL;
-
-				char es[64];
-				sprintf(es, "/sbin/sdparted -es %dM -ss %dM -efs ext%i -s > /cache/part.log",ext,swap,ext_format);
-				LOGI("\nrunning script: %s\n", es);
-				run_script("\nContinue partitioning?",
-					   "\nPartitioning sdcard : ",
-					   es,
-					   "\nunable to execute parted!\n(%s)\n",
-					   "\nOops... something went wrong!\nPlease check the recovery log!\n",
-					   "\nPartitioning complete!\n\n",
-					   "\nPartitioning aborted!\n\n", -1);
-				
-				// recreate TWRP folder and rewrite settings - these will be gone after sdcard is partitioned
-				ensure_path_mounted(SDCARD_ROOT);
-				mkdir("/sdcard/TWRP", 0777);
-				DataManager_Flush();
-				break;
-			case ITEM_PART_BACK:
-				dec_menu_loc();
-				return;
-        } // end switch
-	} // end for
-    if (go_home) { 
-		dec_menu_loc();
-		return;
-	}
-}
-
 void choose_swap_size(int pIdx) {
 	#define SWAP_SET                0
 	#define SWAP_INCREASE           1
@@ -2088,6 +2015,80 @@ void choose_ext_size(int pIdx) {
 	ui_end_menu();
 	dec_menu_loc();
 	choose_ext_size(pIdx);
+}
+
+static void
+show_menu_partition()
+{
+// I KNOW THAT this menu seems a bit redundant, but it allows us to display the warning message & we're planning to add ext3 to 4 upgrade option and maybe file system error fixing later
+    static char* SDheaders[] = { "Choose partition item,",
+			       "",
+			       "",
+			       NULL };
+
+// these constants correspond to elements of the items[] list.
+#define ITEM_PART_SD       0
+#define ITEM_PART_BACK     1
+
+    ext_format = 3; // default this to 3
+	
+	static char* items[] = { "Partition SD Card",
+							 "<-- Back to Advanced Menu",
+                             NULL };
+
+    char** headers = prepend_title(SDheaders);
+	
+	ui_print("\nBack up your sdcard before partitioning!\nAll files will be lost!\n");
+    
+    inc_menu_loc(ITEM_PART_BACK);
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, items, 0, 0);
+        switch (chosen_item)
+        {
+			case ITEM_PART_SD:
+				swap = 32;
+				ui_print("\n");
+				choose_swap_size(1);
+				if (swap == -1) break; // swap size was cancelled, abort
+				
+				ext = 512;
+				ui_print("\n");
+				choose_ext_size(1);
+				if (ext == -1) break; // ext size was cancelled, abort
+				
+                // Below seen in Koush's recovery
+                char sddevice[256];
+                Volume *vol = volume_for_path("/sdcard");
+                strcpy(sddevice, vol->device);
+                // Just need block not whole partition
+                sddevice[strlen("/dev/block/mmcblkX")] = NULL;
+
+				char es[64];
+				sprintf(es, "/sbin/sdparted -es %dM -ss %dM -efs ext%i -s > /cache/part.log",ext,swap,ext_format);
+				LOGI("\nrunning script: %s\n", es);
+				run_script("\nContinue partitioning?",
+					   "\nPartitioning sdcard : ",
+					   es,
+					   "\nunable to execute parted!\n(%s)\n",
+					   "\nOops... something went wrong!\nPlease check the recovery log!\n",
+					   "\nPartitioning complete!\n\n",
+					   "\nPartitioning aborted!\n\n", -1);
+				
+				// recreate TWRP folder and rewrite settings - these will be gone after sdcard is partitioned
+				ensure_path_mounted(SDCARD_ROOT);
+				mkdir("/sdcard/TWRP", 0777);
+				DataManager_Flush();
+				break;
+			case ITEM_PART_BACK:
+				dec_menu_loc();
+				return;
+        } // end switch
+	} // end for
+    if (go_home) { 
+		dec_menu_loc();
+		return;
+	}
 }
 
 void run_script(char *str1,char *str2,char *str3,char *str4,char *str5,char *str6,char *str7, int request_confirm)

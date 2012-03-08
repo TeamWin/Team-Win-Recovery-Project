@@ -120,7 +120,7 @@ int verify_file(const char* path, const RSAPublicKey *pKeys, unsigned int numKey
         return VERIFY_FAILURE;
     }
 
-    int i;
+    unsigned int i;
     for (i = 4; i < eocd_size-3; ++i) {
         if (eocd[i  ] == 0x50 && eocd[i+1] == 0x4b &&
             eocd[i+2] == 0x05 && eocd[i+3] == 0x06) {
@@ -149,7 +149,7 @@ int verify_file(const char* path, const RSAPublicKey *pKeys, unsigned int numKey
     size_t so_far = 0;
     fseek(f, 0, SEEK_SET);
     while (so_far < signed_len) {
-        int size = BUFFER_SIZE;
+        unsigned int size = BUFFER_SIZE;
         if (signed_len - so_far < size) size = signed_len - so_far;
         if (fread(buffer, 1, size, f) != size) {
             LOGE("failed to read data from %s (%s)\n", path, strerror(errno));

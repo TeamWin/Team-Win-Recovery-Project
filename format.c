@@ -27,6 +27,7 @@
 #include "mtdutils/mtdutils.h"
 #include "mtdutils/mounts.h"
 #include "ddftw.h"
+#include "roots.h"
 
 static int file_exists(const char* file)
 {

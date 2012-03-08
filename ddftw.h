@@ -36,6 +36,7 @@ struct dInfo {
 };
 
 struct dInfo* findDeviceByLabel(const char* label);
+struct dInfo* findDeviceByBlockDevice(const char* blockDevice);
 
 void readRecFstab();
 void verifyFst();

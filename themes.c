@@ -15,10 +15,13 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "common.h"
 #include "themes.h"
 #include "extra-functions.h"
+#include "data.h"
 
 #define THEME_REBOOT_RECOVERY 0
 #define TW_THEME              1

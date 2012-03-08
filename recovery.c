@@ -1160,7 +1160,7 @@ int run_script_file(void) {
 		fclose(fp);
 		ui_print("Done processing script file\n");
 	} else {
-		LOGE("Error opening script file '%s'\n");
+		LOGE("Error opening script file '%s'\n", SCRIPT_FILE_TMP);
 		return 1;
 	}
 	return ret_val;
@@ -1254,6 +1254,16 @@ main(int argc, char **argv) {
     property_list(print_property, NULL);
     printf("\n");
 
+#ifdef RECOVERY_SDCARD_ON_DATA
+	struct statfs st;
+	if (statfs("/sbin/itsmagic", &st) == 0) {
+		ui_print("Running itsmagic...");
+		__system("itsmagic");
+		ui_print("DONE\n");
+		LOGI("itsmagic ran!\n");
+	}
+#endif
+
     int status = INSTALL_SUCCESS;
 
     if (toggle_secure_fs) {
@@ -1270,7 +1280,7 @@ main(int argc, char **argv) {
         }
 
         // Recovery strategy: if the data partition is damaged, disable encrypted file systems.
-        // This preventsthe device recycling endlessly in recovery mode.
+        // This prevents the device recycling endlessly in recovery mode.
         if ((encrypted_fs_data.mode == MODE_ENCRYPTED_FS_ENABLED) &&
                 (read_encrypted_fs_info(&encrypted_fs_data))) {
             ui_print("Encrypted FS change aborted, resetting to disabled state.\n");
@@ -1344,16 +1354,6 @@ main(int argc, char **argv) {
     }
 
     // Otherwise, get ready to boot the main system...
-#ifdef RECOVERY_SDCARD_ON_DATA
-	struct statfs st;
-	if (statfs("/sbin/itsmagic", &st) == 0) {
-		ui_print("Running itsmagic...");
-		__system("itsmagic");
-		ui_print("DONE\n");
-		LOGI("itsmagic ran!\n");
-		sleep(30);
-	}
-#endif
     finish_recovery(send_intent);
     ui_print("Rebooting...\n");
     sync();

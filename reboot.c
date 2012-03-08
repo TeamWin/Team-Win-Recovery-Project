@@ -7,6 +7,7 @@
 
 #include "tw_reboot.h"
 #include "recovery_ui.h"
+#include "roots.h"
 
 // isRebootCommandSupported: Return 1 if command is supported, 0 if the command is not supported, -1 on error
 int tw_isRebootCommandSupported(RebootCommand command)

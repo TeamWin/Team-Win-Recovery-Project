@@ -16,6 +16,8 @@ void nan_backup_menu(int pIdx);
 int nandroid_back_exe();
 int nandroid_rest_exe();
 
+int recursive_mkdir(const char* path);
+
 void choose_backup_folder();
 void set_restore_files();
 void nan_restore_menu(int pIdx);
