@@ -75,4 +75,4 @@ void fix_perms();
 char* toggle_spam();
 
 static void show_menu_partition();
-void run_script(char *str1,char *str2,char *str3,char *str4,char *str5,char *str6,char *str7, int request_confirm);
+void run_script(const char *str1, const char *str2, const char *str3, const char *str4, const char *str5, const char *str6, const char *str7, int request_confirm);

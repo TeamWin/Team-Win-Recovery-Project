@@ -375,7 +375,7 @@ int gr_getFontDetails(void* font, unsigned* cheight, unsigned* maxwidth)
         *maxwidth = 0;
         for (pos = 0; pos < 96; pos++)
         {
-            int width = fnt->offset[pos+1] - fnt->offset[pos];
+            unsigned int width = fnt->offset[pos+1] - fnt->offset[pos];
             if (width > *maxwidth)
             {
                 *maxwidth = width;

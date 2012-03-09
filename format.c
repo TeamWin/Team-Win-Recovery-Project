@@ -38,7 +38,7 @@ static int file_exists(const char* file)
 
 static int tw_format_mtd(const char* device)
 {
-    char* location = (char*) device;
+    const char* location = device;
 
     Volume* v = volume_for_device(device);
     if (v)

@@ -1001,7 +1001,7 @@ nandroid_back_exe()
 	if (strcmp(DataManager_GetStrValue(TW_BACKUP_NAME), "0") == 0) {
 		sprintf(timestamp,"%04d-%02d-%02d--%02d-%02d-%02d",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min,t->tm_sec); // make time stamp
 	} else {
-		int copy_size = strlen(DataManager_GetStrValue(TW_BACKUP_NAME));
+		unsigned int copy_size = strlen(DataManager_GetStrValue(TW_BACKUP_NAME));
 		if (copy_size > sizeof(timestamp))
 			copy_size = sizeof(timestamp);
 		memset(timestamp, 0 , sizeof(timestamp));

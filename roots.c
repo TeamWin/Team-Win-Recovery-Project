@@ -234,7 +234,7 @@ int format_volume(const char* volume) {
     }
 
     // Retrieve the fs_type
-    char* fs_type = v->fs_type;
+    const char* fs_type = v->fs_type;
     if (memcmp(fs_type, "ext", 3) == 0)
     {
         if (strcmp(v->mount_point,"/system") == 0)      fs_type = sys.fst;

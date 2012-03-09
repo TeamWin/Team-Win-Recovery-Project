@@ -209,7 +209,7 @@ static bool parseZipArchive(ZipArchive* pArchive, const MemMapping* pMap)
      * Find the EOCD.  We'll find it immediately unless they have a file
      * comment.
      */
-    ptr = pMap->addr + pMap->length - ENDHDR;
+    ptr = (unsigned char*)((long)pMap->addr + (long)pMap->length - ENDHDR);
 
     while (ptr >= (const unsigned char*) pMap->addr) {
         if (*ptr == (ENDSIG & 0xff) && get4LE(ptr) == ENDSIG)
@@ -245,7 +245,7 @@ static bool parseZipArchive(ZipArchive* pArchive, const MemMapping* pMap)
     if (pArchive->pEntries == NULL || pArchive->pHash == NULL)
         goto bail;
 
-    ptr = pMap->addr + cdOffset;
+    ptr = (unsigned char*)((long)pMap->addr + cdOffset);
     for (i = 0; i < numEntries; i++) {
         ZipEntry* pEntry;
         unsigned int fileNameLen, extraLen, commentLen, localHdrOffset;

@@ -1255,12 +1255,16 @@ main(int argc, char **argv) {
     printf("\n");
 
 #ifdef RECOVERY_SDCARD_ON_DATA
+	// itsmagic is needed on the Acer Iconia Tab A500 to workaround a bootloader
+	// checksum check of the kernel and recovery partitions.  It must be run anytime
+	// you change either boot or recovery.  We run it on boot, just in case, assuming
+	// that it exists in the recovery build.
 	struct statfs st;
 	if (statfs("/sbin/itsmagic", &st) == 0) {
-		ui_print("Running itsmagic...");
+		ui_print("Running itsmagic...\n");
 		__system("itsmagic");
-		ui_print("DONE\n");
-		LOGI("itsmagic ran!\n");
+		ui_print("\nDONE\n");
+		LOGI("\nitsmagic ran!\n");
 	}
 #endif
 

@@ -92,7 +92,7 @@ char* checkTheme(int tw_theme)
 
 void twrp_themes_menu()
 {
-    static char* MENU_THEMES_HEADERS[] = { "twrp Theme Chooser",
+    const char* MENU_THEMES_HEADERS[] = {  "twrp Theme Chooser",
     								   	   "Taste tEh Rainbow:",
                                            NULL };
     
@@ -176,7 +176,7 @@ void twrp_themes_menu()
     twrp_themes_menu();
 }
 
-void set_theme(char* tw_theme)
+void set_theme(const char* tw_theme)
 {
 	if (strcmp(tw_theme,"0") == 0) // TEAMWIN THEME (default)
 	{

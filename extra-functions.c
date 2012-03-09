@@ -555,8 +555,8 @@ void install_zip_menu(int pIdx)
 	#define ITEM_ZIP_BACK		      9
 	
     ui_set_background(BACKGROUND_ICON_FLASH_ZIP);
-    static char* MENU_FLASH_HEADERS[] = { "Install Zip Menu",
-    									  "Flash Zip From SD Card:",
+    const char* MENU_FLASH_HEADERS[] = { "Install Zip Menu",
+    									 "Flash Zip From SD Card:",
                                           NULL };
 
 	char* MENU_INSTALL_ZIP[] = {  "--> Choose Zip To Flash",
@@ -592,7 +592,7 @@ void install_zip_menu(int pIdx)
 				if (multi_zip_index == 0) {
 					ui_print("No zips selected to install.\n");
 				} else {
-					for (zip_loop_index; zip_loop_index < multi_zip_index; zip_loop_index++) {
+					for (zip_loop_index=0; zip_loop_index < multi_zip_index; zip_loop_index++) {
 						LOGI("Installing %s\n", multi_zip_array[zip_loop_index]);
 						status = install_zip_package(multi_zip_array[zip_loop_index]);
 						ui_reset_progress();  // reset status bar so it doesnt run off the screen 
@@ -703,8 +703,8 @@ void reboot_menu()
 	#define ITEM_BACKK		 4
 	
 
-    static char* MENU_REBOOT_HEADERS[] = {  "Reboot Menu",
-    										"Choose Your Destiny:",
+    const char* MENU_REBOOT_HEADERS[] = {  "Reboot Menu",
+    									   "Choose Your Destiny:",
                                             NULL };
     
 	// REBOOT MENU
@@ -832,9 +832,9 @@ void advanced_menu()
 	                          NULL };
 	#endif
 	
-	static char* MENU_ADVANCED_HEADERS[] = { "Advanced Menu",
-    										 "Reboot, Format, or twrp!",
-                                              NULL };
+	const char* MENU_ADVANCED_HEADERS[] = { "Advanced Menu",
+    										"Reboot, Format, or twrp!",
+                                             NULL };
 
     char** headers = prepend_title(MENU_ADVANCED_HEADERS);
     
@@ -877,8 +877,7 @@ void advanced_menu()
 }
 
 // kang'd this from recovery.c cuz there wasnt a recovery.h!
-int
-erase_volume(const char *volume) {
+int erase_volume(const char *volume) {
     ui_print("Formatting %s...\n", volume);
 
     if (strcmp(volume, "/cache") == 0) {
@@ -892,8 +891,7 @@ erase_volume(const char *volume) {
 }
 
 // FORMAT MENU
-void
-format_menu()
+void format_menu()
 {
 	struct stat st;
 	
@@ -904,7 +902,7 @@ format_menu()
 	#define ITEM_FORMAT_SDEXT		4
 	#define ITEM_FORMAT_BACK        5
 	
-	char* part_headers[] = {    "Format Menu",
+	const char* part_headers[] = {    "Format Menu",
                                 "Choose a Partition to Format: ",
                                 NULL };
 	
@@ -972,7 +970,7 @@ confirm_format(char* volume_name, char* volume_path) {
                         "Yes -- Permanently Format",
                         NULL };
     
-    char** headers = prepend_title(confirm_headers);
+    char** headers = prepend_title((const char**)confirm_headers);
     
     inc_menu_loc(0);
     int chosen_item = get_menu_selection(headers, items, 1, 0);
@@ -1043,8 +1041,8 @@ void time_zone_menu()
 	#define TZ_PLUS             2
 	#define TZ_MAIN_BACK        3
 
-    static char* MENU_TZ_HEADERS[] = { "Time Zone",
-    								   "Select Region:",
+    const char* MENU_TZ_HEADERS[] = { "Time Zone",
+    								  "Select Region:",
                                               NULL };
     
 	char* MENU_TZ[] =       { "[RESTART MENU AND APPLY TIME ZONE]",
@@ -1102,7 +1100,7 @@ void time_zone_minus()
 	#define TZ_GMTCUT      		12
 	#define TZ_MINUS_MENU_BACK  13
 
-    static char* MENU_TZ_HEADERS_MINUS[] =    { "Time Zone",
+    const char* MENU_TZ_HEADERS_MINUS[] =  { "Time Zone",
     								         "Instant Time Machine:",
                                               NULL };
     
@@ -1221,8 +1219,8 @@ void time_zone_plus()
 	#define TZ_GMT_PLUS12      15
 	#define TZ_PLUS_MENU_BACK  16
 
-    static char* MENU_TZ_HEADERS_PLUS[] =    { "Time Zone",
-    								         "Instant Time Machine:",
+    const char* MENU_TZ_HEADERS_PLUS[] =    { "Time Zone",
+    								          "Instant Time Machine:",
                                               NULL };
     
 	char* MENU_TZ_PLUS[] =       { "GMT +1 (NFT)",
@@ -1342,8 +1340,8 @@ void time_zone_offset() {
 	#define TZ_OFF45             3
 	#define TZ_OFF_BACK          4
 
-    static char* MENU_TZOFF_HEADERS[] = { "Time Zone",
-    								   "Select Offset:",
+    const char* MENU_TZOFF_HEADERS[] = { "Time Zone",
+    								     "Select Offset:",
                                               NULL };
     
 	char* MENU_TZOFF[] =       {  "No Offset",
@@ -1393,7 +1391,7 @@ void time_zone_dst() {
 	#define TZ_DST_NO            1
 	#define TZ_DST_BACK          2
 
-    static char* MENU_TZDST_HEADERS[] = { "Time Zone",
+    const char* MENU_TZDST_HEADERS[] = {  "Time Zone",
     								      "Select Daylight Savings Option:",
                                               NULL };
     
@@ -1562,7 +1560,7 @@ void mount_menu(int pIdx)
 {
 	chkMounts();
 	
-	static char* MENU_MNT_HEADERS[] = { "Mount Menu",
+	const char* MENU_MNT_HEADERS[] = {  "Mount Menu",
 										"Pick a Partition to Mount:",
 										NULL };
 	
@@ -1653,7 +1651,7 @@ void main_wipe_menu()
 	#define ITEM_ROTATE_DATA       	  4
 	#define MAIN_WIPE_BACK            5
 
-    static char* MENU_MAIN_WIPE_HEADERS[] = { "Wipe Menu",
+    const char* MENU_MAIN_WIPE_HEADERS[] = {  "Wipe Menu",
     										  "Wipe Front to Back:",
                                               NULL };
     
@@ -1761,7 +1759,7 @@ void all_settings_menu(int pIdx)
 	#define ALLS_DEFAULT                9
 	#define ALLS_MENU_BACK              10
 
-    static char* MENU_ALLS_HEADERS[] = { "Change twrp Settings",
+    const char* MENU_ALLS_HEADERS[] = {  "Change twrp Settings",
     									 "twrp or gtfo:",
                                          NULL };
     
@@ -1890,7 +1888,7 @@ void choose_swap_size(int pIdx) {
 	#define SWAP_DECREASE           2
 	#define SWAP_BACK               3
 
-    static char* MENU_SWAP_HEADERS[] = { "Swap Partition",
+    const char* MENU_SWAP_HEADERS[] = {  "Swap Partition",
     								     "Please select size for swap partition:",
                                               NULL };
     
@@ -1959,7 +1957,7 @@ void choose_ext_size(int pIdx) {
 	#define EXT_EXT_FORMAT         3
 	#define EXT_BACK               4
 
-    static char* MENU_EXT_HEADERS[] = { "EXT Partition",
+    const char* MENU_EXT_HEADERS[] = {   "EXT Partition",
     								     "Please select size for EXT partition:",
                                               NULL };
     
@@ -2021,7 +2019,7 @@ static void
 show_menu_partition()
 {
 // I KNOW THAT this menu seems a bit redundant, but it allows us to display the warning message & we're planning to add ext3 to 4 upgrade option and maybe file system error fixing later
-    static char* SDheaders[] = { "Choose partition item,",
+    const char* SDheaders[] = { "Choose partition item,",
 			       "",
 			       "",
 			       NULL };
@@ -2062,7 +2060,7 @@ show_menu_partition()
                 Volume *vol = volume_for_path("/sdcard");
                 strcpy(sddevice, vol->device);
                 // Just need block not whole partition
-                sddevice[strlen("/dev/block/mmcblkX")] = NULL;
+                sddevice[strlen("/dev/block/mmcblkX")] = 0;
 
 				char es[64];
 				sprintf(es, "/sbin/sdparted -es %dM -ss %dM -efs ext%i -s > /cache/part.log",ext,swap,ext_format);
@@ -2091,7 +2089,7 @@ show_menu_partition()
 	}
 }
 
-void run_script(char *str1,char *str2,char *str3,char *str4,char *str5,char *str6,char *str7, int request_confirm)
+void run_script(const char *str1, const char *str2, const char *str3, const char *str4, const char *str5, const char *str6, const char *str7, int request_confirm)
 {
 	ui_print("%s", str1);
         ui_clear_key_queue();
@@ -2107,7 +2105,7 @@ void run_script(char *str1,char *str2,char *str3,char *str4,char *str5,char *str
                 	ui_print("%s", str2);
 		        pid_t pid = fork();
                 	if (pid == 0) {
-                		char *args[] = { "/sbin/sh", "-c", str3, "1>&2", NULL };
+                		char *args[] = { "/sbin/sh", "-c", (char*)str3, "1>&2", NULL };
                 	        execv("/sbin/sh", args);
                 	        fprintf(stderr, str4, strerror(errno));
                 	        _exit(-1);
