@@ -11,9 +11,10 @@
 
     <resources>
         <resource name="font" type="font" filename="bluehighway-25" />
-        <resource name="base" type="image" filename="background" />
-        <resource name="large_black" type="image" filename="large_black" />
-        <resource name="small_black" type="image" filename="small_black" />
+		<resource name="base" type="image" filename="background" />
+		<resource name="side" type="image" filename="backgroundside" />
+		<resource name="bottom" type="image" filename="backgroundbottom" />
+		<resource name="large_black" type="image" filename="large_black" />
         <resource name="main_button" type="image" filename="button" />
         <resource name="file_icon" type="image" filename="file" />
         <resource name="folder_icon" type="image" filename="folder" />
@@ -78,10 +79,25 @@
             </object>
 			
 			<object type="image">
+                <image resource="side" />
+                <placement x="0" y="0" />
+            </object>
+			
+			<object type="image">
+                <image resource="side" />
+                <placement x="994" y="0" />
+            </object>
+			
+			<object type="image">
+                <image resource="bottom" />
+                <placement x="0" y="738" />
+            </object>
+			
+			<object type="image">
                 <image resource="large_black" />
                 <placement x="0" y="0" />
             </object>
-    
+			
             <object type="text" color="%text_color%">
                 <font resource="font" />
                 <placement x="250" y="5" />

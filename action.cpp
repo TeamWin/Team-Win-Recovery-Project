@@ -38,8 +38,11 @@ void wipe_rotate_data(void);
 int usb_storage_enable(void);
 int usb_storage_disable(void);
 int __system(const char *command);
-void run_script(char *str1,char *str2,char *str3,char *str4,char *str5,char *str6,char *str7, int request_confirm);
+void run_script(const char *str1, const char *str2, const char *str3, const char *str4, const char *str5, const char *str6, const char *str7, int request_confirm);
 void update_tz_environment_variables();
+void install_htc_dumlock(void);
+void htc_dumlock_restore_original_boot(void);
+void htc_dumlock_reflash_recovery_to_boot(void);
 };
 
 #include "rapidxml.hpp"
@@ -584,6 +587,66 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			DataManager::SetValue("ui_progress", 100);
 			DataManager::SetValue("ui_progress", 0);
 			DataManager::SetValue("tw_operation", "partitionsd");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 1);
+			return 0;
+		}
+		if (action.mFunction == "installhtcdumlock")
+		{
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "InstallHTCDumlock");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 0);
+			LOGI("fix permissions started!\n");
+#ifdef _SIMULATE_ACTIONS
+            usleep(10000000);
+#else
+			install_htc_dumlock();
+#endif
+			LOGI("HTC Dumlock files installed!\n");
+			DataManager::SetValue("ui_progress", 100);
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "InstallHTCDumlock");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 1);
+			return 0;
+		}
+		if (action.mFunction == "htcdumlockrestoreboot")
+		{
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "HTCDumlockRestoreBoot");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 0);
+			LOGI("fix permissions started!\n");
+#ifdef _SIMULATE_ACTIONS
+            usleep(10000000);
+#else
+			htc_dumlock_restore_original_boot();
+#endif
+			LOGI("HTC Dumlock files installed!\n");
+			DataManager::SetValue("ui_progress", 100);
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "HTCDumlockRestoreBoot");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 1);
+			return 0;
+		}
+		if (action.mFunction == "htcdumlockreflashrecovery")
+		{
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "HTCDumlockReflashRecovery");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 0);
+			LOGI("fix permissions started!\n");
+#ifdef _SIMULATE_ACTIONS
+            usleep(10000000);
+#else
+			htc_dumlock_reflash_recovery_to_boot();
+#endif
+			LOGI("HTC Dumlock files installed!\n");
+			DataManager::SetValue("ui_progress", 100);
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "HTCDumlockReflashRecovery");
             DataManager::SetValue("tw_operation_status", 0);
             DataManager::SetValue("tw_operation_state", 1);
 			return 0;

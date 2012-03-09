@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<?xml version="1.0"?>
 
 <recovery>
     <details>
@@ -2337,6 +2338,15 @@
                 <action function="page">partsdcard</action>
             </object>
 			
+			<object type="button">
+				<condition var1="tw_allow_partition_sdcard" var2="1" />
+                <placement x="%col2_x%" y="%row2_y%" />
+                <font resource="font" color="%button_text_color%" />
+                <text>HTC Dumlock</text>
+                <image resource="main_button" />
+                <action function="page">htcdumlock</action>
+            </object>
+			
             <object type="action">
                 <touch key="home" />
                 <action function="page">main</action>
@@ -2633,6 +2643,271 @@
             <object type="action">
                 <touch key="back" />
                 <action function="page">advanced</action>
+            </object>
+                        
+            <object type="template" name="footer" />
+        </page>
+		
+		<page name="htcdumlock">
+            <object type="template" name="header" />
+			
+			<object type="button">
+				<condition var1="tw_allow_partition_sdcard" var2="1" />
+                <placement x="%col1_x%" y="%row1_y%" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Restore Original Boot</text>
+                <image resource="main_button" />
+                <action function="page">htcdumlockrestoreconfirm</action>
+            </object>
+			
+			<object type="button">
+				<condition var1="tw_allow_partition_sdcard" var2="1" />
+                <placement x="%col2_x%" y="%row1_y%" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Reflash Recovery->Boot</text>
+                <image resource="main_button" />
+                <action function="page">htcdumlockreflashconfirm</action>
+            </object>
+			
+			<object type="button">
+				<condition var1="tw_allow_partition_sdcard" var2="1" />
+                <placement x="%col1_x%" y="%row2_y%" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Install HTC Dumlock</text>
+                <image resource="main_button" />
+                <action function="page">htcdumlockinstallconfirm</action>
+            </object>
+			
+			<object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">advanced</action>
+            </object>
+                        
+            <object type="template" name="footer" />
+        </page>
+		
+		<page name="htcdumlockrestoreconfirm">
+            <object type="template" name="header" />
+
+            <object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col_center_x%" y="490" />
+                <text>Restore original boot image?</text>
+            </object>
+
+            <object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col_center_x%" y="520" />
+                <text>Press back button to cancel.</text>
+            </object>
+
+            <object type="button">
+                <placement x="%col_center_x%" y="550" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Restore Boot!</text>
+                <image resource="main_button" />
+                <action function="page">htcdumlockrestore</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">htcdumlock</action>
+            </object>
+
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+                
+            <object type="template" name="footer" />
+        </page>
+		
+		<page name="htcdumlockrestore">
+            <object type="template" name="header" />
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col_progressbar_x%" y="440" />
+                <text>Restoring original boot...</text>
+            </object>
+			
+            <object type="animation">
+                <placement x="%col_progressbar_x%" y="470" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+
+            <object type="action">
+                <condition var1="tw_operation_state" var2="1" />
+                <action function="page">htcdumlockdone</action>
+            </object>
+
+            <object type="action">
+                <action function="htcdumlockrestoreboot"></action>
+            </object>
+                        
+            <object type="template" name="footer" />
+        </page>
+		
+		<page name="htcdumlockreflashconfirm">
+            <object type="template" name="header" />
+
+            <object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col_center_x%" y="490" />
+                <text>Reflash recovery to boot?</text>
+            </object>
+
+            <object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col_center_x%" y="520" />
+                <text>Press back button to cancel.</text>
+            </object>
+
+            <object type="button">
+                <placement x="%col_center_x%" y="550" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Recovery->Boot!</text>
+                <image resource="main_button" />
+                <action function="page">htcdumlockreflash</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">htcdumlock</action>
+            </object>
+
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+                
+            <object type="template" name="footer" />
+        </page>
+		
+		<page name="htcdumlockreflash">
+            <object type="template" name="header" />
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col_progressbar_x%" y="440" />
+                <text>Reflashing recovery into boot...</text>
+            </object>
+			
+            <object type="animation">
+                <placement x="%col_progressbar_x%" y="470" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+
+            <object type="action">
+                <condition var1="tw_operation_state" var2="1" />
+                <action function="page">htcdumlockdone</action>
+            </object>
+
+            <object type="action">
+                <action function="htcdumlockreflashrecovery"></action>
+            </object>
+                        
+            <object type="template" name="footer" />
+        </page>
+		
+		<page name="htcdumlockinstallconfirm">
+            <object type="template" name="header" />
+
+            <object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col_center_x%" y="490" />
+                <text>Install HTC dumlock files to ROM?</text>
+            </object>
+
+            <object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col_center_x%" y="520" />
+                <text>Press back button to cancel.</text>
+            </object>
+
+            <object type="button">
+                <placement x="%col_center_x%" y="550" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Install Dumlock!</text>
+                <image resource="main_button" />
+                <action function="page">htcdumlockinstall</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">htcdumlock</action>
+            </object>
+
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+                
+            <object type="template" name="footer" />
+        </page>
+		
+		<page name="htcdumlockinstall">
+            <object type="template" name="header" />
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col_progressbar_x%" y="440" />
+                <text>Installing HTC Dumlock...</text>
+            </object>
+			
+            <object type="animation">
+                <placement x="%col_progressbar_x%" y="470" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+
+            <object type="action">
+                <condition var1="tw_operation_state" var2="1" />
+                <action function="page">htcdumlockdone</action>
+            </object>
+
+            <object type="action">
+                <action function="installhtcdumlock"></action>
+            </object>
+                        
+            <object type="template" name="footer" />
+        </page>
+
+        <page name="htcdumlockdone">
+            <object type="template" name="header" />
+
+            <object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="270" y="540" placement="4" />
+                <text>Operation complete</text>
+            </object>
+
+            <object type="button">
+                <placement x="%col_center_x%" y="550" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Back</text>
+                <image resource="main_button" />
+                <action function="page">htcdumlock</action>
+            </object>
+
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">htcdumlock</action>
             </object>
                         
             <object type="template" name="footer" />

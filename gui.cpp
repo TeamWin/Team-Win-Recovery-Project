@@ -382,20 +382,26 @@ extern "C" int gui_init()
 extern "C" int gui_loadResources()
 {
     // Make sure the sdcard is mounted before we continue
-#ifdef RECOVERY_SDCARD_ON_DATA
-    mkdir("/mnt/data-sdc", 0777);
+//#ifdef RECOVERY_SDCARD_ON_DATA
+    /*mkdir("/mnt/data-sdc", 0777);
     mount(dat.blk, "/mnt/data-sdc", dat.fst, 0, NULL);
     if (symlink("/mnt/data-sdc/media", "/sdcard"))
     {
         LOGE("Unable to symlink (errno %d)\n", errno);
-    }
-#else
+    }*/
+//#else
     if (ensure_path_mounted("/sdcard") < 0)
     {
-        usleep(500000);
-        ensure_path_mounted("/sdcard");
+        int retry_count = 5;
+		while (retry_count || (ensure_path_mounted("/sdcard") < 0)) {
+			usleep(500000);
+			ensure_path_mounted("/sdcard");
+			retry_count--;
+		}
+		if (ensure_path_mounted("/sdcard") < 0)
+			LOGE("Unable to mount /sdcard during GUI startup.\n");
     }
-#endif
+//#endif
 
 //    unlink("/sdcard/video.last");
 //    rename("/sdcard/video.bin", "/sdcard/video.last");
