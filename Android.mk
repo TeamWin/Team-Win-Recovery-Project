@@ -61,6 +61,9 @@ endif
 ifneq ($(RECOVERY_SDCARD_ON_DATA),)
 	LOCAL_CFLAGS += -DRECOVERY_SDCARD_ON_DATA
 endif
+ifneq ($(TW_INCLUDE_DUMLOCK),)
+	LOCAL_CFLAGS += -DTW_INCLUDE_DUMLOCK
+endif
 
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.

@@ -314,6 +314,12 @@ void DataManager::SetDefaultValues()
     mConstValues.insert(make_pair(TW_ALLOW_PARTITION_SDCARD, "1"));
 #endif
 
+#ifdef TW_INCLUDE_DUMLOCK
+	mConstValues.insert(make_pair("tw_show_dumlock", "1"));
+#else
+	mConstValues.insert(make_pair("tw_show_dumlock", "0"));
+#endif
+
     if (strlen(EXPAND(SP1_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP1_PARTITION_NAME_VAR, EXPAND(SP1_DISPLAY_NAME)));
     if (strlen(EXPAND(SP2_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP2_PARTITION_NAME_VAR, EXPAND(SP2_DISPLAY_NAME)));
     if (strlen(EXPAND(SP3_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP3_PARTITION_NAME_VAR, EXPAND(SP3_DISPLAY_NAME)));
