@@ -36,6 +36,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "variables.h"
 #include "data.hpp"
 
 extern "C"
@@ -44,6 +45,9 @@ extern "C"
     #include "data.h"
 	#include "ddftw.h"
     #include "tw_reboot.h"
+	#include "roots.h"
+
+	int ensure_path_mounted(const char* path);
 
     int get_battery_level(void);
     void get_device_id(void);
@@ -132,7 +136,10 @@ int DataManager::SaveValues()
 {
     if (mBackingFile.empty())       return -1;
 
-    FILE* out = fopen(mBackingFile.c_str(), "wb");
+	string mount_path = GetSettingsStoragePath();
+	ensure_path_mounted(mount_path.c_str());
+
+	FILE* out = fopen(mBackingFile.c_str(), "wb");
     if (!out)                       return -1;
 
     int file_version = FILE_VERSION;
@@ -238,7 +245,6 @@ int DataManager::GetIntValue(const string varName)
     return atoi(retVal.c_str());
 }
 
-
 int DataManager::SetValue(const string varName, string value, int persist /* = 0 */)
 {
     if (!mInitialized)
@@ -293,7 +299,7 @@ void DataManager::DumpValues()
 
 void DataManager::SetDefaultValues()
 {
-    string str;
+    string str, path;
 
     get_device_id();
 
@@ -310,24 +316,112 @@ void DataManager::SetDefaultValues()
 
 #ifdef BOARD_HAS_NO_REAL_SDCARD
     mConstValues.insert(make_pair(TW_ALLOW_PARTITION_SDCARD, "0"));
+	mValues.insert(make_pair(TW_HAS_SDEXT_PARTITION, make_pair("0", 0)));
 #else
     mConstValues.insert(make_pair(TW_ALLOW_PARTITION_SDCARD, "1"));
+	mValues.insert(make_pair(TW_HAS_SDEXT_PARTITION, make_pair("1", 0)));
 #endif
 
 #ifdef TW_INCLUDE_DUMLOCK
-	mConstValues.insert(make_pair("tw_show_dumlock", "1"));
+	mConstValues.insert(make_pair(TW_SHOW_DUMLOCK, "1"));
 #else
-	mConstValues.insert(make_pair("tw_show_dumlock", "0"));
+	mConstValues.insert(make_pair(TW_SHOW_DUMLOCK, "0"));
 #endif
+
+#ifdef TW_INTERNAL_STORAGE_PATH
+	mValues.insert(make_pair(TW_USE_EXTERNAL_STORAGE, make_pair("0", 1)));
+	mConstValues.insert(make_pair(TW_HAS_INTERNAL, "1"));
+	mConstValues.insert(make_pair(TW_INTERNAL_PATH, EXPAND(TW_INTERNAL_STORAGE_PATH)));
+	mConstValues.insert(make_pair(TW_INTERNAL_LABEL, EXPAND(TW_INTERNAL_STORAGE_MOUNT_POINT)));
+	path.clear();
+	path = "/";
+	path += EXPAND(TW_INTERNAL_STORAGE_MOUNT_POINT);
+	mConstValues.insert(make_pair(TW_INTERNAL_MOUNT, path));
+#ifdef BOARD_HAS_NO_REAL_SDCARD
+	// Device has internal storage only
+	mConstValues.insert(make_pair(TW_HAS_DUAL_STORAGE, "0"));
+	mConstValues.insert(make_pair(TW_HAS_EXTERNAL, "0"));
+	mConstValues.insert(make_pair(TW_EXTERNAL_PATH, "0"));
+	mConstValues.insert(make_pair(TW_EXTERNAL_MOUNT, "0"));
+#else
+	// Device has dual storage
+	mConstValues.insert(make_pair(TW_HAS_DUAL_STORAGE, "1"));
+	mConstValues.insert(make_pair(TW_HAS_EXTERNAL, "1"));
+	mConstValues.insert(make_pair(TW_EXTERNAL_PATH, EXPAND(TW_EXTERNAL_STORAGE_PATH)));
+	mConstValues.insert(make_pair(TW_EXTERNAL_LABEL, EXPAND(TW_EXTERNAL_STORAGE_MOUNT_POINT)));
+	path.clear();
+	path = "/";
+	path += EXPAND(TW_EXTERNAL_STORAGE_MOUNT_POINT);
+	mConstValues.insert(make_pair(TW_EXTERNAL_MOUNT, path));
+#endif
+#else
+	mConstValues.insert(make_pair(TW_HAS_DUAL_STORAGE, "0"));
+#ifdef BOARD_HAS_NO_REAL_SDCARD
+	// Device has /data/media only
+	mConstValues.insert(make_pair(TW_USE_EXTERNAL_STORAGE, "0"));
+	mConstValues.insert(make_pair(TW_HAS_INTERNAL, "1"));
+	mConstValues.insert(make_pair(TW_INTERNAL_PATH, "/data/media"));
+	mConstValues.insert(make_pair(TW_INTERNAL_MOUNT, "/data"));
+	mConstValues.insert(make_pair(TW_INTERNAL_LABEL, "data"));
+	mConstValues.insert(make_pair(TW_HAS_EXTERNAL, "0"));
+	mConstValues.insert(make_pair(TW_EXTERNAL_PATH, "0"));
+	mConstValues.insert(make_pair(TW_EXTERNAL_MOUNT, "0"));
+	mConstValues.insert(make_pair(TW_EXTERNAL_LABEL, "0"));
+#else
+	// Device has external storage only
+	mConstValues.insert(make_pair(TW_USE_EXTERNAL_STORAGE, "1"));
+	mConstValues.insert(make_pair(TW_HAS_INTERNAL, "0"));
+	mConstValues.insert(make_pair(TW_INTERNAL_PATH, "0"));
+	mConstValues.insert(make_pair(TW_INTERNAL_MOUNT, "0"));
+	mConstValues.insert(make_pair(TW_INTERNAL_LABEL, "0"));
+#ifdef TW_EXTERNAL_STORAGE_PATH
+	// External has custom definition
+	mConstValues.insert(make_pair(TW_HAS_EXTERNAL, "1"));
+	mConstValues.insert(make_pair(TW_EXTERNAL_PATH, EXPAND(TW_EXTERNAL_STORAGE_PATH)));
+	mConstValues.insert(make_pair(TW_EXTERNAL_LABEL, EXPAND(TW_EXTERNAL_STORAGE_MOUNT_POINT)));
+	path.clear();
+	path = "/";
+	path += EXPAND(TW_EXTERNAL_STORAGE_MOUNT_POINT);
+	mConstValues.insert(make_pair(TW_EXTERNAL_MOUNT, path));
+#else
+	// Standard external definition
+	mConstValues.insert(make_pair(TW_HAS_EXTERNAL, "1"));
+	mConstValues.insert(make_pair(TW_EXTERNAL_PATH, "/sdcard"));
+	mConstValues.insert(make_pair(TW_INTERNAL_MOUNT, "/sdcard"));
+	mConstValues.insert(make_pair(TW_EXTERNAL_LABEL, "sdcard"));
+#endif
+#endif
+#endif
+
+
+#ifdef TW_HAS_NO_RECOVERY_PARTITION
+	mConstValues.insert(make_pair(TW_HAS_RECOVERY_PARTITION, "0"));
+#else
+	mConstValues.insert(make_pair(TW_HAS_RECOVERY_PARTITION, "1"));
+#endif
+	mValues.insert(make_pair(TW_HAS_ANDROID_SECURE, make_pair("1", 0)));
 
     if (strlen(EXPAND(SP1_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP1_PARTITION_NAME_VAR, EXPAND(SP1_DISPLAY_NAME)));
     if (strlen(EXPAND(SP2_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP2_PARTITION_NAME_VAR, EXPAND(SP2_DISPLAY_NAME)));
     if (strlen(EXPAND(SP3_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP3_PARTITION_NAME_VAR, EXPAND(SP3_DISPLAY_NAME)));
 
     mConstValues.insert(make_pair(TW_REBOOT_SYSTEM, tw_isRebootCommandSupported(rb_system) ? "1" : "0"));
-    mConstValues.insert(make_pair(TW_REBOOT_RECOVERY, tw_isRebootCommandSupported(rb_recovery) ? "1" : "0"));
+#ifdef TW_NO_REBOOT_RECOVERY
+	mConstValues.insert(make_pair(TW_REBOOT_RECOVERY, "0"));
+#else
+	mConstValues.insert(make_pair(TW_REBOOT_RECOVERY, tw_isRebootCommandSupported(rb_recovery) ? "1" : "0"));
+#endif
     mConstValues.insert(make_pair(TW_REBOOT_POWEROFF, tw_isRebootCommandSupported(rb_poweroff) ? "1" : "0"));
-    mConstValues.insert(make_pair(TW_REBOOT_BOOTLOADER, tw_isRebootCommandSupported(rb_bootloader) ? "1" : "0"));
+#ifdef TW_NO_REBOOT_BOOTLOADER
+	mConstValues.insert(make_pair(TW_REBOOT_BOOTLOADER, "0"));
+#else
+	mConstValues.insert(make_pair(TW_REBOOT_BOOTLOADER, tw_isRebootCommandSupported(rb_bootloader) ? "1" : "0"));
+#endif
+#ifdef RECOVERY_SDCARD_ON_DATA
+	mConstValues.insert(make_pair(TW_HAS_DATA_MEDIA, "1"));
+#else
+	mConstValues.insert(make_pair(TW_HAS_DATA_MEDIA, "0"));
+#endif
 
     mValues.insert(make_pair(TW_BACKUP_NAME, make_pair("0", 0)));
 	mValues.insert(make_pair(TW_BACKUP_SYSTEM_VAR, make_pair("1", 1)));
@@ -348,6 +442,8 @@ void DataManager::SetDefaultValues()
     mValues.insert(make_pair(TW_SHOW_SPAM_VAR, make_pair("0", 1)));
     mValues.insert(make_pair(TW_TIME_ZONE_VAR, make_pair("CST6CDT", 1)));
     mValues.insert(make_pair(TW_ZIP_LOCATION_VAR, make_pair("/sdcard", 1)));
+	mValues.insert(make_pair(TW_ZIP_INTERNAL_VAR, make_pair("/sdcard", 1)));
+	mValues.insert(make_pair(TW_ZIP_EXTERNAL_VAR, make_pair("/sdcard", 1)));
     mValues.insert(make_pair(TW_SORT_FILES_BY_DATE_VAR, make_pair("0", 1)));
     mValues.insert(make_pair(TW_GUI_SORT_ORDER, make_pair("1", 1)));
     mValues.insert(make_pair(TW_RM_RF_VAR, make_pair("0", 1)));
@@ -400,11 +496,99 @@ int DataManager::GetMagicValue(const string varName, string& value)
     return -1;
 }
 
+string DataManager::GetCurrentStoragePath(void)
+{
+	if (GetIntValue(TW_HAS_DUAL_STORAGE) == 1) {
+		if (GetIntValue(TW_USE_EXTERNAL_STORAGE) == 0)
+			return GetStrValue(TW_INTERNAL_PATH);
+		else
+			return GetStrValue(TW_EXTERNAL_PATH);
+	} else if (GetIntValue(TW_HAS_INTERNAL) == 1)
+		return GetStrValue(TW_INTERNAL_PATH);
+	else
+		return GetStrValue(TW_EXTERNAL_PATH);
+}
+
+string& DataManager::CGetCurrentStoragePath()
+{
+	if (GetIntValue(TW_HAS_DUAL_STORAGE) == 1) {
+		if (GetIntValue(TW_USE_EXTERNAL_STORAGE) == 0)
+			return GetValueRef(TW_INTERNAL_PATH);
+		else
+			return GetValueRef(TW_EXTERNAL_PATH);
+	} else if (GetIntValue(TW_HAS_INTERNAL) == 1)
+		return GetValueRef(TW_INTERNAL_PATH);
+	else
+		return GetValueRef(TW_EXTERNAL_PATH);
+}
+
+string DataManager::GetCurrentStorageMount(void)
+{
+	if (GetIntValue(TW_HAS_DUAL_STORAGE) == 1) {
+		if (GetIntValue(TW_USE_EXTERNAL_STORAGE) == 0)
+			return GetStrValue(TW_INTERNAL_MOUNT);
+		else
+			return GetStrValue(TW_EXTERNAL_MOUNT);
+	} else if (GetIntValue(TW_HAS_INTERNAL) == 1)
+		return GetStrValue(TW_INTERNAL_MOUNT);
+	else
+		return GetStrValue(TW_EXTERNAL_MOUNT);
+}
+
+string& DataManager::CGetCurrentStorageMount()
+{
+	if (GetIntValue(TW_HAS_DUAL_STORAGE) == 1) {
+		if (GetIntValue(TW_USE_EXTERNAL_STORAGE) == 0)
+			return GetValueRef(TW_INTERNAL_MOUNT);
+		else
+			return GetValueRef(TW_EXTERNAL_MOUNT);
+	} else if (GetIntValue(TW_HAS_INTERNAL) == 1)
+		return GetValueRef(TW_INTERNAL_MOUNT);
+	else
+		return GetValueRef(TW_EXTERNAL_MOUNT);
+}
+
+string DataManager::GetSettingsStoragePath(void)
+{
+	if (GetIntValue(TW_HAS_INTERNAL) == 1)
+		return GetStrValue(TW_INTERNAL_PATH);
+	else
+		return GetStrValue(TW_EXTERNAL_PATH);
+}
+
+string& DataManager::CGetSettingsStoragePath()
+{
+	if (GetIntValue(TW_HAS_INTERNAL) == 1)
+		return GetValueRef(TW_INTERNAL_PATH);
+	else
+		return GetValueRef(TW_EXTERNAL_PATH);
+}
+
+string DataManager::GetSettingsStorageMount(void)
+{
+	if (GetIntValue(TW_HAS_INTERNAL) == 1)
+		return GetStrValue(TW_INTERNAL_MOUNT);
+	else
+		return GetStrValue(TW_EXTERNAL_MOUNT);
+}
+
+string& DataManager::CGetSettingsStorageMount()
+{
+	if (GetIntValue(TW_HAS_INTERNAL) == 1)
+		return GetValueRef(TW_INTERNAL_MOUNT);
+	else
+		return GetValueRef(TW_EXTERNAL_MOUNT);
+}
+
 extern "C" int DataManager_ResetDefaults()
 {
     return DataManager::ResetDefaults();
 }
 
+extern "C" void DataManager_LoadDefaults()
+{
+    return DataManager::SetDefaultValues();
+}
 
 extern "C" int DataManager_LoadValues(const char* filename)
 {
@@ -430,6 +614,30 @@ extern "C" int DataManager_GetValue(const char* varName, char* value)
 extern "C" const char* DataManager_GetStrValue(const char* varName)
 {
     string& str = DataManager::GetValueRef(varName);
+    return str.c_str();
+}
+
+extern "C" const char* DataManager_GetCurrentStoragePath(void)
+{
+    string& str = DataManager::CGetCurrentStoragePath();
+    return str.c_str();
+}
+
+extern "C" const char* DataManager_GetSettingsStoragePath(void)
+{
+    string& str = DataManager::CGetSettingsStoragePath();
+    return str.c_str();
+}
+
+extern "C" const char* DataManager_GetCurrentStorageMount(void)
+{
+    string& str = DataManager::CGetCurrentStorageMount();
+    return str.c_str();
+}
+
+extern "C" const char* DataManager_GetSettingsStorageMount(void)
+{
+    string& str = DataManager::CGetSettingsStorageMount();
     return str.c_str();
 }
 

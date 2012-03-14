@@ -42,6 +42,7 @@ void readRecFstab();
 void verifyFst();
 void createFstab();
 void listMntInfo(struct dInfo* mMnt, char* variable_name);
+unsigned long long getUsedSizeViaDu(const char* path);
 int getLocations();
 void updateUsedSized();
 

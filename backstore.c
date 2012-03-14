@@ -614,7 +614,8 @@ int tw_mount(struct dInfo mMnt)
     sprintf(target, "/%s", mMnt.mnt);
     if (mount(mMnt.blk, target, mMnt.fst, 0, NULL) != 0)
     {
-        LOGE("Unable to mount %s\n", target);
+        if (strcmp(target, "/sd-ext") != 0)
+			LOGE("Unable to mount %s\n", target);
         ret = 1;
     }
     return ret;
@@ -629,6 +630,9 @@ int tw_unmount(struct dInfo uMnt)
     if (!uMnt.mountable)        return 0;
     if (!tw_isMounted(uMnt))    return 0;
 
+	if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 && DataManager_GetIntValue(TW_USE_EXTERNAL_STORAGE) == 0 && strcmp(uMnt.mnt, "data") == 0)
+		return 0; // don't unmount data if we have data/media and using internal storage
+
     sprintf(target, "/%s", uMnt.mnt);
     if (umount(target) != 0)
     {
@@ -636,6 +640,43 @@ int tw_unmount(struct dInfo uMnt)
         ret = 1;
     }
 	return ret;
+}
+
+unsigned long long get_backup_size(struct dInfo* mnt)
+{
+    if (!mnt)
+    {
+        LOGE("Invalid call to get_backup_size with NULL parameter\n");
+        return 0;
+    }
+
+    switch (mnt->backup)
+    {
+    case files:
+		if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 && strcmp(mnt->blk, dat.blk) == 0) {
+			LOGI("Device has /data/media\n");
+			unsigned long long data_used, data_media_used, actual_data;
+			data_used = mnt->used;
+			LOGI("Total used space on /data is: %llu\nMounting /data\n", data_used);
+			tw_mount(dat);
+			data_media_used = getUsedSizeViaDu("/data/media");
+			LOGI("Total in /data/media is: %llu\n", data_media_used);
+			actual_data = data_used - data_media_used;
+			LOGI("Actual data used: %llu\n", actual_data);
+			return actual_data;
+		} else
+			return mnt->used;
+    case image:
+        return (unsigned long long) mnt->sze;
+    case none:
+        LOGW("Request backup details for partition '%s' which has no backup method.", mnt->mnt);
+        break;
+
+    default:
+        LOGE("Backup type unknown for partition '%s'\n", mnt->mnt);
+        break;
+    }
+    return 0;
 }
 
 /* New backup function
@@ -676,7 +717,10 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
     {
         // detect mountable partitions
 		if (strcmp(bMnt.mnt,".android_secure") == 0) { // if it's android secure, add sdcard to prefix
-			strcpy(bMount,"/sdcard/");
+			if (DataManager_GetIntValue(TW_HAS_INTERNAL))
+				strcpy(bMount, DataManager_GetStrValue(TW_INTERNAL_PATH));
+			else
+				strcpy(bMount, DataManager_GetStrValue(TW_EXTERNAL_PATH));
 			strcat(bMount,bMnt.mnt);
 			sprintf(bImage,"and-sec.%s.win",bMnt.fst); // set image name based on filesystem, should always be vfat for android_secure
 		} else {
@@ -694,13 +738,12 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
 			}
 		}
 		bPartSize = bMnt.used;
-#ifdef RECOVERY_SDCARD_ON_DATA
-		if (strcmp(bMount, "/data") == 0) {
+		if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 && strcmp(bMount, "/data") == 0) {
 			LOGI("Using special tar command for /data/media setups.\n");
 			sprintf(bCommand, "cd /data && tar %s ./ --exclude='media*' -f %s%s", bTarArg, bDir, bImage);
+			bPartSize = get_backup_size(&bMnt);
 		} else
-#endif
-		sprintf(bCommand,"cd %s && tar %s -f %s%s ./*",bMount,bTarArg,bDir,bImage); // form backup command
+			sprintf(bCommand,"cd %s && tar %s -f %s%s ./*",bMount,bTarArg,bDir,bImage); // form backup command
 	} else if (bMnt.backup == image) {
 		strcpy(bMount,bMnt.mnt);
 		bPartSize = bMnt.sze;
@@ -793,31 +836,6 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
 	return 0;
 }
 
-unsigned long long get_backup_size(struct dInfo* mnt)
-{
-    if (!mnt)
-    {
-        LOGE("Invalid call to get_backup_size with NULL parameter\n");
-        return 0;
-    }
-
-    switch (mnt->backup)
-    {
-    case files:
-        return mnt->used;
-    case image:
-        return (unsigned long long) mnt->sze;
-    case none:
-        LOGW("Request backup details for partition '%s' which has no backup method.", mnt->mnt);
-        break;
-
-    default:
-        LOGE("Backup type unknown for partition '%s'\n", mnt->mnt);
-        break;
-    }
-    return 0;
-}
-
 int CalculateBackupDetails(int* total_partitions, unsigned long long* total_img_bytes, unsigned long long* total_file_bytes)
 {
     *total_partitions = 0;
@@ -829,12 +847,14 @@ int CalculateBackupDetails(int* total_partitions, unsigned long long* total_img_
         else                        *total_file_bytes += get_backup_size(&sys);
     }
 
-    if (DataManager_GetIntValue(TW_BACKUP_DATA_VAR) == 1)
-    {
-        *total_partitions = *total_partitions + 1;
-        if (dat.backup == image)    *total_img_bytes += get_backup_size(&dat);
-        else                        *total_file_bytes += get_backup_size(&dat);
-    }
+	if (DataManager_GetIntValue(TW_BACKUP_DATA_VAR) == 1)
+	{
+		LOGI("Calculating details for /data\n");
+		*total_partitions = *total_partitions + 1;
+		if (dat.backup == image)    *total_img_bytes += get_backup_size(&dat);
+		else                        *total_file_bytes += get_backup_size(&dat);
+		LOGI("Done calculating details for /data\n");
+	}
     if (DataManager_GetIntValue(TW_BACKUP_CACHE_VAR) == 1)
     {
         *total_partitions = *total_partitions + 1;
@@ -953,7 +973,7 @@ int tw_do_backup(const char* enableVar, struct dInfo* mnt, const char* tw_image_
     time_t start, stop;
     time(&start);
 
-    if (tw_backup(*mnt, tw_image_dir) == 1) { // did the backup process return an error ? 0 = no error
+	if (tw_backup(*mnt, tw_image_dir) == 1) { // did the backup process return an error ? 0 = no error
         SetDataState("Backup failed", mnt->mnt, 1, 1);
         ui_print("-- Error occured, check recovery.log. Aborting.\n"); //oh noes! abort abort!
         return 1;
@@ -1027,12 +1047,30 @@ nandroid_back_exe()
     createFstab();
     ui_print(" * Verifying partition sizes...\n");
     updateUsedSized();
-    unsigned long long sdc_free = sdcext.sze - sdcext.used; 
+    unsigned long long sdc_free;
+
+	if (DataManager_GetIntValue(TW_USE_EXTERNAL_STORAGE) == 0) {
+		struct dInfo* dev;
+		LOGI("Using internal storage.\n");
+		dev = findDeviceByLabel(DataManager_GetStrValue(TW_INTERNAL_LABEL));
+		LOGI("Internal label is: '%s'\n", DataManager_GetStrValue(TW_INTERNAL_LABEL));
+		if (dev != NULL) {
+			sdc_free = dev->sze - dev->used;
+		} else {
+			LOGI("Unable to determine free space of internal storage.\n");
+			return -1;
+		}
+	} else {
+		LOGI("Using external SDCard.\n");
+		sdc_free = sdcext.sze - sdcext.used;
+	}
 
     // Compute totals
     int tw_total = 0;
     unsigned long long total_img_bytes = 0, total_file_bytes = 0;
+	LOGI("Calculating backup details...\n");
     CalculateBackupDetails(&tw_total, &total_img_bytes, &total_file_bytes);
+	LOGI("Done calculating backup details.\n");
     unsigned long long total_bytes = total_img_bytes + total_file_bytes;
 
     if (tw_total == 0 || total_bytes == 0)
@@ -1046,18 +1084,13 @@ nandroid_back_exe()
     ui_print(" * Total size of all data, in KB: %llu\n", total_bytes / 1024);
     ui_print(" * Available space on the SD card, in KB: %llu\n", sdc_free / 1024);
 
-    // We can't verify sufficient space on devices where sdcard is a portion of the data partition
-#ifndef RECOVERY_SDCARD_ON_DATA
     // Verify space
     if (sdc_free < (total_bytes + 0x2000000))       // We require at least 32MB of additional space
     {
-        LOGE("Insufficient space on SDCARD. Required space is %lluKB, available %lluKB\n", (total_bytes + 0x2000000) / 1024, sdc_free / 1024);
+        LOGE("Insufficient space. Required space is %lluKB, available %lluKB\n", (total_bytes + 0x2000000) / 1024, sdc_free / 1024);
         SetDataState("Backup failed", tw_image_dir, 1, 1);
         return -1;
     }
-#else
-    ui_print(" * This device does not support verifying available free space.\n");
-#endif
 
     // Prepare progress bar...
     unsigned long long img_bytes_remaining = total_img_bytes;
@@ -1137,7 +1170,7 @@ nandroid_back_exe()
     unsigned long long new_sdc_free = (sdcext.sze - sdcext.used) / (1024 * 1024);
     sdc_free /= (1024 * 1024);
 
-	ui_print("[%lu MB TOTAL BACKED UP TO SDCARD]\n",(unsigned long) (sdc_free - new_sdc_free));
+	ui_print("[%lu MB TOTAL BACKED UP]\n",(unsigned long) (sdc_free - new_sdc_free));
 	ui_print("[BACKUP COMPLETED IN %d SECONDS]\n\n", total_time); // the end
     SetDataState("Backup Succeeded", "", 0, 1);
 	return 0;
@@ -1185,19 +1218,21 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
 		}
 		__pclose(reFp);
 
-#ifdef RECOVERY_SDCARD_ON_DATA
-		if (strcmp(rMnt.mnt,"data") == 0) {
+		if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 && strcmp(rMnt.mnt,"data") == 0) {
 			wipe_data_without_wiping_media();
-		} else
-#endif
-		{
-		if ((DataManager_GetIntValue(TW_RM_RF_VAR) == 1 && (strcmp(rMnt.mnt,"system") == 0 || strcmp(rMnt.mnt,"data") == 0 || strcmp(rMnt.mnt,"cache") == 0)) || strcmp(rMnt.mnt,".android_secure") == 0) { // we'll use rm -rf instead of formatting for system, data and cache if the option is set, always use rm -rf for android secure
+		} else if ((DataManager_GetIntValue(TW_RM_RF_VAR) == 1 && (strcmp(rMnt.mnt,"system") == 0 || strcmp(rMnt.mnt,"data") == 0 || strcmp(rMnt.mnt,"cache") == 0)) || strcmp(rMnt.mnt,".android_secure") == 0) { // we'll use rm -rf instead of formatting for system, data and cache if the option is set, always use rm -rf for android secure
 			char rCommand2[255];
 			ui_print("...using rm -rf to wipe %s\n", rMnt.mnt);
 			if (strcmp(rMnt.mnt,".android_secure") == 0) {
-				tw_mount(sdcext); // for android secure we must make sure that the sdcard is mounted
-				sprintf(rCommand, "rm -rf %s/*", rMnt.dev);
-				sprintf(rCommand2, "rm -rf %s/.*", rMnt.dev);
+				if (DataManager_GetIntValue(TW_HAS_INTERNAL)) {
+					tw_mount(sdcint);
+					sprintf(rCommand, "rm -rf %s/%s/*", DataManager_GetStrValue(TW_INTERNAL_PATH), rMnt.dev);
+					sprintf(rCommand2, "rm -rf %s/%s/.*", DataManager_GetStrValue(TW_INTERNAL_PATH), rMnt.dev);
+				} else {
+					tw_mount(sdcext); // for android secure we must make sure that the sdcard is mounted
+					sprintf(rCommand, "rm -rf %s/%s/*", DataManager_GetStrValue(TW_EXTERNAL_PATH), rMnt.dev);
+					sprintf(rCommand2, "rm -rf %s/%s/.*", DataManager_GetStrValue(TW_EXTERNAL_PATH), rMnt.dev);
+				}
 			} else {
 				tw_mount(rMnt); // mount the partition first
 				sprintf(rCommand,"rm -rf %s%s/*", "/", rMnt.mnt);
@@ -1220,7 +1255,6 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
 			    tw_format(rFilesystem,rMnt.blk); // let's format block, based on filesystem from filename above
             }
 			ui_print("....done formatting.\n");
-		}
 		}
 
         if (rMnt.backup == files)
@@ -1260,9 +1294,8 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
 		}
 		__pclose(reFp);
 		ui_print_overwrite("....done restoring.\n");
-		if (strcmp(rMnt.mnt,".android_secure") != 0) { // any partition other than android secure,
+		if (strcmp(rMnt.mnt,".android_secure") != 0) // any partition other than android secure,
 			tw_unmount(rMnt); // let's unmount (unmountable partitions won't matter)
-		}
 	} else {
 		ui_print("...Failed md5 check. Aborted.\n\n");
 		return 1;

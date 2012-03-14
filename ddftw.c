@@ -47,9 +47,19 @@ struct dInfo* findDeviceByLabel(const char* label)
 	if (strcmp(label, "and-sec") == 0)      return &ase;
 
     // New sdcard methods
-    if (strcmp(label, "sdcard") == 0)       return &sdcext;
-    if (strcmp(label, "sdc-ext") == 0)      return &sdcext;
-    if (strcmp(label, "sdc-int") == 0)      return &sdcint;
+	if (DataManager_GetIntValue(TW_HAS_INTERNAL) == 1) {
+		if (strcmp(label, DataManager_GetStrValue(TW_EXTERNAL_LABEL)) == 0)      return &sdcext;
+		if (strcmp(label, DataManager_GetStrValue(TW_INTERNAL_LABEL)) == 0)      return &sdcint;
+		if (strcmp(label, "sdcard") == 0) {
+			if (DataManager_GetIntValue(TW_USE_EXTERNAL_STORAGE) == 0) {
+				return &sdcint;
+			} else {
+				return &sdcext;
+			}
+			return 0;
+		}
+	} else
+		if (strcmp(label, DataManager_GetStrValue(TW_EXTERNAL_LABEL)) == 0)       return &sdcext;
 
     // Special Partitions (such as WiMAX, efs, and PDS)
     if (strcmp(label, EXPAND(SP1_NAME)) == 0)       return &sp1;
@@ -313,25 +323,37 @@ unsigned long long getUsedSizeViaDu(const char* path)
 void updateMntUsedSize(struct dInfo* mMnt)
 {
 #ifdef RECOVERY_SDCARD_ON_DATA
-    if (mMnt == &sdcext)
+    /*if (mMnt == &sdcext)
     {
         struct statfs st;
         if (statfs("/mnt/data-sdc/.", &st) != 0)    return;
 
         mMnt->used = ((st.f_blocks - st.f_bfree) * st.f_bsize);
         return;
-    }
+    }*/
 #endif
 
 	if (strcmp(mMnt->mnt, ".android_secure") == 0)
     {
 		// android_secure is a little different - we mount sdcard and use du to figure out how much space is being taken up by android_secure
         
-        // We can ignore any error from this, it doesn't matter
-        tw_mount(sdcext);
+		char ase_path[255];
+		memset(ase_path, 0 , sizeof(ase_path));
 
-        mMnt->used = getUsedSizeViaDu("/sdcard/.android_secure");
-        mMnt->sze = mMnt->used;
+		if (DataManager_GetIntValue(TW_HAS_INTERNAL)) {
+			// We can ignore any error from this, it doesn't matter
+			tw_mount(sdcint);
+
+			sprintf(ase_path, "%s/.android_secure", DataManager_GetSettingsStoragePath());
+			LOGI("Using internal path for android_secure: '%s'\n", ase_path);
+		} else {
+			// We can ignore any error from this, it doesn't matter
+			tw_mount(sdcext);
+
+			sprintf(ase_path, "%s/.android_secure", DataManager_GetStrValue(TW_EXTERNAL_PATH));
+		}
+		mMnt->used = getUsedSizeViaDu(ase_path);
+		mMnt->sze = mMnt->used;
         return;
 	}
 
@@ -357,7 +379,17 @@ void updateMntUsedSize(struct dInfo* mMnt)
     sprintf(path, "/%s/.", mMnt->mnt);
     if (statfs(path, &st) != 0)
     {
-        if (strncmp(path, "/sd-ext", 7) != 0) LOGE("Unable to stat '%s'\n", path);
+        
+		if (strncmp(path, "/sd-ext", 7) == 0)
+			return;
+		if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE)) {
+			char external_mount_point[255];
+			memset(external_mount_point, 0, sizeof(external_mount_point));
+			sprintf(external_mount_point, "/%s/.", DataManager_GetStrValue(TW_EXTERNAL_PATH));
+			if (strcmp(path, external_mount_point) == 0)
+				return;
+		}
+		LOGE("Unable to stat '%s'\n", path);
         return;
     }
 
@@ -381,6 +413,16 @@ void updateUsedSized()
     updateMntUsedSize(&sp1);
     updateMntUsedSize(&sp2);
     updateMntUsedSize(&sp3);
+
+	if (sde.used == 0 && sde.sze == 0)
+		DataManager_SetIntValue("tw_has_sdext_partition", 0);
+	else
+		DataManager_SetIntValue("tw_has_sdext_partition", 1);
+
+	if (ase.used == 0 && ase.sze == 0)
+		DataManager_SetIntValue("tw_has_android_secure", 0);
+	else
+		DataManager_SetIntValue("tw_has_android_secure", 1);
 
     dumpPartitionTable();
     return;
@@ -645,6 +687,6 @@ void dumpPartitionTable(void)
     dumpPartitionEntry(&sp1);
     dumpPartitionEntry(&sp2);
     dumpPartitionEntry(&sp3);
-    fprintf(stderr, "+----------+-----------------------------+------+----------+----------+---+---+\n");
+    fprintf(stderr, "+----------+-----------------------------+--------+----------+----------+---+---+\n");
 }
 

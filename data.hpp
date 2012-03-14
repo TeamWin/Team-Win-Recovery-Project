@@ -47,6 +47,16 @@ public:
     static int SetValue(const string varName, float value, int persist = 0);
 
     static void DumpValues();
+	static void SetDefaultValues();
+	
+	static string GetCurrentStoragePath(void);
+	static string& CGetCurrentStoragePath();
+	static string GetCurrentStorageMount(void);
+	static string& CGetCurrentStorageMount();
+	static string GetSettingsStoragePath(void);
+	static string& CGetSettingsStoragePath();
+	static string GetSettingsStorageMount(void);
+	static string& CGetSettingsStorageMount();
 
 protected:
     typedef pair<string, int> TStrIntPair;
@@ -59,7 +69,6 @@ protected:
 
 protected:
     static int SaveValues();
-    static void SetDefaultValues();
 
     static int GetMagicValue(string varName, string& value);
 

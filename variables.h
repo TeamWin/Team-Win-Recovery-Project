@@ -56,6 +56,8 @@
 #define TW_SORT_FILES_BY_DATE_VAR   "tw_sort_files_by_date"
 #define TW_GUI_SORT_ORDER           "tw_gui_sort_order"
 #define TW_ZIP_LOCATION_VAR         "tw_zip_location"
+#define TW_ZIP_INTERNAL_VAR         "tw_zip_internal"
+#define TW_ZIP_EXTERNAL_VAR         "tw_zip_external"
 #define TW_FORCE_MD5_CHECK_VAR      "tw_force_md5_check"
 #define TW_SKIP_MD5_CHECK_VAR       "tw_skip_md5_check"
 #define TW_SKIP_MD5_GENERATE_VAR    "tw_skip_md5_generate"
@@ -87,6 +89,25 @@
 #define TW_REBOOT_RECOVERY          "tw_reboot_recovery"
 #define TW_REBOOT_POWEROFF          "tw_reboot_poweroff"
 #define TW_REBOOT_BOOTLOADER        "tw_reboot_bootloader"
+
+#define TW_HAS_DUAL_STORAGE         "tw_has_dual_storage"
+#define TW_USE_EXTERNAL_STORAGE     "tw_use_external_storage"
+#define TW_HAS_INTERNAL             "tw_has_internal"
+#define TW_INTERNAL_PATH            "tw_internal_path"         // /data/media or /internal
+#define TW_INTERNAL_MOUNT           "tw_internal_mount"        // /data or /internal
+#define TW_INTERNAL_LABEL           "tw_internal_label"        // data or internal
+#define TW_HAS_EXTERNAL             "tw_has_external"
+#define TW_EXTERNAL_PATH            "tw_external_path"         // /sdcard or /external/sdcard2
+#define TW_EXTERNAL_MOUNT           "tw_external_mount"        // /sdcard or /external
+#define TW_EXTERNAL_LABEL           "tw_external_label"        // sdcard or external
+
+#define TW_HAS_DATA_MEDIA           "tw_has_data_media"
+
+#define TW_HAS_RECOVERY_PARTITION   "tw_has_recovery_partition"
+#define TW_HAS_ANDROID_SECURE       "tw_has_android_secure"
+#define TW_HAS_SDEXT_PARTITION      "tw_has_sdext_partition"
+
+#define TW_SHOW_DUMLOCK             "tw_show_dumlock"
 
 // Also used:
 //   tw_boot_is_mountable

@@ -29,6 +29,8 @@
 #include "common.h"
 #include "ddftw.h"
 #include "format.h"
+#include "data.h"
+#include "variables.h"
 
 static int num_volumes = 0;
 static Volume* device_volumes = NULL;
@@ -125,8 +127,35 @@ Volume* volume_for_device(const char* device)
 
 int ensure_path_mounted(const char* path) {
 #ifdef RECOVERY_SDCARD_ON_DATA
-    if (strcmp(path, "/sdcard") == 0)   return 0;
+    //if (strcmp(path, "/sdcard") == 0)   return 0;
 #endif
+
+	if (strncmp(path, "/sdcard", 7) == 0) {
+		if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 1) {
+			char mount_command[255], mount_point[255];
+			memset(mount_command, 0, sizeof(mount_command));
+			memset(mount_point, 0, sizeof(mount_point));
+
+			strcpy(mount_point, DataManager_GetCurrentStoragePath());
+			sprintf(mount_command, "mount %s /sdcard", mount_point);
+			LOGI("Mounting '%s'\n", mount_point);
+			if (ensure_path_mounted(mount_point) != 0) {
+				LOGI("Unable to mount '%s'\n", mount_point);
+				return -1;
+			}
+			LOGI("Mounting /sdcard using: '%s'\n", mount_command);
+			system(mount_command);
+			return 0;
+		} else if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1) {
+			if (ensure_path_mounted("/data")) {
+				LOGI("Unable to mount /data\n");
+				return -1;
+			}
+			LOGI("Mounting /sdcard using: 'mount /data/media /sdcard'\n");
+			system("mount /data/media /sdcard");
+			return 0;
+		}
+	}
 
     Volume* v = volume_for_path(path);
     if (v == NULL) {
@@ -194,7 +223,12 @@ int ensure_path_unmounted(const char* path) {
     sync();
     sync();
 
-    Volume* v = volume_for_path(path);
+	if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 1 && strncmp(path, "/sdcard", 7) == 0) {
+		LOGI("Unmounting /sdcard (dual storage path code)\n");
+		return system("umount /sdcard");;
+	}
+
+	Volume* v = volume_for_path(path);
     if (v == NULL) {
         LOGE("unknown volume for path [%s]\n", path);
         return -1;

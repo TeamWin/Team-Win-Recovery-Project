@@ -28,6 +28,7 @@
 #include "mtdutils/mounts.h"
 #include "ddftw.h"
 #include "roots.h"
+#include "backstore.h"
 
 static int file_exists(const char* file)
 {
@@ -146,7 +147,6 @@ static int tw_format_ext4(const char* device)
     return tw_format_ext23("ext4", device);
 }
 
-#ifdef RECOVERY_SDCARD_ON_DATA
 void wipe_data_without_wiping_media(void) {
 	// This handles wiping data on devices with "sdcard" in /data/media
     ui_print("Wiping data without wiping /data/media\n");
@@ -171,19 +171,16 @@ void wipe_data_without_wiping_media(void) {
     }
     tw_unmount(dat);
 }
-#endif
 
 int tw_format(const char *fstype, const char *fsblock)
 {
     int result = -1;
 
     LOGI("%s: Formatting \"%s\" as \"%s\"\n", __FUNCTION__, fsblock, fstype);
-#ifdef RECOVERY_SDCARD_ON_DATA
-	if (strcmp(dat.blk, fsblock) == 0) {
+	if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 && strcmp(dat.blk, fsblock) == 0) {
 		wipe_data_without_wiping_media();
 		return 0;
 	}
-#endif
     Volume* v = volume_for_device(fsblock);
     if (v)
     {

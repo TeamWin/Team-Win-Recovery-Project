@@ -29,9 +29,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <dirent.h>
-#ifdef RECOVERY_SDCARD_ON_DATA
 #include <sys/statfs.h>
-#endif
 
 #include "bootloader.h"
 #include "common.h"
@@ -1177,7 +1175,10 @@ main(int argc, char **argv) {
     freopen(TEMPORARY_LOG_FILE, "a", stderr); setbuf(stderr, NULL);
     printf("Starting recovery on %s", ctime(&start));
 
-    // Fire up the UI engine
+    // Load default values to set DataManager constants and handle ifdefs
+	DataManager_LoadDefaults();
+
+	// Fire up the UI engine
     if (gui_init())
     {
         ui_init();
@@ -1185,9 +1186,6 @@ main(int argc, char **argv) {
     }
     printf("Loading volume table...\n");
     load_volume_table();
-
-    // Load up all the resources
-    gui_loadResources();
 
     printf("Processing arguments (%d)...\n", argc);
     get_args(&argc, &argv);
@@ -1202,6 +1200,9 @@ main(int argc, char **argv) {
         LOGE("Failing out of recovery.\n");
         return -1;
     }
+
+	// Load up all the resources
+	gui_loadResources();
 
     int previous_runs = 0;
     const char *send_intent = NULL;
@@ -1254,19 +1255,14 @@ main(int argc, char **argv) {
     property_list(print_property, NULL);
     printf("\n");
 
-#ifdef RECOVERY_SDCARD_ON_DATA
-	// itsmagic is needed on the Acer Iconia Tab A500 to workaround a bootloader
-	// checksum check of the kernel and recovery partitions.  It must be run anytime
-	// you change either boot or recovery.  We run it on boot, just in case, assuming
-	// that it exists in the recovery build.
+	// Check for and run startup script if script exists
 	struct statfs st;
-	if (statfs("/sbin/itsmagic", &st) == 0) {
-		ui_print("Running itsmagic...\n");
-		__system("itsmagic");
+	if (statfs("/sbin/runatboot.sh", &st) == 0) {
+		ui_print("Running boot script...\n");
+		__system("runatboot.sh");
 		ui_print("\nDONE\n");
-		LOGI("\nitsmagic ran!\n");
+		LOGI("\nFinished running boot script.\n");
 	}
-#endif
 
     int status = INSTALL_SUCCESS;
 
@@ -1332,15 +1328,32 @@ main(int argc, char **argv) {
         ui_set_background(BACKGROUND_ICON_MAIN);
 
         // Load up the values for TWRP - Sleep to let the card be ready
-        usleep(500000);
-        if (ensure_path_mounted("/sdcard") < 0)
+		char mkdir_path[255], settings_file[255];
+		memset(mkdir_path, 0, sizeof(mkdir_path));
+		memset(settings_file, 0, sizeof(settings_file));
+		sprintf(mkdir_path, "%s/TWRP", DataManager_GetSettingsStoragePath());
+		sprintf(settings_file, "%s/.twrps", mkdir_path);
+
+        if (ensure_path_mounted(DataManager_GetSettingsStorageMount()) < 0)
         {
             usleep(500000);
-            if (ensure_path_mounted("/sdcard") < 0)
-                LOGE("Unable to mount sdcard\n");
+            if (ensure_path_mounted(DataManager_GetSettingsStorageMount()) < 0)
+                LOGE("Unable to mount %s\n", DataManager_GetSettingsStorageMount());
         }
-        mkdir("/sdcard/TWRP", 0777);
-        DataManager_LoadValues("/sdcard/TWRP/.twrps");
+		
+		mkdir(mkdir_path, 0777);
+
+        DataManager_LoadValues(settings_file);
+		if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) != 0 && DataManager_GetIntValue(TW_USE_EXTERNAL_STORAGE) == 1) {
+			// Attempt to sdcard using external storage
+			if (ensure_path_mounted("/sdcard")) {
+				LOGE("Failed to remount /sdcard to external storage, using internal storage.\n");
+				// Remount failed, default back to internal storage
+				DataManager_SetIntValue(TW_USE_EXTERNAL_STORAGE, 0);
+				ensure_path_mounted("/sdcard");
+			}
+		} else
+			ensure_path_mounted("/sdcard");
 
         // Update some of the main data
         update_tz_environment_variables();
