@@ -30,6 +30,7 @@ extern "C" {
 
 #include "rapidxml.hpp"
 #include "objects.hpp"
+#include "../data.hpp"
 
 int GUIFileSelector::mSortOrder = 0;
 
@@ -163,8 +164,10 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
 	// Fetch the file/folder list
     std::string value;
     DataManager::GetValue(mPathVar, value);
-    if (GetFileList(value) != 0 && (mShowNavFolders != 0 || mShowFiles != 0))
-		GetFileList("/sdcard");
+    if (GetFileList(value) != 0 && (mShowNavFolders != 0 || mShowFiles != 0)) {
+		GetFileList(DataManager::GetCurrentStoragePath());
+		DataManager::SetValue(TW_ZIP_LOCATION_VAR, DataManager::GetCurrentStoragePath());
+	}
 }
 
 GUIFileSelector::~GUIFileSelector()
@@ -444,7 +447,7 @@ int GUIFileSelector::GetFileList(const std::string folder)
     d = opendir(folder.c_str());
     if (d == NULL)
     {
-        LOGE("error opening %s\n", folder.c_str());
+        LOGI("error opening %s\n", folder.c_str());
         return -1;
     }
 
@@ -492,8 +495,10 @@ void GUIFileSelector::SetPageFocus(int inFocus)
     {
         std::string value;
         DataManager::GetValue(mPathVar, value);
-        if (GetFileList(value) != 0 && (mShowNavFolders != 0 || mShowFiles != 0))
-			GetFileList("/sdcard");
+        if (GetFileList(value) != 0 && (mShowNavFolders != 0 || mShowFiles != 0)) {
+			GetFileList(DataManager::GetCurrentStoragePath());
+			DataManager::SetValue(TW_ZIP_LOCATION_VAR, DataManager::GetCurrentStoragePath());
+		}
     }
 }
 

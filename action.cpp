@@ -430,6 +430,35 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 		return 0;
 	}
 
+	if (action.mFunction == "togglestorage") {
+		if (action.mArg == "internal") {
+			DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 0);
+		} else if (action.mArg == "external") {
+			DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 1);
+		}
+		if (ensure_path_mounted("/sdcard") == 0) {
+			if (action.mArg == "internal") {
+				// Save the current zip location to the external variable
+				DataManager::SetValue(TW_ZIP_EXTERNAL_VAR, DataManager::GetStrValue(TW_ZIP_LOCATION_VAR));
+				// Change the current zip location to the internal variable
+				DataManager::SetValue(TW_ZIP_LOCATION_VAR, DataManager::GetStrValue(TW_ZIP_INTERNAL_VAR));
+			} else if (action.mArg == "external") {
+				// Save the current zip location to the internal variable
+				DataManager::SetValue(TW_ZIP_INTERNAL_VAR, DataManager::GetStrValue(TW_ZIP_LOCATION_VAR));
+				// Change the current zip location to the external variable
+				DataManager::SetValue(TW_ZIP_LOCATION_VAR, DataManager::GetStrValue(TW_ZIP_EXTERNAL_VAR));
+			}
+		} else {
+			// We weren't able to toggle for some reason, restore original setting
+			if (action.mArg == "internal") {
+				DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 1);
+			} else if (action.mArg == "external") {
+				DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 0);
+			}
+		}
+		return 0;
+	}
+
     if (isThreaded)
     {
         if (action.mFunction == "flash")
@@ -582,6 +611,9 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 				ensure_path_mounted(SDCARD_ROOT);
 				mkdir("/sdcard/TWRP", 0777);
 				DataManager::Flush();
+				DataManager::SetValue(TW_ZIP_EXTERNAL_VAR, "/sdcard");
+				if (DataManager::GetIntValue(TW_USE_EXTERNAL_STORAGE) == 1)
+					DataManager::SetValue(TW_ZIP_LOCATION_VAR, "/sdcard");
 			}
 #endif
 			DataManager::SetValue("ui_progress", 100);

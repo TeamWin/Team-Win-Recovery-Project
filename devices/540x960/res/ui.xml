@@ -1693,7 +1693,7 @@
 				</conditions>
                 <placement x="%col1_x%" y="320" />
                 <font resource="font" color="#A0A0A0" />
-                <text>   Mount Boot</text>
+                <text>Mount Boot</text>
                 <image resource="checkbox_false" />
                 <action function="mount">/boot</action>
             </object>
@@ -1705,9 +1705,57 @@
 				</conditions>
                 <placement x="%col1_x%" y="320" />
                 <font resource="font" color="#A0A0A0" />
-                <text>   Unmount Boot</text>
+                <text>Unmount Boot</text>
                 <image resource="checkbox_true" />
                 <action function="umount">/boot</action>
+            </object>
+			
+			<object type="button">
+                <placement x="%col1_x%" y="360" />
+                <font resource="font" color="%text_color%" />
+                <conditions>
+					<condition var1="tw_has_dual_storage" var2="1" />
+					<condition var1="tw_use_external_storage" var2="1" />
+				</conditions>
+                <text>Using internal storage</text>
+                <image resource="checkbox_false" />
+                <action function="togglestorage">internal</action>
+            </object>
+
+			<object type="button">
+                <placement x="%col1_x%" y="360" />
+                <font resource="font" color="%text_color%" />
+                <conditions>
+					<condition var1="tw_has_dual_storage" var2="1" />
+					<condition var1="tw_use_external_storage" var2="0" />
+				</conditions>
+                <text>Using internal storage</text>
+                <image resource="checkbox_true" />
+                <action function="togglestorage">internal</action>
+            </object>
+
+            <object type="button">
+                <placement x="%col2_x%" y="360" />
+                <font resource="font" color="%text_color%" />
+                <conditions>
+					<condition var1="tw_has_dual_storage" var2="1" />
+					<condition var1="tw_use_external_storage" var2="1" />
+				</conditions>
+                <text>                                      Using external SDCard</text>
+                <image resource="checkbox_true" />
+                <action function="togglestorage">external</action>
+            </object>
+
+			<object type="button">
+                <placement x="%col2_x%" y="360" />
+                <font resource="font" color="%text_color%" />
+                <conditions>
+					<condition var1="tw_has_dual_storage" var2="1" />
+					<condition var1="tw_use_external_storage" var2="0" />
+				</conditions>
+                <text>                                      Using external SDCard</text>
+                <image resource="checkbox_false" />
+                <action function="togglestorage">external</action>
             </object>
 			
             <object type="button">

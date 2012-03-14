@@ -390,34 +390,41 @@ extern "C" int gui_loadResources()
         LOGE("Unable to symlink (errno %d)\n", errno);
     }*/
 //#else
-    if (ensure_path_mounted("/sdcard") < 0)
-    {
-        int retry_count = 5;
-		while (retry_count || (ensure_path_mounted("/sdcard") < 0)) {
-			usleep(500000);
-			ensure_path_mounted("/sdcard");
-			retry_count--;
-		}
-		if (ensure_path_mounted("/sdcard") < 0)
-			LOGE("Unable to mount /sdcard during GUI startup.\n");
-    }
 //#endif
 
 //    unlink("/sdcard/video.last");
 //    rename("/sdcard/video.bin", "/sdcard/video.last");
 //    gRecorder = open("/sdcard/video.bin", O_CREAT | O_WRONLY);
 
-    if (PageManager::LoadPackage("TWRP", "/script/ui.xml"))
-    {
-        if (PageManager::LoadPackage("TWRP", "/sdcard/TWRP/theme/ui.zip"))
-        {
-            if (PageManager::LoadPackage("TWRP", "/res/ui.xml"))
-            {
-                LOGE("Failed to load base packages.\n");
-                goto error;
-            }
-        }
-    }
+	if (PageManager::LoadPackage("TWRP", "/script/ui.xml"))
+	{
+		int check = 0;
+		std::string theme_path;
+
+		theme_path = DataManager::GetSettingsStoragePath();
+		if (ensure_path_mounted(theme_path.c_str()) < 0) {
+			int retry_count = 5;
+			while (retry_count > 0 && (ensure_path_mounted(theme_path.c_str()) < 0)) {
+				usleep(500000);
+				ensure_path_mounted(theme_path.c_str());
+				retry_count--;
+			}
+			if (ensure_path_mounted(theme_path.c_str()) < 0) {
+				LOGE("Unable to mount %s during GUI startup.\n", theme_path.c_str());
+				check = 1;
+			}
+		}
+
+		theme_path += "/TWRP/theme/ui.zip";
+		if (check || PageManager::LoadPackage("TWRP", theme_path))
+		{
+			if (PageManager::LoadPackage("TWRP", "/res/ui.xml"))
+			{
+				LOGE("Failed to load base packages.\n");
+				goto error;
+			}
+		}
+	}
 
     // Set the default package
     PageManager::SelectPackage("TWRP");
