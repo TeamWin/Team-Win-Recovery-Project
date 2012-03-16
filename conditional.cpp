@@ -21,10 +21,12 @@ extern "C" {
 #include "../common.h"
 #include "../minui/minui.h"
 #include "../recovery_ui.h"
+#include "../variables.h"
 }
 
 #include "rapidxml.hpp"
 #include "objects.hpp"
+#include "../data.hpp"
 
 Conditional::Conditional(xml_node<>* node)
 {
@@ -176,6 +178,10 @@ bool Conditional::isMounted(string vol)
 	FILE *fp;
     char tmpOutput[255];
 
+	if (strcmp(vol.c_str(), "EXTERNAL") == 0)
+		DataManager::GetValue(TW_EXTERNAL_MOUNT, vol);
+	else if (strcmp(vol.c_str(), "INTERNAL") == 0)
+		DataManager::GetValue(TW_INTERNAL_MOUNT, vol);
 	fp = fopen("/proc/mounts", "rt");
 	while (fgets(tmpOutput,255,fp) != NULL)
 	{

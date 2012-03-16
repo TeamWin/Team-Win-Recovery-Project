@@ -373,6 +373,7 @@
             </object>
 			
 			<object type="button">
+				<condition var1="tw_reboot_system" var2="1" />
                 <placement x="%col2_x%" y="530" />
                 <font resource="font" color="%button_text_color%" />
                 <text>Reboot System</text>
@@ -510,6 +511,7 @@
             </object>
 			
 			<object type="button">
+				<condition var1="tw_has_sdext_partition" var2="1" />
                 <placement x="%col2_x%" y="%row4_y%" />
                 <font resource="font" color="%button_text_color%" />
                 <text>SD Ext</text>
@@ -1085,11 +1087,19 @@
                 <image resource="main_button" />
                 <action function="page">backup_run</action>
             </object>
+			
+			<object type="button">
+                <placement x="%col2_x%" y="%row1_y%" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Refresh Sizes</text>
+                <image resource="main_button" />
+                <action function="refreshsizes"></action>
+            </object>
 
             <object type="checkbox">
                 <placement x="%col1_x%" y="285" />
                 <font resource="font" color="%text_color%" />
-                <text>System</text>
+                <text>System (%tw_backup_system_size% MB)</text>
                 <data variable="tw_backup_system" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
@@ -1097,7 +1107,7 @@
             <object type="checkbox">
                 <placement x="%col1_x%" y="325" />
                 <font resource="font" color="%text_color%" />
-                <text>Data</text>
+                <text>Data (%tw_backup_data_size% MB)</text>
                 <data variable="tw_backup_data" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
@@ -1105,15 +1115,16 @@
             <object type="checkbox">
                 <placement x="%col1_x%" y="365" />
                 <font resource="font" color="%text_color%" />
-                <text>Boot</text>
+                <text>Boot (%tw_backup_boot_size% MB)</text>
                 <data variable="tw_backup_boot" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 
             <object type="checkbox">
+				<condition var1="tw_has_recovery_partition" var2="1" />
                 <placement x="%col1_x%" y="405" />
                 <font resource="font" color="%text_color%" />
-                <text>Recovery</text>
+                <text>Recovery (%tw_backup_recovery_size% MB)</text>
                 <data variable="tw_backup_recovery" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
@@ -1121,24 +1132,26 @@
             <object type="checkbox">
                 <placement x="%col1_x%" y="445" />
                 <font resource="font" color="%text_color%" />
-                <text>Cache</text>
+                <text>Cache (%tw_backup_cache_size% MB)</text>
                 <data variable="tw_backup_cache" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 			
             <object type="checkbox">
+				<condition var1="tw_has_android_secure" var2="1" />
                 <placement x="%col1_x%" y="485" />
                 <font resource="font" color="%text_color%" />
-                <text>.android_secure</text>
+                <text>.android_secure (%tw_backup_andsec_size% MB)</text>
                 <condition var1="fileexists" var2="/sdcard/.android_secure" />
                 <data variable="tw_backup_andsec" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 
             <object type="checkbox">
+				<condition var1="tw_has_sdext_partition" var2="1" />
                 <placement x="%col1_x%" y="525" />
                 <font resource="font" color="%text_color%" />
-                <text>sd-ext</text>
+                <text>sd-ext (%tw_backup_sdext_size% MB)</text>
                 <condition var1="fileexists" var2="/sd-ext" />
                 <data variable="tw_backup_sdext" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
@@ -1148,7 +1161,7 @@
 				<condition var1="tw_sp1_name" op=">" var2="" />
                 <placement x="%col1_x%" y="565" />
                 <font resource="font" color="%text_color%" />
-                <text>%tw_sp1_name%</text>
+                <text>%tw_sp1_name% (%tw_backup_sp1_size% MB)</text>
                 <data variable="tw_backup_sp1" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
@@ -1157,7 +1170,7 @@
 				<condition var1="tw_sp2_name" op=">" var2="" />
                 <placement x="%col1_x%" y="605" />
                 <font resource="font" color="%text_color%" />
-                <text>%tw_sp2_name%</text>
+                <text>%tw_sp2_name% (%tw_backup_sp2_size% MB)</text>
                 <data variable="tw_backup_sp2" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
@@ -1166,9 +1179,15 @@
 				<condition var1="tw_sp3_name" op=">" var2="" />
                 <placement x="%col1_x%" y="645" />
                 <font resource="font" color="%text_color%" />
-                <text>%tw_sp3_name%</text>
+                <text>%tw_sp3_name% (%tw_backup_sp3_size% MB)</text>
                 <data variable="tw_backup_sp3" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col1_x%" y="685" />
+                <text>Free Space: %tw_storage_free_size% MB</text>
             </object>
 
             <object type="checkbox">
@@ -1597,6 +1616,7 @@
             <object type="template" name="header" />
 
             <object type="button">
+				<condition var1="tw_has_usb_storage" var2="1" />
                 <placement x="%col1_x%" y="%row1_y%" />
                 <font resource="font" color="%text_color%" />
                 <condition var1="mounted" op="!=" var2="/system" />
@@ -1653,25 +1673,60 @@
 			<object type="button">
                 <placement x="%col1_x%" y="240" />
                 <font resource="font" color="%text_color%" />
-                <condition var1="mounted" op="!=" var2="/sdcard" />
+                <conditions>
+					<condition var1="tw_has_external" var2="1" />
+					<condition var1="mounted" op="!=" var2="EXTERNAL" />
+				</conditions>
                 <text>Mount SDCard</text>
                 <image resource="checkbox_false" />
-                <action function="mount">/sdcard</action>
+                <action function="mount">EXTERNAL</action>
             </object>
 
             <object type="button">
                 <placement x="%col1_x%" y="240" />
                 <font resource="font" color="%text_color%" />
-                <condition var1="mounted" op="=" var2="/sdcard" />
+                <conditions>
+					<condition var1="tw_has_external" var2="1" />
+					<condition var1="mounted" op="=" var2="EXTERNAL" />
+				</conditions>
                 <text>Unmount SDCard</text>
                 <image resource="checkbox_true" />
-                <action function="umount">/sdcard</action>
+                <action function="umount">EXTERNAL</action>
             </object>
 			
 			<object type="button">
+                <placement x="%col2_x%" y="240" />
+                <font resource="font" color="%text_color%" />
+				<conditions>
+					<condition var1="tw_has_internal" var2="1" />
+					<condition var1="tw_has_data_media" var2="0" />
+					<condition var1="mounted" op="!=" var2="INTERNAL" />
+				</conditions>
+                <text>                                      Mount Internal Storage</text>
+                <image resource="checkbox_false" />
+                <action function="mount">INTERNAL</action>
+            </object>
+
+            <object type="button">
+                <placement x="%col2_x%" y="240" />
+                <font resource="font" color="%text_color%" />
+				<conditions>
+					<condition var1="tw_has_internal" var2="1" />
+					<condition var1="tw_has_data_media" var2="0" />
+					<condition var1="mounted" op="=" var2="INTERNAL" />
+				</conditions>
+                <text>                                      Unmount Internal Storage</text>
+                <image resource="checkbox_true" />
+                <action function="umount">INTERNAL</action>
+            </object>
+			
+			<object type="button">
+				<conditions>
+					<condition var1="tw_has_sdext_partition" var2="1" />
+					<condition var1="mounted" op="!=" var2="/sd-ext" />
+				</conditions>
                 <placement x="%col1_x%" y="280" />
                 <font resource="font" color="%text_color%" />
-                <condition var1="mounted" op="!=" var2="/sd-ext" />
                 <text>Mount SD-Ext</text>
                 <image resource="checkbox_false" />
                 <action function="mount">/sd-ext</action>
@@ -1709,41 +1764,41 @@
                 <image resource="checkbox_true" />
                 <action function="umount">/boot</action>
             </object>
-			
-			<object type="button">
-                <placement x="%col1_x%" y="360" />
-                <font resource="font" color="%text_color%" />
-                <conditions>
-					<condition var1="tw_has_dual_storage" var2="1" />
-					<condition var1="tw_use_external_storage" var2="1" />
-				</conditions>
-                <text>Using internal storage</text>
-                <image resource="checkbox_false" />
-                <action function="togglestorage">internal</action>
-            </object>
-
-			<object type="button">
-                <placement x="%col1_x%" y="360" />
-                <font resource="font" color="%text_color%" />
-                <conditions>
-					<condition var1="tw_has_dual_storage" var2="1" />
-					<condition var1="tw_use_external_storage" var2="0" />
-				</conditions>
-                <text>Using internal storage</text>
-                <image resource="checkbox_true" />
-                <action function="togglestorage">internal</action>
-            </object>
 
             <object type="button">
+                <placement x="%col1_x%" y="360" />
+                <font resource="font" color="%text_color%" />
+                <conditions>
+					<condition var1="tw_has_dual_storage" var2="1" />
+					<condition var1="tw_use_external_storage" var2="1" />
+				</conditions>
+                <text>Using external SDCard</text>
+                <image resource="checkbox_true" />
+                <action function="togglestorage">external</action>
+            </object>
+
+			<object type="button">
+                <placement x="%col1_x%" y="360" />
+                <font resource="font" color="%text_color%" />
+                <conditions>
+					<condition var1="tw_has_dual_storage" var2="1" />
+					<condition var1="tw_use_external_storage" var2="0" />
+				</conditions>
+                <text>Using external SDCard</text>
+                <image resource="checkbox_false" />
+                <action function="togglestorage">external</action>
+            </object>
+			
+			<object type="button">
                 <placement x="%col2_x%" y="360" />
                 <font resource="font" color="%text_color%" />
                 <conditions>
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="1" />
 				</conditions>
-                <text>                                      Using external SDCard</text>
-                <image resource="checkbox_true" />
-                <action function="togglestorage">external</action>
+                <text>                                      Using internal storage</text>
+                <image resource="checkbox_false" />
+                <action function="togglestorage">internal</action>
             </object>
 
 			<object type="button">
@@ -1753,9 +1808,9 @@
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="0" />
 				</conditions>
-                <text>                                      Using external SDCard</text>
-                <image resource="checkbox_false" />
-                <action function="togglestorage">external</action>
+                <text>                                      Using internal storage</text>
+                <image resource="checkbox_true" />
+                <action function="togglestorage">internal</action>
             </object>
 			
             <object type="button">
@@ -1811,6 +1866,7 @@
             <object type="template" name="header" />
 
             <object type="button">
+				<condition var1="tw_reboot_system" var2="1" />
                 <placement x="%col1_x%" y="%row1_y%" />
                 <font resource="font" color="%button_text_color%" />
                 <text>System</text>
@@ -1819,6 +1875,7 @@
             </object>
 
             <object type="button">
+				<condition var1="tw_reboot_poweroff" var2="1" />
                 <placement x="%col2_x%" y="%row1_y%" />
                 <font resource="font" color="%button_text_color%" />
                 <text>Power Off</text>
@@ -1827,6 +1884,7 @@
             </object>
 
             <object type="button">
+				<condition var1="tw_reboot_recovery" var2="1" />
                 <placement x="%col1_x%" y="%row2_y%" />
                 <font resource="font" color="%button_text_color%" />
                 <text>Recovery</text>
@@ -1835,6 +1893,7 @@
             </object>
 
             <object type="button">
+				<condition var1="tw_reboot_bootloader" var2="1" />
                 <placement x="%col2_x%" y="%row2_y%" />
                 <font resource="font" color="%button_text_color%" />
                 <text>Bootloader</text>

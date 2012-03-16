@@ -24,11 +24,15 @@ extern "C" {
 #include "../tw_reboot.h"
 #include "../minui/minui.h"
 #include "../recovery_ui.h"
+#include "../ddftw.h"
+#include "../backstore.h"
+#include "../extra-functions.h"
 
 int install_zip_package(const char* zip_path_filename);
 void fix_perms();
 int erase_volume(const char* path);
 void wipe_dalvik_cache(void);
+void update_system_details();
 int nandroid_back_exe(void);
 void set_restore_files(void);
 int nandroid_rest_exe(void);
@@ -43,6 +47,7 @@ void update_tz_environment_variables();
 void install_htc_dumlock(void);
 void htc_dumlock_restore_original_boot(void);
 void htc_dumlock_reflash_recovery_to_boot(void);
+void update_system_details();
 };
 
 #include "rapidxml.hpp"
@@ -336,7 +341,13 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
         }
         else
         {
-            string cmd = "mount " + action.mArg;
+            string cmd;
+			if (action.mArg == "EXTERNAL")
+				cmd = "mount " + DataManager::GetStrValue(TW_EXTERNAL_MOUNT);
+			else if (action.mArg == "INTERNAL")
+				cmd = "mount " + DataManager::GetStrValue(TW_INTERNAL_MOUNT);
+			else
+				cmd = "mount " + action.mArg;
             __system(cmd.c_str());
         }
         return 0;
@@ -353,7 +364,13 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
         }
         else
         {
-            string cmd = "umount " + action.mArg;
+            string cmd;
+			if (action.mArg == "EXTERNAL")
+				cmd = "umount " + DataManager::GetStrValue(TW_EXTERNAL_MOUNT);
+			else if (action.mArg == "INTERNAL")
+				cmd = "umount " + DataManager::GetStrValue(TW_INTERNAL_MOUNT);
+			else
+				cmd = "umount " + action.mArg;
             __system(cmd.c_str());
         }
 #endif
@@ -433,8 +450,10 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 	if (action.mFunction == "togglestorage") {
 		if (action.mArg == "internal") {
 			DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 0);
+			DataManager::SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcext.sze - sdcext.used) / 1048576LLU));
 		} else if (action.mArg == "external") {
 			DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 1);
+			DataManager::SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcint.sze - sdcint.used) / 1048576LLU));
 		}
 		if (ensure_path_mounted("/sdcard") == 0) {
 			if (action.mArg == "internal") {
@@ -508,6 +527,22 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
             DataManager::SetValue("tw_operation_state", 1);
             return 0;
         }
+		if (action.mFunction == "refreshsizes")
+		{
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "Refreshing Sizes");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 0);
+#ifdef _SIMULATE_ACTIONS
+            usleep(5000000);
+#else
+			update_system_details();
+#endif
+			DataManager::SetValue("ui_progress", 100);
+			DataManager::SetValue("tw_operation", "Refreshing Sizes");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 1);
+		}
         if (action.mFunction == "nandroid")
         {
             DataManager::SetValue("ui_progress", 0);
@@ -614,6 +649,8 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 				DataManager::SetValue(TW_ZIP_EXTERNAL_VAR, "/sdcard");
 				if (DataManager::GetIntValue(TW_USE_EXTERNAL_STORAGE) == 1)
 					DataManager::SetValue(TW_ZIP_LOCATION_VAR, "/sdcard");
+
+				update_system_details();
 			}
 #endif
 			DataManager::SetValue("ui_progress", 100);
