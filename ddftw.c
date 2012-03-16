@@ -127,6 +127,50 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
     return 0;
 }
 
+int getSizeViaDf(struct dInfo* mMnt)
+{
+	FILE* fp;
+    char command[255], line[512];
+    int ret = 0, include_block = 1;
+	unsigned int min_len;
+
+    min_len = strlen(mMnt->blk) + 2;
+	sprintf(command, "df %s", mMnt->blk);
+	fp = __popen(command, "r");
+    if (fp == NULL)
+        return -1;
+
+    while (fgets(line, sizeof(line), fp) != NULL)
+    {
+        unsigned long blocks, used, available;
+        char device[64];
+        char tmpString[64];
+
+        if (strncmp(line, "Filesystem", 10) == 0)
+			continue;
+		if (strlen(line) < min_len) {
+			include_block = 0;
+			continue;
+		}
+		if (include_block) {
+			sscanf(line, "%s %lu %lu %lu", device, &blocks, &used, &available);
+		} else {
+			// The device block string is so long that the df information is on the next line
+			int space_count = 0;
+			while (tmpString[space_count] == 32)
+				space_count++;
+			sscanf(line + space_count, "%lu %lu %lu", &blocks, &used, &available);
+		}
+		
+        // Adjust block size to byte size
+        unsigned long long size = blocks * 1024LL;
+        sprintf(tmpString, "%s%s", tw_block, device);
+        setLocationData(NULL, mMnt->blk, NULL, NULL, size);
+    }
+    fclose(fp);
+    return 0;
+}
+
 int getSizesViaPartitions()
 {
     FILE* fp;
@@ -333,31 +377,25 @@ void updateMntUsedSize(struct dInfo* mMnt)
     }*/
 #endif
 
+	char path[512];
+
 	if (strcmp(mMnt->mnt, ".android_secure") == 0)
     {
 		// android_secure is a little different - we mount sdcard and use du to figure out how much space is being taken up by android_secure
-        
-		char ase_path[255];
-		memset(ase_path, 0 , sizeof(ase_path));
 
 		if (DataManager_GetIntValue(TW_HAS_INTERNAL)) {
 			// We can ignore any error from this, it doesn't matter
 			tw_mount(sdcint);
-
-			sprintf(ase_path, "%s/.android_secure", DataManager_GetSettingsStoragePath());
-			LOGI("Using internal path for android_secure: '%s'\n", ase_path);
 		} else {
 			// We can ignore any error from this, it doesn't matter
 			tw_mount(sdcext);
-
-			sprintf(ase_path, "%s/.android_secure", DataManager_GetStrValue(TW_EXTERNAL_PATH));
 		}
-		mMnt->used = getUsedSizeViaDu(ase_path);
+		mMnt->used = getUsedSizeViaDu(mMnt->dev);
 		mMnt->sze = mMnt->used;
+		mMnt->bsze = mMnt->used;
         return;
 	}
 
-    char path[512];
     struct statfs st;
     int mounted;
 
@@ -365,6 +403,7 @@ void updateMntUsedSize(struct dInfo* mMnt)
     {
         // Since this partition isn't mountable, we're going to mark it's used size as it's standard size
         mMnt->used = mMnt->sze;
+		mMnt->bsze = mMnt->used;
         return;
     }
 
@@ -375,7 +414,10 @@ void updateMntUsedSize(struct dInfo* mMnt)
         if (tw_mount(*mMnt))
             return;
     }
-    
+
+	if (mMnt->sze == 0) // We weren't able to get the size earlier, try another method
+		getSizeViaDf(mMnt);
+
     sprintf(path, "/%s/.", mMnt->mnt);
     if (statfs(path, &st) != 0)
     {
@@ -387,13 +429,26 @@ void updateMntUsedSize(struct dInfo* mMnt)
 			memset(external_mount_point, 0, sizeof(external_mount_point));
 			sprintf(external_mount_point, "/%s/.", DataManager_GetStrValue(TW_EXTERNAL_PATH));
 			if (strcmp(path, external_mount_point) == 0)
-				return;
+				return; // This prevents an error from showing on devices that have internal and external storage, but there is no sdcard installed.
 		}
 		LOGE("Unable to stat '%s'\n", path);
         return;
     }
 
     mMnt->used = ((st.f_blocks - st.f_bfree) * st.f_bsize);
+
+	if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 && strcmp(mMnt->blk, dat.blk) == 0) {
+		LOGI("Device has /data/media\n");
+		unsigned long long data_used, data_media_used, actual_data;
+		data_used = mMnt->used;
+		LOGI("Total used space on /data is: %llu\nMounting /data\n", data_used);
+		data_media_used = getUsedSizeViaDu("/data/media");
+		LOGI("Total in /data/media is: %llu\n", data_media_used);
+		actual_data = data_used - data_media_used;
+		LOGI("Actual data used: %llu\n", actual_data);
+		mMnt->bsze = actual_data;
+	} else
+		mMnt->bsze = mMnt->used;
 
     if (!mounted)   tw_unmount(*mMnt);
     return;
@@ -414,25 +469,56 @@ void updateUsedSized()
     updateMntUsedSize(&sp2);
     updateMntUsedSize(&sp3);
 
-	if (sde.used == 0 && sde.sze == 0)
-		DataManager_SetIntValue("tw_has_sdext_partition", 0);
-	else
-		DataManager_SetIntValue("tw_has_sdext_partition", 1);
+	if (rec.used == 0 && rec.sze == 0) {
+		DataManager_SetIntValue(TW_HAS_RECOVERY_PARTITION, 0);
+		DataManager_SetIntValue(TW_BACKUP_RECOVERY_VAR, 0);
+	} else
+		DataManager_SetIntValue(TW_HAS_RECOVERY_PARTITION, 1);
 
-	if (ase.used == 0 && ase.sze == 0)
-		DataManager_SetIntValue("tw_has_android_secure", 0);
-	else
-		DataManager_SetIntValue("tw_has_android_secure", 1);
+	if (sde.used == 0 && sde.sze == 0) {
+		DataManager_SetIntValue(TW_HAS_SDEXT_PARTITION, 0);
+		DataManager_SetIntValue(TW_BACKUP_SDEXT_VAR, 0);
+	} else
+		DataManager_SetIntValue(TW_HAS_SDEXT_PARTITION, 1);
 
-    dumpPartitionTable();
+	if (ase.used == 0 && ase.sze == 0) {
+		DataManager_SetIntValue(TW_HAS_ANDROID_SECURE, 0);
+		DataManager_SetIntValue(TW_BACKUP_ANDSEC_VAR, 0);
+	} else
+		DataManager_SetIntValue(TW_HAS_ANDROID_SECURE, 1);
+
+	// Store sizes in data manager for GUI in MB
+	DataManager_SetIntValue(TW_BACKUP_SYSTEM_SIZE, (int)(sys.bsze / 1048576LLU));
+	DataManager_SetIntValue(TW_BACKUP_DATA_SIZE, (int)(dat.bsze / 1048576LLU));
+	DataManager_SetIntValue(TW_BACKUP_BOOT_SIZE, (int)(boo.bsze / 1048576LLU));
+	DataManager_SetIntValue(TW_BACKUP_RECOVERY_SIZE, (int)(rec.bsze / 1048576LLU));
+	DataManager_SetIntValue(TW_BACKUP_CACHE_SIZE, (int)(cac.bsze / 1048576LLU));
+	DataManager_SetIntValue(TW_BACKUP_ANDSEC_SIZE, (int)(ase.bsze / 1048576LLU));
+	DataManager_SetIntValue(TW_BACKUP_SDEXT_SIZE, (int)(sde.bsze / 1048576LLU));
+	DataManager_SetIntValue(TW_BACKUP_SP1_SIZE, (int)(sp1.bsze / 1048576LLU));
+	DataManager_SetIntValue(TW_BACKUP_SP2_SIZE, (int)(sp2.bsze / 1048576LLU));
+	DataManager_SetIntValue(TW_BACKUP_SP3_SIZE, (int)(sp3.bsze / 1048576LLU));
+	if (DataManager_GetIntValue(TW_USE_EXTERNAL_STORAGE) == 1)
+		DataManager_SetIntValue(TW_STORAGE_FREE_SIZE, (int)((sdcext.sze - sdcext.used) / 1048576LLU));
+	else
+		DataManager_SetIntValue(TW_STORAGE_FREE_SIZE, (int)((sdcint.sze - sdcint.used) / 1048576LLU));
+
+	dumpPartitionTable();
     return;
 }
 
 void listMntInfo(struct dInfo* mMnt, char* variable_name)
 {
 	LOGI("%s information:\n   mnt: '%s'\n   blk: '%s'\n   dev: '%s'\n   fst: '%s'\n   fnm: '%s'\n   format location: '%s'\n   mountable: %i\n   backup method: %i\n   memory type: %i\n\n", variable_name, mMnt->mnt, mMnt->blk, mMnt->dev, mMnt->fst, mMnt->fnm, mMnt->format_location, mMnt->mountable, mMnt->backup, mMnt->memory_type);
-};
-	
+}
+
+void update_system_details()
+{
+	ui_print(" * Verifying filesystems...\n");
+    createFstab();
+    ui_print(" * Verifying partition sizes...\n");
+    updateUsedSized();
+}
 
 int getLocations()
 {
@@ -470,9 +556,15 @@ int getLocations()
         return -1;
     }
 
-    // Handle adding .android_secure and sd-ext
-    strcpy(ase.dev, "/sdcard/.android_secure"); // android secure stuff
-    strcpy(ase.blk, ase.dev);
+    // Handle .android_secure
+	char path[255];
+	if (DataManager_GetIntValue(TW_HAS_INTERNAL)) {
+		sprintf(ase.dev, "%s/.android_secure", DataManager_GetSettingsStoragePath());
+		strcpy(ase.blk, DataManager_GetSettingsStoragePath());
+	} else {
+		sprintf(ase.dev, "%s/.android_secure", DataManager_GetStrValue(TW_EXTERNAL_PATH));
+		strcpy(ase.blk, DataManager_GetStrValue(TW_EXTERNAL_PATH));
+	}
     strcpy(ase.mnt, ".android_secure");
     strcpy(ase.fst, "vfat");
 
@@ -493,12 +585,7 @@ int getLocations()
 
     get_device_id();
 
-	LOGI("=> Let's update filesystem types.\n");
-	verifyFst(); // use blkid to REALLY REALLY determine partition filesystem type
-	LOGI("=> And update our fstab also.\n");
-	createFstab(); // used for our busybox mount command
-    LOGI("=> Update the usage statistics.\n\n");
-    updateUsedSized();  // Retrieves the used space of all partitions
+	update_system_details();
 
     // Now, let's update the data manager...
     DataManager_SetIntValue("tw_boot_is_mountable", boo.mountable ? 1 : 0);
@@ -553,33 +640,10 @@ static void createFstabEntry(FILE* fp, struct dInfo* mnt)
     return;
 }
 
-// write fstab so we can mount in adb shell
-void createFstab()
-{
-	FILE *fp;
-	fp = fopen("/etc/fstab", "w");
-	if (fp == NULL)
-        LOGI("=> Can not open /etc/fstab.\n");
-    else 
-	{
-        if (boo.mountable)      createFstabEntry(fp, &boo);
-        if (sys.mountable)      createFstabEntry(fp, &sys);
-		if (dat.mountable)      createFstabEntry(fp, &dat);
-        if (cac.mountable)      createFstabEntry(fp, &cac);
-        if (sdcext.mountable)   createFstabEntry(fp, &sdcext);
-        if (sdcint.mountable)   createFstabEntry(fp, &sdcint);
-        if (sde.mountable)      createFstabEntry(fp, &sde);
-        if (sp1.mountable)      createFstabEntry(fp, &sp1);
-        if (sp2.mountable)      createFstabEntry(fp, &sp2);
-        if (sp3.mountable)      createFstabEntry(fp, &sp3);
-	}
-	fclose(fp);
-}
-
 void verifyFst()
 {
 	FILE *fp;
-	char blkOutput[100];
+	char blkOutput[255];
 	char* blk;
     char* arg;
     char* ptr;
@@ -588,8 +652,9 @@ void verifyFst()
     // This has a tendency to hang on MTD devices.
     if (isMTDdevice)    return;
 
+	LOGI("=> Let's update filesystem types via verifyFst aka blkid.\n");
 	fp = __popen("blkid","r");
-	while (fgets(blkOutput,sizeof(blkOutput),fp) != NULL)
+	while (fgets(blkOutput, sizeof(blkOutput), fp) != NULL)
     {
         blk = blkOutput;
         ptr = blkOutput;
@@ -614,9 +679,7 @@ void verifyFst()
 
             if (strlen(arg) > 6)
             {
-                if (memcmp(arg, "TYPE=\"", 6) == 0)  break;
-                if (memcmp(arg, "TYPE=\"", 6) == 0)  break;
-                if (memcmp(arg, "TYPE=\"", 6) == 0)  break;
+				if (memcmp(arg, "TYPE=\"", 6) == 0)  break;
             }
 
             if (*ptr == 0)
@@ -626,7 +689,7 @@ void verifyFst()
             }
         }
 
-        if (arg && strlen(arg) > 7)
+		if (arg && strlen(arg) > 7)
         {
             arg += 6;   // Skip the TYPE=" portion
             arg[strlen(arg)-1] = '\0';  // Drop the tail quote
@@ -634,11 +697,37 @@ void verifyFst()
         else
             continue;
 
-        dat = findDeviceByBlockDevice(blk);
-        if (dat)
-			strcpy(sys.fst,arg);
+		dat = findDeviceByBlockDevice(blk);
+        if (dat && strcmp(dat->fst, arg) != 0) {
+			LOGI("'%s' was '%s' now set to '%s'\n", dat->mnt, dat->fst, arg);
+			strcpy(dat->fst,arg);
+		}
 	}
 	__pclose(fp);
+}
+
+// write fstab so we can mount in adb shell
+void createFstab()
+{
+	FILE *fp;
+	fp = fopen("/etc/fstab", "w");
+	if (fp == NULL)
+        LOGI("=> Can not open /etc/fstab.\n");
+    else 
+	{
+        verifyFst();
+		if (boo.mountable)      createFstabEntry(fp, &boo);
+        if (sys.mountable)      createFstabEntry(fp, &sys);
+		if (dat.mountable)      createFstabEntry(fp, &dat);
+        if (cac.mountable)      createFstabEntry(fp, &cac);
+        if (sdcext.mountable)   createFstabEntry(fp, &sdcext);
+        if (sdcint.mountable)   createFstabEntry(fp, &sdcint);
+        if (sde.mountable)      createFstabEntry(fp, &sde);
+        if (sp1.mountable)      createFstabEntry(fp, &sp1);
+        if (sp2.mountable)      createFstabEntry(fp, &sp2);
+        if (sp3.mountable)      createFstabEntry(fp, &sp3);
+	}
+	fclose(fp);
 }
 
 char backupToChar(enum backup_method method)
@@ -689,4 +778,3 @@ void dumpPartitionTable(void)
     dumpPartitionEntry(&sp3);
     fprintf(stderr, "+----------+-----------------------------+--------+----------+----------+---+---+\n");
 }
-

@@ -29,6 +29,8 @@
 #include "ddftw.h"
 #include "roots.h"
 #include "backstore.h"
+#include "data.h"
+#include "variables.h"
 
 static int file_exists(const char* file)
 {

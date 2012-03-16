@@ -30,6 +30,7 @@ struct dInfo {
 	char format_location[256];
 	unsigned long long sze;
     unsigned long long used;
+	unsigned long long bsze;
     int mountable;
     enum backup_method backup;
 	enum flash_memory_type memory_type;
@@ -48,6 +49,7 @@ void updateUsedSized();
 
 extern struct dInfo tmp, sys, dat, datadata, boo, rec, cac, sdcext, sdcint, ase, sde, sp1, sp2, sp3;
 extern char tw_device_name[20];
+void update_system_details();
 
 #endif  // _DDFTW_HEADER
 

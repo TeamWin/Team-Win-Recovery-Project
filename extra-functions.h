@@ -5,6 +5,8 @@ int __pclose(FILE *iop);
 // Device ID variable / function
 char device_id[64];
 void get_device_id();
+static char* copy_sideloaded_package(const char* original_path);
+int install_zip_package(const char* zip_path_filename);
 
 // Menus
 void install_zip_menu(int pIdx);

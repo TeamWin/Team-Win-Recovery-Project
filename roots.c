@@ -97,12 +97,25 @@ void load_volume_table() {
 }
 
 Volume* volume_for_path(const char* path) {
-    int i;
+    char search_path[255];
+
+	if (strcmp(path, "/sdcard") == 0) {
+		if (DataManager_GetIntValue(TW_HAS_INTERNAL) == 1 && DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1) {
+			if (DataManager_GetIntValue(TW_HAS_EXTERNAL) == 0)
+				ui_print("Unable to mount USB storage due to internal storage being in /data/media and no external storage available.\n");
+			else
+				strcpy(search_path, DataManager_GetStrValue(TW_EXTERNAL_MOUNT));
+		} else
+			strcpy(search_path, DataManager_GetCurrentStorageMount());
+	} else
+		strcpy(search_path, path);
+
+	int i;
     for (i = 0; i < num_volumes; ++i) {
         Volume* v = device_volumes+i;
         int len = strlen(v->mount_point);
-        if (strncmp(path, v->mount_point, len) == 0 &&
-            (path[len] == '\0' || path[len] == '/')) {
+        if (strncmp(search_path, v->mount_point, len) == 0 &&
+            (search_path[len] == '\0' || search_path[len] == '/')) {
             return v;
         }
     }

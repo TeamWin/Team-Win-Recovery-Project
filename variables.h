@@ -20,6 +20,7 @@
 #define TW_VERSION_STR              "2.1.0"
 
 #define TW_USE_COMPRESSION_VAR      "tw_use_compression"
+#define TW_IGNORE_IMAGE_SIZE        "tw_ignore_image_size"
 
 #define TW_BACKUP_NAME		        "tw_backup_name"
 #define TW_BACKUP_SYSTEM_VAR        "tw_backup_system"
@@ -35,6 +36,17 @@
 #define TW_BACKUP_AVG_IMG_RATE      "tw_backup_avg_img_rate"
 #define TW_BACKUP_AVG_FILE_RATE     "tw_backup_avg_file_rate"
 #define TW_BACKUP_AVG_FILE_COMP_RATE    "tw_backup_avg_file_comp_rate"
+#define TW_BACKUP_SYSTEM_SIZE       "tw_backup_system_size"
+#define TW_BACKUP_DATA_SIZE         "tw_backup_data_size"
+#define TW_BACKUP_BOOT_SIZE         "tw_backup_boot_size"
+#define TW_BACKUP_RECOVERY_SIZE     "tw_backup_recovery_size"
+#define TW_BACKUP_CACHE_SIZE        "tw_backup_cache_size"
+#define TW_BACKUP_ANDSEC_SIZE       "tw_backup_andsec_size"
+#define TW_BACKUP_SDEXT_SIZE        "tw_backup_sdext_size"
+#define TW_BACKUP_SP1_SIZE          "tw_backup_sp1_size"
+#define TW_BACKUP_SP2_SIZE          "tw_backup_sp2_size"
+#define TW_BACKUP_SP3_SIZE          "tw_backup_sp3_size"
+#define TW_STORAGE_FREE_SIZE        "tw_storage_free_size"
 
 #define TW_RESTORE_SYSTEM_VAR       "tw_restore_system"
 #define TW_RESTORE_DATA_VAR         "tw_restore_data"
@@ -106,6 +118,7 @@
 #define TW_HAS_RECOVERY_PARTITION   "tw_has_recovery_partition"
 #define TW_HAS_ANDROID_SECURE       "tw_has_android_secure"
 #define TW_HAS_SDEXT_PARTITION      "tw_has_sdext_partition"
+#define TW_HAS_USB_STORAGE          "tw_has_usb_storage"
 
 #define TW_SHOW_DUMLOCK             "tw_show_dumlock"
 

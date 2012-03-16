@@ -56,8 +56,6 @@ int gui_loadResources(void);
 int gui_start(void);
 int gui_console_only(void);
 
-int check_md5(char* path);
-
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
   { "update_package", required_argument, NULL, 'u' },
@@ -74,7 +72,6 @@ static const char *LOG_FILE = "/cache/recovery/log";
 static const char *LAST_LOG_FILE = "/cache/recovery/last_log";
 //static const char *SDCARD_ROOT = "/sdcard";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
-static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
 
 /*
  * The recovery tool communicates with the main system through /cache files.
@@ -247,15 +244,6 @@ get_args(int *argc, char ***argv) {
     set_bootloader_message(&boot);
 }
 
-static void
-set_sdcard_update_bootloader_message() {
-    struct bootloader_message boot;
-    memset(&boot, 0, sizeof(boot));
-    strlcpy(boot.command, "boot-recovery", sizeof(boot.command));
-    strlcpy(boot.recovery, "recovery\n", sizeof(boot.recovery));
-    set_bootloader_message(&boot);
-}
-
 // How much of the temp log we have copied to the copy in cache.
 static void
 copy_log_file(const char* destination, int append) {
@@ -316,96 +304,6 @@ finish_recovery(const char *send_intent) {
     }
 
     sync();  // For good measure.
-}
-
-static char*
-copy_sideloaded_package(const char* original_path) {
-  if (ensure_path_mounted(original_path) != 0) {
-    LOGE("Can't mount %s\n", original_path);
-    return NULL;
-  }
-
-  if (ensure_path_mounted(SIDELOAD_TEMP_DIR) != 0) {
-    LOGE("Can't mount %s\n", SIDELOAD_TEMP_DIR);
-    return NULL;
-  }
-
-  if (mkdir(SIDELOAD_TEMP_DIR, 0700) != 0) {
-    if (errno != EEXIST) {
-      LOGE("Can't mkdir %s (%s)\n", SIDELOAD_TEMP_DIR, strerror(errno));
-      return NULL;
-    }
-  }
-
-  // verify that SIDELOAD_TEMP_DIR is exactly what we expect: a
-  // directory, owned by root, readable and writable only by root.
-  struct stat st;
-  if (stat(SIDELOAD_TEMP_DIR, &st) != 0) {
-    LOGE("failed to stat %s (%s)\n", SIDELOAD_TEMP_DIR, strerror(errno));
-    return NULL;
-  }
-  if (!S_ISDIR(st.st_mode)) {
-    LOGE("%s isn't a directory\n", SIDELOAD_TEMP_DIR);
-    return NULL;
-  }
-  if ((st.st_mode & 0777) != 0700) {
-    LOGE("%s has perms %o\n", SIDELOAD_TEMP_DIR, st.st_mode);
-    return NULL;
-  }
-  if (st.st_uid != 0) {
-    LOGE("%s owned by %lu; not root\n", SIDELOAD_TEMP_DIR, st.st_uid);
-    return NULL;
-  }
-
-  char copy_path[PATH_MAX];
-  strcpy(copy_path, SIDELOAD_TEMP_DIR);
-  strcat(copy_path, "/package.zip");
-
-  char* buffer = malloc(BUFSIZ);
-  if (buffer == NULL) {
-    LOGE("Failed to allocate buffer\n");
-    return NULL;
-  }
-
-  size_t read;
-  FILE* fin = fopen(original_path, "rb");
-  if (fin == NULL) {
-    LOGE("Failed to open %s (%s)\n", original_path, strerror(errno));
-    return NULL;
-  }
-  FILE* fout = fopen(copy_path, "wb");
-  if (fout == NULL) {
-    LOGE("Failed to open %s (%s)\n", copy_path, strerror(errno));
-    return NULL;
-  }
-
-  while ((read = fread(buffer, 1, BUFSIZ, fin)) > 0) {
-    if (fwrite(buffer, 1, read, fout) != read) {
-      LOGE("Short write of %s (%s)\n", copy_path, strerror(errno));
-      return NULL;
-    }
-  }
-
-  free(buffer);
-
-  if (fclose(fout) != 0) {
-    LOGE("Failed to close %s (%s)\n", copy_path, strerror(errno));
-    return NULL;
-  }
-
-  if (fclose(fin) != 0) {
-    LOGE("Failed to close %s (%s)\n", original_path, strerror(errno));
-    return NULL;
-  }
-
-  // "adb push" is happy to overwrite read-only files when it's
-  // running as root, but we'll try anyway.
-  if (chmod(copy_path, 0400) != 0) {
-    LOGE("Failed to chmod %s (%s)\n", copy_path, strerror(errno));
-    return NULL;
-  }
-
-  return strdup(copy_path);
 }
 
 char**
@@ -694,56 +592,6 @@ sdcard_directory(const char* path) {
 
     //ensure_path_unmounted(SDCARD_ROOT);
     return result;
-}
-
-int install_zip_package(const char* zip_path_filename) {
-	int result;
-	
-    ensure_path_mounted(SDCARD_ROOT);
-	ui_print("\n-- Verify md5 for %s", zip_path_filename);
-	int md5chk = check_md5((char*) zip_path_filename);
-	bool md5_req = DataManager_GetIntValue(TW_FORCE_MD5_CHECK_VAR);
-	if (md5chk > 0 || (!md5_req && md5chk == -1)) {
-		if (md5chk == 1)
-			ui_print("\n-- Md5 verified, continue");
-		else if (md5chk == -1)
-			ui_print("\n-- No md5 file found, ignoring");
-		ui_print("\n-- Install %s ...\n", zip_path_filename);
-		set_sdcard_update_bootloader_message();
-		char* copy = copy_sideloaded_package(zip_path_filename);
-		ensure_path_unmounted(SDCARD_ROOT);
-		if (copy) {
-			result = install_package(copy);
-			free(copy);
-		} else {
-			result = INSTALL_ERROR;
-		}
-	} else {
-	// MD5 check failed for some reason
-		switch (md5chk) {
-			case 0:
-				ui_print("\n-- Md5 did not match");
-				break;
-			case -1:
-				ui_print("\n-- Md5 file not found");
-				break;
-			case -2:
-				ui_print("\n-- Zip file not found");
-				break;
-			case -3:
-				ui_print("\n-- Invalid md5");
-				ui_print("\n-- Filename in md5 and zip do not match");
-				break;
-            default:
-                ui_print("\n-- Unknown md5 error");
-                break;
-		}
-		ui_print("\n-- Aborting install");
-		result = INSTALL_ERROR;
-	}
-    ensure_path_mounted(SDCARD_ROOT);
-    //finish_recovery(NULL);
-	return result;
 }
 
 void
