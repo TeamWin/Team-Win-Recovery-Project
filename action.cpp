@@ -148,14 +148,16 @@ int GUIAction::NotifyVarChange(std::string varName, std::string value)
     return 0;
 }
 
-void GUIAction::flash_zip(std::string filename, std::string pageName)
+int GUIAction::flash_zip(std::string filename, std::string pageName)
 {
-    DataManager::SetValue("ui_progress", 0);
+    int ret_val = 0;
+
+	DataManager::SetValue("ui_progress", 0);
 
     if (filename.empty())
     {
         LOGE("No file specified.\n");
-        return;
+        return -1;
     }
 
     // We're going to jump to this page first, like a loading page
@@ -167,7 +169,7 @@ void GUIAction::flash_zip(std::string filename, std::string pageName)
     if (mzOpenZipArchive(filename.c_str(), &zip))
     {
         LOGE("Unable to open zip file.\n");
-        return;
+        return -1;
     }
 
     const ZipEntry* twrp = mzFindZipEntry(&zip, "META-INF/teamwin/twrp.zip");
@@ -200,7 +202,7 @@ void GUIAction::flash_zip(std::string filename, std::string pageName)
         DataManager::SetValue("ui_progress", i * 10);
     }
 #else
-    install_zip_package(filename.c_str());
+    ret_val = install_zip_package(filename.c_str());
 
     // Now, check if we need to ensure TWRP remains installed...
     struct stat st;
@@ -222,9 +224,7 @@ void GUIAction::flash_zip(std::string filename, std::string pageName)
 
     DataManager::SetValue("tw_operation", "Flash");
     DataManager::SetValue("tw_partition", filename);
-    DataManager::SetValue("tw_operation_status", 0);
-    DataManager::SetValue("tw_operation_state", 1);
-    return;
+    return ret_val;
 }
 
 int GUIAction::doActions()
@@ -262,6 +262,9 @@ void* GUIAction::thread_start(void *cookie)
 
 int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 {
+	static string zip_queue[10];
+	static int zip_queue_index;
+
 #ifdef _SIMULATE_ACTIONS
     ui_print("Simulating actions...\n");
 #endif
@@ -478,19 +481,50 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 		return 0;
 	}
 
+	if (action.mFunction == "queuezip")
+    {
+        if (zip_queue_index >= 10) {
+			ui_print("Maximum zip queue reached!\n");
+			return 0;
+		}
+		DataManager::GetValue("tw_filename", zip_queue[zip_queue_index]);
+		if (strlen(zip_queue[zip_queue_index].c_str()) > 0) {
+			zip_queue_index++;
+			DataManager::SetValue(TW_ZIP_QUEUE_COUNT, zip_queue_index);
+		}
+		return 0;
+	}
+
+	if (action.mFunction == "queueclear")
+	{
+		zip_queue_index = 0;
+		DataManager::SetValue(TW_ZIP_QUEUE_COUNT, zip_queue_index);
+		return 0;
+	}
+
     if (isThreaded)
     {
         if (action.mFunction == "flash")
         {
-            std::string filename;
-            DataManager::GetValue("tw_filename", filename);
+			int i, ret_val = 0;
 
-            DataManager::SetValue("tw_operation", "Flashing");
-            DataManager::SetValue("tw_partition", filename);
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 0);
+			for (i=0; i<zip_queue_index; i++) {
+		        DataManager::SetValue("tw_operation", "Flashing");
+		        DataManager::SetValue("tw_filename", zip_queue[i]);
+		        DataManager::SetValue("tw_operation_status", 0);
+		        DataManager::SetValue("tw_operation_state", 0);
+				DataManager::SetValue(TW_ZIP_INDEX, (i + 1));
 
-            flash_zip(filename, action.mArg);
+		        ret_val = flash_zip(zip_queue[i], action.mArg);
+				if (ret_val != 0) {
+					i = 10; // Error flashing zip - exit queue
+					ret_val = 1;
+				}
+			}
+			zip_queue_index = 0;
+			DataManager::SetValue(TW_ZIP_QUEUE_COUNT, zip_queue_index);
+			DataManager::SetValue("tw_operation_status", ret_val);
+		    DataManager::SetValue("tw_operation_state", 1);
             return 0;
         }
         if (action.mFunction == "wipe")

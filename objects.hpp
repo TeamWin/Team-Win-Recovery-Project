@@ -224,7 +224,7 @@ protected:
     virtual int doActions();
     virtual int doAction(Action action, int isThreaded = 0);
     static void* thread_start(void *cookie);
-    void flash_zip(std::string filename, std::string pageName);
+    int flash_zip(std::string filename, std::string pageName);
 
 };
 

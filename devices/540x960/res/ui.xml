@@ -253,7 +253,10 @@
 
             <object type="action">
                 <condition var1="tw_filename" op="modified" />
-                <action function="page">flash_confirm</action>
+				<actions>
+					<action function="queuezip"></action>
+                	<action function="page">flash_confirm</action>
+				</actions>
             </object>
 
             <object type="action">
@@ -290,6 +293,12 @@
                 <text>File to flash: %tw_filename%</text>
             </object>
 			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col1_x%" y="430" />
+                <text>File %tw_zip_queue_count% of max of 10</text>
+            </object>
+			
 			<object type="checkbox">
                 <placement x="%col1_x%" y="180" />
                 <font resource="font" color="%text_color%" />
@@ -307,11 +316,31 @@
             </object>
 
             <object type="button">
-                <placement x="%col_center_x%" y="550" />
+                <placement x="%col_center_x%" y="%row3_y%" />
                 <font resource="font" color="%button_text_color%" />
                 <text>Flash now</text>
                 <image resource="main_button" />
                 <action function="flash">flash_zip</action>
+            </object>
+			
+			<object type="button">
+				<condition var1="tw_zip_queue_count" op="!=" var2="10"></condition>
+                <placement x="%col1_x%" y="%row4_y%" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Add More Zips</text>
+                <image resource="main_button" />
+                <action function="page">install</action>
+            </object>
+			
+			<object type="button">
+                <placement x="%col2_x%" y="%row4_y%" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Clear Zip Queue</text>
+                <image resource="main_button" />
+				<actions>
+					<action function="queueclear"></action>
+                	<action function="page">install</action>
+				</actions>
             </object>
 
             <object type="action">
@@ -334,6 +363,18 @@
                 <placement x="0" y="%row1_y%" w="540" h="620" />
                 <color foreground="#A0A0A0" background="#303030" scroll="#303030" />
                 <font resource="fixed" />
+            </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col1_x%" y="750" />
+                <text>Flashing file %tw_zip_index% of %tw_zip_queue_count%</text>
+            </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%col1_x%" y="775" />
+                <text>%tw_filename%</text>
             </object>
 
             <object type="progressbar">
@@ -1954,6 +1995,14 @@
                 <font resource="font" color="%text_color%" />
                 <text>Skip MD5 generation on backups</text>
                 <data variable="tw_skip_md5_generate" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+			
+			<object type="checkbox">
+                <placement x="%col1_x%" y="320" />
+                <font resource="font" color="%text_color%" />
+                <text>Ignore image size errors during backup</text>
+                <data variable="tw_ignore_image_size" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 

@@ -25,6 +25,7 @@
         <resource name="checkbox_true" type="image" filename="checkbox_checked" />
 		<resource name="small_button" type="image" filename="small-button" />
 		<resource name="medium_button" type="image" filename="medium-button" />
+		<resource name="mediumwide_button" type="image" filename="mediumwide-button" />
 		<resource name="sort_button" type="image" filename="sort-button" />
 		<resource name="minus_button" type="image" filename="minus-button" />
 		<resource name="plus_button" type="image" filename="plus_button" />
@@ -227,7 +228,7 @@
 			<object type="template" name="header" />
 
             <object type="fileselector">
-                <placement x="25" y="90" w="482" h="490" />
+                <placement x="25" y="90" w="282" h="490" />
                 <icon folder="folder_icon" file="file_icon" />
                 <background color="#303030" />
                 <font resource="font" spacing="18" color="%text_color%" />
@@ -237,7 +238,7 @@
             </object>
 
             <object type="fileselector">
-                <placement x="517" y="90" w="482" h="490" />
+                <placement x="317" y="90" w="682" h="490" />
                 <icon folder="folder_icon" file="file_icon" />
                 <background color="#303030" />
                 <font resource="font" spacing="18" color="%text_color%" />
@@ -260,12 +261,12 @@
 			
 			<object type="text" color="%text_color%">
                 <font resource="font" />
-                <placement x="270" y="630" />
+                <placement x="270" y="615" />
                 <text>Sort Ascending:</text>
             </object>
 			
 			<object type="button">
-                <placement x="440" y="625" />
+                <placement x="440" y="610" />
                 <font resource="UItext" color="%button_text_color%" />
                 <text>Name</text>
                 <image resource="sort_button" />
@@ -273,7 +274,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="510" y="625" />
+                <placement x="510" y="610" />
                 <font resource="UItext" color="%button_text_color%" />
                 <text>Date</text>
                 <image resource="sort_button" />
@@ -281,7 +282,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="580" y="625" />
+                <placement x="580" y="610" />
                 <font resource="UItext" color="%button_text_color%" />
                 <text>Size</text>
                 <image resource="sort_button" />
@@ -290,12 +291,12 @@
 			
 			<object type="text" color="%text_color%">
                 <font resource="font" />
-                <placement x="270" y="680" />
+                <placement x="270" y="650" />
                 <text>Sort Descending:</text>
             </object>
 			
 			<object type="button">
-                <placement x="440" y="675" />
+                <placement x="440" y="645" />
                 <font resource="UItext" color="%button_text_color%" />
                 <text>Name</text>
                 <image resource="sort_button" />
@@ -303,7 +304,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="510" y="675" />
+                <placement x="510" y="645" />
                 <font resource="UItext" color="%button_text_color%" />
                 <text>Date</text>
                 <image resource="sort_button" />
@@ -311,7 +312,7 @@
             </object>
 			
 			<object type="button">
-                <placement x="580" y="675" />
+                <placement x="580" y="645" />
                 <font resource="UItext" color="%button_text_color%" />
                 <text>Size</text>
                 <image resource="sort_button" />
@@ -319,7 +320,7 @@
 			</object>
 			
 			<object type="checkbox">
-                <placement x="670" y="625" />
+                <placement x="670" y="615" />
                 <font resource="font" color="%text_color%" />
                 <text>Zip file signature verification?</text>
                 <data variable="tw_signed_zip_verify" />
@@ -327,7 +328,7 @@
             </object>
 			
 			<object type="checkbox">
-                <placement x="670" y="675" />
+                <placement x="670" y="650" />
                 <font resource="font" color="%text_color%" />
                 <text>Force MD5 check on all zips?</text>
                 <data variable="tw_force_md5_check" />
@@ -337,11 +338,43 @@
             <object type="button">
                 <placement x="25" y="610" />
                 <font resource="font" color="%button_text_color%" />
-                <text>Flash</text>
+                <text>Add Zip & Flash</text>
                 <image resource="main_button" />
-                <action function="flash">flash_zip</action>
+				<actions>
+					<action function="queuezip"></action>
+					<action function="flash">flash_zip</action>
+				</actions>
             </object>
-
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="680" y="695" />
+                <text>File %tw_zip_queue_count% of max of 10</text>
+            </object>
+			
+			<object type="button">
+				<condition var1="tw_zip_queue_count" op="!=" var2="10"></condition>
+                <placement x="270" y="678" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Add More Zips</text>
+                <image resource="mediumwide_button" />
+				<actions>
+					<action function="queuezip"></action>
+					<action function="set">tw_filename=</action>
+				</actions>
+            </object>
+			
+			<object type="button">
+                <placement x="470" y="678" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Clear Queue</text>
+                <image resource="mediumwide_button" />
+				<actions>
+					<action function="queueclear"></action>
+                	<action function="set">tw_filename=</action>
+				</actions>
+            </object>
+			
             <object type="action">
                 <touch key="back" />
                 <action function="page">main</action>
@@ -362,6 +395,18 @@
                 <placement x="25" y="85" w="974" h="530" />
                 <color foreground="%text_color%" background="#303030" scroll="#303030" />
                 <font resource="fixed" />
+            </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="25" y="650" />
+                <text>Flashing file %tw_zip_index% of %tw_zip_queue_count%</text>
+            </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="25" y="620" />
+                <text>%tw_filename%</text>
             </object>
 			
             <object type="progressbar">
@@ -2043,6 +2088,14 @@
                 <font resource="font" color="%text_color%" />
                 <text>Enable MD5 checking of backup files</text>
                 <data variable="tw_skip_md5_check" />
+                <image checked="checkbox_true" unchecked="checkbox_false" />
+            </object>
+			
+			<object type="checkbox">
+                <placement x="%col1_x%" y="270" />
+                <font resource="font" color="%text_color%" />
+                <text>Ignore image size errors during backup</text>
+                <data variable="tw_ignore_image_size" />
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 			
