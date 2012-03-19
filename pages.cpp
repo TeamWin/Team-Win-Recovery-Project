@@ -30,6 +30,7 @@ extern int gGuiRunning;
 
 std::map<std::string, PageSet*> PageManager::mPageSets;
 PageSet* PageManager::mCurrentSet;
+PageSet* PageManager::mBaseSet = NULL;
 
 
 // Helper routine to convert a string to a color declaration
@@ -243,6 +244,12 @@ bool Page::ProcessNode(xml_node<>* page, xml_node<>* templates /* = NULL */, int
             mRenders.push_back(element);
             mActions.push_back(element);
         }
+		else if (type == "slider")
+        {
+            GUISlider* element = new GUISlider(child);
+            mRenders.push_back(element);
+            mActions.push_back(element);
+        }
         else if (type == "template")
         {
             if (!templates || !child->first_attribute("name"))
@@ -400,6 +407,7 @@ PageSet::PageSet(char* xmlFile)
 {
     mResources = NULL;
     mCurrentPage = NULL;
+    mOverlayPage = NULL;
 
     mXmlFile = xmlFile;
     if (xmlFile)
@@ -462,6 +470,18 @@ int PageSet::SetPage(std::string page)
         LOGE("Unable to locate page (%s)\n", page.c_str());
     }
     return -1;
+}
+
+int PageSet::SetOverlay(Page* page)
+{
+    if (mOverlayPage)   mOverlayPage->SetPageFocus(0);
+    mOverlayPage = page;
+    if (mOverlayPage)
+    {
+        mOverlayPage->SetPageFocus(1);
+        mOverlayPage->NotifyVarChange("", "");
+    }
+    return 0;
 }
 
 Resource* PageSet::FindResource(std::string name)
@@ -532,26 +552,39 @@ int PageSet::IsCurrentPage(Page* page)
 
 int PageSet::Render(void)
 {
-    return (mCurrentPage ? mCurrentPage->Render() : -1);
+    int ret;
+
+    ret = (mCurrentPage ? mCurrentPage->Render() : -1);
+    if (ret < 0)    return ret;
+    ret = (mOverlayPage ? mOverlayPage->Render() : -1);
+    return ret;
 }
 
 int PageSet::Update(void)
 {
-    return (mCurrentPage ? mCurrentPage->Update() : -1);
+    int ret;
+
+    ret = (mCurrentPage ? mCurrentPage->Update() : -1);
+    if (ret < 0 || ret > 1)     return ret;
+    ret = (mOverlayPage ? mOverlayPage->Update() : -1);
+    return ret;
 }
 
 int PageSet::NotifyTouch(TOUCH_STATE state, int x, int y)
 {
+    if (mOverlayPage)   return (mOverlayPage->NotifyTouch(state, x, y));
     return (mCurrentPage ? mCurrentPage->NotifyTouch(state, x, y) : -1);
 }
 
 int PageSet::NotifyKey(int key)
 {
+    if (mOverlayPage)   return (mOverlayPage->NotifyKey(key));
     return (mCurrentPage ? mCurrentPage->NotifyKey(key) : -1);
 }
 
 int PageSet::NotifyVarChange(std::string varName, std::string value)
 {
+    if (mOverlayPage)   mOverlayPage->NotifyVarChange(varName, value);
     return (mCurrentPage ? mCurrentPage->NotifyVarChange(varName, value) : -1);
 }
 
@@ -622,6 +655,11 @@ int PageManager::LoadPackage(std::string name, std::string package)
     {
         LOGE("Package %s failed to load.\n", name.c_str());
     }
+	
+    // The first successful package we loaded is the base
+    if (mBaseSet == NULL)
+        mBaseSet = mCurrentSet;
+
     mCurrentSet = pageSet;
 
     if (pZip)   mzCloseZipArchive(pZip);
@@ -702,6 +740,17 @@ int PageManager::ChangePage(std::string name)
     int ret = (mCurrentSet ? mCurrentSet->SetPage(name) : -1);
     DataManager::SetValue("tw_operation_state", 0);
     return ret;
+}
+
+int PageManager::ChangeOverlay(std::string name)
+{
+    if (name.empty())
+        return mCurrentSet->SetOverlay(NULL);
+    else
+    {
+        Page* page = mBaseSet ? mBaseSet->FindPage(name) : NULL;
+        return mCurrentSet->SetOverlay(page);
+    }
 }
 
 Resource* PageManager::FindResource(std::string name)

@@ -15,7 +15,8 @@ LOCAL_SRC_FILES := \
     fileselector.cpp \
     progressbar.cpp \
     animation.cpp \
-    conditional.cpp
+    conditional.cpp \
+    slider.cpp
 
 LOCAL_MODULE := libgui
 
@@ -25,6 +26,7 @@ ifeq ($(TWRP_SIMULATE_ACTIONS), true)
 LOCAL_CFLAGS += -D_SIMULATE_ACTIONS
 endif
 
+#TWRP_EVENT_LOGGING := true
 ifeq ($(TWRP_EVENT_LOGGING), true)
 LOCAL_CFLAGS += -D_EVENT_LOGGING
 endif

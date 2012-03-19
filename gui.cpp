@@ -338,6 +338,13 @@ int gui_changePage(std::string newPage)
     return 0;
 }
 
+int gui_changeOverlay(std::string overlay)
+{
+    PageManager::ChangeOverlay(overlay);
+    gForceRender = 1;
+    return 0;
+}
+
 int gui_changePackage(std::string newPackage)
 {
     PageManager::SelectPackage(newPackage);

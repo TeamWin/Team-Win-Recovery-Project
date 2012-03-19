@@ -207,6 +207,7 @@ public:
     virtual int NotifyTouch(TOUCH_STATE state, int x, int y);
     virtual int NotifyKey(int key);
     virtual int NotifyVarChange(std::string varName, std::string value);
+	virtual int doActions();
 
 protected:
     class Action
@@ -221,7 +222,6 @@ protected:
 
 protected:
     int getKeyByName(std::string key);
-    virtual int doActions();
     virtual int doAction(Action action, int isThreaded = 0);
     static void* thread_start(void *cookie);
     int flash_zip(std::string filename, std::string pageName);
@@ -480,6 +480,35 @@ protected:
 protected:
     virtual int RenderInternal(void);       // Does the actual render
 
+};
+
+class GUISlider : public RenderObject, public ActionObject
+{
+public:
+    GUISlider(xml_node<>* node);
+    virtual ~GUISlider();
+
+public:
+    // Render - Render the full object to the GL surface
+    //  Return 0 on success, <0 on error
+    virtual int Render(void);
+
+    // Update - Update any UI component animations (called <= 30 FPS)
+    //  Return 0 if nothing to update, 1 on success and contiue, >1 if full render required, and <0 on error
+    virtual int Update(void);
+
+    // NotifyTouch - Notify of a touch event
+    //  Return 0 on success, >0 to ignore remainder of touch, and <0 on error
+    virtual int NotifyTouch(TOUCH_STATE state, int x, int y);
+
+protected:
+    GUIAction* sAction;
+    Resource* sSlider;
+    Resource* sSliderUsed;
+    Resource* sTouch;
+    int sTouchW, sTouchH;
+    int sCurTouchX;
+    int sUpdate;
 };
 
 // Helper APIs

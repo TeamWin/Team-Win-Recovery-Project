@@ -480,6 +480,9 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 		}
 		return 0;
 	}
+	
+	if (action.mFunction == "overlay")
+        return gui_changeOverlay(action.mArg);
 
 	if (action.mFunction == "queuezip")
     {
@@ -772,7 +775,7 @@ int GUIAction::getKeyByName(std::string key)
     else if (key == "search")   return KEY_SEARCH;
     else if (key == "voldown")  return KEY_VOLUMEDOWN;
     else if (key == "volup")    return KEY_VOLUMEUP;
-    else if (key == "power")    return KEY_POWER;
+    else if (key == "power")    return 107;
 
     return atol(key.c_str());
 }

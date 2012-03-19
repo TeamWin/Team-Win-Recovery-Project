@@ -14,6 +14,7 @@ typedef struct {
 int ConvertStrToColor(std::string str, COLOR* color);
 int gui_forceRender(void);
 int gui_changePage(std::string newPage);
+int gui_changeOverlay(std::string newPage);
 
 class Resource;
 class ResourceManager;
@@ -60,6 +61,7 @@ public:
 
     Page* FindPage(std::string name);
     int SetPage(std::string page);
+	int SetOverlay(Page* page);
     Resource* FindResource(std::string name);
 
     // Helper routine for identifing if we're the current page
@@ -82,6 +84,7 @@ protected:
     ResourceManager* mResources;
     std::vector<Page*> mPages;
     Page* mCurrentPage;
+	Page* mOverlayPage;     // This is a special case, used for "locking" the screen
 };
 
 class PageManager
@@ -95,6 +98,7 @@ public:
 
     // Used for actions and pages
     static int ChangePage(std::string name);
+	static int ChangeOverlay(std::string name);
     static Resource* FindResource(std::string name);
     static Resource* FindResource(std::string package, std::string name);
 
@@ -117,6 +121,7 @@ protected:
 protected:
     static std::map<std::string, PageSet*> mPageSets;
     static PageSet* mCurrentSet;
+	static PageSet* mBaseSet;
 };
 
 #endif  // _PAGES_HEADER
