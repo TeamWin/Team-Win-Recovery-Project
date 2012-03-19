@@ -484,6 +484,9 @@ void DataManager::SetDefaultValues()
 		SetValue(TW_HAS_USB_STORAGE, 0, 0);
 	else
 		SetValue(TW_HAS_USB_STORAGE, 1, 0);
+	mValues.insert(make_pair(TW_ZIP_INDEX, make_pair("0", 0)));
+	mValues.insert(make_pair(TW_ZIP_QUEUE_COUNT, make_pair("0", 0)));
+	mValues.insert(make_pair(TW_FILENAME, make_pair("/sdcard", 0)));
 }
 
 // Magic Values
