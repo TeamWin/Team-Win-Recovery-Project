@@ -291,8 +291,8 @@ bool Page::ProcessNode(xml_node<>* page, xml_node<>* templates /* = NULL */, int
 
 int Page::Render(void)
 {
-    // Render background - Ignore alpha, it must be solid
-    gr_color(mBackground.red, mBackground.green, mBackground.blue, 255);
+    // Render background
+    gr_color(mBackground.red, mBackground.green, mBackground.blue, mBackground.alpha);
     gr_fill(0, 0, gr_fb_width(), gr_fb_height());
 
     // Render remaining objects

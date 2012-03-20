@@ -259,13 +259,13 @@ int GUIConsole::Update(void)
     {
         // We can use Render, and return for just a flip
         Render();
-        return 1;
+        return 2;
     }
     else if (mLastTouchY >= 0)
     {
         // They're still touching, so re-render
         Render();
-        return 1;
+        return 2;
     }
     return 0;
 }

@@ -177,7 +177,6 @@ GUIFileSelector::~GUIFileSelector()
 int GUIFileSelector::Render(void)
 {
     // First step, fill background
-	LOGI("File Selector Render called!\n");
     gr_color(mBackgroundColor.red, mBackgroundColor.green, mBackgroundColor.blue, 255);
     gr_fill(mRenderX, mRenderY, mRenderW, mRenderH);
 
@@ -240,7 +239,8 @@ int GUIFileSelector::Update(void)
     if (mUpdate)
     {
         mUpdate = 0;
-        if (Render() == 0)  return 1;
+        if (Render() == 0)
+			return 2;
     }
     return 0;
 }

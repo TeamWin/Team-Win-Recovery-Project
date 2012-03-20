@@ -520,14 +520,16 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 
 		        ret_val = flash_zip(zip_queue[i], action.mArg);
 				if (ret_val != 0) {
+					ui_print("Error flashing zip '%s'\n", zip_queue[i].c_str());
 					i = 10; // Error flashing zip - exit queue
 					ret_val = 1;
 				}
 			}
 			zip_queue_index = 0;
 			DataManager::SetValue(TW_ZIP_QUEUE_COUNT, zip_queue_index);
-			DataManager::SetValue("tw_operation_status", ret_val);
+			DataManager::SetValue("tw_operation_status", 0);
 		    DataManager::SetValue("tw_operation_state", 1);
+			LOGI("Done installing zips\n");
             return 0;
         }
         if (action.mFunction == "wipe")
@@ -775,7 +777,7 @@ int GUIAction::getKeyByName(std::string key)
     else if (key == "search")   return KEY_SEARCH;
     else if (key == "voldown")  return KEY_VOLUMEDOWN;
     else if (key == "volup")    return KEY_VOLUMEUP;
-    else if (key == "power")    return 107;
+    else if (key == "power")    return KEY_POWER;
 
     return atol(key.c_str());
 }

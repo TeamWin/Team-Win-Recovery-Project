@@ -38,6 +38,7 @@
 		<variable name="col1_x" value="10" />
 		<variable name="col2_x" value="277" />
 		<variable name="col_center_x" value="143" />
+		<variable name="center_x" value="270" />
 		<variable name="row1_y" value="120" />
 		<variable name="row2_y" value="312" />
 		<variable name="row3_y" value="504" />
@@ -94,8 +95,9 @@
                 <font resource="font" />
                 <placement x="250" y="75" />
 				<conditions>
+					<condition var1="tw_no_battery_percent" var2="0" />
 					<condition var1="tw_battery" op=">" var2="0" />
-					<condition var1="tw_battery" op="<" var2="100" />
+					<condition var1="tw_battery" op="<=" var2="100" />
 				</conditions>
                 <text>Battery: %tw_battery%</text>
             </object>
@@ -324,12 +326,16 @@
                 <image checked="checkbox_true" unchecked="checkbox_false" />
             </object>
 
-            <object type="button">
-                <placement x="%col_center_x%" y="%row3_y%" />
-                <font resource="font" color="%button_text_color%" />
-                <text>Flash now</text>
-                <image resource="main_button" />
+			<object type="slider">
+                <placement x="%slider_x%" y="%row3_y%" placement="4" />
+                <resource base="slider" used="slider-used" touch="slider-touch" />
                 <action function="flash">flash_zip</action>
+            </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="545%" placement="4" />
+                <text>Swipe to Confirm Flash</text>
             </object>
 			
 			<object type="button">
@@ -476,7 +482,7 @@
 
             <object type="text" color="%text_color%">
                 <font resource="font" />
-                <placement x="270" y="540" placement="4" />
+                <placement x="%center_x%" y="540" placement="4" />
                 <text>Wipe complete</text>
             </object>
 
@@ -602,6 +608,12 @@
                 <resource base="slider" used="slider-used" touch="slider-touch" />
                 <action function="page">wipe_cache</action>
             </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="615" placement="4" />
+                <text>Swipe to Wipe</text>
+            </object>
 
             <object type="action">
                 <touch key="back" />
@@ -663,6 +675,12 @@
                 <placement x="%slider_x%" y="575" />
                 <resource base="slider" used="slider-used" touch="slider-touch" />
                 <action function="page">wipe_dalvik</action>
+            </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="615" placement="4" />
+                <text>Swipe to Wipe</text>
             </object>
 
             <object type="action">
@@ -726,6 +744,12 @@
                 <resource base="slider" used="slider-used" touch="slider-touch" />
                 <action function="page">wipe_rotate</action>
             </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="615" placement="4" />
+                <text>Swipe to Wipe</text>
+            </object>
 
             <object type="action">
                 <touch key="back" />
@@ -781,6 +805,12 @@
                 <font resource="font" />
                 <placement x="%col_center_x%" y="520" />
                 <text>Press back button to cancel.</text>
+            </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="615" placement="4" />
+                <text>Swipe to Wipe</text>
             </object>
 
 			<object type="slider">
@@ -850,6 +880,12 @@
                 <resource base="slider" used="slider-used" touch="slider-touch" />
                 <action function="page">wipe_system</action>
             </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="615" placement="4" />
+                <text>Swipe to Wipe</text>
+            </object>
 
             <object type="action">
                 <touch key="back" />
@@ -911,6 +947,12 @@
                 <placement x="%slider_x%" y="575" />
                 <resource base="slider" used="slider-used" touch="slider-touch" />
                 <action function="page">wipe_sdcard</action>
+            </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="615" placement="4" />
+                <text>Swipe to Wipe</text>
             </object>
 
             <object type="action">
@@ -977,6 +1019,12 @@
                 <resource base="slider" used="slider-used" touch="slider-touch" />
                 <action function="page">wipe_sdext</action>
             </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="615" placement="4" />
+                <text>Swipe to Wipe</text>
+            </object>
 
             <object type="action">
                 <touch key="back" />
@@ -1038,6 +1086,12 @@
                 <placement x="50" y="575" />
                 <resource base="slider" used="slider-used" touch="slider-touch" />
                 <action function="page">wipe_battery</action>
+            </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="615" placement="4" />
+                <text>Swipe to Wipe</text>
             </object>
 
             <object type="action">
@@ -1126,11 +1180,17 @@
                 <action function="page">backup_run</action>
             </object>
 			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="190" placement="4" />
+                <text>Swipe to Back Up</text>
+            </object>
+			
 			<object type="button">
-                <placement x="%col4_medium_x%" y="%row2_y%" />
+                <placement x="%col2_x%" y="%row2_y%" />
                 <font resource="font" color="%button_text_color%" />
                 <text>Refresh Sizes</text>
-                <image resource="medium_button" />
+                <image resource="main_button" />
                 <action function="refreshsizes"></action>
             </object>
 
@@ -1429,6 +1489,12 @@
                 <placement x="%slider_x%" y="150" />
                 <resource base="slider" used="slider-used" touch="slider-touch" />
                 <action function="page">restore_run</action>
+            </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="190" placement="4" />
+                <text>Swipe to Restore</text>
             </object>
 
             <object type="checkbox">
@@ -2628,18 +2694,16 @@
 				<text>This action cannot be undone!</text>
 			</object>
 			
-			<object type="button">
-				<condition var1="tw_allow_partition_sdcard" var2="1" />
-                <placement x="%col1_x%" y="540" />
-                <font resource="font" color="%text_color%" />
-                <text>Partition SD?</text>
-                <image resource="main_button" />
-                <action function="page">partsdcardaction</action>
-            </object>
 			<object type="slider">
                 <placement x="%slider_x%" y="575" />
                 <resource base="slider" used="slider-used" touch="slider-touch" />
                 <action function="page">partsdcardaction</action>
+            </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="615" placement="4" />
+                <text>Swipe to Partition</text>
             </object>
 			
             <object type="action">
@@ -3082,6 +3146,12 @@
                 <placement x="%slider_x%" y="800" />
                 <resource base="slider" used="slider-used" touch="slider-touch" />
                 <action function="overlay"></action>
+            </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="840" placement="4" />
+                <text>Swipe to Unlock</text>
             </object>
         </page>
     </pages>
