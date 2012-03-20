@@ -143,14 +143,14 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
     if (mFolderIcon && mFolderIcon->GetResource())
     {
         if (gr_get_height(mFolderIcon->GetResource()) > mLineHeight)
-            mLineHeight = gr_get_width(mFolderIcon->GetResource());
+            mLineHeight = gr_get_height(mFolderIcon->GetResource());
         mIconWidth = gr_get_width(mFolderIcon->GetResource());
         mIconHeight = gr_get_height(mFolderIcon->GetResource());
     }
     if (mFileIcon && mFileIcon->GetResource())
     {
         if (gr_get_height(mFileIcon->GetResource()) > mLineHeight)
-            mLineHeight = gr_get_width(mFileIcon->GetResource());
+            mLineHeight = gr_get_height(mFileIcon->GetResource());
         mIconWidth = gr_get_width(mFileIcon->GetResource());
         mIconHeight = gr_get_height(mFileIcon->GetResource());
     }
@@ -222,9 +222,9 @@ int GUIFileSelector::Render(void)
 
         if (icon && icon->GetResource())
         {
-            gr_blit(icon->GetResource(), 0, 0, mIconWidth, mIconHeight, mRenderX, yPos);
+            gr_blit(icon->GetResource(), 0, 0, mIconWidth, mIconHeight, mRenderX, (yPos + (int)((mLineHeight - mIconHeight) / 2)));
         }
-        gr_textEx(mRenderX + mIconWidth + 5, yPos, label.c_str(), fontResource);
+        gr_textExW(mRenderX + mIconWidth + 5, yPos, label.c_str(), fontResource, mRenderX + mRenderW - mIconWidth - 5);
 
         // Move the yPos
         yPos += mLineHeight + mLineSpacing;

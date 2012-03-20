@@ -222,7 +222,7 @@ int GUIConsole::RenderConsole(void)
     {
         if ((start + (int) line) >= 0 && (start + (int) line) < (int) mLastCount)
         {
-            gr_textEx(mConsoleX, mStartY + (line * mFontHeight), gConsole[start + line].c_str(), fontResource);
+            gr_textExW(mConsoleX, mStartY + (line * mFontHeight), gConsole[start + line].c_str(), fontResource, mConsoleW + mConsoleX);
         }
     }
     return (mSlideout ? RenderSlideout() : 0);
