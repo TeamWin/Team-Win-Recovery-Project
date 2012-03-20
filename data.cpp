@@ -426,6 +426,11 @@ void DataManager::SetDefaultValues()
 #else
 	mConstValues.insert(make_pair(TW_HAS_DATA_MEDIA, "0"));
 #endif
+#ifdef TW_NO_BATT_PERCENT
+	mConstValues.insert(make_pair(TW_NO_BATTERY_PERCENT, "1"));
+#else
+	mConstValues.insert(make_pair(TW_NO_BATTERY_PERCENT, "0"));
+#endif
 
     mValues.insert(make_pair(TW_BACKUP_NAME, make_pair("0", 0)));
 	mValues.insert(make_pair(TW_BACKUP_SYSTEM_VAR, make_pair("1", 1)));

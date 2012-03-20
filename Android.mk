@@ -85,6 +85,9 @@ endif
 ifeq ($(TW_NO_REBOOT_RECOVERY), true)
     LOCAL_CFLAGS += -DTW_NO_REBOOT_RECOVERY
 endif
+ifeq ($(TW_NO_BATT_PERCENT), true)
+    LOCAL_CFLAGS += -DTW_NO_BATT_PERCENT
+endif
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
 # It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses
