@@ -777,7 +777,14 @@ int GUIAction::getKeyByName(std::string key)
     else if (key == "search")   return KEY_SEARCH;
     else if (key == "voldown")  return KEY_VOLUMEDOWN;
     else if (key == "volup")    return KEY_VOLUMEUP;
-    else if (key == "power")    return KEY_POWER;
+    else if (key == "power") {
+		int ret_val;
+		DataManager::GetValue(TW_POWER_BUTTON, ret_val);
+		if (!ret_val)
+			return KEY_POWER;
+		else
+			return ret_val;
+	}
 
     return atol(key.c_str());
 }

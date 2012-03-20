@@ -116,6 +116,13 @@
                 <action function="overlay">lock</action>
             </object>
         </template>
+		
+		<template name="footerlockonly">
+            <object type="action">
+                <touch key="power" />
+                <action function="overlay">lock</action>
+            </object>
+        </template>
     </templates>
 
     <pages>
@@ -409,6 +416,8 @@
                 <condition var1="tw_operation_state" var2="1" />
                 <action function="page">flash_done</action>
             </object>
+			
+			<object type="template" name="footerlockonly" />
         </page>
 
         <page name="flash_done">
@@ -444,6 +453,18 @@
                 <image resource="main_button" />
                 <action function="page">main</action>
             </object>
+			
+			<object type="action">
+                <touch key="back" />
+                <action function="page">install</action>
+            </object>
+
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+			
+			<object type="template" name="footerlockonly" />
         </page>
 		
 		<page name="wipe_cachedalvik">
