@@ -33,6 +33,7 @@ void gr_color(unsigned char r, unsigned char g, unsigned char b, unsigned char a
 void gr_fill(int x, int y, int w, int h);
 
 int gr_textEx(int x, int y, const char *s, void* font);
+int gr_textExW(int x, int y, const char *s, void* font, int max_width);
 static inline int gr_text(int x, int y, const char *s)     { return gr_textEx(x, y, s, NULL); }
 int gr_measureEx(const char *s, void* font);
 static inline int gr_measure(const char *s)                { return gr_measureEx(s, NULL); }
