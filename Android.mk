@@ -88,6 +88,10 @@ endif
 ifeq ($(TW_NO_BATT_PERCENT), true)
     LOCAL_CFLAGS += -DTW_NO_BATT_PERCENT
 endif
+ifneq ($(TW_CUSTOM_POWER_BUTTON),)
+	LOCAL_CFLAGS += -DTW_CUSTOM_POWER_BUTTON=$(TW_CUSTOM_POWER_BUTTON)
+endif
+
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
 # It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses

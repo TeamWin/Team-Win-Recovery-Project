@@ -357,10 +357,16 @@ void DataManager::SetDefaultValues()
 		mConstValues.insert(make_pair(TW_EXTERNAL_LABEL, "0"));
 	#endif
 #else
-	#ifdef RECOVERY_SDCARD_ON_DATA && TW_EXTERNAL_STORAGE_PATH
-		LOGI("Has /data/media + external storage in '%s'\n", EXPAND(TW_EXTERNAL_STORAGE_PATH));
-		// Device has /data/media + external storage
-		mConstValues.insert(make_pair(TW_HAS_DUAL_STORAGE, "1"));
+	#ifdef RECOVERY_SDCARD_ON_DATA
+		#ifdef TW_EXTERNAL_STORAGE_PATH
+			LOGI("Has /data/media + external storage in '%s'\n", EXPAND(TW_EXTERNAL_STORAGE_PATH));
+			// Device has /data/media + external storage
+			mConstValues.insert(make_pair(TW_HAS_DUAL_STORAGE, "1"));
+		#else
+			LOGI("Single storage only.\n");
+			// Device just has external storage
+			mConstValues.insert(make_pair(TW_HAS_DUAL_STORAGE, "0"));
+		#endif
 	#else
 		LOGI("Single storage only.\n");
 		// Device just has external storage
@@ -430,6 +436,11 @@ void DataManager::SetDefaultValues()
 	mConstValues.insert(make_pair(TW_NO_BATTERY_PERCENT, "1"));
 #else
 	mConstValues.insert(make_pair(TW_NO_BATTERY_PERCENT, "0"));
+#endif
+#ifdef TW_CUSTOM_POWER_BUTTON
+	mConstValues.insert(make_pair(TW_POWER_BUTTON, EXPAND(TW_CUSTOM_POWER_BUTTON)));
+#else
+	mConstValues.insert(make_pair(TW_POWER_BUTTON, "0"));
 #endif
 
     mValues.insert(make_pair(TW_BACKUP_NAME, make_pair("0", 0)));

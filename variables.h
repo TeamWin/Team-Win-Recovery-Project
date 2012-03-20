@@ -123,6 +123,7 @@
 #define TW_HAS_SDEXT_PARTITION      "tw_has_sdext_partition"
 #define TW_HAS_USB_STORAGE          "tw_has_usb_storage"
 #define TW_NO_BATTERY_PERCENT       "tw_no_battery_percent"
+#define TW_POWER_BUTTON             "tw_power_button"
 
 #define TW_SHOW_DUMLOCK             "tw_show_dumlock"
 
