@@ -352,6 +352,41 @@ int gui_changePackage(std::string newPackage)
     return 0;
 }
 
+std::string gui_parse_text(string inText)
+{
+	// Copied from std::string GUIText::parseText(void)
+	// This function parses text for DataManager values encompassed by %value% in the XML
+	static int counter = 0;
+    std::string str = inText;
+    size_t pos = 0;
+    size_t next = 0, end = 0;
+
+    while (1)
+    {
+        next = str.find('%', pos);
+        if (next == std::string::npos)      return str;
+        end = str.find('%', next + 1);
+        if (end == std::string::npos)       return str;
+
+        // We have a block of data
+        std::string var = str.substr(next + 1, (end - next) - 1);
+        str.erase(next, (end - next) + 1);
+
+        if (next + 1 == end)
+        {
+            str.insert(next, 1, '%');
+        }
+        else
+        {
+            std::string value;
+            if (DataManager::GetValue(var, value) == 0)
+                str.insert(next, value);
+        }
+
+        pos = next + 1;
+    }
+}
+
 extern "C" int gui_init()
 {
     int fd;

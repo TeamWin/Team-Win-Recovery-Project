@@ -264,6 +264,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 {
 	static string zip_queue[10];
 	static int zip_queue_index;
+	std::string arg = gui_parse_text(action.mArg);
 
 #ifdef _SIMULATE_ACTIONS
     ui_print("Simulating actions...\n");
@@ -275,11 +276,11 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
         sync();
         finish_recovery("s");
 
-        if (action.mArg == "recovery")
+        if (arg == "recovery")
             tw_reboot(rb_recovery);
-        else if (action.mArg == "poweroff")
+        else if (arg == "poweroff")
             tw_reboot(rb_poweroff);
-        else if (action.mArg == "bootloader")
+        else if (arg == "bootloader")
             tw_reboot(rb_bootloader);
         else
             tw_reboot(rb_system);
@@ -296,12 +297,14 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 
     if (action.mFunction == "key")
     {
-        PageManager::NotifyKey(getKeyByName(action.mArg));
+        PageManager::NotifyKey(getKeyByName(arg));
         return 0;
     }
 
-    if (action.mFunction == "page")
-        return gui_changePage(action.mArg);
+    if (action.mFunction == "page") {
+		std::string page_name = gui_parse_text(arg);
+        return gui_changePage(page_name);
+	}
 
     if (action.mFunction == "reload")
         return PageManager::ReloadPackage("TWRP", "/sdcard/TWRP/theme/ui.zip");
@@ -316,28 +319,28 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 
     if (action.mFunction == "set")
     {
-        if (action.mArg.find('=') != string::npos)
+        if (arg.find('=') != string::npos)
         {
-            string varName = action.mArg.substr(0, action.mArg.find('='));
-            string value = action.mArg.substr(action.mArg.find('=') + 1, string::npos);
+            string varName = arg.substr(0, arg.find('='));
+            string value = arg.substr(arg.find('=') + 1, string::npos);
 
             DataManager::GetValue(value, value);
             DataManager::SetValue(varName, value);
         }
         else
-            DataManager::SetValue(action.mArg, "1");
+            DataManager::SetValue(arg, "1");
         return 0;
     }
     if (action.mFunction == "clear")
     {
-        DataManager::SetValue(action.mArg, "0");
+        DataManager::SetValue(arg, "0");
         return 0;
     }
 
     if (action.mFunction == "mount")
     {
 #ifndef _SIMULATE_ACTIONS
-        if (action.mArg == "usb")
+        if (arg == "usb")
         {
             DataManager::SetValue(TW_ACTION_BUSY, 1);
 			usb_storage_enable();
@@ -345,12 +348,12 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
         else
         {
             string cmd;
-			if (action.mArg == "EXTERNAL")
+			if (arg == "EXTERNAL")
 				cmd = "mount " + DataManager::GetStrValue(TW_EXTERNAL_MOUNT);
-			else if (action.mArg == "INTERNAL")
+			else if (arg == "INTERNAL")
 				cmd = "mount " + DataManager::GetStrValue(TW_INTERNAL_MOUNT);
 			else
-				cmd = "mount " + action.mArg;
+				cmd = "mount " + arg;
             __system(cmd.c_str());
         }
         return 0;
@@ -360,7 +363,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
     if (action.mFunction == "umount" || action.mFunction == "unmount")
     {
 #ifndef _SIMULATE_ACTIONS
-        if (action.mArg == "usb")
+        if (arg == "usb")
         {
             usb_storage_disable();
 			DataManager::SetValue(TW_ACTION_BUSY, 0);
@@ -368,12 +371,12 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
         else
         {
             string cmd;
-			if (action.mArg == "EXTERNAL")
+			if (arg == "EXTERNAL")
 				cmd = "umount " + DataManager::GetStrValue(TW_EXTERNAL_MOUNT);
-			else if (action.mArg == "INTERNAL")
+			else if (arg == "INTERNAL")
 				cmd = "umount " + DataManager::GetStrValue(TW_INTERNAL_MOUNT);
 			else
-				cmd = "umount " + action.mArg;
+				cmd = "umount " + arg;
             __system(cmd.c_str());
         }
 #endif
@@ -398,10 +401,10 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 	
 	if (action.mFunction == "compute" || action.mFunction == "addsubtract")
 	{
-		if (action.mArg.find("+") != string::npos)
+		if (arg.find("+") != string::npos)
         {
-            string varName = action.mArg.substr(0, action.mArg.find('+'));
-            string string_to_add = action.mArg.substr(action.mArg.find('+') + 1, string::npos);
+            string varName = arg.substr(0, arg.find('+'));
+            string string_to_add = arg.substr(arg.find('+') + 1, string::npos);
 			int amount_to_add = atoi(string_to_add.c_str());
 			int value;
 
@@ -409,10 +412,10 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
             DataManager::SetValue(varName, value + amount_to_add);
 			return 0;
         }
-		if (action.mArg.find("-") != string::npos)
+		if (arg.find("-") != string::npos)
         {
-            string varName = action.mArg.substr(0, action.mArg.find('-'));
-            string string_to_subtract = action.mArg.substr(action.mArg.find('-') + 1, string::npos);
+            string varName = arg.substr(0, arg.find('-'));
+            string string_to_subtract = arg.substr(arg.find('-') + 1, string::npos);
 			int amount_to_subtract = atoi(string_to_subtract.c_str());
 			int value;
 
@@ -451,20 +454,20 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 	}
 
 	if (action.mFunction == "togglestorage") {
-		if (action.mArg == "internal") {
+		if (arg == "internal") {
 			DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 0);
 			DataManager::SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcext.sze - sdcext.used) / 1048576LLU));
-		} else if (action.mArg == "external") {
+		} else if (arg == "external") {
 			DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 1);
 			DataManager::SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcint.sze - sdcint.used) / 1048576LLU));
 		}
 		if (ensure_path_mounted("/sdcard") == 0) {
-			if (action.mArg == "internal") {
+			if (arg == "internal") {
 				// Save the current zip location to the external variable
 				DataManager::SetValue(TW_ZIP_EXTERNAL_VAR, DataManager::GetStrValue(TW_ZIP_LOCATION_VAR));
 				// Change the current zip location to the internal variable
 				DataManager::SetValue(TW_ZIP_LOCATION_VAR, DataManager::GetStrValue(TW_ZIP_INTERNAL_VAR));
-			} else if (action.mArg == "external") {
+			} else if (arg == "external") {
 				// Save the current zip location to the internal variable
 				DataManager::SetValue(TW_ZIP_INTERNAL_VAR, DataManager::GetStrValue(TW_ZIP_LOCATION_VAR));
 				// Change the current zip location to the external variable
@@ -472,9 +475,9 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			}
 		} else {
 			// We weren't able to toggle for some reason, restore original setting
-			if (action.mArg == "internal") {
+			if (arg == "internal") {
 				DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 1);
-			} else if (action.mArg == "external") {
+			} else if (arg == "external") {
 				DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 0);
 			}
 		}
@@ -482,7 +485,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 	}
 	
 	if (action.mFunction == "overlay")
-        return gui_changeOverlay(action.mArg);
+        return gui_changeOverlay(arg);
 
 	if (action.mFunction == "queuezip")
     {
@@ -518,7 +521,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 		        DataManager::SetValue("tw_operation_state", 0);
 				DataManager::SetValue(TW_ZIP_INDEX, (i + 1));
 
-		        ret_val = flash_zip(zip_queue[i], action.mArg);
+		        ret_val = flash_zip(zip_queue[i], arg);
 				if (ret_val != 0) {
 					ui_print("Error flashing zip '%s'\n", zip_queue[i].c_str());
 					i = 10; // Error flashing zip - exit queue
@@ -527,7 +530,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			}
 			zip_queue_index = 0;
 			DataManager::SetValue(TW_ZIP_QUEUE_COUNT, zip_queue_index);
-			DataManager::SetValue("tw_operation_status", 0);
+			DataManager::SetValue("tw_operation_status", ret_val);
 		    DataManager::SetValue("tw_operation_state", 1);
 			LOGI("Done installing zips\n");
             return 0;
@@ -535,25 +538,25 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
         if (action.mFunction == "wipe")
         {
             DataManager::SetValue("tw_operation", "Format");
-            DataManager::SetValue("tw_partition", action.mArg);
+            DataManager::SetValue("tw_partition", arg);
             DataManager::SetValue("tw_operation_status", 0);
             DataManager::SetValue("tw_operation_state", 0);
 
 #ifdef _SIMULATE_ACTIONS
             usleep(5000000);
 #else
-            if (action.mArg == "data")
+            if (arg == "data")
                 wipe_data(0);
-            else if (action.mArg == "battery")
+            else if (arg == "battery")
                 wipe_battery_stats();
-            else if (action.mArg == "rotate")
+            else if (arg == "rotate")
                 wipe_rotate_data();
-            else if (action.mArg == "dalvik")
+            else if (arg == "dalvik")
                 wipe_dalvik_cache();
             else
-                erase_volume(action.mArg.c_str());
+                erase_volume(arg.c_str());
 			
-			if (action.mArg == "/sdcard") {
+			if (arg == "/sdcard") {
 				ensure_path_mounted(SDCARD_ROOT);
 				mkdir("/sdcard/TWRP", 0777);
 				DataManager::Flush();
@@ -561,7 +564,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 #endif
 
             DataManager::SetValue("tw_operation", "Format");
-            DataManager::SetValue("tw_partition", action.mArg);
+            DataManager::SetValue("tw_partition", arg);
             DataManager::SetValue("tw_operation_status", 0);
             DataManager::SetValue("tw_operation_state", 1);
             return 0;
@@ -595,9 +598,9 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
             DataManager::SetValue("tw_operation_status", 0);
             DataManager::SetValue("tw_operation_state", 1);
 #else
-            if (action.mArg == "backup")
+            if (arg == "backup")
                 nandroid_back_exe();
-            else if (action.mArg == "restore")
+            else if (arg == "restore")
                 nandroid_rest_exe();
             else
                 return -1;
@@ -633,7 +636,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
             DataManager::SetValue("tw_operation_state", 0);
 
             char cmd[512];
-            sprintf(cmd, "dd %s", action.mArg.c_str());
+            sprintf(cmd, "dd %s", arg.c_str());
             __system(cmd);
 
             DataManager::SetValue("ui_progress", 100);
@@ -756,6 +759,28 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			DataManager::SetValue("ui_progress", 0);
 			DataManager::SetValue("tw_operation", "HTCDumlockReflashRecovery");
             DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 1);
+			return 0;
+		}
+		if (action.mFunction == "cmd")
+		{
+			int op_status = 0;
+
+			DataManager::SetValue("ui_progress", 0);
+			DataManager::SetValue("tw_operation", "cmd");
+            DataManager::SetValue("tw_operation_status", 0);
+            DataManager::SetValue("tw_operation_state", 0);
+			ui_print("Running command: '%s'\n", arg.c_str());
+#ifdef _SIMULATE_ACTIONS
+            usleep(10000000);
+#else
+			op_status = __system(arg.c_str());
+			if (op_status != 0)
+				op_status = 1;
+#endif
+			DataManager::SetValue("ui_progress", 100);
+			DataManager::SetValue("ui_progress", 0);
+            DataManager::SetValue("tw_operation_status", op_status);
             DataManager::SetValue("tw_operation_state", 1);
 			return 0;
 		}

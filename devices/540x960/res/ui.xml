@@ -63,7 +63,7 @@
 
     <templates>
         <template name="header">
-            <background color="black" />
+            <background color="#000000FF" />
     		
     		<object type="button">
     			<placement x="%col1_x%" y="10" />
@@ -602,10 +602,14 @@
             </object>
 
             <object type="action">
-                <touch key="back" />
-                <action function="page">main</action>
+                <action function="set">tw_back1=main</action>
             </object>
-                        
+			
+			<object type="action">
+				<touch key="back" />
+				<action function="page">%tw_back1%</action>
+			</object>
+			
             <object type="template" name="footer" />
         </page>
 		
@@ -2583,8 +2587,16 @@
             </object>
 			
 			<object type="button">
-				<condition var1="tw_show_dumlock" var2="1" />
                 <placement x="%col2_x%" y="%row2_y%" />
+                <font resource="font" color="%button_text_color%" />
+                <text>File Manager</text>
+                <image resource="main_button" />
+                <action function="page">filemanagerlist</action>
+            </object>
+			
+			<object type="button">
+				<condition var1="tw_show_dumlock" var2="1" />
+                <placement x="%col2_x%" y="%row4_y%" />
                 <font resource="font" color="%button_text_color%" />
                 <text>HTC Dumlock</text>
                 <image resource="main_button" />
@@ -3174,6 +3186,304 @@
                 <placement x="%center_x%" y="840" placement="4" />
                 <text>Swipe to Unlock</text>
             </object>
+        </page>
+
+		<page name="filemanagerlist">
+			<object type="template" name="header" />
+
+			<object type="fileselector">
+				<placement x="5" y="%row1_y%" w="530" h="760" />
+				<icon folder="folder_icon" file="file_icon" />
+				<background color="#303030" />
+				<font resource="filelist" spacing="18" color="%text_color%" />
+				<folders="1" files="1" />
+				<path name="tw_file_location1" default="/sdcard" />
+				<data name="tw_filename1" />
+			</object>
+
+			<object type="action">
+				<touch key="home" />
+				<action function="page">main</action>
+			</object>
+
+			<object type="action">
+				<touch key="back" />
+				<action function="page">advanced</action>
+			</object>
+
+			<object type="action">
+                <condition var1="tw_filename1" op="modified" />
+				<actions>
+                	<action function="page">filemanageroptions</action>
+				</actions>
+            </object>
+
+			<object type="template" name="footer" />
+		</page>
+		
+		<page name="filemanageroptions">
+			<object type="template" name="header" />
+
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="140" placement="4"/>
+                <text>%tw_filename1%</text>
+            </object>
+
+			<object type="button">
+				<placement x="%col1_x%" y="%row2_y%" />
+				<font resource="font" color="%button_text_color%" />
+				<text>Copy</text>
+				<image resource="main_button" />
+				<actions>
+					<action function="set">tw_filemanager_command=cp</action>
+					<action function="set">tw_text1=Copying</action>
+					<action function="page">choosedestinationfolder</action>
+				</actions>
+			</object>
+
+			<object type="button">
+				<placement x="%col2_x%" y="%row2_y%" />
+				<font resource="font" color="%button_text_color%" />
+				<text>Move</text>
+				<image resource="main_button" />
+				<actions>
+					<action function="set">tw_filemanager_command=mv</action>
+					<action function="set">tw_text1=Moving</action>
+					<action function="page">choosedestinationfolder</action>
+				</actions>
+			</object>
+
+			<object type="button">
+				<placement x="%col1_x%" y="%row3_y%" />
+				<font resource="font" color="%button_text_color%" />
+				<text>chmod 755</text>
+				<image resource="main_button" />
+				<actions>
+					<action function="set">tw_filemanager_command=chmod 755</action>
+					<action function="set">tw_text1=chmod 755</action>
+					<action function="set">tw_text2=</action>
+					<action function="set">tw_text3=</action>
+					<action function="set">tw_back=filemanageroptions</action>
+					<action function="page">filemanagerconfirm</action>
+				</actions>
+			</object>
+
+			<object type="button">
+				<placement x="%col2_x%" y="%row3_y%" />
+				<font resource="font" color="%button_text_color%" />
+				<text>chmod 000</text>
+				<image resource="main_button" />
+				<actions>
+					<action function="set">tw_filemanager_command=chmod 000</action>
+					<action function="set">tw_text1=chmod 000</action>
+					<action function="set">tw_text2=</action>
+					<action function="set">tw_text3=</action>
+					<action function="set">tw_back=filemanageroptions</action>
+					<action function="page">filemanagerconfirm</action>
+				</actions>
+			</object>
+
+			<object type="button">
+				<placement x="%col1_x%" y="%row4_y%" />
+				<font resource="font" color="%button_text_color%" />
+				<text>Delete</text>
+				<image resource="main_button" />
+				<actions>
+					<action function="set">tw_filemanager_command=rm</action>
+					<action function="set">tw_text1=Deleting</action>
+					<action function="set">tw_text2=</action>
+					<action function="set">tw_text3=</action>
+					<action function="set">tw_back=filemanageroptions</action>
+					<action function="page">filemanagerconfirm</action>
+				</actions>
+			</object>
+
+			<object type="action">
+				<touch key="home" />
+				<action function="page">main</action>
+			</object>
+
+			<object type="action">
+				<touch key="back" />
+				<action function="page">filemanagerlist</action>
+			</object>
+
+			<object type="template" name="footer" />
+		</page>
+
+		<page name="choosedestinationfolder">
+			<object type="template" name="header" />
+
+			<object type="fileselector">
+				<placement x="5" y="%row1_y%" w="530" h="615" />
+				<icon folder="folder_icon" file="file_icon" />
+				<background color="#303030" />
+				<font resource="filelist" spacing="18" color="%text_color%" />
+				<folders="1" files="0" nav="1" />
+				<path name="tw_file_location2" default="/sdcard" />
+				<data name="tw_filename2" />
+			</object>
+
+			<object type="action">
+				<touch key="home" />
+				<action function="page">main</action>
+			</object>
+
+			<object type="action">
+				<touch key="back" />
+				<action function="page">filemanageroptions</action>
+			</object>
+
+			<object type="button">
+                <placement x="%col_center_x%" y="750" />
+                <font resource="font" color="%button_text_color%" />
+                <text>Select Folder</text>
+                <image resource="main_button" />
+				<actions>
+					<action function="set">tw_text2=to</action>
+					<action function="set">tw_text3=%tw_file_location2%</action>
+					<action function="set">tw_back=choosedestinationfolder</action>
+					<action function="page">filemanagerconfirm</action>
+				</actions>
+            </object>
+
+			<object type="template" name="footer" />
+		</page>
+
+		<page name="filemanagerconfirm">
+            <object type="template" name="header" />
+
+            <object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="140" placement="4"/>
+                <text>%tw_text1%</text>
+            </object>
+
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="180" placement="4"/>
+                <text>%tw_filename1%</text>
+            </object>
+
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="220" placement="4"/>
+                <text>%tw_text2%</text>
+            </object>
+
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="260" placement="4"/>
+                <text>%tw_text3%</text>
+            </object>
+
+            <object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="520" placement="4"/>
+                <text>Press back button to cancel.</text>
+            </object>
+
+			<object type="slider">
+                <placement x="%slider_x%" y="575" />
+                <resource base="slider" used="slider-used" touch="slider-touch" />
+                <action function="page">filemanageracction</action>
+            </object>
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="620" placement="4" />
+                <text>Swipe to Confirm</text>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">%tw_back%</action>
+            </object>
+
+            <object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+                
+            <object type="template" name="footer" />
+        </page>
+
+		<page name="filemanageracction">
+            <object type="template" name="header" />
+			
+			<object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="%center_x%" y="440" placement="4" />
+                <text>%tw_text1%</text>
+            </object>
+			
+            <object type="animation">
+                <placement x="%col_progressbar_x%" y="470" />
+                <resource name="progress" />
+                <speed fps="15" render="2" />
+                <loop frame="1" />
+            </object>
+
+            <object type="action">
+				<conditions>
+					<condition var1="tw_operation_state" var2="1" />
+					<condition var1="tw_operation_status" var2="0" />
+				</conditions>
+				<actions>
+					<action function="set">tw_text4=Successful</action>
+					<action function="page">filemanagercomplete</action>
+				</actions>
+            </object>
+
+			<object type="action">
+				<conditions>
+					<condition var1="tw_operation_state" var2="1" />
+					<condition var1="tw_operation_status" op="!=" var2="0" />
+				</conditions>
+				<actions>
+					<action function="set">tw_text4=Failed</action>
+					<action function="page">filemanagercomplete</action>
+				</actions>
+            </object>
+
+            <object type="action">
+				<actions>
+					<action function="cmd">%tw_filemanager_command% %tw_filename1% %tw_text3%</action>
+				</actions>
+            </object>
+                        
+            <object type="template" name="footer" />
+        </page>
+
+		<page name="filemanagercomplete">
+            <object type="template" name="header" />
+
+            <object type="text" color="%text_color%">
+                <font resource="font" />
+                <placement x="270" y="445" placement="4" />
+                <text>Operation %tw_text4%!</text>
+            </object>
+
+            <object type="button">
+                <placement x="%col_center_x%" y="570" />
+                <font resource="font" color="%button_text_color%" />
+                <text>File Manager</text>
+                <image resource="main_button" />
+                <action function="page">filemanagerlist</action>
+            </object>
+			
+			<object type="action">
+                <touch key="home" />
+                <action function="page">main</action>
+            </object>
+
+            <object type="action">
+                <touch key="back" />
+                <action function="page">%tw_back%</action>
+            </object>
+                        
+            <object type="template" name="footer" />
         </page>
     </pages>
 </recovery>
