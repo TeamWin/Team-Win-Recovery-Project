@@ -184,7 +184,7 @@ int res_create_surface_jpg(const char* name, gr_surface* pSurface) {
     if (fp == NULL) {
         char resPath[256];
 
-        snprintf(resPath, sizeof(resPath)-1, "/res/images/%s.jpg", name);
+        snprintf(resPath, sizeof(resPath)-1, "/res/images/%s", name);
         resPath[sizeof(resPath)-1] = '\0';
         fp = fopen(resPath, "rb");
         if (fp == NULL) {
@@ -269,7 +269,7 @@ int res_create_surface(const char* name, gr_surface* pSurface) {
     if (!name)      return -1;
 
     if (strlen(name) > 4 && strcmp(name + strlen(name) - 4, ".jpg") == 0)
-        return res_create_surface_jpg(name,pSurface);
+		return res_create_surface_jpg(name,pSurface);
 
     ret = res_create_surface_png(name,pSurface);
     if (ret < 0)
