@@ -46,11 +46,12 @@ int Resource::ExtractResource(ZipArchive* pZip,
 {
     if (!pZip)  return -1;
 
-    std::string src = folderName + "/" + fileName + "." + fileExtn;
+    std::string src = folderName + "/" + fileName + fileExtn;
 
-    const ZipEntry* binary = mzFindZipEntry(pZip, src.c_str());
-    if (binary == NULL)
+	const ZipEntry* binary = mzFindZipEntry(pZip, src.c_str());
+    if (binary == NULL) {
         return -1;
+	}
 
     unlink(destFile.c_str());
     int fd = creat(destFile.c_str(), 0666);
@@ -76,7 +77,7 @@ FontResource::FontResource(xml_node<>* node, ZipArchive* pZip)
     if (node->first_attribute("filename"))
         file = node->first_attribute("filename")->value();
 
-    if (ExtractResource(pZip, "fonts", file, "dat", TMP_RESOURCE_NAME) == 0)
+    if (ExtractResource(pZip, "fonts", file, ".dat", TMP_RESOURCE_NAME) == 0)
     {
         mFont = gr_loadFont(TMP_RESOURCE_NAME);
         unlink(TMP_RESOURCE_NAME);
@@ -102,13 +103,18 @@ ImageResource::ImageResource(xml_node<>* node, ZipArchive* pZip)
     if (node->first_attribute("filename"))
         file = node->first_attribute("filename")->value();
 
-    if (ExtractResource(pZip, "images", file, "png", TMP_RESOURCE_NAME) == 0)
+    if (ExtractResource(pZip, "images", file, ".png", TMP_RESOURCE_NAME) == 0)
     {
         res_create_surface(TMP_RESOURCE_NAME, &mSurface);
         unlink(TMP_RESOURCE_NAME);
+    } else if (ExtractResource(pZip, "images", file, "", TMP_RESOURCE_NAME) == 0)
+    {
+        // JPG includes the .jpg extension in the filename so extension should be blank
+		res_create_surface(TMP_RESOURCE_NAME, &mSurface);
+        unlink(TMP_RESOURCE_NAME);
     }
     else
-        res_create_surface(file.c_str(), &mSurface);
+		res_create_surface(file.c_str(), &mSurface);
 }
 
 ImageResource::~ImageResource()
@@ -136,7 +142,7 @@ AnimationResource::AnimationResource(xml_node<>* node, ZipArchive* pZip)
         gr_surface surface;
         if (pZip)
         {
-            if (ExtractResource(pZip, "images", fileName.str(), "png", TMP_RESOURCE_NAME) != 0)
+            if (ExtractResource(pZip, "images", fileName.str(), ".png", TMP_RESOURCE_NAME) != 0)
                 break;
     
             if (res_create_surface(TMP_RESOURCE_NAME, &surface))
@@ -207,7 +213,7 @@ ResourceManager::ResourceManager(xml_node<>* resList, ZipArchive* pZip)
         }
         else if (type == "image")
         {
-            ImageResource* res = new ImageResource(child, pZip);
+			ImageResource* res = new ImageResource(child, pZip);
             if (res == NULL || res->GetResource() == NULL)
             {
                 LOGE("Resource type (%s) failed to load\n", type.c_str());
@@ -215,7 +221,7 @@ ResourceManager::ResourceManager(xml_node<>* resList, ZipArchive* pZip)
             }
             else
             {
-                mResources.push_back((Resource*) res);
+				mResources.push_back((Resource*) res);
             }
         }
         else if (type == "animation")
