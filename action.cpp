@@ -148,7 +148,17 @@ int GUIAction::NotifyVarChange(std::string varName, std::string value)
     return 0;
 }
 
-int GUIAction::flash_zip(std::string filename, std::string pageName)
+void GUIAction::simulate_progress_bar(void)
+{
+	ui_print("Simulating actions...\n");
+	for (int i = 0; i < 5; i++)
+	{
+		usleep(500000);
+		DataManager::SetValue("ui_progress", i * 20);
+	}
+}
+
+int GUIAction::flash_zip(std::string filename, std::string pageName, const int simulate)
 {
     int ret_val = 0;
 
@@ -172,7 +182,8 @@ int GUIAction::flash_zip(std::string filename, std::string pageName)
         return -1;
     }
 
-    const ZipEntry* twrp = mzFindZipEntry(&zip, "META-INF/teamwin/twrp.zip");
+    // Check the zip to see if it has a custom installer theme
+	const ZipEntry* twrp = mzFindZipEntry(&zip, "META-INF/teamwin/twrp.zip");
     if (twrp != NULL)
     {
         unlink("/tmp/twrp.zip");
@@ -195,35 +206,28 @@ int GUIAction::flash_zip(std::string filename, std::string pageName)
     if (fd >= 0)
         close(fd);
 
-#ifdef _SIMULATE_ACTIONS
-    for (int i = 0; i < 10; i++)
-    {
-        usleep(1000000);
-        DataManager::SetValue("ui_progress", i * 10);
-    }
-#else
-    ret_val = install_zip_package(filename.c_str());
+	if (simulate) {
+		simulate_progress_bar();
+	} else {
+		ret_val = install_zip_package(filename.c_str());
 
-    // Now, check if we need to ensure TWRP remains installed...
-    struct stat st;
-    if (stat("/sbin/installTwrp", &st) == 0)
-    {
-        DataManager::SetValue("tw_operation", "Configuring TWRP");
-        DataManager::SetValue("tw_partition", "");
-        ui_print("Configuring TWRP...\n");
-        if (__system("/sbin/installTwrp reinstall") < 0)
-        {
-            ui_print("Unable to configure TWRP with this kernel.\n");
-        }
-    }
-#endif
+		// Now, check if we need to ensure TWRP remains installed...
+		struct stat st;
+		if (stat("/sbin/installTwrp", &st) == 0)
+		{
+			DataManager::SetValue("tw_operation", "Configuring TWRP");
+			DataManager::SetValue("tw_partition", "");
+			ui_print("Configuring TWRP...\n");
+			if (__system("/sbin/installTwrp reinstall") < 0)
+			{
+				ui_print("Unable to configure TWRP with this kernel.\n");
+			}
+		}
+	}
 
     // Done
     DataManager::SetValue("ui_progress", 100);
     DataManager::SetValue("ui_progress", 0);
-
-    DataManager::SetValue("tw_operation", "Flash");
-    DataManager::SetValue("tw_partition", filename);
     return ret_val;
 }
 
@@ -260,16 +264,47 @@ void* GUIAction::thread_start(void *cookie)
     return NULL;
 }
 
+void GUIAction::operation_start(const string operation_name)
+{
+	DataManager::SetValue(TW_ACTION_BUSY, 1);
+	DataManager::SetValue("ui_progress", 0);
+	DataManager::SetValue("tw_operation", operation_name);
+	DataManager::SetValue("tw_operation_status", 0);
+	DataManager::SetValue("tw_operation_state", 0);
+}
+
+void GUIAction::operation_end(const int operation_status, const int simulate)
+{
+	int simulate_fail;
+
+	DataManager::SetValue("ui_progress", 100);
+	if (simulate) {
+		DataManager::GetValue(TW_SIMULATE_FAIL, simulate_fail);
+		if (simulate_fail != 0)
+			DataManager::SetValue("tw_operation_status", 1);
+		else
+			DataManager::SetValue("tw_operation_status", 0);
+	} else {
+		if (operation_status != 0)
+			DataManager::SetValue("tw_operation_status", 1);
+		else
+			DataManager::SetValue("tw_operation_status", 0);
+	}
+	DataManager::SetValue("tw_operation_state", 1);
+	DataManager::SetValue(TW_ACTION_BUSY, 0);
+}
+
 int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 {
 	static string zip_queue[10];
 	static int zip_queue_index;
+	int simulate;
 	std::string arg = gui_parse_text(action.mArg);
+	std::string function = gui_parse_text(action.mFunction);
 
-#ifdef _SIMULATE_ACTIONS
-    ui_print("Simulating actions...\n");
-#endif
-    if (action.mFunction == "reboot")
+	DataManager::GetValue(TW_SIMULATE_ACTIONS, simulate);
+
+    if (function == "reboot")
     {
         curtainClose();
 
@@ -288,36 +323,56 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
         // This should never occur
         return -1;
     }
-    if (action.mFunction == "home")
+    if (function == "home")
     {
         PageManager::SelectPackage("TWRP");
         gui_changePage("main");
         return 0;
     }
 
-    if (action.mFunction == "key")
+    if (function == "key")
     {
         PageManager::NotifyKey(getKeyByName(arg));
         return 0;
     }
 
-    if (action.mFunction == "page") {
+    if (function == "page") {
 		std::string page_name = gui_parse_text(arg);
         return gui_changePage(page_name);
 	}
 
-    if (action.mFunction == "reload")
-        return PageManager::ReloadPackage("TWRP", "/sdcard/TWRP/theme/ui.zip");
+    if (function == "reload") {
+		int check = 0, ret_val = 0;
+		std::string theme_path;
 
-    if (action.mFunction == "readBackup")
+		operation_start("Reload Theme");
+		theme_path = DataManager::GetSettingsStoragePath();
+		if (ensure_path_mounted(theme_path.c_str()) < 0) {
+			LOGE("Unable to mount %s during reload function startup.\n", theme_path.c_str());
+			check = 1;
+		}
+
+		theme_path += "/TWRP/theme/ui.zip";
+		if (check != 0 || PageManager::ReloadPackage("TWRP", theme_path) != 0)
+		{
+			// Loading the custom theme failed - try loading the stock theme
+			LOGI("Attempting to reload stock theme...\n");
+			if (PageManager::ReloadPackage("TWRP", "/res/ui.xml"))
+			{
+				LOGE("Failed to load base packages.\n");
+				ret_val = 1;
+			}
+		}
+        operation_end(ret_val, simulate);
+	}
+
+    if (function == "readBackup")
     {
-#ifndef _SIMULATE_ACTIONS
-        set_restore_files();
-#endif
+		set_restore_files();
         return 0;
     }
 
-    if (action.mFunction == "set")
+    if (function == "set")
     {
         if (arg.find('=') != string::npos)
         {
@@ -331,21 +386,23 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
             DataManager::SetValue(arg, "1");
         return 0;
     }
-    if (action.mFunction == "clear")
+    if (function == "clear")
     {
         DataManager::SetValue(arg, "0");
         return 0;
     }
 
-    if (action.mFunction == "mount")
+    if (function == "mount")
     {
-#ifndef _SIMULATE_ACTIONS
         if (arg == "usb")
         {
             DataManager::SetValue(TW_ACTION_BUSY, 1);
-			usb_storage_enable();
+			if (!simulate)
+				usb_storage_enable();
+			else
+				ui_print("Simulating actions...\n");
         }
-        else
+        else if (!simulate)
         {
             string cmd;
 			if (arg == "EXTERNAL")
@@ -355,20 +412,22 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			else
 				cmd = "mount " + arg;
             __system(cmd.c_str());
-        }
+        } else
+			ui_print("Simulating actions...\n");
         return 0;
-#endif
     }
 
-    if (action.mFunction == "umount" || action.mFunction == "unmount")
+    if (function == "umount" || function == "unmount")
     {
-#ifndef _SIMULATE_ACTIONS
         if (arg == "usb")
         {
-            usb_storage_disable();
+            if (!simulate)
+				usb_storage_disable();
+			else
+				ui_print("Simulating actions...\n");
 			DataManager::SetValue(TW_ACTION_BUSY, 0);
         }
-        else
+        else if (!simulate)
         {
             string cmd;
 			if (arg == "EXTERNAL")
@@ -378,28 +437,37 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			else
 				cmd = "umount " + arg;
             __system(cmd.c_str());
-        }
-#endif
+        } else
+			ui_print("Simulating actions...\n");
         return 0;
     }
 	
-	if (action.mFunction == "restoredefaultsettings")
+	if (function == "restoredefaultsettings")
 	{
-		DataManager::ResetDefaults();
+		operation_start("Restore Defaults");
+		if (simulate) // Simulated so that people don't accidently wipe out the "simulation is on" setting
+			ui_print("Simulating actions...\n");
+		else
+			DataManager::ResetDefaults();
+		operation_end(0, simulate);
 	}
 	
-	if (action.mFunction == "copylog")
+	if (function == "copylog")
 	{
-#ifndef _SIMULATE_ACTIONS
-		ensure_path_mounted("/sdcard");
-		__system("cp /tmp/recovery.log /sdcard");
-		sync();
-		ui_print("Copied recovery log to /sdcard.\n");
-#endif
+		operation_start("Copy Log");
+		if (!simulate)
+		{
+			ensure_path_mounted("/sdcard");
+			__system("cp /tmp/recovery.log /sdcard");
+			sync();
+			ui_print("Copied recovery log to /sdcard.\n");
+		} else
+			simulate_progress_bar();
+		operation_end(0, simulate);
 		return 0;
 	}
 	
-	if (action.mFunction == "compute" || action.mFunction == "addsubtract")
+	if (function == "compute" || function == "addsubtract")
 	{
 		if (arg.find("+") != string::npos)
         {
@@ -428,7 +496,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
         }
 	}
 	
-	if (action.mFunction == "setguitimezone")
+	if (function == "setguitimezone")
 	{
 		string SelectedZone;
 		DataManager::GetValue(TW_TIME_ZONE_GUISEL, SelectedZone); // read the selected time zone into SelectedZone
@@ -453,7 +521,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 		return 0;
 	}
 
-	if (action.mFunction == "togglestorage") {
+	if (function == "togglestorage") {
 		if (arg == "internal") {
 			DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 0);
 			DataManager::SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcext.sze - sdcext.used) / 1048576LLU));
@@ -484,10 +552,10 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 		return 0;
 	}
 	
-	if (action.mFunction == "overlay")
+	if (function == "overlay")
         return gui_changeOverlay(arg);
 
-	if (action.mFunction == "queuezip")
+	if (function == "queuezip")
     {
         if (zip_queue_index >= 10) {
 			ui_print("Maximum zip queue reached!\n");
@@ -501,27 +569,31 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 		return 0;
 	}
 
-	if (action.mFunction == "queueclear")
+	if (function == "queueclear")
 	{
 		zip_queue_index = 0;
 		DataManager::SetValue(TW_ZIP_QUEUE_COUNT, zip_queue_index);
 		return 0;
 	}
 
+	if (function == "sleep")
+	{
+		usleep(atoi(arg.c_str()));
+		return 0;
+	}
+
     if (isThreaded)
     {
-        if (action.mFunction == "flash")
+        if (function == "flash")
         {
 			int i, ret_val = 0;
 
 			for (i=0; i<zip_queue_index; i++) {
-		        DataManager::SetValue("tw_operation", "Flashing");
+				operation_start("Flashing");
 		        DataManager::SetValue("tw_filename", zip_queue[i]);
-		        DataManager::SetValue("tw_operation_status", 0);
-		        DataManager::SetValue("tw_operation_state", 0);
-				DataManager::SetValue(TW_ZIP_INDEX, (i + 1));
+		        DataManager::SetValue(TW_ZIP_INDEX, (i + 1));
 
-		        ret_val = flash_zip(zip_queue[i], arg);
+				ret_val = flash_zip(zip_queue[i], arg, simulate);
 				if (ret_val != 0) {
 					ui_print("Error flashing zip '%s'\n", zip_queue[i].c_str());
 					i = 10; // Error flashing zip - exit queue
@@ -530,258 +602,190 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			}
 			zip_queue_index = 0;
 			DataManager::SetValue(TW_ZIP_QUEUE_COUNT, zip_queue_index);
-			DataManager::SetValue("tw_operation_status", ret_val);
-		    DataManager::SetValue("tw_operation_state", 1);
-			LOGI("Done installing zips\n");
+			operation_end(ret_val, simulate);
             return 0;
         }
-        if (action.mFunction == "wipe")
+        if (function == "wipe")
         {
-            DataManager::SetValue("tw_operation", "Format");
+            operation_start("Format");
             DataManager::SetValue("tw_partition", arg);
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 0);
 
-#ifdef _SIMULATE_ACTIONS
-            usleep(5000000);
-#else
-            if (arg == "data")
-                wipe_data(0);
-            else if (arg == "battery")
-                wipe_battery_stats();
-            else if (arg == "rotate")
-                wipe_rotate_data();
-            else if (arg == "dalvik")
-                wipe_dalvik_cache();
-            else
-                erase_volume(arg.c_str());
-			
-			if (arg == "/sdcard") {
-				ensure_path_mounted(SDCARD_ROOT);
-				mkdir("/sdcard/TWRP", 0777);
-				DataManager::Flush();
-			}
-#endif
-
-            DataManager::SetValue("tw_operation", "Format");
-            DataManager::SetValue("tw_partition", arg);
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 1);
-            return 0;
-        }
-		if (action.mFunction == "refreshsizes")
-		{
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "Refreshing Sizes");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 0);
-#ifdef _SIMULATE_ACTIONS
-            usleep(5000000);
-#else
-			update_system_details();
-#endif
-			DataManager::SetValue("ui_progress", 100);
-			DataManager::SetValue("tw_operation", "Refreshing Sizes");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 1);
-		}
-        if (action.mFunction == "nandroid")
-        {
-            DataManager::SetValue("ui_progress", 0);
-
-#ifdef _SIMULATE_ACTIONS
-            for (int i = 0; i < 5; i++)
-            {
-                usleep(1000000);
-                DataManager::SetValue("ui_progress", i * 20);
-            }
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 1);
-#else
-            if (arg == "backup")
-                nandroid_back_exe();
-            else if (arg == "restore")
-                nandroid_rest_exe();
-            else
-                return -1;
-#endif
-
-            return 0;
-        }
-		if (action.mFunction == "fixpermissions")
-		{
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "FixingPermissions");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 0);
-			LOGI("fix permissions started!\n");
-#ifdef _SIMULATE_ACTIONS
-            usleep(10000000);
-#else
-			fix_perms();
-#endif
-			LOGI("fix permissions DONE!\n");
-			DataManager::SetValue("ui_progress", 100);
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "FixingPermissions");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 1);
-			return 0;
-		}
-        if (action.mFunction == "dd")
-        {
-            DataManager::SetValue("ui_progress", 0);
-            DataManager::SetValue("tw_operation", "imaging");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 0);
-
-            char cmd[512];
-            sprintf(cmd, "dd %s", arg.c_str());
-            __system(cmd);
-
-            DataManager::SetValue("ui_progress", 100);
-            DataManager::SetValue("ui_progress", 0);
-            DataManager::SetValue("tw_operation", "imaging");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 1);
-            return 0;
-        }
-		if (action.mFunction == "partitionsd")
-		{
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "partitionsd");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 0);
-
-#ifdef _SIMULATE_ACTIONS
-            usleep(10000000);
-#else
-			int allow_partition;
-			DataManager::GetValue(TW_ALLOW_PARTITION_SDCARD, allow_partition);
-			if (allow_partition == 0) {
-				ui_print("This device does not have a real SD Card!\nAborting!\n");
+			if (simulate) {
+				simulate_progress_bar();
 			} else {
-				// Below seen in Koush's recovery
-				char sddevice[256];
-				Volume *vol = volume_for_path("/sdcard");
-				strcpy(sddevice, vol->device);
-				// Just need block not whole partition
-				sddevice[strlen("/dev/block/mmcblkX")] = NULL;
-
-				char es[64];
-				std::string ext_format;
-				int ext, swap;
-				DataManager::GetValue("tw_sdext_size", ext);
-				DataManager::GetValue("tw_swap_size", swap);
-				DataManager::GetValue("tw_sdpart_file_system", ext_format);
-				sprintf(es, "/sbin/sdparted -es %dM -ss %dM -efs %s -s > /cache/part.log",ext,swap,ext_format.c_str());
-				LOGI("\nrunning script: %s\n", es);
-				run_script("\nContinue partitioning?",
-					   "\nPartitioning sdcard : ",
-					   es,
-					   "\nunable to execute parted!\n(%s)\n",
-					   "\nOops... something went wrong!\nPlease check the recovery log!\n",
-					   "\nPartitioning complete!\n\n",
-					   "\nPartitioning aborted!\n\n", 0);
+				if (arg == "data")
+					wipe_data(0);
+				else if (arg == "battery")
+					wipe_battery_stats();
+				else if (arg == "rotate")
+					wipe_rotate_data();
+				else if (arg == "dalvik")
+					wipe_dalvik_cache();
+				else
+					erase_volume(arg.c_str());
 				
-				// recreate TWRP folder and rewrite settings - these will be gone after sdcard is partitioned
-				ensure_path_mounted(SDCARD_ROOT);
-				mkdir("/sdcard/TWRP", 0777);
-				DataManager::Flush();
-				DataManager::SetValue(TW_ZIP_EXTERNAL_VAR, "/sdcard");
-				if (DataManager::GetIntValue(TW_USE_EXTERNAL_STORAGE) == 1)
-					DataManager::SetValue(TW_ZIP_LOCATION_VAR, "/sdcard");
-
-				update_system_details();
+				if (arg == "/sdcard") {
+					ensure_path_mounted(SDCARD_ROOT);
+					mkdir("/sdcard/TWRP", 0777);
+					DataManager::Flush();
+				}
 			}
-#endif
-			DataManager::SetValue("ui_progress", 100);
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "partitionsd");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 1);
-			return 0;
-		}
-		if (action.mFunction == "installhtcdumlock")
+            operation_end(0, simulate);
+            return 0;
+        }
+		if (function == "refreshsizes")
 		{
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "InstallHTCDumlock");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 0);
-			LOGI("fix permissions started!\n");
-#ifdef _SIMULATE_ACTIONS
-            usleep(10000000);
-#else
-			install_htc_dumlock();
-#endif
-			LOGI("HTC Dumlock files installed!\n");
-			DataManager::SetValue("ui_progress", 100);
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "InstallHTCDumlock");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 1);
-			return 0;
+			operation_start("Refreshing Sizes");
+			if (simulate) {
+				simulate_progress_bar();
+			} else
+				update_system_details();
+			operation_end(0, simulate);
 		}
-		if (action.mFunction == "htcdumlockrestoreboot")
+        if (function == "nandroid")
+        {
+            operation_start("Nandroid");
+
+			if (simulate) {
+				DataManager::SetValue("tw_partition", "Simulation");
+				simulate_progress_bar();
+			} else {
+				if (arg == "backup")
+					nandroid_back_exe();
+				else if (arg == "restore")
+					nandroid_rest_exe();
+				else {
+					operation_end(1, simulate);
+					return -1;
+				}
+			}
+            operation_end(0, simulate);
+			return 0;
+        }
+		if (function == "fixpermissions")
 		{
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "HTCDumlockRestoreBoot");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 0);
-			LOGI("fix permissions started!\n");
-#ifdef _SIMULATE_ACTIONS
-            usleep(10000000);
-#else
-			htc_dumlock_restore_original_boot();
-#endif
-			LOGI("HTC Dumlock files installed!\n");
-			DataManager::SetValue("ui_progress", 100);
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "HTCDumlockRestoreBoot");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 1);
+			operation_start("Fix Permissions");
+            LOGI("fix permissions started!\n");
+			if (simulate) {
+				simulate_progress_bar();
+			} else
+				fix_perms();
+
+			LOGI("fix permissions DONE!\n");
+			operation_end(0, simulate);
 			return 0;
 		}
-		if (action.mFunction == "htcdumlockreflashrecovery")
+        if (function == "dd")
+        {
+            operation_start("imaging");
+
+			if (simulate) {
+				simulate_progress_bar();
+			} else {
+				char cmd[512];
+				sprintf(cmd, "dd %s", arg.c_str());
+				__system(cmd);
+			}
+            operation_end(0, simulate);
+            return 0;
+        }
+		if (function == "partitionsd")
 		{
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "HTCDumlockReflashRecovery");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 0);
-			LOGI("fix permissions started!\n");
-#ifdef _SIMULATE_ACTIONS
-            usleep(10000000);
-#else
-			htc_dumlock_reflash_recovery_to_boot();
-#endif
-			LOGI("HTC Dumlock files installed!\n");
-			DataManager::SetValue("ui_progress", 100);
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "HTCDumlockReflashRecovery");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 1);
+			operation_start("Partition SD Card");
+
+			if (simulate) {
+				simulate_progress_bar();
+			} else {
+				int allow_partition;
+				DataManager::GetValue(TW_ALLOW_PARTITION_SDCARD, allow_partition);
+				if (allow_partition == 0) {
+					ui_print("This device does not have a real SD Card!\nAborting!\n");
+				} else {
+					// Below seen in Koush's recovery
+					char sddevice[256];
+					Volume *vol = volume_for_path("/sdcard");
+					strcpy(sddevice, vol->device);
+					// Just need block not whole partition
+					sddevice[strlen("/dev/block/mmcblkX")] = NULL;
+
+					char es[64];
+					std::string ext_format;
+					int ext, swap;
+					DataManager::GetValue("tw_sdext_size", ext);
+					DataManager::GetValue("tw_swap_size", swap);
+					DataManager::GetValue("tw_sdpart_file_system", ext_format);
+					sprintf(es, "/sbin/sdparted -es %dM -ss %dM -efs %s -s > /cache/part.log",ext,swap,ext_format.c_str());
+					LOGI("\nrunning script: %s\n", es);
+					run_script("\nContinue partitioning?",
+						   "\nPartitioning sdcard : ",
+						   es,
+						   "\nunable to execute parted!\n(%s)\n",
+						   "\nOops... something went wrong!\nPlease check the recovery log!\n",
+						   "\nPartitioning complete!\n\n",
+						   "\nPartitioning aborted!\n\n", 0);
+					
+					// recreate TWRP folder and rewrite settings - these will be gone after sdcard is partitioned
+					ensure_path_mounted(SDCARD_ROOT);
+					mkdir("/sdcard/TWRP", 0777);
+					DataManager::Flush();
+					DataManager::SetValue(TW_ZIP_EXTERNAL_VAR, "/sdcard");
+					if (DataManager::GetIntValue(TW_USE_EXTERNAL_STORAGE) == 1)
+						DataManager::SetValue(TW_ZIP_LOCATION_VAR, "/sdcard");
+
+					update_system_details();
+				}
+			}
+			operation_end(0, simulate);
 			return 0;
 		}
-		if (action.mFunction == "cmd")
+		if (function == "installhtcdumlock")
+		{
+			operation_start("Install HTC Dumlock");
+			if (simulate) {
+				simulate_progress_bar();
+			} else
+				install_htc_dumlock();
+
+			operation_end(0, simulate);
+			return 0;
+		}
+		if (function == "htcdumlockrestoreboot")
+		{
+			operation_start("HTC Dumlock Restore Boot");
+			if (simulate) {
+				simulate_progress_bar();
+			} else
+				htc_dumlock_restore_original_boot();
+
+			operation_end(0, simulate);
+			return 0;
+		}
+		if (function == "htcdumlockreflashrecovery")
+		{
+			operation_start("HTC Dumlock Reflash Recovery");
+			if (simulate) {
+				simulate_progress_bar();
+			} else
+				htc_dumlock_reflash_recovery_to_boot();
+
+			operation_end(0, simulate);
+			return 0;
+		}
+		if (function == "cmd")
 		{
 			int op_status = 0;
 
-			DataManager::SetValue("ui_progress", 0);
-			DataManager::SetValue("tw_operation", "cmd");
-            DataManager::SetValue("tw_operation_status", 0);
-            DataManager::SetValue("tw_operation_state", 0);
+			operation_start("Command");
 			ui_print("Running command: '%s'\n", arg.c_str());
-#ifdef _SIMULATE_ACTIONS
-            usleep(10000000);
-#else
-			op_status = __system(arg.c_str());
-			if (op_status != 0)
-				op_status = 1;
-#endif
-			DataManager::SetValue("ui_progress", 100);
-			DataManager::SetValue("ui_progress", 0);
-            DataManager::SetValue("tw_operation_status", op_status);
-            DataManager::SetValue("tw_operation_state", 1);
+			if (simulate) {
+				simulate_progress_bar();
+			} else {
+				op_status = __system(arg.c_str());
+				if (op_status != 0)
+					op_status = 1;
+			}
+
+			operation_end(op_status, simulate);
 			return 0;
 		}
     }
