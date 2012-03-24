@@ -287,7 +287,7 @@ int gr_textExW(int x, int y, const char *s, void* pFont, int max_width)
         cwidth = 0;
         if (off < 96) {
             cwidth = font->offset[off+1] - font->offset[off];
-			if ((x + cwidth) < max_width) {
+			if ((x + (int)cwidth) < max_width) {
 				gl->texCoord2i(gl, (font->offset[off]) - x, 0 - y);
 				gl->recti(gl, x, y, x + cwidth, y + font->cheight);
 				x += cwidth;

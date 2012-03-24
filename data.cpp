@@ -503,6 +503,8 @@ void DataManager::SetDefaultValues()
 	mValues.insert(make_pair(TW_ZIP_INDEX, make_pair("0", 0)));
 	mValues.insert(make_pair(TW_ZIP_QUEUE_COUNT, make_pair("0", 0)));
 	mValues.insert(make_pair(TW_FILENAME, make_pair("/sdcard", 0)));
+	mValues.insert(make_pair(TW_SIMULATE_ACTIONS, make_pair("0", 1)));
+	mValues.insert(make_pair(TW_SIMULATE_FAIL, make_pair("0", 1)));
 }
 
 // Magic Values

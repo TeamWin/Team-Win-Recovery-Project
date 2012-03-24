@@ -124,6 +124,8 @@
 #define TW_HAS_USB_STORAGE          "tw_has_usb_storage"
 #define TW_NO_BATTERY_PERCENT       "tw_no_battery_percent"
 #define TW_POWER_BUTTON             "tw_power_button"
+#define TW_SIMULATE_ACTIONS         "tw_simulate_actions"
+#define TW_SIMULATE_FAIL            "tw_simulate_fail"
 
 #define TW_SHOW_DUMLOCK             "tw_show_dumlock"
 

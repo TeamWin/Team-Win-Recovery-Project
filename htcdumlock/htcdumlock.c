@@ -272,19 +272,6 @@ void flash_recovery_to_boot(int no_flash, int no_reboot) {
 		return;
 	}
 
-	// Get md5sum of recovery
-	strcpy(exec, "md5sum ");
-	strcat(exec, recoveryimg);
-	fp = popen(exec, "r");
-	if (fgets(md5recovery, sizeof(md5recovery), fp) == NULL)
-    {
-		printf("Unable to get md5sum of recovery.img\nFailed\n");
-		return;
-	}
-	if (verbose)
-		printf("md5sum of recovery.img: '%s'\n", md5recovery);
-	fclose(fp);
-
 	// Compare the ramdisks of the images from boot and recovery to make sure they are different
 	// If they are the same, then recovery is already flashed to boot and we don't want to wipe
 	// out our existing backup of boot
