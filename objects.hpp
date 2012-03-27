@@ -410,6 +410,7 @@ protected:
     std::string mPathVar;
     std::string mExtn;
     std::string mVariable;
+	std::string mSelection;
     int mStart;
     int mLineSpacing;
     int mShowFolders, mShowFiles, mShowNavFolders;

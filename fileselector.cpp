@@ -137,6 +137,18 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
             DataManager::SetValue(mVariable, attr->value());
     }
 
+	// Handle the selection variable
+    child = node->first_node("selection");
+    if (child)
+    {
+        attr = child->first_attribute("name");
+        if (attr)
+            mSelection = attr->value();
+		else
+			mSelection = "0";
+    } else
+		mSelection = "0";
+
     // Retrieve the line height
     gr_getFontDetails(mFont ? mFont->GetResource() : NULL, &mFontHeight, NULL);
     mLineHeight = mFontHeight;
@@ -311,6 +323,8 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
                     std::string cwd;
 
                     str = mFolderList.at(startSelection).fileName;
+					if (mSelection != "0")
+						DataManager::SetValue(mSelection, str);
                     DataManager::GetValue(mPathVar, cwd);
 
                     oldcwd = cwd;
@@ -355,6 +369,8 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
                 else if (!mVariable.empty())
                 {
                     str = mFileList.at(startSelection - folderSize).fileName;
+					if (mSelection != "0")
+						DataManager::SetValue(mSelection, str);
 
                     std::string cwd;
                     DataManager::GetValue(mPathVar, cwd);
