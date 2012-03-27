@@ -349,7 +349,7 @@ int getLocationsViaProc(const char* fstype)
 unsigned long long getUsedSizeViaDu(const char* path)
 {
     char cmd[512];
-    sprintf(cmd, "du %s | awk '{ print $1 }'", path);
+    sprintf(cmd, "du -sk %s | awk '{ print $1 }'", path);
 
     FILE *fp;
     fp = __popen(cmd, "r");
@@ -441,8 +441,8 @@ void updateMntUsedSize(struct dInfo* mMnt)
 		LOGI("Device has /data/media\n");
 		unsigned long long data_used, data_media_used, actual_data;
 		data_used = mMnt->used;
-		LOGI("Total used space on /data is: %llu\nMounting /data\n", data_used);
-		data_media_used = getUsedSizeViaDu("/data/media");
+		LOGI("Total used space on /data is: %llu\n", data_used);
+		data_media_used = getUsedSizeViaDu("/data/media/");
 		LOGI("Total in /data/media is: %llu\n", data_media_used);
 		actual_data = data_used - data_media_used;
 		LOGI("Actual data used: %llu\n", actual_data);
@@ -500,6 +500,8 @@ void updateUsedSized()
 	DataManager_SetIntValue(TW_BACKUP_SP3_SIZE, (int)(sp3.bsze / 1048576LLU));
 	if (DataManager_GetIntValue(TW_USE_EXTERNAL_STORAGE) == 1)
 		DataManager_SetIntValue(TW_STORAGE_FREE_SIZE, (int)((sdcext.sze - sdcext.used) / 1048576LLU));
+	else if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1)
+		DataManager_SetIntValue(TW_STORAGE_FREE_SIZE, (int)((dat.sze - dat.used) / 1048576LLU));
 	else
 		DataManager_SetIntValue(TW_STORAGE_FREE_SIZE, (int)((sdcint.sze - sdcint.used) / 1048576LLU));
 

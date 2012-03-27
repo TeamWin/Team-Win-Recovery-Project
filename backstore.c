@@ -1163,7 +1163,7 @@ int nandroid_back_exe()
     unsigned long long new_sdc_free = (sdcext.sze - sdcext.used) / (1024LLU * 1024LLU);
     sdc_free /= (1024LLU * 1024LLU);
 
-	ui_print("[%lu MB TOTAL BACKED UP]\n", (unsigned long) (sdc_free - new_sdc_free));
+	ui_print("[%llu MB TOTAL BACKED UP]\n", (unsigned long long) (sdc_free - new_sdc_free));
 	ui_print("[BACKUP COMPLETED IN %d SECONDS]\n\n", total_time); // the end
     SetDataState("Backup Succeeded", "", 0, 1);
 	return 0;

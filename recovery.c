@@ -1032,8 +1032,12 @@ main(int argc, char **argv) {
         ui_init();
         ui_set_background(BACKGROUND_ICON_INSTALLING);
     }
+
     printf("Loading volume table...\n");
     load_volume_table();
+
+	// Load up all the resources
+	gui_loadResources();
 
     printf("Processing arguments (%d)...\n", argc);
     get_args(&argc, &argv);
@@ -1048,9 +1052,6 @@ main(int argc, char **argv) {
         LOGE("Failing out of recovery.\n");
         return -1;
     }
-
-	// Load up all the resources
-	gui_loadResources();
 
     int previous_runs = 0;
     const char *send_intent = NULL;
