@@ -59,7 +59,7 @@
 		<variable name="row2_medium_y" value="175" />
 		<variable name="row3_medium_y" value="245" />
 		<variable name="row4_medium_y" value="315" />
-		<variable name="row5_medium_y" value="405" />
+		<variable name="row5_medium_y" value="380" />
 		<variable name="row1_text_y" value="72" />
 		<variable name="row2_text_y" value="105" />
 		<variable name="row3_text_y" value="140" />
