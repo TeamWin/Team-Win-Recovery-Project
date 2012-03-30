@@ -121,6 +121,19 @@ endif
 
 include $(BUILD_EXECUTABLE)
 
+#added for CM busybox
+#BUSYBOX_LINKS := $(shell cat external/busybox/busybox-minimal.links)
+#exclude := tune2fs mke2fs
+#RECOVERY_BUSYBOX_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(filter-out $(exclude),$(notdir $(BUSYBOX_LINKS))))
+#$(RECOVERY_BUSYBOX_SYMLINKS): BUSYBOX_BINARY := busybox
+#$(RECOVERY_BUSYBOX_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
+#@echo "Symlink: $@ -> $(BUSYBOX_BINARY)"
+#@mkdir -p $(dir $@)
+#@rm -rf $@
+#$(hide) ln -sf $(BUSYBOX_BINARY) $@
+
+#ALL_DEFAULT_INSTALLED_MODULES += $(RECOVERY_BUSYBOX_SYMLINKS) 
+
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := verifier_test.c verifier.c
