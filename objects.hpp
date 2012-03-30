@@ -428,6 +428,66 @@ protected:
     COLOR mFontColor;
 };
 
+class GUIListBox : public RenderObject, public ActionObject
+{
+public:
+    GUIListBox(xml_node<>* node);
+    virtual ~GUIListBox();
+
+public:
+    // Render - Render the full object to the GL surface
+    //  Return 0 on success, <0 on error
+    virtual int Render(void);
+
+    // Update - Update any UI component animations (called <= 30 FPS)
+    //  Return 0 if nothing to update, 1 on success and contiue, >1 if full render required, and <0 on error
+    virtual int Update(void);
+
+    // NotifyTouch - Notify of a touch event
+    //  Return 0 on success, >0 to ignore remainder of touch, and <0 on error
+    virtual int NotifyTouch(TOUCH_STATE state, int x, int y);
+
+    // NotifyVarChange - Notify of a variable change
+    virtual int NotifyVarChange(std::string varName, std::string value);
+
+    // SetPos - Update the position of the render object
+    //  Return 0 on success, <0 on error
+    virtual int SetRenderPos(int x, int y, int w = 0, int h = 0);
+
+    // SetPageFocus - Notify when a page gains or loses focus
+    virtual void SetPageFocus(int inFocus);
+
+protected:
+    struct ListData {
+        std::string displayName;
+		std::string variableValue;
+		unsigned int selected;
+    };
+
+protected:
+    virtual int GetSelection(int x, int y);
+
+protected:
+    std::vector<ListData> mList;
+    std::string mVariable;
+	std::string mSelection;
+	std::string currentValue;
+    int mStart;
+    int mLineSpacing;
+    int mUpdate;
+    int mBackgroundX, mBackgroundY, mBackgroundW, mBackgroundH;
+	static int mSortOrder;
+    unsigned mFontHeight;
+    unsigned mLineHeight;
+    int mIconWidth, mIconHeight;
+    Resource* mIconSelected;
+    Resource* mIconUnselected;
+    Resource* mBackground;
+    Resource* mFont;
+    COLOR mBackgroundColor;
+    COLOR mFontColor;
+};
+
 // GUIAnimation - Used for animations
 class GUIAnimation : public RenderObject
 {

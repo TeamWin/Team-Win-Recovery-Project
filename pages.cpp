@@ -250,6 +250,12 @@ bool Page::ProcessNode(xml_node<>* page, xml_node<>* templates /* = NULL */, int
             mRenders.push_back(element);
             mActions.push_back(element);
         }
+		else if (type == "listbox")
+		{
+			GUIListBox* element = new GUIListBox(child);
+			mRenders.push_back(element);
+			mActions.push_back(element);
+		}
         else if (type == "template")
         {
             if (!templates || !child->first_attribute("name"))
