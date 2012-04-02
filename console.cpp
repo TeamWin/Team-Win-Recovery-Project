@@ -39,20 +39,26 @@ extern "C" void gui_print(const char *fmt, ...)
     va_end(ap);
 
     char *start, *next;
+
+	if (buf[0] == '\n' && strlen(buf) < 2) {
+		// This prevents the double lines bug seen in the console during zip installs
+		return;
+	}
+
     for (start = next = buf; *next != '\0'; next++)
     {
         if (*next == '\n')
         {
             *next = '\0';
             next++;
-            
+
             std::string line = start;
             gConsole.push_back(line);
             start = next;
 
-            // Handle the normal \n\0 case
+			// Handle the normal \n\0 case
             if (*next == '\0')
-                return;
+				return;
         }
     }
     std::string line = start;
@@ -86,7 +92,7 @@ extern "C" void gui_print_overwrite(const char *fmt, ...)
 
             // Handle the normal \n\0 case
             if (*next == '\0')
-                return;
+				return;
         }
     }
     std::string line = start;

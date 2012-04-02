@@ -2262,7 +2262,7 @@
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
 				<font resource="font" spacing="18" color="%text_color%" />
-				<filter extn=".zip" folders="0" files="1" />
+				<filter folders="0" files="1" />
 				<path name="tw_file_location1" />
 				<data name="tw_filename1" />
 			</object>

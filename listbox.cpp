@@ -1,4 +1,4 @@
-// FileSelector.cpp - GUIFileSelector object
+// ListBox.cpp - GUIListBox object
 
 #include <linux/input.h>
 #include <pthread.h>
