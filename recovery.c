@@ -599,49 +599,49 @@ wipe_data(int confirm) {
     if (confirm) {
         static char** title_headers = NULL;
 
-	ui_set_background(BACKGROUND_ICON_WIPE_CHOOSE);
-        if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of all user data?",
+		ui_set_background(BACKGROUND_ICON_WIPE_CHOOSE);
+		if (title_headers == NULL) {
+			char* headers[] = { "Confirm wipe of all user data?",
                                 "  THIS CAN NOT BE UNDONE.",
                                 "",
                                 NULL };
-            title_headers = prepend_title((const char**)headers);
-        }
+			title_headers = prepend_title((const char**)headers);
+		}
 
-        char* items[] = { " No",
+		char* items[] = { " No",
                           " Yes -- delete all user data",   // [1]
                           NULL };
 
-        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 1) {
-            return;
-        }
-    }
-    ui_print("\n-- Factory reset started.\n");
-    ui_set_background(BACKGROUND_ICON_WIPE);
-    ui_print("Formatting /data...\n");
+		int chosen_item = get_menu_selection(title_headers, items, 1, 0);
+		if (chosen_item != 1) {
+			return;
+		}
+	}
+	ui_print("\n-- Factory reset started.\n");
+	ui_set_background(BACKGROUND_ICON_WIPE);
+	ui_print("Formatting /data...\n");
 
-    //device_wipe_data(); // ??
+	//device_wipe_data(); // ??
 
-    // For the Tuna boards, we can't do this! The sdcard is actually /data/media
+	// For the Tuna boards, we can't do this! The sdcard is actually /data/media
 #ifdef RECOVERY_SDCARD_ON_DATA
-    wipe_data_without_wiping_media();
+	wipe_data_without_wiping_media();
 #else
-    erase_volume("/data");
+	erase_volume("/data");
 #endif
-    ui_print("Formatting /cache...\n");
-    erase_volume("/cache");
-    struct stat st;
-    if (stat(sde.blk,&st) == 0) {
-        ui_print("Formatting /sd-ext...\n");
-        tw_format(sde.fst,sde.blk);
-    }
-    if (stat("/sdcard/.android_secure", &st) == 0) {
-        ui_print("Formatting /sdcard/.android_secure...\n");
-        __system("rm -rf /sdcard/.android_secure/* && rm -rf /sdcard/.android_secure/.*");
-    }
+	ui_print("Formatting /cache...\n");
+	erase_volume("/cache");
+	struct stat st;
+	if (stat(sde.blk,&st) == 0) {
+		ui_print("Formatting /sd-ext...\n");
+		tw_format(sde.fst,sde.blk);
+	}
+	if (stat("/sdcard/.android_secure", &st) == 0) {
+		ui_print("Formatting /sdcard/.android_secure...\n");
+		__system("rm -rf /sdcard/.android_secure/* && rm -rf /sdcard/.android_secure/.*");
+	}
 	ui_reset_progress();
-    ui_print("-- Factory reset complete.\n");
+	ui_print("-- Factory reset complete.\n");
 }
 
 
@@ -719,7 +719,7 @@ int check_for_script_file(void) {
 		// Delete the file from /cache
 		strcpy(exec, "rm ");
 		strcat(exec, SCRIPT_FILE_CACHE);
-		// __system(exec);
+		__system(exec);
 	}
 	return ret_val;
 }
@@ -736,9 +736,9 @@ int run_script_file(void) {
 		while (fgets(script_line, SCRIPT_COMMAND_SIZE, fp) != NULL && ret_val == 0) {
 			cindex = 0;
 			line_len = strlen(script_line);
-			//if (line_len > 2)
-				//continue; // there's a blank line at the end of the file, we're done!
-			ui_print("script line: '%s'\n", script_line);
+			if (line_len < 2)
+				continue; // there's a blank line or line is too short to contain a command
+			//ui_print("script line: '%s'\n", script_line);
 			for (i=0; i<line_len; i++) {
 				if ((int)script_line[i] == 32) {
 					cindex = i;
@@ -753,11 +753,11 @@ int run_script_file(void) {
 					remove_nl = 1;
 			if (cindex != 0) {
 				strncpy(command, script_line, cindex);
-				ui_print("command is: '%s' and ", command);
+				LOGI("command is: '%s' and ", command);
 				val_start = script_line;
 				val_start += cindex + 1;
 				strncpy(value, val_start, line_len - cindex - remove_nl);
-				ui_print("value is: '%s'\n", value);
+				LOGI("value is: '%s'\n", value);
 			} else {
 				strncpy(command, script_line, line_len - remove_nl + 1);
 				ui_print("command is: '%s' and there is no value\n", command);
@@ -782,7 +782,7 @@ int run_script_file(void) {
 					ui_print("-- Dalvik Cache Wipe Complete!\n");
 				} else if (strcmp(value, "data") == 0 || strcmp(value, "/data") == 0 || strcmp(value, "factory") == 0 || strcmp(value, "factoryreset") == 0) {
 					ui_print("-- Wiping Data Partition...\n");
-					wipe_data(ui_text_visible());
+					wipe_data(0);
 					ui_print("-- Data Partition Wipe Complete!\n");
 				} else {
 					LOGE("Error with wipe command value: '%s'\n", value);
@@ -1212,10 +1212,14 @@ main(int argc, char **argv) {
         finish_recovery(NULL);
 		if (check_for_script_file()) {
 			gui_console_only();
-			run_script_file();
-		}/* else if (gui_start())
-			prompt_and_wait();*/
-		if (gui_start())
+			if (run_script_file() != 0) {
+				// There was an error, boot the recovery
+				if (gui_start())
+					prompt_and_wait();
+			} else {
+				usleep(2000000); // Sleep for 2 seconds before rebooting
+			}
+		} else if (gui_start())
 			prompt_and_wait();
     }
 
