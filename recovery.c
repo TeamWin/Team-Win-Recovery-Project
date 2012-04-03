@@ -764,6 +764,19 @@ int run_script_file(void) {
 			}
 			if (strcmp(command, "install") == 0) {
 				// Install zip
+				struct statfs st;
+				if (statfs(value, &st) != 0) {
+					if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE)) {
+						if (DataManager_GetIntValue(TW_USE_EXTERNAL_STORAGE)) {
+							LOGI("Zip file not found on external storage, trying internal...\n");
+							DataManager_SetIntValue(TW_USE_EXTERNAL_STORAGE, 0);
+						} else {
+							LOGI("Zip file not found on internal storage, trying external...\n");
+							DataManager_SetIntValue(TW_USE_EXTERNAL_STORAGE, 1);
+						}
+						ensure_path_mounted("/sdcard");
+					}
+				}
 				ui_print("Installing zip file '%s'\n", value);
 				ret_val = install_zip_package(value);
 				if (ret_val != INSTALL_SUCCESS) {
@@ -878,6 +891,28 @@ int run_script_file(void) {
 				ui_print("Restoring '%s'\n", value1);
 				DataManager_SetStrValue("tw_restore", value1);
 				DataManager_SetIntValue(TW_SKIP_MD5_CHECK_VAR, 0);
+
+				struct statfs st;
+				char folder_path[512];
+
+				strcpy(folder_path, value);
+				if (folder_path[strlen(folder_path) - 1] == '/')
+					strcat(folder_path, ".");
+				else
+					strcat(folder_path, "/.");
+				if (statfs(folder_path, &st) != 0) {
+					if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE)) {
+						if (DataManager_GetIntValue(TW_USE_EXTERNAL_STORAGE)) {
+							LOGI("Backup folder '%s' not found on external storage, trying internal...\n", folder_path);
+							DataManager_SetIntValue(TW_USE_EXTERNAL_STORAGE, 0);
+						} else {
+							LOGI("Backup folder '%s' not found on internal storage, trying external...\n", folder_path);
+							DataManager_SetIntValue(TW_USE_EXTERNAL_STORAGE, 1);
+						}
+						ensure_path_mounted("/sdcard");
+					}
+				}
+
 				set_restore_files();
 				tok = strtok(NULL, " ");
 				if (tok != NULL) {
