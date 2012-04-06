@@ -433,6 +433,12 @@
 				<text>%tw_file%</text>
 			</object>
 
+			<object type="text" color="%text_color%">
+				<font resource="font" />
+				<placement x="%center_x%" y="%row7_text_y%" placement="4" />
+				<text>Press back to cancel adding this zip.</text>
+			</object>
+
 			<object type="checkbox">
 				<placement x="%col1_x%" y="%row8_text_y%" />
 				<font resource="font" color="%text_color%" />
@@ -489,7 +495,10 @@
 
 			<object type="action">
 				<touch key="back" />
-				<action function="page">install</action>
+				<actions>
+					<action function="cancelzip"></action>
+					<action function="page">install</action>
+				</actions>
 			</object>
 
 			<object type="action">

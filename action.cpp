@@ -569,6 +569,18 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 		return 0;
 	}
 
+	if (function == "cancelzip")
+    {
+        if (zip_queue_index <= 0) {
+			ui_print("Minimum zip queue reached!\n");
+			return 0;
+		} else {
+			zip_queue_index--;
+			DataManager::SetValue(TW_ZIP_QUEUE_COUNT, zip_queue_index);
+		}
+		return 0;
+	}
+
 	if (function == "queueclear")
 	{
 		zip_queue_index = 0;
