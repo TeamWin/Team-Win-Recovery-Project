@@ -434,6 +434,8 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 				cmd = "umount " + DataManager::GetStrValue(TW_EXTERNAL_MOUNT);
 			else if (arg == "INTERNAL")
 				cmd = "umount " + DataManager::GetStrValue(TW_INTERNAL_MOUNT);
+			else if (DataManager::GetIntValue(TW_DONT_UNMOUNT_SYSTEM) == 1 && (arg == "system" || arg == "/system"))
+				return 0;
 			else
 				cmd = "umount " + arg;
             __system(cmd.c_str());
