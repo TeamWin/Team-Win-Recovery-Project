@@ -630,6 +630,9 @@ int tw_unmount(struct dInfo uMnt)
     if (!uMnt.mountable)        return 0;
     if (!tw_isMounted(uMnt))    return 0;
 
+	if (DataManager_GetIntValue(TW_DONT_UNMOUNT_SYSTEM) == 1 && strcmp(uMnt.mnt, "system") == 0)
+		return 0; // never unmount system on this device
+
 	if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 && DataManager_GetIntValue(TW_USE_EXTERNAL_STORAGE) == 0 && strcmp(uMnt.mnt, "data") == 0)
 		return 0; // don't unmount data if we have data/media and using internal storage
 

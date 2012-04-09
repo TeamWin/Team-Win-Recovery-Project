@@ -91,7 +91,12 @@ endif
 ifneq ($(TW_CUSTOM_POWER_BUTTON),)
 	LOCAL_CFLAGS += -DTW_CUSTOM_POWER_BUTTON=$(TW_CUSTOM_POWER_BUTTON)
 endif
-
+ifeq ($(TW_ALWAYS_RMRF), true)
+    LOCAL_CFLAGS += -DTW_ALWAYS_RMRF
+endif
+ifeq ($(TW_NEVER_UNMOUNT_SYSTEM), true)
+    LOCAL_CFLAGS += -DTW_NEVER_UNMOUNT_SYSTEM
+endif
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
 # It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses

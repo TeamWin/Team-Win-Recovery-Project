@@ -236,6 +236,9 @@ int ensure_path_unmounted(const char* path) {
     sync();
     sync();
 
+	if (DataManager_GetIntValue(TW_DONT_UNMOUNT_SYSTEM) == 1 && strncmp(path, "/system", 7) == 0)
+		return 0;
+
 	if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 1 && strncmp(path, "/sdcard", 7) == 0) {
 		LOGI("Unmounting /sdcard (dual storage path code)\n");
 		return system("umount /sdcard");;

@@ -30,7 +30,6 @@
 #include "roots.h"
 #include "backstore.h"
 #include "data.h"
-#include "variables.h"
 
 static int file_exists(const char* file)
 {
@@ -80,7 +79,9 @@ static int tw_format_rmfr(const char* device)
 {
     char cmd[256];
 
-    Volume* v = volume_for_device(device);
+    ui_print("Using rm -rf on '%s'\n", device);
+
+	Volume* v = volume_for_device(device);
     if (!v)
     {
         LOGE("%s: unable to locate volume for device \"%s\"\n", __FUNCTION__, device);
@@ -178,7 +179,12 @@ int tw_format(const char *fstype, const char *fsblock)
 {
     int result = -1;
 
-    LOGI("%s: Formatting \"%s\" as \"%s\"\n", __FUNCTION__, fsblock, fstype);
+    if (DataManager_GetIntValue(TW_RM_RF_VAR) == 1) {
+		tw_format_rmfr(fsblock);
+		return 0;
+	}
+
+	LOGI("%s: Formatting \"%s\" as \"%s\"\n", __FUNCTION__, fsblock, fstype);
 	if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 && strcmp(dat.blk, fsblock) == 0) {
 		wipe_data_without_wiping_media();
 		return 0;
