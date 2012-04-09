@@ -2,7 +2,7 @@
 
 <recovery>
 	<details>
-		<resolution width="540" height="960" />
+		<resolution width="480" height="800" />
 		<author>TeamWin</author>
 		<title>Backup Naowz</title>
 		<description>Default basic theme</description>
@@ -331,6 +331,7 @@
 				<image resource="main_button" />
 				<action function="page">settings</action>
 			</object>
+
 
 			<object type="button">
 				<placement x="%col1_x%" y="%row4_y%" />
@@ -1525,6 +1526,7 @@
 					<condition var1="tw_boot_is_mountable" var2="1" />
 					<condition var1="mounted" op="=" var2="/boot" />
 				</conditions>
+
 				<placement x="%col1_x%" y="%row6_text_y%" />
 				<font resource="font" color="#A0A0A0" />
 				<text>Unmount Boot</text>
@@ -2476,6 +2478,7 @@
 			<object type="template" name="header" />
 
 			<object type="text" color="%text_color%">
+
 				<font resource="font" />
 				<placement x="%center_x%" y="%row1_text_y%" placement="4" />
 				<text>%tw_fm_text1%</text>
