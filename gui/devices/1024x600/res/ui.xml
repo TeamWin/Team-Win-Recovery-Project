@@ -5,14 +5,14 @@
 		<resolution width="1024" height="600" />
 		<author>TeamWin</author>
 		<title>Backup Naowz</title>
-		<description>Default basic theme</description>
+		<description>TWRP ICS Theme by Racks11479</description>
 		<preview>preview.jpg</preview>
 	</details>
 
 	<resources>
-		<resource name="font" type="font" filename="bluehighway-25" />
-		<resource name="base" type="image" filename="background.jpg" />
+		<resource name="font" type="font" filename="Roboto-Regular-20" />
 		<resource name="side" type="image" filename="backgroundside.jpg" />
+		<resource name="base" type="image" filename="background.jpg" />
 		<resource name="bottom" type="image" filename="backgroundbottom.jpg" />
 		<resource name="large_black" type="image" filename="large_black" />
 		<resource name="main_button" type="image" filename="button" />
@@ -82,11 +82,11 @@
 		<variable name="row18_text_y" value="590" />
 		<variable name="row_offsetmedium_y" value="465" />
 		<variable name="home_button_x" value="813" />
-		<variable name="home_button_y" value="1" />
+		<variable name="home_button_y" value="5" />
 		<variable name="back_button_x" value="883" />
-		<variable name="back_button_y" value="1" />
+		<variable name="back_button_y" value="5" />
 		<variable name="console_button_x" value="953" />
-		<variable name="console_button_y" value="1" />
+		<variable name="console_button_y" value="5" />
 		<variable name="nandcheck_col1" value="200" />
 		<variable name="nandcheck_col2" value="550" />
 		<variable name="nandcheck_row1" value="150" />
@@ -95,9 +95,9 @@
 		<variable name="nandcheck_row4" value="270" />
 		<variable name="nandcheck_row5" value="310" />
 		<variable name="nandcheck_row6" value="340" />
-		<variable name="button_text_color" value="#000000" />
+		<variable name="button_text_color" value="#AAAAAA" />
 		<variable name="text_color" value="#A0A0A0" />
-		<variable name="text_success_color" value="#01FF01" />
+		<variable name="text_success_color" value="#33B5E5" />
 		<variable name="text_fail_color" value="#FF0101" />
 		<variable name="slider_x" value="307" />
 		<variable name="slider_y" value="460" />
@@ -105,8 +105,8 @@
 		<variable name="sort_text_x" value="270" />
 		<variable name="sort_asc_text_y" value="510" />
 		<variable name="sort_asc_button_y" value="505" />
-		<variable name="sort_desc_text_y" value="550" />
-		<variable name="sort_desc_button_y" value="545" />
+		<variable name="sort_desc_text_y" value="545" />
+		<variable name="sort_desc_button_y" value="542" />
 		<variable name="sort_col1_button_x" value="440" />
 		<variable name="sort_col2_button_x" value="510" />
 		<variable name="sort_col3_button_x" value="580" />
@@ -123,11 +123,6 @@
 			<background color="#000000FF" />
 
 			<object type="image">
-				<image resource="base" />
-				<placement x="0" y="0" />
-			</object>
-
-			<object type="image">
 				<image resource="side" />
 				<placement x="0" y="0" />
 			</object>
@@ -135,6 +130,11 @@
 			<object type="image">
 				<image resource="side" />
 				<placement x="994" y="0" />
+			</object>
+
+			<object type="image">
+				<image resource="base" />
+				<placement x="0" y="0" />
 			</object>
 
 			<object type="image">
@@ -396,7 +396,7 @@
 			</object>
 
 			<object type="fileselector">
-				<placement x="25" y="90" w="282" h="410" />
+				<placement x="28" y="90" w="282" h="410" />
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
 				<font resource="font" spacing="18" color="%text_color%" />
@@ -984,7 +984,7 @@
 					<condition var1="tw_has_data_media" var2="0" />
 					<condition var1="mounted" op="!=" var2="INTERNAL" />
 				</conditions>
-				<text>                                      Mount Internal Storage</text>
+				<text>                                      	Mount Internal Storage</text>
 				<image resource="checkbox_false" />
 				<action function="mount">INTERNAL</action>
 			</object>
@@ -997,7 +997,7 @@
 					<condition var1="tw_has_data_media" var2="0" />
 					<condition var1="mounted" op="=" var2="INTERNAL" />
 				</conditions>
-				<text>                                      Unmount Internal Storage</text>
+				<text>                                      	Unmount Internal Storage</text>
 				<image resource="checkbox_true" />
 				<action function="umount">INTERNAL</action>
 			</object>
@@ -1078,7 +1078,7 @@
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="1" />
 				</conditions>
-				<text>                                      Using internal storage</text>
+				<text>                                      	Using internal storage</text>
 				<image resource="checkbox_false" />
 				<action function="togglestorage">internal</action>
 			</object>
@@ -1090,7 +1090,7 @@
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="0" />
 				</conditions>
-				<text>                                      Using internal storage</text>
+				<text>                                      	Using internal storage</text>
 				<image resource="checkbox_true" />
 				<action function="togglestorage">internal</action>
 			</object>
