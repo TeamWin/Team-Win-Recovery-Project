@@ -123,11 +123,6 @@
 			<background color="#000000FF" />
 
 			<object type="image">
-				<image resource="base" />
-				<placement x="0" y="0" />
-			</object>
-
-			<object type="image">
 				<image resource="side" />
 				<placement x="0" y="0" />
 			</object>
@@ -135,6 +130,11 @@
 			<object type="image">
 				<image resource="side" />
 				<placement x="994" y="0" />
+			</object>
+
+			<object type="image">
+				<image resource="base" />
+				<placement x="0" y="0" />
 			</object>
 
 			<object type="image">
