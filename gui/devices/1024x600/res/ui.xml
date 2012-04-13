@@ -5,7 +5,7 @@
 		<resolution width="1024" height="600" />
 		<author>TeamWin</author>
 		<title>Backup Naowz</title>
-		<description>TWRP ICS Theme by Racks11479</description>
+		<description>Default basic theme</description>
 		<preview>preview.jpg</preview>
 	</details>
 
@@ -16,6 +16,7 @@
 		<resource name="bottom" type="image" filename="backgroundbottom.jpg" />
 		<resource name="large_black" type="image" filename="large_black" />
 		<resource name="main_button" type="image" filename="button" />
+		<resource name="border" type="image" filename="border" />
 		<resource name="file_icon" type="image" filename="file" />
 		<resource name="folder_icon" type="image" filename="folder" />
 		<resource name="progress" type="animation" filename="indeterminate" />
@@ -398,7 +399,7 @@
 			<object type="fileselector">
 				<placement x="28" y="90" w="282" h="410" />
 				<icon folder="folder_icon" file="file_icon" />
-				<background color="#303030" />
+				<background resource="border" />
 				<font resource="font" spacing="18" color="%text_color%" />
 				<filter folders="1" files="0" />
 				<path name="tw_zip_location" default="/sdcard" />
