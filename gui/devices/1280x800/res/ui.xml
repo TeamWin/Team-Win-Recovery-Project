@@ -396,7 +396,7 @@
 			</object>
 
 			<object type="fileselector">
-				<placement x="25" y="90" w="410" h="540" />
+				<placement x="28" y="90" w="410" h="540" />
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
 				<font resource="font" spacing="18" color="%text_color%" />
@@ -2257,7 +2257,7 @@
 			</object>
 
 			<object type="fileselector">
-				<placement x="25" y="90" w="410" h="540" />
+				<placement x="28" y="90" w="410" h="540" />
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
 				<font resource="font" spacing="18" color="%text_color%" />

@@ -11,12 +11,11 @@
 
 	<resources>
 		<resource name="font" type="font" filename="Roboto-Regular-20" />
-		<resource name="side" type="image" filename="backgroundside.jpg" />
 		<resource name="base" type="image" filename="background.jpg" />
+		<resource name="side" type="image" filename="backgroundside.jpg" />
 		<resource name="bottom" type="image" filename="backgroundbottom.jpg" />
 		<resource name="large_black" type="image" filename="large_black" />
 		<resource name="main_button" type="image" filename="button" />
-		<resource name="border" type="image" filename="border" />
 		<resource name="file_icon" type="image" filename="file" />
 		<resource name="folder_icon" type="image" filename="folder" />
 		<resource name="progress" type="animation" filename="indeterminate" />
@@ -399,7 +398,7 @@
 			<object type="fileselector">
 				<placement x="28" y="90" w="282" h="410" />
 				<icon folder="folder_icon" file="file_icon" />
-				<background resource="border" />
+				<background color="#303030" />
 				<font resource="font" spacing="18" color="%text_color%" />
 				<filter folders="1" files="0" />
 				<path name="tw_zip_location" default="/sdcard" />
@@ -985,7 +984,7 @@
 					<condition var1="tw_has_data_media" var2="0" />
 					<condition var1="mounted" op="!=" var2="INTERNAL" />
 				</conditions>
-				<text>                                      	Mount Internal Storage</text>
+				<text>                                      Mount Internal Storage</text>
 				<image resource="checkbox_false" />
 				<action function="mount">INTERNAL</action>
 			</object>
@@ -998,7 +997,7 @@
 					<condition var1="tw_has_data_media" var2="0" />
 					<condition var1="mounted" op="=" var2="INTERNAL" />
 				</conditions>
-				<text>                                      	Unmount Internal Storage</text>
+				<text>                                      Unmount Internal Storage</text>
 				<image resource="checkbox_true" />
 				<action function="umount">INTERNAL</action>
 			</object>
@@ -1079,7 +1078,7 @@
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="1" />
 				</conditions>
-				<text>                                      	Using internal storage</text>
+				<text>                                      Using internal storage</text>
 				<image resource="checkbox_false" />
 				<action function="togglestorage">internal</action>
 			</object>
@@ -1091,7 +1090,7 @@
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="0" />
 				</conditions>
-				<text>                                      	Using internal storage</text>
+				<text>                                      Using internal storage</text>
 				<image resource="checkbox_true" />
 				<action function="togglestorage">internal</action>
 			</object>
@@ -2258,7 +2257,7 @@
 			</object>
 
 			<object type="fileselector">
-				<placement x="25" y="90" w="282" h="410" />
+				<placement x="28" y="90" w="282" h="410" />
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
 				<font resource="font" spacing="18" color="%text_color%" />
