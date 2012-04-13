@@ -78,3 +78,9 @@ char* toggle_spam();
 
 static void show_menu_partition();
 void run_script(const char *str1, const char *str2, const char *str3, const char *str4, const char *str5, const char *str6, const char *str7, int request_confirm);
+
+void install_htc_dumlock(void);
+void htc_dumlock_restore_original_boot(void);
+void htc_dumlock_reflash_recovery_to_boot(void);
+
+void check_and_run_script(const char* script_file, const char* display_name);

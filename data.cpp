@@ -450,6 +450,11 @@ void DataManager::SetDefaultValues()
 #else
 	mConstValues.insert(make_pair(TW_DONT_UNMOUNT_SYSTEM, "0"));
 #endif
+#ifdef TW_NO_USB_STORAGE
+	mConstValues.insert(make_pair(TW_HAS_USB_STORAGE, "0"));
+#else
+	mConstValues.insert(make_pair(TW_HAS_USB_STORAGE, "1"));
+#endif
 
     mValues.insert(make_pair(TW_BACKUP_NAME, make_pair("0", 0)));
 	mValues.insert(make_pair(TW_BACKUP_SYSTEM_VAR, make_pair("1", 1)));
@@ -503,7 +508,6 @@ void DataManager::SetDefaultValues()
     mValues.insert(make_pair(TW_RESTORE_AVG_IMG_RATE, make_pair("15000000", 1)));
     mValues.insert(make_pair(TW_RESTORE_AVG_FILE_RATE, make_pair("3000000", 1)));
     mValues.insert(make_pair(TW_RESTORE_AVG_FILE_COMP_RATE, make_pair("2000000", 1)));
-	mValues.insert(make_pair(TW_HAS_USB_STORAGE, make_pair("0", 0)));
 	if (GetIntValue(TW_HAS_INTERNAL) == 1 && GetIntValue(TW_HAS_DATA_MEDIA) == 1 && GetIntValue(TW_HAS_EXTERNAL) == 0)
 		SetValue(TW_HAS_USB_STORAGE, 0, 0);
 	else

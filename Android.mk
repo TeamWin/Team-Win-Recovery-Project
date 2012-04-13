@@ -97,6 +97,9 @@ endif
 ifeq ($(TW_NEVER_UNMOUNT_SYSTEM), true)
     LOCAL_CFLAGS += -DTW_NEVER_UNMOUNT_SYSTEM
 endif
+ifeq ($(TW_NO_USB_STORAGE), true)
+    LOCAL_CFLAGS += -DTW_NO_USB_STORAGE
+endif
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
 # It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses
