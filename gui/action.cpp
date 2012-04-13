@@ -309,7 +309,6 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
         curtainClose();
 
         sync();
-        finish_recovery("s");
 
         if (arg == "recovery")
             tw_reboot(rb_recovery);

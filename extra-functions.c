@@ -2327,3 +2327,14 @@ void htc_dumlock_reflash_recovery_to_boot(void)
 	__system("htcdumlock recovery noreboot");
 	ui_print("Recovery is flashed to boot.\n");
 }
+
+void check_and_run_script(const char* script_file, const char* display_name)
+{
+	// Check for and run startup script if script exists
+	struct statfs st;
+	if (statfs(script_file, &st) == 0) {
+		ui_print("Running %s script...\n", display_name);
+		__system(script_file);
+		ui_print("\nFinished running %s script.\n", display_name);
+	}
+}

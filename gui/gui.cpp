@@ -391,20 +391,19 @@ extern "C" int gui_init()
 {
     int fd;
 
-    gr_init();
-    ev_init();
+	gr_init();
 
     // We need to write out the curtain blob
     if (sizeof(gCurtainBlob) > 32)
     {
-        fd = open("/tmp/extract.jpg", O_CREAT | O_WRONLY | O_TRUNC);
+		fd = open("/tmp/extract.jpg", O_CREAT | O_WRONLY | O_TRUNC);
         if (fd < 0)
             return 0;
     
-        write(fd, gCurtainBlob, sizeof(gCurtainBlob));
+		write(fd, gCurtainBlob, sizeof(gCurtainBlob));
         close(fd);
     
-        if (res_create_surface("/tmp/extract.jpg", &gCurtain))
+		if (res_create_surface("/tmp/extract.jpg", &gCurtain))
         {
             return -1;
         }
@@ -417,7 +416,9 @@ extern "C" int gui_init()
     }
     unlink("/tmp/extract.png");
 
-    curtainSet();
+	curtainSet();
+
+	ev_init();
     return 0;
 }
 

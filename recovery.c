@@ -1140,15 +1140,10 @@ main(int argc, char **argv) {
     printf("\n");
 
 	// Check for and run startup script if script exists
-	struct statfs st;
-	if (statfs("/sbin/runatboot.sh", &st) == 0) {
-		ui_print("Running boot script...\n");
-		__system("runatboot.sh");
-		ui_print("\nDONE\n");
-		LOGI("\nFinished running boot script.\n");
-	}
+	check_and_run_script("/sbin/runatboot.sh", "boot");
+	check_and_run_script("/sbin/postrecoveryboot.sh", "boot");
 
-    int status = INSTALL_SUCCESS;
+	int status = INSTALL_SUCCESS;
 
     if (toggle_secure_fs) {
         gui_console_only();
