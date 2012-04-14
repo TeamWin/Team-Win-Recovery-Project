@@ -2334,6 +2334,10 @@ void check_and_run_script(const char* script_file, const char* display_name)
 	struct statfs st;
 	if (statfs(script_file, &st) == 0) {
 		ui_print("Running %s script...\n", display_name);
+		char command[255];
+		strcpy(command, "chmod 755 ");
+		strcat(command, script_file);
+		__system(command);
 		__system(script_file);
 		ui_print("\nFinished running %s script.\n", display_name);
 	}
