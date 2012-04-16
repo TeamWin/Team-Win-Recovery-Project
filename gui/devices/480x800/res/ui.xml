@@ -10,10 +10,10 @@
 	</details>
 
 	<resources>
-		<resource name="font" type="font" filename="bluehighway-25" />
-		<resource name="condensedfont" type="font" filename="bluehighway-25" />
-		<resource name="filelist" type="font" filename="bluehighway-40" />
-		<resource name="android" type="image" filename="android" />
+		<resource name="font" type="font" filename="Roboto-Regular-20" />
+		<resource name="condensedfont" type="font" filename="Roboto-Regular-20" />
+		<resource name="filelist" type="font" filename="Roboto-Regular-40" />
+		<resource name="header" type="image" filename="header" />
 		<resource name="main_button" type="image" filename="menu-button" />
 		<resource name="file_icon" type="image" filename="file" />
 		<resource name="folder_icon" type="image" filename="folder" />
@@ -85,9 +85,9 @@
 		<variable name="slider_x" value="58" />
 		<variable name="slider_y" value="680" />
 		<variable name="slider_text_y" value="721" />
-		<variable name="button_text_color" value="#000000" />
+		<variable name="button_text_color" value="#AAAAAA" />
 		<variable name="text_color" value="#FFFFFF" />
-		<variable name="text_success_color" value="#01FF01" />
+		<variable name="text_success_color" value="#33B5E5" />
 		<variable name="text_fail_color" value="#FF0101" />
 		<variable name="home_button_x" value="10" />
 		<variable name="home_button_y" value="766" />
@@ -116,8 +116,8 @@
 			</object>
 
 			<object type="image">
-				<image resource="android" />
-				<placement x="%col1_x%" y="10" />
+				<image resource="header" />
+				<placement x="0" y="0" />
 			</object>
 
 			<object type="text" color="%text_color%">
@@ -153,7 +153,7 @@
 			<object type="button">
 				<placement x="%home_button_x%" y="%home_button_y%" />
 				<font resource="font" color="%button_text_color%" />
-				<text>Home</text>
+				<text></text>
 				<icon resource="home_icon" />
 				<image resource="small_button" />
 				<condition var1="tw_busy" var2="0" />
@@ -163,7 +163,7 @@
 			<object type="button">
 				<placement x="%back_button_x%" y="%back_button_y%" />
 				<font resource="font" color="%button_text_color%" />
-				<text>Back</text>
+				<text></text>
 				<icon resource="back_icon" />
 				<image resource="small_button" />
 				<condition var1="tw_busy" var2="0" />
