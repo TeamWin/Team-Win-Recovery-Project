@@ -367,9 +367,12 @@
 
 			<object type="fileselector">
 				<placement x="5" y="%row1_y%" w="710" h="890" />
+				<header background="#202020" textcolor="#AAAAAA" />
+				<text>%tw_zip_location%</text>
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
-				<font resource="filelist" spacing="18" color="%text_color%" />
+				<font resource="filelist" spacing="16" color="%text_color%" />
+				<separator color="#33B5E5" height="2" />
 				<filter extn=".zip" folders="1" files="1" />
 				<path name="tw_zip_location" default="/sdcard" />
 				<data name="tw_filename" />
