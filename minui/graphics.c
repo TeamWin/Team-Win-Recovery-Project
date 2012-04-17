@@ -291,7 +291,53 @@ int gr_textExW(int x, int y, const char *s, void* pFont, int max_width)
 				gl->texCoord2i(gl, (font->offset[off]) - x, 0 - y);
 				gl->recti(gl, x, y, x + cwidth, y + font->cheight);
 				x += cwidth;
-			} else
+			} else {
+				gl->texCoord2i(gl, (font->offset[off]) - x, 0 - y);
+				gl->recti(gl, x, y, max_width, y + font->cheight);
+				x = max_width;
+				return x;
+			}
+        }
+    }
+
+    return x;
+}
+
+int gr_textExWH(int x, int y, const char *s, void* pFont, int max_width, int max_height)
+{
+    GGLContext *gl = gr_context;
+    GRFont *font = (GRFont*) pFont;
+    unsigned off;
+    unsigned cwidth;
+	int rect_x, rect_y;
+
+    /* Handle default font */
+    if (!font)  font = gr_font;
+
+    gl->bindTexture(gl, &font->texture);
+    gl->texEnvi(gl, GGL_TEXTURE_ENV, GGL_TEXTURE_ENV_MODE, GGL_REPLACE);
+    gl->texGeni(gl, GGL_S, GGL_TEXTURE_GEN_MODE, GGL_ONE_TO_ONE);
+    gl->texGeni(gl, GGL_T, GGL_TEXTURE_GEN_MODE, GGL_ONE_TO_ONE);
+    gl->enable(gl, GGL_TEXTURE_2D);
+
+    while((off = *s++)) {
+        off -= 32;
+        cwidth = 0;
+        if (off < 96) {
+            cwidth = font->offset[off+1] - font->offset[off];
+			if ((x + (int)cwidth) < max_width)
+				rect_x = x + cwidth;
+			else
+				rect_x = max_width;
+			if (y + font->cheight < max_height)
+				rect_y = y + font->cheight;
+			else
+				rect_y = max_height;
+
+			gl->texCoord2i(gl, (font->offset[off]) - x, 0 - y);
+			gl->recti(gl, x, y, rect_x, rect_y);
+			x += cwidth;
+			if (x > max_width)
 				return x;
         }
     }

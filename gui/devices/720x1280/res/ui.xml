@@ -367,9 +367,12 @@
 
 			<object type="fileselector">
 				<placement x="5" y="%row1_y%" w="710" h="890" />
+				<header background="#202020" textcolor="#AAAAAA" />
+				<text>%tw_zip_location%</text>
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
-				<font resource="filelist" spacing="18" color="%text_color%" />
+				<font resource="filelist" spacing="16" color="%text_color%" />
+				<separator color="#33B5E5" height="2" />
 				<filter extn=".zip" folders="1" files="1" />
 				<path name="tw_zip_location" default="/sdcard" />
 				<data name="tw_filename" />
@@ -1386,7 +1389,6 @@
 			</object>
 
 			<object type="button">
-				<condition var1="tw_has_usb_storage" var2="1" />
 				<placement x="%col1_x%" y="%row1_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<condition var1="mounted" op="!=" var2="/system" />
@@ -1584,6 +1586,7 @@
 			</object>
 
 			<object type="button">
+				<condition var1="tw_has_usb_storage" var2="1" />
 				<placement x="%col1_x%" y="row3_y" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Mount USB Storage</text>
