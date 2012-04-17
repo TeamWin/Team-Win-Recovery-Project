@@ -10,10 +10,9 @@
 	</details>
 
 	<resources>
-		<resource name="font" type="font" filename="bluehighway-40" />
-		<resource name="condensedfont" type="font" filename="bluehighway-40" />
-		<resource name="filelist" type="font" filename="bluehighway-40" />
-		<resource name="android" type="image" filename="android" />
+		<resource name="font" type="font" filename="Roboto-Regular-40" />
+		<resource name="filelist" type="font" filename="Roboto-Regular-40" />
+		<resource name="top_bar" type="image" filename="top-bar.jpg" />
 		<resource name="main_button" type="image" filename="menu-button" />
 		<resource name="file_icon" type="image" filename="file" />
 		<resource name="folder_icon" type="image" filename="folder" />
@@ -30,6 +29,8 @@
 		<resource name="sort_button" type="image" filename="sort-button" />
 		<resource name="minus_button" type="image" filename="minus-button" />
 		<resource name="plus_button" type="image" filename="plus-button" />
+		<resource name="home_icon" type="image" filename="home-icon" />
+		<resource name="back_icon" type="image" filename="back-icon" />
 		<resource name="slider" type="image" filename="slider" />
 		<resource name="slider-used" type="image" filename="slider-used" />
 		<resource name="slider-touch" type="image" filename="slider-touch" />
@@ -89,9 +90,9 @@
 		<variable name="slider_x" value="68" />
 		<variable name="slider_y" value="1030" />
 		<variable name="slider_text_y" value="1097" />
-		<variable name="button_text_color" value="#000000" />
+		<variable name="button_text_color" value="#AAAAAA" />
 		<variable name="text_color" value="#FFFFFF" />
-		<variable name="text_success_color" value="#01FF01" />
+		<variable name="text_success_color" value="#33B5E5" />
 		<variable name="text_fail_color" value="#FF0101" />
 		<variable name="home_button_x" value="10" />
 		<variable name="home_button_y" value="1226" />
@@ -111,18 +112,9 @@
 		<template name="header">
 			<background color="#000000FF" />
 
-			<object type="button">
-				<placement x="%col1_x%" y="10" />
-				<font resource="font" color="%button_text_color%" />
-				<text></text>
-				<image resource="android" />
-				<condition var1="tw_busy" var2="0" />
-				<action function="page">main</action>
-			</object>
-
 			<object type="image">
-				<image resource="android" />
-				<placement x="%col1_x%" y="10" />
+				<image resource="top_bar" />
+				<placement x="0" y="0" />
 			</object>
 
 			<object type="text" color="%text_color%">
@@ -158,9 +150,8 @@
 			<object type="button">
 				<placement x="%home_button_x%" y="%home_button_y%" />
 				<font resource="font" color="%button_text_color%" />
-				<text>Home</text>
-				<icon resource="home_icon" />
-				<image resource="small_button" />
+				<text></text>
+				<image resource="home_icon" />
 				<condition var1="tw_busy" var2="0" />
 				<action function="key">home</action>
 			</object>
@@ -168,9 +159,8 @@
 			<object type="button">
 				<placement x="%back_button_x%" y="%back_button_y%" />
 				<font resource="font" color="%button_text_color%" />
-				<text>Back</text>
-				<icon resource="back_icon" />
-				<image resource="small_button" />
+				<text></text>
+				<image resource="back_icon" />
 				<condition var1="tw_busy" var2="0" />
 				<action function="key">back</action>
 			</object>
@@ -371,7 +361,7 @@
 				<text>%tw_zip_location%</text>
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
-				<font resource="filelist" spacing="16" color="%text_color%" />
+				<font resource="filelist" spacing="18" color="%text_color%" />
 				<separator color="#33B5E5" height="2" />
 				<filter extn=".zip" folders="1" files="1" />
 				<path name="tw_zip_location" default="/sdcard" />

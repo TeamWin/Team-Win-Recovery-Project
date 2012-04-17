@@ -25,7 +25,6 @@
 		<resource name="checkbox_true" type="image" filename="checkbox_checked" />
 		<resource name="radio_false" type="image" filename="radio_empty" />
 		<resource name="radio_true" type="image" filename="radio_selected" />
-		<resource name="small_button" type="image" filename="small-button" />
 		<resource name="medium_button" type="image" filename="medium-button" />
 		<resource name="mediumwide_button" type="image" filename="mediumwide-button" />
 		<resource name="sort_button" type="image" filename="sort-button" />
@@ -181,8 +180,7 @@
 				<placement x="%home_button_x%" y="%home_button_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text></text>
-				<icon resource="home_icon" />
-				<image resource="small_button" />
+				<image resource="home_icon" />
 				<condition var1="tw_busy" var2="0" />
 				<action function="key">home</action>
 			</object>
@@ -191,8 +189,7 @@
 				<placement x="%back_button_x%" y="%back_button_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text></text>
-				<icon resource="back_icon" />
-				<image resource="small_button" />
+				<image resource="back_icon" />
 				<condition var1="tw_busy" var2="0" />
 				<action function="key">back</action>
 			</object>
