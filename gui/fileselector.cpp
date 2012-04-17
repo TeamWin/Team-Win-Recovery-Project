@@ -39,7 +39,7 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
     xml_attribute<>* attr;
     xml_node<>* child;
 
-    mStart = mLineSpacing = mIconWidth = mIconHeight = startY = 0;
+    mStart = mLineSpacing = mIconWidth = mIconHeight = startY = mHeaderIconHeight = mFolderIconHeight = mFileIconHeight = mFontHeight = mSeparatorH = 0;
     mFolderIcon = mFileIcon = mBackground = mFont = NULL;
     mBackgroundX = mBackgroundY = mBackgroundW = mBackgroundH = 0;
     mShowFolders = mShowFiles = mShowNavFolders = 1;
@@ -47,7 +47,7 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
     mPathVar = "cwd";
     ConvertStrToColor("black", &mBackgroundColor);
     ConvertStrToColor("white", &mFontColor);
-    
+
     // Load header text
 	child = node->first_node("header");
     if (child)
@@ -140,8 +140,9 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
         }
 
         attr = child->first_attribute("height");
-        if (attr)
+        if (attr) {
             mSeparatorH = atoi(attr->value());
+		}
     }
 
     child = node->first_node("filter");
@@ -199,7 +200,8 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
 
     // Retrieve the line height
     gr_getFontDetails(mFont ? mFont->GetResource() : NULL, &mFontHeight, NULL);
-    mLineHeight = mHeaderH = mFontHeight;
+    mLineHeight = mFontHeight;
+	mHeaderH = mFontHeight;
     if (mFolderIcon && mFolderIcon->GetResource())
     {
         mFolderIconWidth = gr_get_width(mFolderIcon->GetResource());
@@ -410,7 +412,7 @@ int GUIFileSelector::Update(void)
         int folderSize = mShowFolders ? mFolderList.size() : 0;
         int fileSize = mShowFiles ? mFileList.size() : 0;
         int lines = (mRenderH - mHeaderH) / (actualLineHeight);
-		int bottom_offset = (lines * actualLineHeight) - (mRenderH - mHeaderH);
+		int bottom_offset = (lines * actualLineHeight) - (mRenderH - mHeaderH) + lines - 1;
 
 		if (mStart + lines < folderSize + fileSize) {
 			if (abs(scrollingSpeed) < ((int) (actualLineHeight) * 2.5))
@@ -439,7 +441,6 @@ int GUIFileSelector::Update(void)
 int GUIFileSelector::GetSelection(int x, int y)
 {
     // We only care about y position
-	LOGI("y: %i, mRenderY: %i, mHeaderH: %i\n", y, mRenderY, mHeaderH);
 	if (y < mRenderY) return -1;
 	if (y - mRenderY <= mHeaderH || y - mRenderY > mRenderH) return -1;
     return (y - mRenderY - mHeaderH);
@@ -477,23 +478,22 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
 		}
 		if (mStart == 0 && y > startY) {
 			startY = y;
-		}
-		{
-			int folderSize = mShowFolders ? mFolderList.size() : 0;
-			int fileSize = mShowFiles ? mFileList.size() : 0;
+			scrollingY = 0;
+		} else {
+			int totalSize = (mShowFolders ? mFolderList.size() : 0) + (mShowFiles ? mFileList.size() : 0);
 			int lines = (mRenderH - mHeaderH) / (actualLineHeight);
-			int bottom_offset = (lines * actualLineHeight) - (mRenderH - mHeaderH);
+			int bottom_offset = (lines * actualLineHeight) - (mRenderH - mHeaderH) + lines - 1;
 
-			while (mStart + lines + (bottom_offset ? 1 : 0) < folderSize + fileSize && startY - y > actualLineHeight)
+			while (mStart + lines + (bottom_offset ? 1 : 0) < totalSize && startY - y > actualLineHeight)
 			{
 				mStart++;
 				startY -= actualLineHeight;
 			}
 			scrollingY = y - startY;
-			if (bottom_offset != 0 && mStart + lines + 1 == folderSize + fileSize && startY - bottom_offset > y) {
+			if (bottom_offset != 0 && mStart + lines + 1 == totalSize && startY - bottom_offset > y) {
 				scrollingY = bottom_offset;
 				startY = y;
-			} else if ((mStart + lines == folderSize + fileSize && startY > y)) {
+			} else if ((mStart + lines == totalSize && startY > y)) {
 				startY = y;
 			}
 		}

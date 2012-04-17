@@ -10,8 +10,8 @@
 	</details>
 
 	<resources>
-		<resource name="font" type="font" filename="Roboto-Regular-40" />
-		<resource name="filelist" type="font" filename="Roboto-Regular-40" />
+		<resource name="font" type="font" filename="Roboto-Condensed-30" />
+		<resource name="filelist" type="font" filename="Roboto-Condensed-30" />
 		<resource name="top_bar" type="image" filename="top-bar.jpg" />
 		<resource name="main_button" type="image" filename="menu-button" />
 		<resource name="file_icon" type="image" filename="file" />
@@ -126,19 +126,19 @@
 			<object type="text" color="%text_color%">
 				<condition var1="tw_simulate_actions" var2="1" />
 				<font resource="font" />
-				<placement x="120" y="47" />
+				<placement x="120" y="45" />
 				<text>SIMULATING ACTIONS</text>
 			</object>
 
 			<object type="text" color="%text_color%">
 				<font resource="font" />
-				<placement x="120" y="86" />
+				<placement x="120" y="76" />
 				<text>%tw_time%</text>
 			</object>
 
 			<object type="text" color="%text_color%">
 				<font resource="font" />
-				<placement x="270" y="86" />
+				<placement x="270" y="76" />
 				<conditions>
 					<condition var1="tw_no_battery_percent" var2="0" />
 					<condition var1="tw_battery" op=">" var2="0" />
@@ -361,8 +361,8 @@
 				<text>%tw_zip_location%</text>
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
-				<font resource="filelist" spacing="18" color="%text_color%" />
-				<separator color="#33B5E5" height="2" />
+				<font resource="filelist" spacing="16" color="%text_color%" />
+				<separator color="#505050" height="2" />
 				<filter extn=".zip" folders="1" files="1" />
 				<path name="tw_zip_location" default="/sdcard" />
 				<data name="tw_filename" />
@@ -970,7 +970,10 @@
 			<object type="slider">
 				<placement x="%slider_x%" y="slider_y" />
 				<resource base="slider" used="slider-used" touch="slider-touch" />
-				<action function="page">backup_run</action>
+				<actions>
+					<action function="set">tw_operation_state=0</action>
+					<action function="page">backup_run</action>
+				</actions>
 			</object>
 
 			<object type="text" color="%text_color%">
@@ -1155,16 +1158,13 @@
 		<page name="restore">
 			<object type="template" name="header" />
 
-			<object type="text" color="%text_color%">
-				<font resource="font" />
-				<placement x="%center_x%" y="%row1_header_y%" placement="4" />
-				<text>Select packge to restore</text>
-			</object>
-
 			<object type="fileselector">
-				<placement x="5" y="%row1_y%" w="710" h="870" />
+				<placement x="5" y="%row1_header_y%" w="710" h="890" />
+				<header background="#202020" textcolor="#AAAAAA" />
+				<text>Select package to restore:</text>
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
+				<separator color="#505050" height="2" />
 				<font resource="filelist" spacing="18" color="%text_color%" />
 				<filter folders="1" files="0" nav="0" />
 				<path name="tw_backups_folder" />
@@ -2242,13 +2242,16 @@
 			<object type="text" color="%text_color%">
 				<font resource="font" />
 				<placement x="%center_x%" y="%row1_header_y%" placement="4"/>
-				<text>File Manager: Select a File</text>
+				<text>File Manager</text>
 			</object>
 
 			<object type="fileselector">
 				<placement x="5" y="%row1_y%" w="710" h="890" />
+				<header background="#202020" textcolor="#AAAAAA" />
+				<text>Select a File</text>
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
+				<separator color="#505050" height="2" />
 				<font resource="filelist" spacing="18" color="%text_color%" />
 				<folders="1" files="1" />
 				<path name="tw_file_location1" default="/sdcard" />
@@ -2380,16 +2383,13 @@
 		<page name="choosedestinationfolder">
 			<object type="template" name="header" />
 
-			<object type="text" color="%text_color%">
-				<font resource="font" />
-				<placement x="%center_x%" y="%row1_header_y%" placement="4"/>
-				<text>Browse to Destination Folder & Press Select</text>
-			</object>
-
 			<object type="fileselector">
-				<placement x="5" y="%row1_y%" w="710" h="790" />
+				<placement x="5" y="%row1_header_y%" w="710" h="820" />
+				<header background="#202020" textcolor="#AAAAAA" />
+				<text>Browse to Destination Folder & Press Select</text>
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
+				<separator color="#505050" height="2" />
 				<font resource="filelist" spacing="18" color="%text_color%" />
 				<filter folders="1" files="0" />
 				<path name="tw_file_location2" default="/sdcard" />
