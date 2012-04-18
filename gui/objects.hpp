@@ -410,6 +410,7 @@ protected:
     std::string mPathVar;
     std::string mExtn;
     std::string mVariable;
+	std::string mSortVariable;
 	std::string mSelection;
 	std::string mHeaderText;
 	std::string mLastValue;
@@ -417,15 +418,15 @@ protected:
 	int mStart;
     int mLineSpacing;
 	int mSeparatorH;
+	int mHeaderSeparatorH;
     int mShowFolders, mShowFiles, mShowNavFolders;
     int mUpdate;
     int mBackgroundX, mBackgroundY, mBackgroundW, mBackgroundH;
-	unsigned mHeaderH;
+	int mHeaderH;
 	static int mSortOrder;
 	int startY;
 	int scrollingSpeed;
 	int scrollingY;
-	int maxY;
 	int mHeaderIsStatic;
     unsigned mFontHeight;
     unsigned mLineHeight;
@@ -440,7 +441,7 @@ protected:
 	COLOR mHeaderBackgroundColor;
 	COLOR mHeaderFontColor;
 	COLOR mSeparatorColor;
-    int mVarChanged;
+	COLOR mHeaderSeparatorColor;
 };
 
 class GUIListBox : public RenderObject, public ActionObject

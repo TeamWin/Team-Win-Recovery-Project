@@ -357,7 +357,7 @@
 
 			<object type="fileselector">
 				<placement x="5" y="%row1_y%" w="710" h="890" />
-				<header background="#202020" textcolor="#AAAAAA" />
+				<header background="#202020" textcolor="#AAAAAA" separatorcolor="#33B5E5" separatorheight="3" />
 				<text>%tw_zip_location%</text>
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
@@ -366,6 +366,7 @@
 				<filter extn=".zip" folders="1" files="1" />
 				<path name="tw_zip_location" default="/sdcard" />
 				<data name="tw_filename" />
+				<sort name="tw_gui_sort_order" />
 				<selection name="tw_file" />
 			</object>
 
@@ -615,6 +616,7 @@
 
 		<page name="clear_vars">
 			<object type="action">
+				<action function="set">tw_operation_state=0</action>
 				<action function="set">tw_text1=</action>
 				<action function="set">tw_text2=</action>
 				<action function="set">tw_text3=</action>
@@ -970,10 +972,7 @@
 			<object type="slider">
 				<placement x="%slider_x%" y="slider_y" />
 				<resource base="slider" used="slider-used" touch="slider-touch" />
-				<actions>
-					<action function="set">tw_operation_state=0</action>
-					<action function="page">backup_run</action>
-				</actions>
+				<action function="page">backup_run</action>
 			</object>
 
 			<object type="text" color="%text_color%">
@@ -1160,15 +1159,16 @@
 
 			<object type="fileselector">
 				<placement x="5" y="%row1_header_y%" w="710" h="890" />
-				<header background="#202020" textcolor="#AAAAAA" />
+				<header background="#202020" textcolor="#AAAAAA" separatorcolor="#33B5E5" separatorheight="3" />
 				<text>Select package to restore:</text>
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
 				<separator color="#505050" height="2" />
-				<font resource="filelist" spacing="18" color="%text_color%" />
+				<font resource="filelist" spacing="16" color="%text_color%" />
 				<filter folders="1" files="0" nav="0" />
 				<path name="tw_backups_folder" />
 				<data name="tw_restore" default="" />
+				<sort name="tw_gui_sort_order" />
 				<selection name="tw_restore_name" />
 			</object>
 
@@ -2247,7 +2247,7 @@
 
 			<object type="fileselector">
 				<placement x="5" y="%row1_y%" w="710" h="890" />
-				<header background="#202020" textcolor="#AAAAAA" />
+				<header background="#202020" textcolor="#AAAAAA" separatorcolor="#33B5E5" separatorheight="3" />
 				<text>Select a File</text>
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
@@ -2256,6 +2256,7 @@
 				<folders="1" files="1" />
 				<path name="tw_file_location1" default="/sdcard" />
 				<data name="tw_filename1" />
+				<sort name="tw_gui_sort_order" />
 			</object>
 
 			<object type="template" name="sort_options" />
@@ -2385,7 +2386,7 @@
 
 			<object type="fileselector">
 				<placement x="5" y="%row1_header_y%" w="710" h="820" />
-				<header background="#202020" textcolor="#AAAAAA" />
+				<header background="#202020" textcolor="#AAAAAA" separatorcolor="#33B5E5" separatorheight="3" />
 				<text>Browse to Destination Folder & Press Select</text>
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
@@ -2394,6 +2395,7 @@
 				<filter folders="1" files="0" />
 				<path name="tw_file_location2" default="/sdcard" />
 				<data name="tw_filename2" />
+				<sort name="tw_gui_sort_order" />
 			</object>
 
 			<object type="template" name="sort_options" />

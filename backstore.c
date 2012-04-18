@@ -1035,7 +1035,7 @@ int nandroid_back_exe()
 	LOGI("Attempt to create folder '%s'\n", tw_image_dir);
     if (recursive_mkdir(tw_image_dir))
     {
-        LOGE("Unable to create folder: '%s'\n", backup_folder);
+        LOGE("Unable to create folder: '%s'\n", tw_image_dir);
         SetDataState("Backup failed", tw_image_dir, 1, 1);
         return -1;
     }
@@ -1163,10 +1163,10 @@ int nandroid_back_exe()
     else                                                    DataManager_SetIntValue(TW_BACKUP_AVG_FILE_RATE, file_bps);
 
     int total_time = (int) difftime(stop, start);
-    unsigned long long new_sdc_free = (sdcext.sze - sdcext.used) / (1024LLU * 1024LLU);
-    sdc_free /= (1024LLU * 1024LLU);
+	unsigned long long actual_backup_size = getUsedSizeViaDu(tw_image_dir);
+    actual_backup_size /= (1024LLU * 1024LLU);
 
-	ui_print("[%llu MB TOTAL BACKED UP]\n", (unsigned long long) (sdc_free - new_sdc_free));
+	ui_print("[%llu MB TOTAL BACKED UP]\n", actual_backup_size);
 	ui_print("[BACKUP COMPLETED IN %d SECONDS]\n\n", total_time); // the end
     SetDataState("Backup Succeeded", "", 0, 1);
 	return 0;
