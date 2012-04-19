@@ -1021,7 +1021,7 @@ int nandroid_back_exe()
 	time_t seconds;
 	seconds = time(0);
     t = localtime(&seconds);
-	LOGI("DataManager_GetStrValue(TW_BACKUP_NAME) = '%s'\n", DataManager_GetStrValue(TW_BACKUP_NAME));
+
 	if (strcmp(DataManager_GetStrValue(TW_BACKUP_NAME), "0") == 0) {
 		sprintf(timestamp,"%04d-%02d-%02d--%02d-%02d-%02d",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min,t->tm_sec); // make time stamp
 	} else {

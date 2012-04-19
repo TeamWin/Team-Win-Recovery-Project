@@ -250,7 +250,7 @@ int DataManager::SetValue(const string varName, string value, int persist /* = 0
     if (!mInitialized)
         SetDefaultValues();
 if (varName == "tw_operation_state")
-	LOGI("tw_operation_state being set to %i\n", value);
+	LOGI("tw_operation_state being set to '%s'\n", value.c_str());
     // Don't allow empty values or numerical starting values
     if (varName.empty() || (varName[0] >= '0' && varName[0] <= '9'))
         return -1;
@@ -276,9 +276,6 @@ if (varName == "tw_operation_state")
 
 int DataManager::SetValue(const string varName, int value, int persist /* = 0 */)
 {
-if (varName == "tw_operation_state")
-	LOGI("tw_operation_state being set to %i\n", value);
-
 	ostringstream valStr;
     valStr << value;
     return SetValue(varName, valStr.str(), persist);;
@@ -286,9 +283,6 @@ if (varName == "tw_operation_state")
 
 int DataManager::SetValue(const string varName, float value, int persist /* = 0 */)
 {
-if (varName == "tw_operation_state")
-	LOGI("tw_operation_state being set to %i\n", value);
-
 	ostringstream valStr;
     valStr << value;
     return SetValue(varName, valStr.str(), persist);;
