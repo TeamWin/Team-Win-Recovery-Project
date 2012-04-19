@@ -37,16 +37,23 @@ int tw_setRebootMode(RebootCommand command)
 int tw_reboot(RebootCommand command)
 {
     // Always force a sync before we reboot
+	LOGI("tw_reboot called\n");
     sync();
+	LOGI("after sync\n");
     ensure_path_unmounted("/sdcard");
+	LOGI("after ensure path unmounted\n");
 
     switch (command)
     {
     case rb_current:
     case rb_system:
+		LOGI("rb_system\n");
         finish_recovery("s");
+		LOGI("after finish_recovery\n");
 		sync();
+		LOGI("after sync()\n");
 		check_and_run_script("/sbin/rebootsystem.sh", "reboot system");
+		LOGI("checked and ran script\n");
         return reboot(RB_AUTOBOOT);
     case rb_recovery:
 		check_and_run_script("/sbin/rebootrecovery.sh", "reboot recovery");

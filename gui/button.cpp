@@ -188,7 +188,7 @@ int GUIButton::SetRenderPos(int x, int y, int w, int h)
 int GUIButton::NotifyTouch(TOUCH_STATE state, int x, int y)
 {
     if (!isConditionTrue())     return -1;
-
+LOGI("before button push\n");
     return (mAction ? mAction->NotifyTouch(state, x, y) : 1);
 }
 
