@@ -119,11 +119,8 @@ GUIAction::GUIAction(xml_node<>* node)
 
 int GUIAction::NotifyTouch(TOUCH_STATE state, int x, int y)
 {
-    if (state == TOUCH_RELEASE) {
-		LOGI("touch release in action.cpp called\n");
+    if (state == TOUCH_RELEASE)
         doActions();
-		LOGI("doActions is done\n");
-	}
 
     return 0;
 }
@@ -236,15 +233,14 @@ int GUIAction::flash_zip(std::string filename, std::string pageName, const int s
 
 int GUIAction::doActions()
 {
-    LOGI("starting doActions\n");
 	if (mActions.size() < 1)    return -1;
-	LOGI("doActions2\n");
-    if (mActions.size() == 1)   return doAction(mActions.at(0), 0);
-    LOGI("starting threading\n");
+    if (mActions.size() == 1)
+		return doAction(mActions.at(0), 0);
+
     // For multi-action, we always use a thread
     pthread_t t;
     pthread_create(&t, NULL, thread_start, this);
-	LOGI("done threading\n");
+
     return 0;
 }
 
@@ -304,17 +300,19 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 	static string zip_queue[10];
 	static int zip_queue_index;
 	int simulate;
+
 	std::string arg = gui_parse_text(action.mArg);
+
 	std::string function = gui_parse_text(action.mFunction);
 
 	DataManager::GetValue(TW_SIMULATE_ACTIONS, simulate);
 
     if (function == "reboot")
     {
-        curtainClose();
-		LOGI("after curtain close\n");
+        //curtainClose(); this sometimes causes a crash
+
         sync();
-		LOGI("after sync\n");
+
         if (arg == "recovery")
             tw_reboot(rb_recovery);
         else if (arg == "poweroff")
@@ -323,7 +321,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
             tw_reboot(rb_bootloader);
         else
             tw_reboot(rb_system);
-		LOGI("after reboot issued\n");
+
         // This should never occur
         return -1;
     }

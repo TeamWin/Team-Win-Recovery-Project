@@ -31,6 +31,7 @@
 #include "format.h"
 #include "data.h"
 #include "variables.h"
+#include "extra-functions.h"
 
 static int num_volumes = 0;
 static Volume* device_volumes = NULL;
@@ -157,7 +158,7 @@ int ensure_path_mounted(const char* path) {
 				return -1;
 			}
 			LOGI("Mounting /sdcard using: '%s'\n", mount_command);
-			system(mount_command);
+			__system(mount_command);
 			return 0;
 		} else if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1) {
 			if (ensure_path_mounted("/data")) {
@@ -165,7 +166,7 @@ int ensure_path_mounted(const char* path) {
 				return -1;
 			}
 			LOGI("Mounting /sdcard using: 'mount /data/media /sdcard'\n");
-			system("mount /data/media /sdcard");
+			__system("mount /data/media /sdcard");
 			return 0;
 		}
 	}
@@ -239,7 +240,7 @@ int ensure_path_unmounted(const char* path) {
 	if (DataManager_GetIntValue(TW_DONT_UNMOUNT_SYSTEM) == 1 && strncmp(path, "/system", 7) == 0)
 		return 0;
 
-	if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 1 && strncmp(path, "/sdcard", 7) == 0) {
+	if ((DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 || DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 1) && strncmp(path, "/sdcard", 7) == 0) {
 		LOGI("Unmounting /sdcard (dual storage path code)\n");
 		return system("umount /sdcard");;
 	}

@@ -163,7 +163,7 @@ int getSizeViaDf(struct dInfo* mMnt)
 		}
 		
         // Adjust block size to byte size
-        unsigned long long size = blocks * 1024LL;
+        unsigned long long size = blocks * 1024ULL;
         sprintf(tmpString, "%s%s", tw_block, device);
         setLocationData(NULL, mMnt->blk, NULL, NULL, size);
     }
@@ -192,7 +192,7 @@ int getSizesViaPartitions()
         sscanf(line + 1, "%lu %lu %lu %s", &major, &minor, &blocks, device);
 		
         // Adjust block size to byte size
-        unsigned long long size = blocks * 1024LL;
+        unsigned long long size = blocks * 1024ULL;
         sprintf(tmpString, "%s%s", tw_block, device);
         setLocationData(NULL, tmpString, NULL, NULL, size);
     }
@@ -267,7 +267,7 @@ int getLocationsViafstab()
             // This could be NULL if we decided the size wasn't accurate
             if (pSizeBlock)
             {
-                size = ((unsigned long long) atol(pSizeBlock)) * 1024;
+                size = ((unsigned long long) atol(pSizeBlock)) * 1024ULL;
             }
 
             if (size && (setLocationData(NULL, device, NULL, NULL, size) == 0))
@@ -359,7 +359,7 @@ unsigned long long getUsedSizeViaDu(const char* path)
     __pclose(fp);
 
     unsigned long long size = atol(str);
-    size *= 1024;
+    size *= 1024ULL;
 
     return size;
 }
@@ -440,7 +440,7 @@ void updateMntUsedSize(struct dInfo* mMnt)
 	if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 && strcmp(mMnt->blk, dat.blk) == 0) {
 		LOGI("Device has /data/media\n");
 		unsigned long long data_used, data_media_used, actual_data;
-		data_used = mMnt->used;
+		data_used = getUsedSizeViaDu("/data/");
 		LOGI("Total used space on /data is: %llu\n", data_used);
 		data_media_used = getUsedSizeViaDu("/data/media/");
 		LOGI("Total in /data/media is: %llu\n", data_media_used);
