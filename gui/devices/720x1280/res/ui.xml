@@ -24,7 +24,6 @@
 		<resource name="checkbox_true" type="image" filename="checkbox_checked" />
 		<resource name="radio_false" type="image" filename="radio_empty" />
 		<resource name="radio_true" type="image" filename="radio_selected" />
-		<resource name="small_button" type="image" filename="small-button" />
 		<resource name="medium_button" type="image" filename="medium-button" />
 		<resource name="sort_button" type="image" filename="sort-button" />
 		<resource name="minus_button" type="image" filename="minus-button" />
