@@ -336,7 +336,7 @@ int GUIFileSelector::Render(void)
 	int currentIconHeight = 0, currentIconWidth = 0;
 	int currentIconOffsetY = 0, currentIconOffsetX = 0;
 	int folderIconOffsetY = (int)((actualLineHeight - mFolderIconHeight) / 2), fileIconOffsetY = (int)((actualLineHeight - mFileIconHeight) / 2);
-	int folderIconOffsetX = (mFolderIconWidth - mIconWidth) / 2, fileIconOffsetX = (mFileIconWidth - mIconWidth) / 2;
+	int folderIconOffsetX = (mIconWidth - mFolderIconWidth) / 2, fileIconOffsetX = (mIconWidth - mFileIconWidth) / 2;
 
 	for (line = 0; line < lines; line++)
 	{
@@ -426,7 +426,6 @@ int GUIFileSelector::Update(void)
 		std::string newValue = gui_parse_text(mHeaderText);
 		if (mLastValue != newValue) {
 			mLastValue = newValue;
-			LOGI("header value: '%s'\n", mLastValue.c_str());
 			mUpdate = 1;
 		}
 	}
@@ -441,29 +440,24 @@ int GUIFileSelector::Update(void)
 	// Handle kinetic scrolling
 	if (scrollingSpeed == 0) {
 		// Do nothing
-	} else if (scrollingSpeed > 0)
-	{
-		if (mStart) {
-			if (scrollingSpeed < ((int) (actualLineHeight) * 2.5)) {
-				scrollingY += scrollingSpeed;
-				scrollingSpeed--;
-			} else {
-				scrollingY += ((int) (actualLineHeight) * 2.5);
-				scrollingSpeed -= 3;
-			}
-			while (mStart && scrollingY > 0) {
-				mStart--;
-				scrollingY -= actualLineHeight;
-			}
-			if (mStart == 0 && scrollingY > 0) {
-				scrollingY = 0;
-				scrollingSpeed = 0;
-			}
-			mUpdate = 1;
+	} else if (scrollingSpeed > 0) {
+		if (scrollingSpeed < ((int) (actualLineHeight) * 2.5)) {
+			scrollingY += scrollingSpeed;
+			scrollingSpeed--;
+		} else {
+			scrollingY += ((int) (actualLineHeight) * 2.5);
+			scrollingSpeed -= 3;
 		}
-	}
-	else if (scrollingSpeed < 0)
-	{
+		while (mStart && scrollingY > 0) {
+			mStart--;
+			scrollingY -= actualLineHeight;
+		}
+		if (mStart == 0 && scrollingY > 0) {
+			scrollingY = 0;
+			scrollingSpeed = 0;
+		}
+		mUpdate = 1;
+	} else if (scrollingSpeed < 0) {
 		int totalSize = (mShowFolders ? mFolderList.size() : 0) + (mShowFiles ? mFileList.size() : 0);
 		int lines = (mRenderH - mHeaderH) / (actualLineHeight);
 
@@ -500,8 +494,7 @@ int GUIFileSelector::Update(void)
 int GUIFileSelector::GetSelection(int x, int y)
 {
 	// We only care about y position
-	if (y < mRenderY) return -1;
-	if (y - mRenderY <= mHeaderH || y - mRenderY > mRenderH) return -1;
+	if (y < mRenderY || y - mRenderY <= mHeaderH || y - mRenderY > mRenderH) return -1;
 	return (y - mRenderY - mHeaderH);
 }
 
@@ -514,20 +507,29 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
 	switch (state)
 	{
 	case TOUCH_START:
-		startSelection = GetSelection(x,y);
+		if (scrollingSpeed != 0)
+			startSelection = -1;
+		else
+			startSelection = GetSelection(x,y);
 		startY = lastY = last2Y = y;
 		scrollingSpeed = 0;
 		break;
 
 	case TOUCH_DRAG:
 		// Check if we dragged out of the selection window
-		startSelection = -1;
 		if (GetSelection(x, y) == -1) {
 			last2Y = lastY = 0;
 			break;
 		}
+
+		// Provide some debounce on initial touches
+		if (startSelection != -1 && abs(y - startY) < 6) {
+			break;
+		}
+
 		last2Y = lastY;
-		lastY = y;
+		lastY = y;	
+		startSelection = -1;
 
 		// Handle scrolling
 		scrollingY += y - startY;
@@ -558,7 +560,8 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
 					mStart = totalSize - lines;
 					scrollingY = 0;
 				}
-			}
+			} else
+				scrollingY = 0;
 		}
 		mUpdate = 1;
 		break;
@@ -628,6 +631,7 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
 							GetFileList(oldcwd);
 						}
 						mStart = 0;
+						scrollingY = 0;
 						mUpdate = 1;
 					}
 				}
@@ -644,7 +648,7 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
 				}
 			}
 		} else {
-			// We were scrolling
+			// This is for kinetic scrolling
 			scrollingSpeed = lastY - last2Y;
 		}
 		break;
@@ -659,12 +663,21 @@ int GUIFileSelector::NotifyVarChange(std::string varName, std::string value)
 		// Always clear the data variable so we know to use it
 		DataManager::SetValue(mVariable, "");
 	}
-	if (varName == mPathVar || varName == mSortVariable || !mHeaderIsStatic)
+	if (!mHeaderIsStatic) {
+		std::string newValue = gui_parse_text(mHeaderText);
+		if (mLastValue != newValue) {
+			mLastValue = newValue;
+			mUpdate = 1;
+		}
+	}
+	if (varName == mPathVar || varName == mSortVariable)
 	{
 		DataManager::GetValue(mPathVar, value);  // sometimes the value will be the sort order instead of the path, so we read the path everytime
 		DataManager::GetValue(mSortVariable, mSortOrder);
 		GetFileList(value);
 		mStart = 0;
+		scrollingY = 0;
+		scrollingSpeed = 0;
 		mUpdate = 1;
 		return 0;
 	}
