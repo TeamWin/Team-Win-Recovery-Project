@@ -1494,31 +1494,16 @@
 			<object type="template" name="progress_bar" />
 
 			<object type="action">
-				<conditions>
-					<condition var1="tw_operation_state" var2="1" />
-					<condition var1="tw_operation_status" var2="0" />
-				</conditions>
-				<actions>
-					<action function="set">tw_back=backup</action>
-					<action function="set">tw_complete_text1=Backup Complete</action>
-					<action function="page">action_complete</action>
-				</actions>
-			</object>
-
-			<object type="action">
-				<conditions>
-					<condition var1="tw_operation_state" var2="1" />
-					<condition var1="tw_operation_status" var2="1" />
-				</conditions>
-				<actions>
-					<action function="set">tw_back=backup</action>
-					<action function="set">tw_complete_text1=Backup Complete</action>
-					<action function="page">action_complete</action>
-				</actions>
-			</object>
-
-			<object type="action">
 				<action function="nandroid">backup</action>
+			</object>
+
+			<object type="action">
+				<condition var1="tw_operation_state" var2="1" />
+				<actions>
+					<action function="set">tw_back=backup</action>
+					<action function="set">tw_complete_text1=Backup Complete</action>
+					<action function="page">action_complete</action>
+				</actions>
 			</object>
 
 			<object type="template" name="footer" />

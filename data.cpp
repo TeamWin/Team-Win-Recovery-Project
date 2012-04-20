@@ -249,8 +249,8 @@ int DataManager::SetValue(const string varName, string value, int persist /* = 0
 {
     if (!mInitialized)
         SetDefaultValues();
-if (varName == "tw_operation_state")
-	LOGI("tw_operation_state being set to '%s'\n", value.c_str());
+	if (varName == "tw_operation_state" && value == "1")
+		LOGI("tw_operation_state being set to '%s'\n", value.c_str());
     // Don't allow empty values or numerical starting values
     if (varName.empty() || (varName[0] >= '0' && varName[0] <= '9'))
         return -1;
