@@ -1334,16 +1334,16 @@
 			<object type="template" name="progress_bar" />
 
 			<object type="action">
-				<action function="nandroid">backup</action>
+				<condition var1="tw_operation_state" var2="1" />
+				<actions>
+					<action function="set">tw_back=restore_select</action>
+					<action function="set">tw_complete_text1=Restore Complete</action>
+					<action function="page">action_complete</action>
+				</actions>
 			</object>
 
 			<object type="action">
-				<condition var1="tw_operation_state" var2="1" />
-				<actions>
-					<action function="set">tw_back=backup</action>
-					<action function="set">tw_complete_text1=Backup Complete</action>
-					<action function="page">action_complete</action>
-				</actions>
+				<action function="nandroid">restore</action>
 			</object>
 		</page>
 
