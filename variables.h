@@ -130,6 +130,8 @@
 // #define TW_ALWAYS_RMRF              "tw_always_rmrf"
 
 #define TW_SHOW_DUMLOCK             "tw_show_dumlock"
+#define TW_HAS_INJECTTWRP           "tw_has_injecttwrp"
+#define TW_INJECT_AFTER_ZIP         "tw_inject_after_zip"
 
 // Also used:
 //   tw_boot_is_mountable

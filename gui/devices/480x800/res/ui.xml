@@ -450,9 +450,18 @@
 				<image checked="checkbox_true" unchecked="checkbox_false" />
 			</object>
 
+			<object type="checkbox">
+				<condition var1="tw_has_injecttwrp" var2="1" />
+				<placement x="%col1_x%" y="%row10_text_y%" />
+				<font resource="font" color="%text_color%" />
+				<text>Inject TWRP after install?</text>
+				<data variable="tw_inject_after_zip" />
+				<image checked="checkbox_true" unchecked="checkbox_false" />
+			</object>
+
 			<object type="text" color="%text_color%">
 				<font resource="font" />
-				<placement x="%center_x%" y="%row11_text_y%" placement="4" />
+				<placement x="%center_x%" y="%row12_text_y%" placement="4" />
 				<text>File %tw_zip_queue_count% of max of 10</text>
 			</object>
 
@@ -1982,6 +1991,23 @@
 				<text>HTC Dumlock</text>
 				<image resource="main_button" />
 				<action function="page">htcdumlock</action>
+			</object>
+
+			<object type="button">
+				<condition var1="tw_has_injecttwrp" var2="1" />
+				<placement x="%col2_x%" y="%row4_y%" />
+				<font resource="font" color="%button_text_color%" />
+				<text>Re-Inject TWRP</text>
+				<image resource="main_button" />
+				<actions>
+					<action function="set">tw_back=advanced</action>
+					<action function="set">tw_action=reinjecttwrp</action>
+					<action function="set">tw_text1=Re-Inject TWRP?</action>
+					<action function="set">tw_action_text1=Re-Injecting TWRP...</action>
+					<action function="set">tw_complete_text1=TWRP Injection Complete</action>
+					<action function="set">tw_slider_text=Swipe to Confirm</action>
+					<action function="page">confirm_action</action>
+				</actions>
 			</object>
 
 			<object type="action">

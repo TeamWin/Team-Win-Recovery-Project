@@ -619,6 +619,20 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			zip_queue_index = 0;
 			DataManager::SetValue(TW_ZIP_QUEUE_COUNT, zip_queue_index);
 			operation_end(ret_val, simulate);
+			int inject;
+			DataManager::GetValue(TW_ALLOW_PARTITION_SDCARD, inject);
+			if (inject != 0) {
+				operation_start("ReinjectTWRP");
+				ui_print("Injecting TWRP into boot image...\n");
+				if (simulate) {
+					simulate_progress_bar();
+				} else {
+					__system("injecttwrp --dump /tmp/backup_recovery_ramdisk.img /tmp/injected_boot.img --flash");
+					ui_print("TWRP injection complete.\n");
+				}
+
+				operation_end(0, simulate);
+			}
             return 0;
         }
         if (function == "wipe")
@@ -799,6 +813,22 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 				op_status = __system(arg.c_str());
 				if (op_status != 0)
 					op_status = 1;
+			}
+
+			operation_end(op_status, simulate);
+			return 0;
+		}
+		if (function == "reinjecttwrp")
+		{
+			int op_status = 0;
+
+			operation_start("ReinjectTWRP");
+			ui_print("Injecting TWRP into boot image...\n");
+			if (simulate) {
+				simulate_progress_bar();
+			} else {
+				__system("injecttwrp --dump /tmp/backup_recovery_ramdisk.img /tmp/injected_boot.img --flash");
+				ui_print("TWRP injection complete.\n");
 			}
 
 			operation_end(op_status, simulate);
