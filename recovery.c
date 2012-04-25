@@ -1143,6 +1143,13 @@ main(int argc, char **argv) {
 	check_and_run_script("/sbin/runatboot.sh", "boot");
 	check_and_run_script("/sbin/postrecoveryboot.sh", "boot");
 
+#ifdef TW_INCLUDE_INJECTTWRP
+	// Back up TWRP Ramdisk if needed:
+	LOGI("Backing up TWRP ramdisk...\n");
+	__system("injecttwrp --backup /tmp/backup_recovery_ramdisk.img");
+	LOGI("Backup of TWRP ramdisk done.\n");
+#endif
+
 	int status = INSTALL_SUCCESS;
 
     if (toggle_secure_fs) {
