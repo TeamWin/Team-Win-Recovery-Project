@@ -458,8 +458,10 @@ void DataManager::SetDefaultValues()
 #endif
 #ifdef TW_INCLUDE_INJECTTWRP
 	mConstValues.insert(make_pair(TW_HAS_INJECTTWRP, "1"));
+	mValues.insert(make_pair(TW_INJECT_AFTER_ZIP, make_pair("1", 1)));
 #else
 	mConstValues.insert(make_pair(TW_HAS_INJECTTWRP, "0"));
+	mValues.insert(make_pair(TW_INJECT_AFTER_ZIP, make_pair("0", 1)));
 #endif
 
     mValues.insert(make_pair(TW_BACKUP_NAME, make_pair("0", 0)));
@@ -523,7 +525,6 @@ void DataManager::SetDefaultValues()
 	mValues.insert(make_pair(TW_FILENAME, make_pair("/sdcard", 0)));
 	mValues.insert(make_pair(TW_SIMULATE_ACTIONS, make_pair("0", 1)));
 	mValues.insert(make_pair(TW_SIMULATE_FAIL, make_pair("0", 1)));
-	mValues.insert(make_pair(TW_INJECT_AFTER_ZIP, make_pair("0", 1)));
 }
 
 // Magic Values
