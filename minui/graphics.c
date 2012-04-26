@@ -33,12 +33,20 @@
 #include "font_10x18.h"
 #include "minui.h"
 
+#ifdef RECOVERY_BGRA
+#define PIXEL_FORMAT GGL_PIXEL_FORMAT_BGRA_8888
+#define PIXEL_SIZE 4
+#endif
+#ifdef RECOVERY_RGBX
+#define PIXEL_FORMAT GGL_PIXEL_FORMAT_RGBX_8888
+#define PIXEL_SIZE 4
+#endif
 #ifndef PIXEL_FORMAT
-#define PIXEL_FORMAT    GGL_PIXEL_FORMAT_RGB_565
+#define PIXEL_FORMAT GGL_PIXEL_FORMAT_RGB_565
+#define PIXEL_SIZE 2
 #endif
-#ifndef PIXEL_SIZE
-#define PIXEL_SIZE      2
-#endif
+
+// #define PRINT_SCREENINFO 1 // Enables printing of screen info to log
 
 typedef struct {
     GGLSurface texture;
@@ -59,6 +67,20 @@ static int gr_vt_fd = -1;
 
 static struct fb_var_screeninfo vi;
 static struct fb_fix_screeninfo fi;
+
+#ifdef PRINT_SCREENINFO
+static void print_fb_var_screeninfo()
+{
+	LOGI("vi.xres: %d\n", vi.xres);
+	LOGI("vi.yres: %d\n", vi.yres);
+	LOGI("vi.xres_virtual: %d\n", vi.xres_virtual);
+	LOGI("vi.yres_virtual: %d\n", vi.yres_virtual);
+	LOGI("vi.xoffset: %d\n", vi.xoffset);
+	LOGI("vi.yoffset: %d\n", vi.yoffset);
+	LOGI("vi.bits_per_pixel: %d\n", vi.bits_per_pixel);
+	LOGI("vi.grayscale: %d\n", vi.grayscale);
+}
+#endif
 
 static int get_framebuffer(GGLSurface *fb)
 {
@@ -153,7 +175,12 @@ static int get_framebuffer(GGLSurface *fb)
     fb->version = sizeof(*fb);
     fb->width = vi.xres;
     fb->height = vi.yres;
+#ifdef BOARD_HAS_JANKY_BACKBUFFER
+    LOGI("setting JANKY BACKBUFFER\n");
+    fb->stride = fi.line_length/2;
+#else
     fb->stride = vi.xres_virtual;
+#endif
     fb->data = bits;
     fb->format = PIXEL_FORMAT;
     memset(fb->data, 0, vi.yres * fb->stride * PIXEL_SIZE);
@@ -163,10 +190,19 @@ static int get_framebuffer(GGLSurface *fb)
     fb->version = sizeof(*fb);
     fb->width = vi.xres;
     fb->height = vi.yres;
+#ifdef BOARD_HAS_JANKY_BACKBUFFER
+    fb->stride = fi.line_length/2;
+    fb->data = (void*) (((unsigned) bits) + vi.yres * fi.line_length);
+#else
     fb->stride = vi.xres_virtual;
     fb->data = (void*) (((unsigned) bits) + vi.yres * fb->stride * PIXEL_SIZE);
+#endif
     fb->format = PIXEL_FORMAT;
     memset(fb->data, 0, vi.yres * fb->stride * PIXEL_SIZE);
+
+#ifdef PRINT_SCREENINFO
+	print_fb_var_screeninfo();
+#endif
 
     return fd;
 }
@@ -183,7 +219,7 @@ static void get_memory_surface(GGLSurface* ms) {
 static void set_active_framebuffer(unsigned n)
 {
     if (n > 1) return;
-    vi.yres_virtual = vi.yres * PIXEL_SIZE;
+    vi.yres_virtual = vi.yres * 2;
     vi.yoffset = n * vi.yres;
 //    vi.bits_per_pixel = PIXEL_SIZE * 8;
     if (ioctl(gr_fb_fd, FBIOPUT_VSCREENINFO, &vi) < 0) {

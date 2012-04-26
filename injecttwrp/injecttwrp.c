@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
+#define INJECT_USE_TMP 1
+
 int scan_file_for_data(char *filename, unsigned char *data, int data_size, unsigned long start_location, unsigned long *data_address) {
 	FILE *pFile;
 	unsigned long lSize;
@@ -301,11 +303,11 @@ int main(int argc, char** argv) {
 	char boot_image[512], backup_image[512];
 
 	printf("-- InjectTWRP Recovery Ramdisk Injection Tool for Samsung devices. --\n");
-	printf("-- by Dees_Troy and Team Win                                       --\n");
-	printf("-- http://teamw.in                                                 --\n");
-	printf("-- Bringing some win to Samsung!                                   --\n");
-	printf("-- This tool comes with no warranties whatsoever!                  --\n");
-	printf("-- Use at your own risk and always keep a backup!                  --\n\n");
+	printf("--                  by Dees_Troy and Team Win                      --\n");
+	printf("--                       http://teamw.in                           --\n");
+	printf("--                Bringing some win to Samsung!                    --\n");
+	printf("--        This tool comes with no warranties whatsoever!           --\n");
+	printf("--        Use at your own risk and always keep a backup!           --\n\n");
 	printf("Version 0.1 beta\n\n");
 
 	// Parse the arguments
@@ -315,6 +317,15 @@ int main(int argc, char** argv) {
 		if ((argc == 2 || argc == 3) && (strcmp(argv[1], "-b") == 0 || strcmp(argv[1], "--backup") == 0)) {
 			// Backup existing boot image
 			printf("Dumping boot image...\n");
+#ifdef INJECT_USE_TMP
+			system("dump_image boot /tmp/original_boot.img");
+			strcpy(boot_image, "/tmp/original_boot.img");
+
+			if (argc == 2)
+				strcpy(backup_image, "/tmp/recovery_ramdisk.img");
+			else
+				strcpy(backup_image, argv[2]);
+#else
 			system("mount /cache");
 			system("dump_image boot /cache/original_boot.img");
 			strcpy(boot_image, "/cache/original_boot.img");
@@ -323,6 +334,7 @@ int main(int argc, char** argv) {
 				strcpy(backup_image, "/cache/recovery_ramdisk.img");
 			else
 				strcpy(backup_image, argv[2]);
+#endif
 
 			// Check if this is a normal Android image or a Samsung image
 			return_val = scan_file_for_data(boot_image, &regular_check, 8, 0, &address2);
@@ -343,9 +355,14 @@ int main(int argc, char** argv) {
 			// Inject new ramdisk
 			if (strcmp(argv[1], "-d") == 0 || strcmp(argv[1], "--dump") == 0) {
 				printf("Dumping boot image...\n");
+#ifdef INJECT_USE_TMP
+				system("dump_image boot /tmp/original_boot.img");
+				strcpy(boot_image, "/tmp/original_boot.img");
+#else
 				system("mount /cache");
 				system("dump_image boot /cache/original_boot.img");
 				strcpy(boot_image, "/cache/original_boot.img");
+#endif
 				delete_ind = -1;
 			} else
 				strcpy(boot_image, argv[1]);
@@ -376,7 +393,7 @@ int main(int argc, char** argv) {
 				char command[512];
 
 				printf("Flashing new image...\n");
-				system("erase_image boot"); // Needed because flash_image checks the header and the header sometimes is the same wile the ramdisks are different
+				system("erase_image boot"); // Needed because flash_image checks the header and the header sometimes is the same while the ramdisks are different
 				strcpy(command, "flash_image boot ");
 				strcat(command, argv[3]);
 				system(command);
@@ -396,7 +413,7 @@ int main(int argc, char** argv) {
 		printf("injecttwrp --dump ramdisk-recovery.img outputboot.img [--flash]\n");
 		printf("--dump will use dump_image to dump your existing boot image\n");
 		printf("--flash will use flash_image to flash the new boot image\n\n");
-		printf("NOTE: dump_image and flash_image must already be installed!\n");
+		printf("NOTE: dump_image, erase_image, and flash_image must already be installed!\n");
 		return 0;
 	}
 
