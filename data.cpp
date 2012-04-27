@@ -249,7 +249,8 @@ int DataManager::SetValue(const string varName, string value, int persist /* = 0
 {
     if (!mInitialized)
         SetDefaultValues();
-
+	if (varName == "tw_operation_state" && value == "1")
+		LOGI("tw_operation_state being set to '%s'\n", value.c_str());
     // Don't allow empty values or numerical starting values
     if (varName.empty() || (varName[0] >= '0' && varName[0] <= '9'))
         return -1;
@@ -275,14 +276,14 @@ int DataManager::SetValue(const string varName, string value, int persist /* = 0
 
 int DataManager::SetValue(const string varName, int value, int persist /* = 0 */)
 {
-    ostringstream valStr;
+	ostringstream valStr;
     valStr << value;
     return SetValue(varName, valStr.str(), persist);;
 }
 
 int DataManager::SetValue(const string varName, float value, int persist /* = 0 */)
 {
-    ostringstream valStr;
+	ostringstream valStr;
     valStr << value;
     return SetValue(varName, valStr.str(), persist);;
 }
@@ -450,6 +451,18 @@ void DataManager::SetDefaultValues()
 #else
 	mConstValues.insert(make_pair(TW_DONT_UNMOUNT_SYSTEM, "0"));
 #endif
+#ifdef TW_NO_USB_STORAGE
+	mConstValues.insert(make_pair(TW_HAS_USB_STORAGE, "0"));
+#else
+	mConstValues.insert(make_pair(TW_HAS_USB_STORAGE, "1"));
+#endif
+#ifdef TW_INCLUDE_INJECTTWRP
+	mConstValues.insert(make_pair(TW_HAS_INJECTTWRP, "1"));
+	mValues.insert(make_pair(TW_INJECT_AFTER_ZIP, make_pair("1", 1)));
+#else
+	mConstValues.insert(make_pair(TW_HAS_INJECTTWRP, "0"));
+	mValues.insert(make_pair(TW_INJECT_AFTER_ZIP, make_pair("0", 1)));
+#endif
 
     mValues.insert(make_pair(TW_BACKUP_NAME, make_pair("0", 0)));
 	mValues.insert(make_pair(TW_BACKUP_SYSTEM_VAR, make_pair("1", 1)));
@@ -503,7 +516,6 @@ void DataManager::SetDefaultValues()
     mValues.insert(make_pair(TW_RESTORE_AVG_IMG_RATE, make_pair("15000000", 1)));
     mValues.insert(make_pair(TW_RESTORE_AVG_FILE_RATE, make_pair("3000000", 1)));
     mValues.insert(make_pair(TW_RESTORE_AVG_FILE_COMP_RATE, make_pair("2000000", 1)));
-	mValues.insert(make_pair(TW_HAS_USB_STORAGE, make_pair("0", 0)));
 	if (GetIntValue(TW_HAS_INTERNAL) == 1 && GetIntValue(TW_HAS_DATA_MEDIA) == 1 && GetIntValue(TW_HAS_EXTERNAL) == 0)
 		SetValue(TW_HAS_USB_STORAGE, 0, 0);
 	else

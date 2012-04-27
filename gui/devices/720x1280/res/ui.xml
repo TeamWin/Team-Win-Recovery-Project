@@ -10,9 +10,8 @@
 	</details>
 
 	<resources>
-		<resource name="font" type="font" filename="Roboto-Regular-20" />
-		<resource name="condensedfont" type="font" filename="Roboto-Regular-20" />
-		<resource name="filelist" type="font" filename="Roboto-Regular-40" />
+		<resource name="font" type="font" filename="Roboto-Condensed-30" />
+		<resource name="filelist" type="font" filename="Roboto-Condensed-30" />
 		<resource name="top_bar" type="image" filename="top-bar.jpg" />
 		<resource name="main_button" type="image" filename="menu-button" />
 		<resource name="file_icon" type="image" filename="file" />
@@ -25,7 +24,6 @@
 		<resource name="checkbox_true" type="image" filename="checkbox_checked" />
 		<resource name="radio_false" type="image" filename="radio_empty" />
 		<resource name="radio_true" type="image" filename="radio_selected" />
-		<resource name="small_button" type="image" filename="small-button" />
 		<resource name="medium_button" type="image" filename="medium-button" />
 		<resource name="sort_button" type="image" filename="sort-button" />
 		<resource name="minus_button" type="image" filename="minus-button" />
@@ -127,19 +125,19 @@
 			<object type="text" color="%text_color%">
 				<condition var1="tw_simulate_actions" var2="1" />
 				<font resource="font" />
-				<placement x="120" y="47" />
+				<placement x="120" y="45" />
 				<text>SIMULATING ACTIONS</text>
 			</object>
 
 			<object type="text" color="%text_color%">
 				<font resource="font" />
-				<placement x="120" y="86" />
+				<placement x="120" y="76" />
 				<text>%tw_time%</text>
 			</object>
 
 			<object type="text" color="%text_color%">
 				<font resource="font" />
-				<placement x="270" y="86" />
+				<placement x="270" y="76" />
 				<conditions>
 					<condition var1="tw_no_battery_percent" var2="0" />
 					<condition var1="tw_battery" op=">" var2="0" />
@@ -358,9 +356,13 @@
 
 			<object type="fileselector">
 				<placement x="5" y="%row1_y%" w="710" h="890" />
+				<header background="#202020" textcolor="#AAAAAA" separatorcolor="#33B5E5" separatorheight="3" />
+				<text>%tw_zip_location%</text>
+				<separator color="#505050" height="2" />
+				<sort name="tw_gui_sort_order" />
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
-				<font resource="filelist" spacing="18" color="%text_color%" />
+				<font resource="filelist" spacing="16" color="%text_color%" />
 				<filter extn=".zip" folders="1" files="1" />
 				<path name="tw_zip_location" default="/sdcard" />
 				<data name="tw_filename" />
@@ -451,9 +453,18 @@
 				<image checked="checkbox_true" unchecked="checkbox_false" />
 			</object>
 
+			<object type="checkbox">
+				<condition var1="tw_has_injecttwrp" var2="1" />
+				<placement x="%col1_x%" y="%row10_text_y%" />
+				<font resource="font" color="%text_color%" />
+				<text>Inject TWRP after install?</text>
+				<data variable="tw_inject_after_zip" />
+				<image checked="checkbox_true" unchecked="checkbox_false" />
+			</object>
+
 			<object type="text" color="%text_color%">
 				<font resource="font" />
-				<placement x="%center_x%" y="%row11_text_y%" placement="4" />
+				<placement x="%center_x%" y="%row12_text_y%" placement="4" />
 				<text>File %tw_zip_queue_count% of max of 10</text>
 			</object>
 
@@ -583,7 +594,10 @@
 				<font resource="font" color="%button_text_color%" />
 				<text>Home</text>
 				<image resource="main_button" />
-				<action function="page">main</action>
+				<actions>
+					<action function="set">tw_clear_destination=main2</action>
+					<action function="page">clear_vars</action>
+				</actions>
 			</object>
 
 			<object type="text" color="%text_fail_color%">
@@ -602,17 +616,24 @@
 
 			<object type="action">
 				<touch key="back" />
-				<action function="page">install</action>
+				<actions>
+					<action function="set">tw_clear_destination=install</action>
+					<action function="page">clear_vars</action>
+				</actions>
 			</object>
 
 			<object type="action">
 				<touch key="home" />
-				<action function="page">main</action>
+				<actions>
+					<action function="set">tw_clear_destination=main2</action>
+					<action function="page">clear_vars</action>
+				</actions>
 			</object>
 		</page>
 
 		<page name="clear_vars">
 			<object type="action">
+				<action function="set">tw_operation_state=0</action>
 				<action function="set">tw_text1=</action>
 				<action function="set">tw_text2=</action>
 				<action function="set">tw_text3=</action>
@@ -1122,51 +1143,34 @@
 			<object type="template" name="progress_bar" />
 
 			<object type="action">
-				<conditions>
-					<condition var1="tw_operation_state" var2="1" />
-					<condition var1="tw_operation_status" var2="0" />
-				</conditions>
-				<actions>
-					<action function="set">tw_back=backup</action>
-					<action function="set">tw_complete_text1=Backup Complete</action>
-					<action function="page">action_complete</action>
-				</actions>
-			</object>
-
-			<object type="action">
-				<conditions>
-					<condition var1="tw_operation_state" var2="1" />
-					<condition var1="tw_operation_status" var2="1" />
-				</conditions>
-				<actions>
-					<action function="set">tw_back=backup</action>
-					<action function="set">tw_complete_text1=Backup Complete</action>
-					<action function="page">action_complete</action>
-				</actions>
-			</object>
-
-			<object type="action">
 				<action function="nandroid">backup</action>
+			</object>
+
+			<object type="action">
+				<condition var1="tw_operation_state" var2="1" />
+				<actions>
+					<action function="set">tw_back=backup</action>
+					<action function="set">tw_complete_text1=Backup Complete</action>
+					<action function="page">action_complete</action>
+				</actions>
 			</object>
 		</page>
 
 		<page name="restore">
 			<object type="template" name="header" />
 
-			<object type="text" color="%text_color%">
-				<font resource="font" />
-				<placement x="%center_x%" y="%row1_header_y%" placement="4" />
-				<text>Select packge to restore</text>
-			</object>
-
 			<object type="fileselector">
-				<placement x="5" y="%row1_y%" w="710" h="870" />
+				<placement x="5" y="%row1_header_y%" w="710" h="890" />
+				<header background="#202020" textcolor="#AAAAAA" separatorcolor="#33B5E5" separatorheight="3" />
+				<text>Select Package to Restore:</text>
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
-				<font resource="filelist" spacing="18" color="%text_color%" />
+				<separator color="#505050" height="2" />
+				<font resource="filelist" spacing="16" color="%text_color%" />
 				<filter folders="1" files="0" nav="0" />
 				<path name="tw_backups_folder" />
 				<data name="tw_restore" default="" />
+				<sort name="tw_gui_sort_order" />
 				<selection name="tw_restore_name" />
 			</object>
 
@@ -1339,22 +1343,7 @@
 			<object type="template" name="progress_bar" />
 
 			<object type="action">
-				<conditions>
-					<condition var1="tw_operation_state" var2="1" />
-					<condition var1="tw_operation_status" var2="0" />
-				</conditions>
-				<actions>
-					<action function="set">tw_back=restore_select</action>
-					<action function="set">tw_complete_text1=Restore Complete</action>
-					<action function="page">action_complete</action>
-				</actions>
-			</object>
-
-			<object type="action">
-				<conditions>
-					<condition var1="tw_operation_state" var2="1" />
-					<condition var1="tw_operation_status" var2="1" />
-				</conditions>
+				<condition var1="tw_operation_state" var2="1" />
 				<actions>
 					<action function="set">tw_back=restore_select</action>
 					<action function="set">tw_complete_text1=Restore Complete</action>
@@ -1533,7 +1522,7 @@
 					<condition var1="tw_use_external_storage" var2="1" />
 				</conditions>
 				<text>Using external SDCard</text>
-				<image resource="checkbox_true" />
+				<image resource="radio_true" />
 				<action function="togglestorage">external</action>
 			</object>
 
@@ -1545,7 +1534,7 @@
 					<condition var1="tw_use_external_storage" var2="0" />
 				</conditions>
 				<text>Using external SDCard</text>
-				<image resource="checkbox_false" />
+				<image resource="radio_false" />
 				<action function="togglestorage">external</action>
 			</object>
 
@@ -1557,7 +1546,7 @@
 					<condition var1="tw_use_external_storage" var2="1" />
 				</conditions>
 				<text>                                      Using internal storage</text>
-				<image resource="checkbox_false" />
+				<image resource="radio_false" />
 				<action function="togglestorage">internal</action>
 			</object>
 
@@ -1569,7 +1558,7 @@
 					<condition var1="tw_use_external_storage" var2="0" />
 				</conditions>
 				<text>                                      Using internal storage</text>
-				<image resource="checkbox_true" />
+				<image resource="radio_true" />
 				<action function="togglestorage">internal</action>
 			</object>
 
@@ -1989,6 +1978,23 @@
 				<action function="page">htcdumlock</action>
 			</object>
 
+			<object type="button">
+				<condition var1="tw_has_injecttwrp" var2="1" />
+				<placement x="%col2_x%" y="%row4_y%" />
+				<font resource="font" color="%button_text_color%" />
+				<text>Re-Inject TWRP</text>
+				<image resource="main_button" />
+				<actions>
+					<action function="set">tw_back=advanced</action>
+					<action function="set">tw_action=reinjecttwrp</action>
+					<action function="set">tw_text1=Re-Inject TWRP?</action>
+					<action function="set">tw_action_text1=Re-Injecting TWRP...</action>
+					<action function="set">tw_complete_text1=TWRP Injection Complete</action>
+					<action function="set">tw_slider_text=Swipe to Confirm</action>
+					<action function="page">confirm_action</action>
+				</actions>
+			</object>
+
 			<object type="action">
 				<touch key="home" />
 				<action function="page">main</action>
@@ -2245,12 +2251,16 @@
 
 			<object type="fileselector">
 				<placement x="5" y="%row1_y%" w="710" h="890" />
+				<header background="#202020" textcolor="#AAAAAA" separatorcolor="#33B5E5" separatorheight="3" />
+				<text>%tw_file_location1%</text>
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
+				<separator color="#505050" height="2" />
 				<font resource="filelist" spacing="18" color="%text_color%" />
 				<folders="1" files="1" />
 				<path name="tw_file_location1" default="/sdcard" />
 				<data name="tw_filename1" />
+				<sort name="tw_gui_sort_order" />
 			</object>
 
 			<object type="template" name="sort_options" />
@@ -2386,12 +2396,16 @@
 
 			<object type="fileselector">
 				<placement x="5" y="%row1_y%" w="710" h="790" />
+				<header background="#202020" textcolor="#AAAAAA" separatorcolor="#33B5E5" separatorheight="3" />
+				<text>%tw_file_location2%</text>
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
+				<separator color="#505050" height="2" />
 				<font resource="filelist" spacing="18" color="%text_color%" />
 				<filter folders="1" files="0" />
 				<path name="tw_file_location2" default="/sdcard" />
 				<data name="tw_filename2" />
+				<sort name="tw_gui_sort_order" />
 			</object>
 
 			<object type="template" name="sort_options" />

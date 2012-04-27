@@ -233,9 +233,10 @@ int GUIAction::flash_zip(std::string filename, std::string pageName, const int s
 
 int GUIAction::doActions()
 {
-    if (mActions.size() < 1)    return -1;
-    if (mActions.size() == 1)   return doAction(mActions.at(0), 0);
-    
+	if (mActions.size() < 1)    return -1;
+    if (mActions.size() == 1)
+		return doAction(mActions.at(0), 0);
+
     // For multi-action, we always use a thread
     pthread_t t;
     pthread_create(&t, NULL, thread_start, this);
@@ -299,17 +300,18 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 	static string zip_queue[10];
 	static int zip_queue_index;
 	int simulate;
+
 	std::string arg = gui_parse_text(action.mArg);
+
 	std::string function = gui_parse_text(action.mFunction);
 
 	DataManager::GetValue(TW_SIMULATE_ACTIONS, simulate);
 
     if (function == "reboot")
     {
-        curtainClose();
+        //curtainClose(); this sometimes causes a crash
 
         sync();
-        finish_recovery("s");
 
         if (arg == "recovery")
             tw_reboot(rb_recovery);
@@ -616,6 +618,17 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			}
 			zip_queue_index = 0;
 			DataManager::SetValue(TW_ZIP_QUEUE_COUNT, zip_queue_index);
+
+			if (DataManager::GetIntValue(TW_HAS_INJECTTWRP) == 1 && DataManager::GetIntValue(TW_INJECT_AFTER_ZIP) == 1) {
+				operation_start("ReinjectTWRP");
+				ui_print("Injecting TWRP into boot image...\n");
+				if (simulate) {
+					simulate_progress_bar();
+				} else {
+					__system("injecttwrp --dump /tmp/backup_recovery_ramdisk.img /tmp/injected_boot.img --flash");
+					ui_print("TWRP injection complete.\n");
+				}
+			}
 			operation_end(ret_val, simulate);
             return 0;
         }
@@ -797,6 +810,22 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 				op_status = __system(arg.c_str());
 				if (op_status != 0)
 					op_status = 1;
+			}
+
+			operation_end(op_status, simulate);
+			return 0;
+		}
+		if (function == "reinjecttwrp")
+		{
+			int op_status = 0;
+
+			operation_start("ReinjectTWRP");
+			ui_print("Injecting TWRP into boot image...\n");
+			if (simulate) {
+				simulate_progress_bar();
+			} else {
+				__system("injecttwrp --dump /tmp/backup_recovery_ramdisk.img /tmp/injected_boot.img --flash");
+				ui_print("TWRP injection complete.\n");
 			}
 
 			operation_end(op_status, simulate);

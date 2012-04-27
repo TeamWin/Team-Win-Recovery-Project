@@ -394,6 +394,10 @@
 
 			<object type="fileselector">
 				<placement x="28" y="90" w="410" h="540" />
+				<header background="#202020" textcolor="#AAAAAA" separatorcolor="#33B5E5" separatorheight="3" />
+				<text>Folders:</text>
+				<separator color="#505050" height="2" />
+				<sort name="tw_gui_sort_order" />
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
 				<font resource="font" spacing="18" color="%text_color%" />
@@ -404,6 +408,10 @@
 
 			<object type="fileselector">
 				<placement x="445" y="90" w="810" h="540" />
+				<header background="#202020" textcolor="#AAAAAA" separatorcolor="#33B5E5" separatorheight="3" />
+				<text>%tw_zip_location%</text>
+				<separator color="#505050" height="2" />
+				<sort name="tw_gui_sort_order" />
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
 				<font resource="font" spacing="18" color="%text_color%" />
@@ -623,22 +631,32 @@
 				<font resource="font" color="%button_text_color%" />
 				<text>Home</text>
 				<image resource="main_button" />
-				<action function="page">main</action>
+				<actions>
+					<action function="set">tw_clear_destination=main2</action>
+					<action function="page">clear_vars</action>
+				</actions>
 			</object>
 
 			<object type="action">
 				<touch key="back" />
-				<action function="page">install</action>
+				<actions>
+					<action function="set">tw_clear_destination=install</action>
+					<action function="page">clear_vars</action>
+				</actions>
 			</object>
 
 			<object type="action">
 				<touch key="home" />
-				<action function="page">main</action>
+				<actions>
+					<action function="set">tw_clear_destination=main2</action>
+					<action function="page">clear_vars</action>
+				</actions>
 			</object>
 		</page>
 
 		<page name="clear_vars">
 			<object type="action">
+				<action function="set">tw_operation_state=0</action>
 				<action function="set">tw_text1=</action>
 				<action function="set">tw_text2=</action>
 				<action function="set">tw_text3=</action>
@@ -899,7 +917,7 @@
 				<placement x="%col1_x%" y="%row7_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<condition var1="mounted" op="!=" var2="/system" />
-				<text>                    Mount System</text>
+				<text>                       Mount System</text>
 				<image resource="checkbox_false" />
 				<action function="mount">/system</action>
 			</object>
@@ -908,7 +926,7 @@
 				<placement x="%col1_x%" y="%row7_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<condition var1="mounted" op="=" var2="/system" />
-				<text>                    Unmount System</text>
+				<text>                       Unmount System</text>
 				<image resource="checkbox_true" />
 				<action function="umount">/system</action>
 			</object>
@@ -917,7 +935,7 @@
 				<placement x="%col1_x%" y="%row8_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<condition var1="mounted" op="!=" var2="/data" />
-				<text>                    Mount Data</text>
+				<text>                       Mount Data</text>
 				<image resource="checkbox_false" />
 				<action function="mount">/data</action>
 			</object>
@@ -926,7 +944,7 @@
 				<placement x="%col1_x%" y="%row8_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<condition var1="mounted" op="=" var2="/data" />
-				<text>                    Unmount Data</text>
+				<text>                       Unmount Data</text>
 				<image resource="checkbox_true" />
 				<action function="umount">/data</action>
 			</object>
@@ -935,7 +953,7 @@
 				<placement x="%col1_x%" y="%row9_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<condition var1="mounted" op="!=" var2="/cache" />
-				<text>                    Mount Cache</text>
+				<text>                       Mount Cache</text>
 				<image resource="checkbox_false" />
 				<action function="mount">/cache</action>
 			</object>
@@ -944,7 +962,7 @@
 				<placement x="%col1_x%" y="%row9_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<condition var1="mounted" op="=" var2="/cache" />
-				<text>                    Unmount Cache</text>
+				<text>                       Unmount Cache</text>
 				<image resource="checkbox_true" />
 				<action function="umount">/cache</action>
 			</object>
@@ -956,7 +974,7 @@
 					<condition var1="tw_has_external" var2="1" />
 					<condition var1="mounted" op="!=" var2="EXTERNAL" />
 				</conditions>
-				<text>                    Mount SDCard</text>
+				<text>                       Mount SDCard</text>
 				<image resource="checkbox_false" />
 				<action function="mount">EXTERNAL</action>
 			</object>
@@ -968,7 +986,7 @@
 					<condition var1="tw_has_external" var2="1" />
 					<condition var1="mounted" op="=" var2="EXTERNAL" />
 				</conditions>
-				<text>                    Unmount SDCard</text>
+				<text>                       Unmount SDCard</text>
 				<image resource="checkbox_true" />
 				<action function="umount">EXTERNAL</action>
 			</object>
@@ -1006,7 +1024,7 @@
 				</conditions>
 				<placement x="%col1_x%" y="%row11_text_y%" />
 				<font resource="font" color="%text_color%" />
-				<text>                    Mount SD-Ext</text>
+				<text>                       Mount SD-Ext</text>
 				<image resource="checkbox_false" />
 				<action function="mount">/sd-ext</action>
 			</object>
@@ -1015,7 +1033,7 @@
 				<placement x="%col1_x%" y="%row11_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<condition var1="mounted" op="=" var2="/sd-ext" />
-				<text>                    Unmount SD-Ext</text>
+				<text>                       Unmount SD-Ext</text>
 				<image resource="checkbox_true" />
 				<action function="umount">/sd-ext</action>
 			</object>
@@ -1027,7 +1045,7 @@
 				</conditions>
 				<placement x="%col1_x%" y="%row12_text_y%" />
 				<font resource="font" color="%text_color%" />
-				<text>                    Mount Boot</text>
+				<text>                       Mount Boot</text>
 				<image resource="checkbox_false" />
 				<action function="mount">/boot</action>
 			</object>
@@ -1039,7 +1057,7 @@
 				</conditions>
 				<placement x="%col1_x%" y="%row12_text_y%" />
 				<font resource="font" color="%text_color%" />
-				<text>                    Unmount Boot</text>
+				<text>                       Unmount Boot</text>
 				<image resource="checkbox_true" />
 				<action function="umount">/boot</action>
 			</object>
@@ -1051,8 +1069,8 @@
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="1" />
 				</conditions>
-				<text>                    Using external SDCard</text>
-				<image resource="checkbox_true" />
+				<text>                       Using external SDCard</text>
+				<image resource="radio_true" />
 				<action function="togglestorage">external</action>
 			</object>
 
@@ -1063,8 +1081,8 @@
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="0" />
 				</conditions>
-				<text>                    Using external SDCard</text>
-				<image resource="checkbox_false" />
+				<text>                       Using external SDCard</text>
+				<image resource="radio_false" />
 				<action function="togglestorage">external</action>
 			</object>
 
@@ -1076,7 +1094,7 @@
 					<condition var1="tw_use_external_storage" var2="1" />
 				</conditions>
 				<text>                                                                Using internal storage</text>
-				<image resource="checkbox_false" />
+				<image resource="radio_false" />
 				<action function="togglestorage">internal</action>
 			</object>
 
@@ -1088,7 +1106,7 @@
 					<condition var1="tw_use_external_storage" var2="0" />
 				</conditions>
 				<text>                                                                Using internal storage</text>
-				<image resource="checkbox_true" />
+				<image resource="radio_true" />
 				<action function="togglestorage">internal</action>
 			</object>
 
@@ -1476,31 +1494,16 @@
 			<object type="template" name="progress_bar" />
 
 			<object type="action">
-				<conditions>
-					<condition var1="tw_operation_state" var2="1" />
-					<condition var1="tw_operation_status" var2="0" />
-				</conditions>
-				<actions>
-					<action function="set">tw_back=backup</action>
-					<action function="set">tw_complete_text1=Backup Complete</action>
-					<action function="page">action_complete</action>
-				</actions>
-			</object>
-
-			<object type="action">
-				<conditions>
-					<condition var1="tw_operation_state" var2="1" />
-					<condition var1="tw_operation_status" var2="1" />
-				</conditions>
-				<actions>
-					<action function="set">tw_back=backup</action>
-					<action function="set">tw_complete_text1=Backup Complete</action>
-					<action function="page">action_complete</action>
-				</actions>
-			</object>
-
-			<object type="action">
 				<action function="nandroid">backup</action>
+			</object>
+
+			<object type="action">
+				<condition var1="tw_operation_state" var2="1" />
+				<actions>
+					<action function="set">tw_back=backup</action>
+					<action function="set">tw_complete_text1=Backup Complete</action>
+					<action function="page">action_complete</action>
+				</actions>
 			</object>
 
 			<object type="template" name="footer" />
@@ -1509,14 +1512,12 @@
 		<page name="restore">
 			<object type="template" name="header" />
 
-			<object type="text" color="%text_color%">
-				<font resource="font" />
-				<placement x="%center_x%" y="%row1_text_y%" placement="4" />
-				<text>Select Packge to Restore:</text>
-			</object>
-
 			<object type="fileselector">
 				<placement x="%col2_x%" y="90" w="588" h="540" />
+				<header background="#202020" textcolor="#AAAAAA" separatorcolor="#33B5E5" separatorheight="3" />
+				<text>Select Packge to Restore:</text>
+				<separator color="#505050" height="2" />
+				<sort name="tw_gui_sort_order" />
 				<font resource="font" spacing="18" color="%text_color%" />
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
@@ -2255,6 +2256,10 @@
 
 			<object type="fileselector">
 				<placement x="28" y="90" w="410" h="540" />
+				<header background="#202020" textcolor="#AAAAAA" separatorcolor="#33B5E5" separatorheight="3" />
+				<text>Folders:</text>
+				<separator color="#505050" height="2" />
+				<sort name="tw_gui_sort_order" />
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
 				<font resource="font" spacing="18" color="%text_color%" />
@@ -2265,6 +2270,10 @@
 
 			<object type="fileselector">
 				<placement x="445" y="90" w="810" h="540" />
+				<header background="#202020" textcolor="#AAAAAA" separatorcolor="#33B5E5" separatorheight="3" />
+				<text>%tw_file_location1%</text>
+				<separator color="#505050" height="2" />
+				<sort name="tw_gui_sort_order" />
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />
 				<font resource="font" spacing="18" color="%text_color%" />
@@ -2406,6 +2415,10 @@
 
 			<object type="fileselector">
 				<placement x="%col2_x%" y="90" w="588" h="540" />
+				<header background="#202020" textcolor="#AAAAAA" separatorcolor="#33B5E5" separatorheight="3" />
+				<text>%tw_file_location2%</text>
+				<separator color="#505050" height="2" />
+				<sort name="tw_gui_sort_order" />
 				<font resource="font" spacing="18" color="%text_color%" />
 				<icon folder="folder_icon" file="file_icon" />
 				<background color="#303030" />

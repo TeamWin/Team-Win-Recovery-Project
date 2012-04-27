@@ -2285,16 +2285,16 @@ void install_htc_dumlock(void)
 
 	ui_print("Installing HTC Dumlock to system...\n");
 	ensure_path_mounted("/system");
-	__system("cp /res/htcd/htcdumlocksys /system/bin && chmod 755 /system/bin/htcdumlock");
+	__system("cp /res/htcd/htcdumlocksys /system/bin/htcdumlock && chmod 755 /system/bin/htcdumlock");
 	if (statfs("/system/bin/flash_image", &fs1) != 0) {
 		ui_print("Installing flash_image...\n");
-		__system("cp /res/htcd/flash_imagesys /system/bin && chmod 755 /system/bin/flash_image");
+		__system("cp /res/htcd/flash_imagesys /system/bin/flash_image && chmod 755 /system/bin/flash_image");
 		need_libs = 1;
 	} else
 		ui_print("flash_image is already installed, skipping...\n");
 	if (statfs("/system/bin/dump_image", &fs2) != 0) {
 		ui_print("Installing dump_image...\n");
-		__system("cp /res/htcd/dump_imagesys /system/bin && chmod 755 /system/bin/dump_image");
+		__system("cp /res/htcd/dump_imagesys /system/bin/dump_image && chmod 755 /system/bin/dump_image");
 		need_libs = 1;
 	} else
 		ui_print("dump_image is already installed, skipping...\n");
@@ -2326,4 +2326,19 @@ void htc_dumlock_reflash_recovery_to_boot(void)
 	ui_print("Reflashing recovery to boot...\n");
 	__system("htcdumlock recovery noreboot");
 	ui_print("Recovery is flashed to boot.\n");
+}
+
+void check_and_run_script(const char* script_file, const char* display_name)
+{
+	// Check for and run startup script if script exists
+	struct statfs st;
+	if (statfs(script_file, &st) == 0) {
+		ui_print("Running %s script...\n", display_name);
+		char command[255];
+		strcpy(command, "chmod 755 ");
+		strcat(command, script_file);
+		__system(command);
+		__system(script_file);
+		ui_print("\nFinished running %s script.\n", display_name);
+	}
 }

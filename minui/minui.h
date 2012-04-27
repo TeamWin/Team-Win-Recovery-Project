@@ -34,6 +34,7 @@ void gr_fill(int x, int y, int w, int h);
 
 int gr_textEx(int x, int y, const char *s, void* font);
 int gr_textExW(int x, int y, const char *s, void* font, int max_width);
+int gr_textExWH(int x, int y, const char *s, void* pFont, int max_width, int max_height);
 static inline int gr_text(int x, int y, const char *s)     { return gr_textEx(x, y, s, NULL); }
 int gr_measureEx(const char *s, void* font);
 static inline int gr_measure(const char *s)                { return gr_measureEx(s, NULL); }

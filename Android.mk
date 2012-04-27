@@ -97,6 +97,12 @@ endif
 ifeq ($(TW_NEVER_UNMOUNT_SYSTEM), true)
     LOCAL_CFLAGS += -DTW_NEVER_UNMOUNT_SYSTEM
 endif
+ifeq ($(TW_NO_USB_STORAGE), true)
+    LOCAL_CFLAGS += -DTW_NO_USB_STORAGE
+endif
+ifeq ($(TW_INCLUDE_INJECTTWRP), true)
+    LOCAL_CFLAGS += -DTW_INCLUDE_INJECTTWRP
+endif
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
 # It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses
@@ -154,6 +160,7 @@ LOCAL_STATIC_LIBRARIES := libmincrypt libcutils libstdc++ libc
 include $(BUILD_EXECUTABLE)
 
 include $(commands_recovery_local_path)/nonguiimages/Android.mk
+include $(commands_recovery_local_path)/injecttwrp/Android.mk
 include $(commands_recovery_local_path)/htcdumlock/Android.mk
 include $(commands_recovery_local_path)/minui/Android.mk
 include $(commands_recovery_local_path)/minelf/Android.mk

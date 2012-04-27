@@ -196,14 +196,21 @@ ResourceManager::ResourceManager(xml_node<>* resList, ZipArchive* pZip)
         if (!attr)
             break;
 
-        std::string type = attr->value();
+		std::string type = attr->value();
 
         if (type == "font")
         {
             FontResource* res = new FontResource(child, pZip);
             if (res == NULL || res->GetResource() == NULL)
             {
-                LOGE("Resource type (%s) failed to load\n", type.c_str());
+                xml_attribute<>* attr_name = child->first_attribute("name");
+
+				if (!attr_name) {
+					std::string res_name = attr_name->value();
+					LOGE("Resource (%s)-(%s) failed to load\n", type.c_str(), res_name.c_str());
+				} else
+					LOGE("Resource type (%s) failed to load\n", type.c_str());
+
                 delete res;
             }
             else
@@ -216,7 +223,14 @@ ResourceManager::ResourceManager(xml_node<>* resList, ZipArchive* pZip)
 			ImageResource* res = new ImageResource(child, pZip);
             if (res == NULL || res->GetResource() == NULL)
             {
-                LOGE("Resource type (%s) failed to load\n", type.c_str());
+                xml_attribute<>* attr_name = child->first_attribute("name");
+
+				if (!attr_name) {
+					std::string res_name = attr_name->value();
+					LOGE("Resource (%s)-(%s) failed to load\n", type.c_str(), res_name.c_str());
+				} else
+					LOGE("Resource type (%s) failed to load\n", type.c_str());
+
                 delete res;
             }
             else
@@ -229,7 +243,14 @@ ResourceManager::ResourceManager(xml_node<>* resList, ZipArchive* pZip)
             AnimationResource* res = new AnimationResource(child, pZip);
             if (res == NULL || res->GetResource() == NULL)
             {
-                LOGE("Resource type (%s) failed to load\n", type.c_str());
+                xml_attribute<>* attr_name = child->first_attribute("name");
+
+				if (!attr_name) {
+					std::string res_name = attr_name->value();
+					LOGE("Resource (%s)-(%s) failed to load\n", type.c_str(), res_name.c_str());
+				} else
+					LOGE("Resource type (%s) failed to load\n", type.c_str());
+
                 delete res;
             }
             else
