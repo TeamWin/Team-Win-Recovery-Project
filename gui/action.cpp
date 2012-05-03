@@ -414,6 +414,8 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			else
 				cmd = "mount " + arg;
             __system(cmd.c_str());
+			if (arg == "/data" && DataManager::GetIntValue(TW_HAS_DATADATA) == 1)
+				__system("mount /datadata");
         } else
 			ui_print("Simulating actions...\n");
         return 0;
@@ -441,6 +443,8 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			else
 				cmd = "umount " + arg;
             __system(cmd.c_str());
+			if (arg == "/data" && DataManager::GetIntValue(TW_HAS_DATADATA) == 1)
+				__system("umount /datadata");
         } else
 			ui_print("Simulating actions...\n");
         return 0;

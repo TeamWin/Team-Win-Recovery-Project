@@ -27,7 +27,7 @@
 #include "backstore.h"
 #include "data.h"
 
-struct dInfo tmp, sys, dat, boo, rec, cac, sdcext, sdcint, ase, sde, sp1, sp2, sp3;
+struct dInfo tmp, sys, dat, boo, rec, cac, sdcext, sdcint, ase, sde, sp1, sp2, sp3, datdat;
 char tw_device_name[20];
 
 void dumpPartitionTable(void);
@@ -45,6 +45,10 @@ struct dInfo* findDeviceByLabel(const char* label)
     if (strcmp(label, "cache") == 0)        return &cac;
     if (strcmp(label, "sd-ext") == 0)       return &sde;
 	if (strcmp(label, "and-sec") == 0)      return &ase;
+	if (strcmp(label, "datadata") == 0) {
+		DataManager_SetIntValue(TW_HAS_DATADATA, 1);
+		return &datdat;
+	}
 
     // New sdcard methods
 	if (DataManager_GetIntValue(TW_HAS_INTERNAL) == 1) {
@@ -74,6 +78,10 @@ struct dInfo* findDeviceByBlockDevice(const char* blockDevice)
     if (!blockDevice)                       return NULL;
     if (strcmp(blockDevice, sys.blk) == 0)  return &sys;
     if (strcmp(blockDevice, dat.blk) == 0)  return &dat;
+	if (strcmp(blockDevice, datdat.blk) == 0) {
+		DataManager_SetIntValue(TW_HAS_DATADATA, 1);
+		return &datdat;
+	}
     if (strcmp(blockDevice, boo.blk) == 0)  return &boo;
     if (strcmp(blockDevice, rec.blk) == 0)  return &rec;
     if (strcmp(blockDevice, cac.blk) == 0)  return &cac;
@@ -94,13 +102,14 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
     struct dInfo* loc = NULL;
 
     if (label)                  loc = findDeviceByLabel(label);
+			
     if (!loc && blockDevice)    loc = findDeviceByBlockDevice(blockDevice);
 
     if (!loc)
         return -1;
 
-    if (label)                  strcpy(loc->mnt, label);
     if (blockDevice)            strcpy(loc->blk, blockDevice);
+	if (label)                  strcpy(loc->mnt, label);
     if (mtdDevice){
 		strcpy(loc->dev, mtdDevice);
 		loc->memory_type = mtd;
@@ -366,17 +375,6 @@ unsigned long long getUsedSizeViaDu(const char* path)
 
 void updateMntUsedSize(struct dInfo* mMnt)
 {
-#ifdef RECOVERY_SDCARD_ON_DATA
-    /*if (mMnt == &sdcext)
-    {
-        struct statfs st;
-        if (statfs("/mnt/data-sdc/.", &st) != 0)    return;
-
-        mMnt->used = ((st.f_blocks - st.f_bfree) * st.f_bsize);
-        return;
-    }*/
-#endif
-
 	char path[512];
 
 	if (strcmp(mMnt->mnt, ".android_secure") == 0)
@@ -459,6 +457,8 @@ void updateUsedSized()
     updateMntUsedSize(&boo);
     updateMntUsedSize(&sys);
     updateMntUsedSize(&dat);
+	if (DataManager_GetIntValue(TW_HAS_DATADATA) == 1)
+		updateMntUsedSize(&datdat);
     updateMntUsedSize(&cac);
     updateMntUsedSize(&rec);
     updateMntUsedSize(&sdcext);
@@ -489,7 +489,10 @@ void updateUsedSized()
 
 	// Store sizes in data manager for GUI in MB
 	DataManager_SetIntValue(TW_BACKUP_SYSTEM_SIZE, (int)(sys.bsze / 1048576LLU));
-	DataManager_SetIntValue(TW_BACKUP_DATA_SIZE, (int)(dat.bsze / 1048576LLU));
+	if (DataManager_GetIntValue(TW_HAS_DATADATA) == 1)
+		DataManager_SetIntValue(TW_BACKUP_DATA_SIZE, (int)(dat.bsze / 1048576LLU) + (int)(datdat.bsze / 1048576LLU));
+	else
+		DataManager_SetIntValue(TW_BACKUP_DATA_SIZE, (int)(dat.bsze / 1048576LLU));
 	DataManager_SetIntValue(TW_BACKUP_BOOT_SIZE, (int)(boo.bsze / 1048576LLU));
 	DataManager_SetIntValue(TW_BACKUP_RECOVERY_SIZE, (int)(rec.bsze / 1048576LLU));
 	DataManager_SetIntValue(TW_BACKUP_CACHE_SIZE, (int)(cac.bsze / 1048576LLU));
@@ -527,9 +530,10 @@ int getLocations()
     // This decides if a partition can be mounted and appears in the fstab
     sys.mountable = 1;
     dat.mountable = 1;
+	datdat.mountable = 1;
     cac.mountable = 1;
     sde.mountable = 1;
-//    boo.mountable = 1;        // Boot it detected earlier
+//    boo.mountable = 1;        // Boot is detected earlier
     rec.mountable = 0;
     sdcext.mountable = 1;
     sdcint.mountable = 1;
@@ -538,9 +542,24 @@ int getLocations()
     sp2.mountable = SP2_MOUNTABLE;
     sp3.mountable = SP3_MOUNTABLE;
 
+	sys.is_sub_partition = 0;
+    dat.is_sub_partition = 0;
+	datdat.is_sub_partition = 1;
+    cac.is_sub_partition = 0;
+    sde.is_sub_partition = 0;
+    boo.is_sub_partition = 0;
+    rec.is_sub_partition = 0;
+    sdcext.is_sub_partition = 0;
+    sdcint.is_sub_partition = 0;
+    ase.is_sub_partition = 0;
+    sp1.is_sub_partition = 0;
+    sp2.is_sub_partition = 0;
+    sp3.is_sub_partition = 0;
+
     // This decides how we backup/restore a block
     sys.backup = files;
     dat.backup = files;
+	datdat.backup = files;
     cac.backup = files;
     sde.backup = files;
     boo.backup = image;
@@ -604,6 +623,8 @@ int getLocations()
     listMntInfo(&boo, "boot");
     listMntInfo(&sys, "system");
     listMntInfo(&dat, "data");
+	if (DataManager_GetIntValue(TW_HAS_DATADATA) == 1)
+		listMntInfo(&datdat, "datadata");
     listMntInfo(&cac, "cache");
     listMntInfo(&rec, "recovery");
     listMntInfo(&sdcext, "sdcext");
@@ -721,6 +742,8 @@ void createFstab()
 		if (boo.mountable)      createFstabEntry(fp, &boo);
         if (sys.mountable)      createFstabEntry(fp, &sys);
 		if (dat.mountable)      createFstabEntry(fp, &dat);
+		if (DataManager_GetIntValue(TW_HAS_DATADATA) == 1)
+			createFstabEntry(fp, &datdat);
         if (cac.mountable)      createFstabEntry(fp, &cac);
         if (sdcext.mountable)   createFstabEntry(fp, &sdcext);
         if (sdcint.mountable)   createFstabEntry(fp, &sdcint);
@@ -768,6 +791,8 @@ void dumpPartitionTable(void)
     dumpPartitionEntry(&tmp);
     dumpPartitionEntry(&sys);
     dumpPartitionEntry(&dat);
+	if (DataManager_GetIntValue(TW_HAS_DATADATA) == 1)
+		dumpPartitionEntry(&datdat);
     dumpPartitionEntry(&boo);
     dumpPartitionEntry(&rec);
     dumpPartitionEntry(&cac);

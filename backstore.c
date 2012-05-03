@@ -859,6 +859,11 @@ int CalculateBackupDetails(int* total_partitions, unsigned long long* total_img_
 		*total_partitions = *total_partitions + 1;
 		if (dat.backup == image)    *total_img_bytes += get_backup_size(&dat);
 		else                        *total_file_bytes += get_backup_size(&dat);
+		if (DataManager_GetIntValue(TW_HAS_DATADATA) == 1) {
+			*total_partitions = *total_partitions + 1;
+			if (datdat.backup == image)    *total_img_bytes += get_backup_size(&datdat);
+			else                           *total_file_bytes += get_backup_size(&datdat);
+		}
 	}
     if (DataManager_GetIntValue(TW_BACKUP_CACHE_VAR) == 1)
     {
@@ -1105,6 +1110,8 @@ int nandroid_back_exe()
 
 	// DATA
     if (tw_do_backup(TW_BACKUP_DATA_VAR, &dat, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))         return 1;
+	if (DataManager_GetIntValue(TW_HAS_DATADATA) == 1)
+		if (tw_do_backup(TW_BACKUP_DATA_VAR, &datdat, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))  return 1;
 
     // BOOT
     if (tw_do_backup(TW_BACKUP_BOOT_VAR, &boo, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))         return 1;
@@ -1126,11 +1133,11 @@ int nandroid_back_exe()
 
     // ANDROID-SECURE
 	if (stat(ase.dev, &st) ==0)
-		if (tw_do_backup(TW_BACKUP_ANDSEC_VAR, &ase, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))       return 1;
+		if (tw_do_backup(TW_BACKUP_ANDSEC_VAR, &ase, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))   return 1;
 
     // SD-EXT
 	if (stat(sde.dev, &st) ==0)
-		if (tw_do_backup(TW_BACKUP_SDEXT_VAR, &sde, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))        return 1;
+		if (tw_do_backup(TW_BACKUP_SDEXT_VAR, &sde, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))    return 1;
 
     update_system_details();
 
@@ -1317,6 +1324,8 @@ nandroid_rest_exe()
     int tw_total = 0;
     tw_total += (DataManager_GetIntValue(TW_RESTORE_SYSTEM_VAR) == 1 ? 1 : 0);
     tw_total += (DataManager_GetIntValue(TW_RESTORE_DATA_VAR) == 1 ? 1 : 0);
+	if (DataManager_GetIntValue(TW_HAS_DATADATA) == 1 && DataManager_GetIntValue(TW_RESTORE_DATA_VAR) == 1)
+		tw_total++;
     tw_total += (DataManager_GetIntValue(TW_RESTORE_CACHE_VAR) == 1 ? 1 : 0);
     tw_total += (DataManager_GetIntValue(TW_RESTORE_RECOVERY_VAR) == 1 ? 1 : 0);
     tw_total += (DataManager_GetIntValue(TW_RESTORE_SP1_VAR) == 1 ? 1 : 0);
@@ -1345,6 +1354,14 @@ nandroid_rest_exe()
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
             SetDataState("Restore failed", "", 1, 1);
 			return 1;
+		}
+		if (DataManager_GetIntValue(TW_HAS_DATADATA) == 1) {
+			ui_show_progress(sections, 150);
+			if (tw_restore(datdat,nan_dir) == 1) {
+				ui_print("-- Error occured, check recovery.log. Aborting.\n");
+				SetDataState("Restore failed", "", 1, 1);
+				return 1;
+			}
 		}
 	}
     if (DataManager_GetIntValue(TW_RESTORE_BOOT_VAR) == 1) {

@@ -628,6 +628,8 @@ wipe_data(int confirm) {
 	wipe_data_without_wiping_media();
 #else
 	erase_volume("/data");
+	if (DataManager_GetIntValue(TW_HAS_DATADATA) == 1)
+		erase_volume("/datadata");
 #endif
 	ui_print("Formatting /cache...\n");
 	erase_volume("/cache");

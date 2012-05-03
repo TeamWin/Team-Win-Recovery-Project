@@ -132,6 +132,7 @@
 #define TW_SHOW_DUMLOCK             "tw_show_dumlock"
 #define TW_HAS_INJECTTWRP           "tw_has_injecttwrp"
 #define TW_INJECT_AFTER_ZIP         "tw_inject_after_zip"
+#define TW_HAS_DATADATA             "tw_has_datadata"
 
 // Also used:
 //   tw_boot_is_mountable
