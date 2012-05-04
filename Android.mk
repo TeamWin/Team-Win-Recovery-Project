@@ -103,6 +103,9 @@ endif
 ifeq ($(TW_INCLUDE_INJECTTWRP), true)
     LOCAL_CFLAGS += -DTW_INCLUDE_INJECTTWRP
 endif
+ifeq ($(TW_INCLUDE_BLOBPACK), true)
+    LOCAL_CFLAGS += -DTW_INCLUDE_BLOBPACK
+endif
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
 # It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses
@@ -161,6 +164,7 @@ include $(BUILD_EXECUTABLE)
 
 include $(commands_recovery_local_path)/nonguiimages/Android.mk
 include $(commands_recovery_local_path)/injecttwrp/Android.mk
+include $(commands_recovery_local_path)/blobpack/Android.mk
 include $(commands_recovery_local_path)/htcdumlock/Android.mk
 include $(commands_recovery_local_path)/minui/Android.mk
 include $(commands_recovery_local_path)/minelf/Android.mk

@@ -1245,7 +1245,7 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
 			__system(rCommand);
 			__system(rCommand2);
 			ui_print("....done wiping.\n");
-		} else {
+		} else if (rMnt.backup == files) {
 			ui_print("...Formatting %s\n",rMnt.mnt);
             SetDataState("Formatting", rMnt.mnt, 0, 0);
 			if (strcmp(rMnt.fst, "yaffs2") == 0) {
@@ -1260,8 +1260,7 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
 			ui_print("....done formatting.\n");
 		}
 
-        if (rMnt.backup == files)
-        {
+		if (rMnt.backup == files) {
             if (strcmp(rMnt.mnt,".android_secure") == 0) { // if it's android_secure, we have add prefix
                 strcpy(rMount, rMnt.dev);
             } else {
@@ -1275,7 +1274,17 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
     			sprintf(rCommand, "flash_image %s %s", rMnt.mnt, rFilename);
     			strcpy(rMount, rMnt.mnt);
     		} else { // if filesystem is emmc, we use dd
+#ifdef TW_INCLUDE_BLOBPACK
+				char blobCommand[1024];
+
+				sprintf(blobCommand, "blobpack /tmp/boot.blob LNX %s", rFilename);
+				ui_print("Packing boot into blob\n");
+				LOGI("command: %s\n", blobCommand);
+				__system(blobCommand);
+				sprintf(rCommand, "dd bs=%s if=/tmp/boot.blob of=/dev/block/mmcblk0p4", bs_size);
+#else
     			sprintf(rCommand, "dd bs=%s if=%s of=%s", bs_size, rFilename, rMnt.dev);
+#endif
     			strcpy(rMount, rMnt.mnt);
     		}
         } else {
@@ -1327,7 +1336,7 @@ nandroid_rest_exe()
 	if (DataManager_GetIntValue(TW_HAS_DATADATA) == 1 && DataManager_GetIntValue(TW_RESTORE_DATA_VAR) == 1)
 		tw_total++;
     tw_total += (DataManager_GetIntValue(TW_RESTORE_CACHE_VAR) == 1 ? 1 : 0);
-    tw_total += (DataManager_GetIntValue(TW_RESTORE_RECOVERY_VAR) == 1 ? 1 : 0);
+    //tw_total += (DataManager_GetIntValue(TW_RESTORE_RECOVERY_VAR) == 1 ? 1 : 0);
     tw_total += (DataManager_GetIntValue(TW_RESTORE_SP1_VAR) == 1 ? 1 : 0);
     tw_total += (DataManager_GetIntValue(TW_RESTORE_SP2_VAR) == 1 ? 1 : 0);
     tw_total += (DataManager_GetIntValue(TW_RESTORE_SP3_VAR) == 1 ? 1 : 0);
@@ -1372,14 +1381,14 @@ nandroid_rest_exe()
 			return 1;
 		}
 	}
-    if (DataManager_GetIntValue(TW_RESTORE_RECOVERY_VAR) == 1) {
+    /*if (DataManager_GetIntValue(TW_RESTORE_RECOVERY_VAR) == 1) {
         ui_show_progress(sections, 150);
 		if (tw_restore(rec,nan_dir) == 1) {
 			ui_print("-- Error occured, check recovery.log. Aborting.\n");
             SetDataState("Restore failed", "", 1, 1);
 			return 1;
 		}
-	}
+	}*/
     if (DataManager_GetIntValue(TW_RESTORE_CACHE_VAR) == 1) {
         ui_show_progress(sections, 150);
 		if (tw_restore(cac,nan_dir) == 1) {
