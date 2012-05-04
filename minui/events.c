@@ -36,12 +36,15 @@
 
 #define ABS_MT_POSITION		0x2a	/* Group a set of X and Y */
 #define ABS_MT_AMPLITUDE	0x2b	/* Group a set of Z and W */
-#define ABS_MT_POSITION_X 0x35
-#define ABS_MT_POSITION_Y 0x36
-#define ABS_MT_TOUCH_MAJOR 0x30
-#define ABS_MT_WIDTH_MAJOR 0x32
-#define SYN_MT_REPORT 2
-#define ABS_MT_PRESSURE    0x3a
+#define ABS_MT_TOUCH_MAJOR 	0x30
+#define ABS_MT_WIDTH_MAJOR 	0x32
+#define ABS_MT_POSITION_X       0x35
+#define ABS_MT_POSITION_Y       0x36
+#define ABS_MT_SLOT		0x39
+#define ABS_MT_PRESSURE    	0x3a
+
+#define SYN_REPORT		0x00
+#define SYN_MT_REPORT 		0x02
 
 enum {
     DOWN_NOT,
@@ -57,6 +60,7 @@ struct virtualkey {
 
 struct position {
     int x, y;
+    int slot;
     int synced;
     struct input_absinfo xi, yi;
 };
@@ -341,26 +345,44 @@ static int vk_modify(struct ev *e, struct input_event *ev)
     if (ev->type == EV_ABS) {
         switch (ev->code) {
         case ABS_X:
+#ifdef _EVENT_LOGGING
+            LOGI("EV: %s => EV_ABS  ABS_X  %d\n", e->deviceName, ev->value);
+#endif
             e->p.synced |= 0x01;
             e->p.x = ev->value;
             break;
         case ABS_Y:
+#ifdef _EVENT_LOGGING
+            LOGI("EV: %s => EV_ABS  ABS_Y  %d\n", e->deviceName, ev->value);
+#endif
             e->p.synced |= 0x02;
             e->p.y = ev->value;
             break;
+	case ABS_MT_SLOT:
+#ifdef _EVENT_LOGGING
+            LOGI("EV: %s => EV_ABS  ABS_MT_SLOT  %d\n", e->deviceName, ev->value);
+#endif
+            e->mt_p.slot = ev->value;
+            break;
         case ABS_MT_POSITION_X:
-            e->mt_p.synced |= 0x01;
-            e->mt_p.x = ev->value;
 #ifdef _EVENT_LOGGING
             LOGI("EV: %s => EV_ABS  ABS_MT_POSITION_X  %d\n", e->deviceName, ev->value);
 #endif
+	    if(e->mt_p.slot == 0 )
+ 	    {
+            	e->mt_p.synced |= 0x01;
+            	e->mt_p.x = ev->value;
+	    }
             break;
         case ABS_MT_POSITION_Y:
-            e->mt_p.synced |= 0x02;
-            e->mt_p.y = ev->value;
 #ifdef _EVENT_LOGGING
             LOGI("EV: %s => EV_ABS  ABS_MT_POSITION_Y  %d\n", e->deviceName, ev->value);
 #endif
+            if(e->mt_p.slot == 0 )
+            {
+	    	e->mt_p.synced |= 0x02;
+            	e->mt_p.y = ev->value;
+	    }
             break;
         case ABS_MT_TOUCH_MAJOR:
 #ifdef _EVENT_LOGGING
@@ -370,28 +392,16 @@ static int vk_modify(struct ev *e, struct input_event *ev)
 #ifdef _EVENT_LOGGING
             LOGI("EV: %s => EV_ABS  ABS_MT_PRESSURE  %d\n", e->deviceName, ev->value);
 #endif
-            if (ev->value == 0)
-            {
-                // We're in a touch release, although some devices will still send positions as well
-                e->mt_p.x = 0;
-                e->mt_p.y = 0;
-                touchReleaseOnNextSynReport = 1;
-            }
-            break;
-        case ABS_MT_POSITION:
-            e->mt_p.synced = 0x03;
-            if (ev->value == (1 << 31))
-            {
-                e->mt_p.x = 0;
-                e->mt_p.y = 0;
-                lastWasSynReport = 1;
-            }
-            else
-            {
-                lastWasSynReport = 0;
-                e->mt_p.x = (ev->value & 0x7FFF0000) >> 16;
-                e->mt_p.y = (ev->value & 0xFFFF);
-            }
+            if(e->mt_p.slot == 0 )
+	    {
+		if (ev->value == 0)
+            	{
+                	// We're in a touch release, although some devices will still send positions as well
+                	e->mt_p.x = 0;
+                	e->mt_p.y = 0;
+                	touchReleaseOnNextSynReport = 1;
+            	}
+	    }
             break;
 
         default:
@@ -478,6 +488,7 @@ static int vk_modify(struct ev *e, struct input_event *ev)
 
     // Clear the current sync states
     e->p.synced = e->mt_p.synced = 0;
+    e->p.slot = e->mt_p.slot = 0;
 
     // If we have nothing useful to report, skip it
     if (x == -1 || y == -1)     return 1;
