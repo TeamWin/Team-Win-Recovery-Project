@@ -10,11 +10,11 @@
 	</details>
 
 	<resources>
-		<resource name="font" type="font" filename="bluehighway-25" />
+		<resource name="font" type="font" filename="Roboto-Condensed-20" />
 		<resource name="smallestfont" type="font" filename="Roboto-Condensed-10" />
 		<resource name="smallfont" type="font" filename="Roboto-Condensed-12" />
 		<resource name="mediumfont" type="font" filename="Roboto-Condensed-14" />
-		<resource name="filelist" type="font" filename="bluehighway-40" />
+		<resource name="filelist" type="font" filename="Roboto-Condensed-20" />
 		<resource name="android" type="image" filename="android" />
 		<resource name="main_button" type="image" filename="hdpi-menu-button" />
 		<resource name="file_icon" type="image" filename="file" />
