@@ -91,7 +91,7 @@
 				<conditions>
 					<condition var1="tw_battery" op=">" var2="0" />
 					<condition var1="tw_battery" op="<" var2="100" />
-				<conditions>
+				</conditions>
                 <text>Battery: %tw_battery%</text>
             </object>
         </template>
