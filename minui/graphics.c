@@ -127,17 +127,16 @@ static int get_framebuffer(GGLSurface *fb)
     } else if (PIXEL_FORMAT == GGL_PIXEL_FORMAT_RGB_565) {
         fprintf(stderr, "Pixel format: RGB_565\n");
         if (PIXEL_SIZE != 2)    fprintf(stderr, "E: Pixel Size mismatch!\n");
-        vi.blue.offset    = 11;
-        vi.green.offset   = 5;
-        vi.red.offset     = 0;
-        vi.blue.length    = 5;
-        vi.green.length   = 6;
-        vi.red.length     = 5;
-        vi.blue.msb_right = 0;
-        vi.green.msb_right = 0;
+        vi.red.offset = 11;
+        vi.red.length = 5;
         vi.red.msb_right = 0;
-        vi.transp.offset  = 0;
-        vi.transp.length  = 0;
+        vi.green.offset = 5;
+        vi.green.length = 6;
+        vi.blue.offset = 0;
+        vi.blue.length = 5;
+        vi.blue.msb_right = 0;
+        vi.transp.offset = 0;
+        vi.transp.length = 0;
     }
     else
     {
