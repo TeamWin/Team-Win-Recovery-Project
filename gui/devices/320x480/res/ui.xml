@@ -252,6 +252,7 @@
 
 			<object type="action">
 				<condition var1="tw_filename" op="modified" />
+				<action function="queuezip"></action>
 				<action function="page">flash_confirm</action>
 			</object>
 
