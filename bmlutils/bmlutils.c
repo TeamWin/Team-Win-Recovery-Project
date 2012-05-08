@@ -19,17 +19,63 @@
 
 #include <signal.h>
 #include <sys/wait.h>
+#include "../extra-functions.h"
 
-extern int __system(const char *command);
-#define BML_UNLOCK_ALL 0x8A29 ///< unlock all partition RO -> RW
+//extern int __system(const char *command);
+#define BML_UNLOCK_ALL				0x8A29		///< unlock all partition RO -> RW
 
 #ifndef BOARD_BML_BOOT
-#define BOARD_BML_BOOT "/dev/block/bml7"
+#define BOARD_BML_BOOT              "/dev/block/bml7"
 #endif
 
 #ifndef BOARD_BML_RECOVERY
-#define BOARD_BML_RECOVERY "/dev/block/bml8"
+#define BOARD_BML_RECOVERY          "/dev/block/bml8"
 #endif
+
+#undef _PATH_BSHELL
+#define _PATH_BSHELL "/sbin/sh"
+
+int __system(const char *command)
+{
+  pid_t pid;
+	sig_t intsave, quitsave;
+	sigset_t mask, omask;
+	int pstat;
+	char *argp[] = {"sh", "-c", NULL, NULL};
+
+	if (!command)		/* just checking... */
+		return(1);
+
+	argp[2] = (char *)command;
+
+	sigemptyset(&mask);
+	sigaddset(&mask, SIGCHLD);
+	sigprocmask(SIG_BLOCK, &mask, &omask);
+	switch (pid = vfork()) {
+	case -1:			/* error */
+		sigprocmask(SIG_SETMASK, &omask, NULL);
+		return(-1);
+	case 0:				/* child */
+		sigprocmask(SIG_SETMASK, &omask, NULL);
+		execve(_PATH_BSHELL, argp, environ);
+    _exit(127);
+  }
+
+	intsave = (sig_t)  bsd_signal(SIGINT, SIG_IGN);
+	quitsave = (sig_t) bsd_signal(SIGQUIT, SIG_IGN);
+	pid = waitpid(pid, (int *)&pstat, 0);
+	sigprocmask(SIG_SETMASK, &omask, NULL);
+	(void)bsd_signal(SIGINT, intsave);
+	(void)bsd_signal(SIGQUIT, quitsave);
+	return (pid == -1 ? -1 : pstat);
+}
+
+static struct pid {
+	struct pid *next;
+	FILE *fp;
+	pid_t pid;
+} *pidlist;
+
 
 static int restore_internal(const char* bml, const char* filename)
 {
@@ -65,7 +111,7 @@ static int restore_internal(const char* bml, const char* filename)
 
 int cmd_bml_restore_raw_partition(const char *partition, const char *filename)
 {
-    if (strcmp(partition, "boot") != 0 && strcmp(partition, "recovery") != 0 && strcmp(partition, "recoveryonly") != 0)
+    if (strcmp(partition, "boot") != 0 && strcmp(partition, "recovery") != 0 && strcmp(partition, "recoveryonly") != 0 && partition[0] != '/')
         return 6;
 
     int ret = -1;
@@ -80,6 +126,10 @@ int cmd_bml_restore_raw_partition(const char *partition, const char *filename)
 
     if (strcmp(partition, "recovery") == 0 || strcmp(partition, "recoveryonly") == 0)
         ret = restore_internal(BOARD_BML_RECOVERY, filename);
+
+    // support explicitly provided device paths
+    if (partition[0] == '/')
+        ret = restore_internal(partition, filename);
     return ret;
 }
 
@@ -90,6 +140,10 @@ int cmd_bml_backup_raw_partition(const char *partition, const char *out_file)
         bml = BOARD_BML_BOOT;
     else if (strcmp("recovery", partition) == 0)
         bml = BOARD_BML_RECOVERY;
+    else if (partition[0] == '/') {
+        // support explicitly provided device paths
+        bml = partition;
+    }
     else {
         printf("Invalid partition.\n");
         return -1;
@@ -105,11 +159,11 @@ int cmd_bml_backup_raw_partition(const char *partition, const char *out_file)
     int ret = -1;
     char *in_file = bml;
 
-    in = fopen ( in_file, "r" );
+    in  = fopen ( in_file,  "r" );
     if (in == NULL)
         goto ERROR3;
 
-    out = fopen ( out_file, "w" );
+    out = fopen ( out_file,  "w" );
     if (out == NULL)
         goto ERROR2;
 
@@ -162,4 +216,36 @@ int cmd_bml_mount_partition(const char *partition, const char *mount_point, cons
 int cmd_bml_get_partition_device(const char *partition, char *device)
 {
     return -1;
+}
+
+int format_rfs_device (const char *device, const char *path) {
+    const char *fatsize = "32";
+    const char *sectorsize = "1";
+
+    if (strcmp(path, "/datadata") == 0 || strcmp(path, "/cache") == 0) {
+        fatsize = "16";
+    }
+
+    // Just in case /data sector size needs to be altered
+    else if (strcmp(path, "/data") == 0 ) {
+        sectorsize = "1";
+    } 
+
+    // dump 10KB of zeros to partition before format due to fat.format bug
+    char cmd[PATH_MAX];
+
+    sprintf(cmd, "/sbin/dd if=/dev/zero of=%s bs=4096 count=10", device);
+    if(__system(cmd)) {
+        printf("failure while zeroing rfs partition.\n");
+        return -1;
+    }
+
+    // Run fat.format
+    sprintf(cmd, "/sbin/fat.format -F %s -S 4096 -s %s %s", fatsize, sectorsize, device);
+    if(__system(cmd)) {
+        printf("failure while running fat.format\n");
+        return -1;
+    }
+
+    return 0;
 }

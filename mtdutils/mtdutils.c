@@ -28,13 +28,6 @@
 
 #include "mtdutils.h"
 
-struct MtdPartition {
-    int device_index;
-    unsigned int size;
-    unsigned int erase_size;
-    char *name;
-};
-
 struct MtdReadContext {
     const MtdPartition *partition;
     char *buffer;
@@ -345,7 +338,7 @@ ssize_t mtd_read_data(MtdReadContext *ctx, char *data, size_t len)
             read += ctx->partition->erase_size;
         }
 
-        if (read >= len) {
+        if (read >= (int)len) {
             return read;
         }
 
@@ -570,8 +563,8 @@ off_t mtd_find_write_start(MtdWriteContext *ctx, off_t pos) {
     return pos;
 }
 
-#define BLOCK_SIZE 2048
-#define SPARE_SIZE (BLOCK_SIZE >> 5)
+#define BLOCK_SIZE    2048
+#define SPARE_SIZE    (BLOCK_SIZE >> 5)
 #define HEADER_SIZE 2048
 
 int cmd_mtd_restore_raw_partition(const char *partition_name, const char *filename)
@@ -579,21 +572,24 @@ int cmd_mtd_restore_raw_partition(const char *partition_name, const char *filena
     const MtdPartition *ptn;
     MtdWriteContext *write;
     void *data;
-    unsigned sz;
+
+    FILE* f = fopen(filename, "rb");
+    if (f == NULL) {
+        fprintf(stderr, "error opening %s", filename);
+        return -1;
+    }
 
     if (mtd_scan_partitions() <= 0)
     {
-        printf("error scanning partitions");
+        fprintf(stderr, "error scanning partitions");
         return -1;
     }
-    const MtdPartition *partition = mtd_find_partition_by_name(partition_name);
-    if (partition == NULL)
+    const MtdPartition *mtd = mtd_find_partition_by_name(partition_name);
+    if (mtd == NULL)
     {
-        printf("can't find %s partition", partition_name);
+        fprintf(stderr, "can't find %s partition", partition_name);
         return -1;
     }
-
-    // If the first part of the file matches the partition, skip writing
 
     int fd = open(filename, O_RDONLY);
     if (fd < 0)
@@ -601,124 +597,35 @@ int cmd_mtd_restore_raw_partition(const char *partition_name, const char *filena
         printf("error opening %s", filename);
         return -1;
     }
-
-    char header[HEADER_SIZE];
-    int headerlen = read(fd, header, sizeof(header));
-    if (headerlen <= 0)
-    {
-        printf("error reading %s header", filename);
-        return -1;
-    }
-
-    MtdReadContext *in = mtd_read_partition(partition);
-    if (in == NULL) {
-        printf("error opening %s: %s\n", partition, strerror(errno));
-        // just assume it needs re-writing
-    } else {
-        char check[HEADER_SIZE];
-        int checklen = mtd_read_data(in, check, sizeof(check));
-        if (checklen <= 0) {
-            printf("error reading %s: %s\n", partition_name, strerror(errno));
-            // just assume it needs re-writing
-        } else if (checklen == headerlen && !memcmp(header, check, headerlen)) {
-            printf("header is the same, not flashing %s\n", partition_name);
-            return 0;
-        }
-        mtd_read_close(in);
-    }
-
-    // Skip the header (we'll come back to it), write everything else
-    printf("flashing %s from %s\n", partition_name, filename);
-
-    MtdWriteContext *out = mtd_write_partition(partition);
-    if (out == NULL)
-    {
-       printf("error writing %s", partition_name);
-       return -1;
-    }
-
-    char buf[HEADER_SIZE];
-    memset(buf, 0, headerlen);
-    int wrote = mtd_write_data(out, buf, headerlen);
-    if (wrote != headerlen)
-    {
+    
+    MtdWriteContext* ctx = mtd_write_partition(mtd);
+    if (ctx == NULL) {
         printf("error writing %s", partition_name);
         return -1;
     }
 
-    int len;
-    while ((len = read(fd, buf, sizeof(buf))) > 0) {
-        wrote = mtd_write_data(out, buf, len);
-        if (wrote != len)
-        {
-            printf("error writing %s", partition_name);
-            return -1;
-        }
+    int success = 1;
+    char* buffer = malloc(BUFSIZ);
+    int read;
+    while (success && (read = fread(buffer, 1, BUFSIZ, f)) > 0) {
+        int wrote = mtd_write_data(ctx, buffer, read);
+        success = success && (wrote == read);
     }
-    if (len < 0)
-    {
-       printf("error reading %s", filename);
-       return -1;
-    }
+    free(buffer);
+    fclose(f);
 
-    if (mtd_write_close(out))
-    {
-        printf("error closing %s", partition_name);
+    if (!success) {
+        fprintf(stderr, "error writing %s", partition_name);
         return -1;
     }
 
-    // Now come back and write the header last
-
-    out = mtd_write_partition(partition);
-    if (out == NULL)
-    {
-        printf("error re-opening %s", partition_name);
-        return -1;
+    if (mtd_erase_blocks(ctx, -1) == -1) {
+        fprintf(stderr, "error erasing blocks of %s\n", partition_name);
     }
-
-    wrote = mtd_write_data(out, header, headerlen);
-    if (wrote != headerlen)
-    {
-        printf("error re-writing %s", partition_name);
-        return -1;
+    if (mtd_write_close(ctx) != 0) {
+        fprintf(stderr, "error closing write of %s\n", partition_name);
     }
-
-    // Need to write a complete block, so write the rest of the first block
-    size_t block_size;
-    if (mtd_partition_info(partition, NULL, &block_size, NULL))
-    {
-        printf("error getting %s block size", partition_name);
-        return -1;
-    }
-
-    if (lseek(fd, headerlen, SEEK_SET) != headerlen)
-    {
-        printf("error rewinding %s", filename);
-        return -1;
-    }
-
-    int left = block_size - headerlen;
-    while (left < 0) left += block_size;
-    while (left > 0) {
-        len = read(fd, buf, left > (int)sizeof(buf) ? (int)sizeof(buf) : left);
-        if (len <= 0){
-            printf("error reading %s", filename);
-            return -1;
-        }
-        if (mtd_write_data(out, buf, len) != len)
-        {
-            printf("error writing %s", partition_name);
-            return -1;
-        }
-
-        left -= len;
-    }
-
-    if (mtd_write_close(out))
-    {
-        printf("error closing %s", partition_name);
-        return -1;
-    }
+    printf("%s %s partition\n", success ? "wrote" : "failed to write", partition_name);
     return 0;
 }
 

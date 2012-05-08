@@ -7,11 +7,11 @@
 #include "flashutils/flashutils.h"
 
 #ifndef BOARD_BML_BOOT
-#define BOARD_BML_BOOT "/dev/block/bml7"
+#define BOARD_BML_BOOT              "/dev/block/bml7"
 #endif
 
 #ifndef BOARD_BML_RECOVERY
-#define BOARD_BML_RECOVERY "/dev/block/bml8"
+#define BOARD_BML_RECOVERY          "/dev/block/bml8"
 #endif
 
 int the_flash_type = UNKNOWN;
