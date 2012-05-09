@@ -72,14 +72,14 @@
 		<variable name="row18_text_y" value="1020" />
 		<variable name="zip_status_y" value="640" />
 		<variable name="tz_selected_y" value="160" />
-		<variable name="tz_set_y" value="950" />
-		<variable name="tz_current_y" value="1180" />
+		<variable name="tz_set_y" value="955" />
+		<variable name="tz_current_y" value="1205" />
 		<variable name="col_progressbar_x" value="264" />
 		<variable name="row_progressbar_y" value="1100" />
-		<variable name="col1_medium_x" value="10" />
-		<variable name="col2_medium_x" value="185" />
-		<variable name="col3_medium_x" value="365" />
-		<variable name="col4_medium_x" value="540" />
+		<variable name="col1_medium_x" value="30" />
+		<variable name="col2_medium_x" value="205" />
+		<variable name="col3_medium_x" value="385" />
+		<variable name="col4_medium_x" value="560" />
 		<variable name="row1_medium_y" value="130" />
 		<variable name="row2_medium_y" value="230" />
 		<variable name="row3_medium_y" value="330" />
@@ -1161,7 +1161,7 @@
 			<object type="template" name="header" />
 
 			<object type="fileselector">
-				<placement x="5" y="%row1_header_y%" w="710" h="890" />
+				<placement x="5" y="%row1_header_y%" w="800" h="890" />
 				<header background="#202020" textcolor="#AAAAAA" separatorcolor="#33B5E5" separatorheight="3" />
 				<text>Select Package to Restore:</text>
 				<icon folder="folder_icon" file="file_icon" />
@@ -1667,15 +1667,6 @@
 				<action function="reboot">recovery</action>
 			</object>
 
-			<object type="button">
-				<condition var1="tw_reboot_bootloader" var2="1" />
-				<placement x="%col2_x%" y="%row2_y%" />
-				<font resource="font" color="%button_text_color%" />
-				<text>Bootloader</text>
-				<image resource="main_button" />
-				<action function="reboot">bootloader</action>
-			</object>
-
 			<object type="action">
 				<touch key="home" />
 				<action function="page">main</action>
@@ -1802,7 +1793,7 @@
 			</object>
 
 			<object type="listbox">
-				<placement x="5" y="%row1_y%" w="710" h="540" />
+				<placement x="5" y="%row1_y%" w="800" h="480" />
 				<icon selected="radio_true" unselected="radio_false" />
 				<background color="#303030" />
 				<font resource="font" spacing="18" color="%text_color%" />
