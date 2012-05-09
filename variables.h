@@ -17,7 +17,7 @@
 #ifndef _VARIABLES_HEADER_
 #define _VARIABLES_HEADER_
 
-#define TW_VERSION_STR              "2.1.2"
+#define TW_VERSION_STR              "2.1.3"
 
 #define TW_USE_COMPRESSION_VAR      "tw_use_compression"
 #define TW_IGNORE_IMAGE_SIZE        "tw_ignore_image_size"
@@ -132,6 +132,7 @@
 #define TW_SHOW_DUMLOCK             "tw_show_dumlock"
 #define TW_HAS_INJECTTWRP           "tw_has_injecttwrp"
 #define TW_INJECT_AFTER_ZIP         "tw_inject_after_zip"
+#define TW_HAS_DATADATA             "tw_has_datadata"
 
 // Also used:
 //   tw_boot_is_mountable

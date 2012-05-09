@@ -37,14 +37,15 @@
 	</resources>
 
 	<variables>
-		<variable name="col1_x" value="10" />
-		<variable name="col2_x" value="383" />
+		<variable name="col1_x" value="25" />
+		<variable name="col2_x" value="398" />
+		<variable name="col3_x" value="400" />
 		<variable name="col_center_x" value="191" />
-		<variable name="center_x" value="360" />
-		<variable name="row1_y" value="170" />
-		<variable name="row2_y" value="410" />
-		<variable name="row3_y" value="650" />
-		<variable name="row4_y" value="890" />
+		<variable name="center_x" value="400" />
+		<variable name="row1_y" value="185" />
+		<variable name="row2_y" value="425" />
+		<variable name="row3_y" value="665" />
+		<variable name="row4_y" value="905" />
 		<variable name="col1_center_x" value="179" />
 		<variable name="col2_center_x" value="552" />
 		<variable name="row1_text2_y" value="310" />
@@ -62,18 +63,18 @@
 		<variable name="row9_text_y" value="570" />
 		<variable name="row10_text_y" value="620" />
 		<variable name="row11_text_y" value="670" />
-		<variable name="row12_text_y" value="720" />
+		<variable name="row12_text_y" value="700" />
 		<variable name="row13_text_y" value="770" />
 		<variable name="row14_text_y" value="820" />
 		<variable name="row15_text_y" value="870" />
 		<variable name="row16_text_y" value="920" />
 		<variable name="row17_text_y" value="970" />
 		<variable name="row18_text_y" value="1020" />
-		<variable name="zip_status_y" value="630" />
+		<variable name="zip_status_y" value="640" />
 		<variable name="tz_selected_y" value="160" />
 		<variable name="tz_set_y" value="950" />
 		<variable name="tz_current_y" value="1180" />
-		<variable name="col_progressbar_x" value="234" />
+		<variable name="col_progressbar_x" value="264" />
 		<variable name="row_progressbar_y" value="1100" />
 		<variable name="col1_medium_x" value="10" />
 		<variable name="col2_medium_x" value="185" />
@@ -86,18 +87,18 @@
 		<variable name="row5_medium_y" value="530" />
 		<variable name="row6_medium_y" value="840" />
 		<variable name="row7_medium_y" value="730" />
-		<variable name="slider_x" value="68" />
+		<variable name="slider_x" value="98" />
 		<variable name="slider_y" value="1030" />
 		<variable name="slider_text_y" value="1097" />
 		<variable name="button_text_color" value="#AAAAAA" />
 		<variable name="text_color" value="#FFFFFF" />
 		<variable name="text_success_color" value="#33B5E5" />
 		<variable name="text_fail_color" value="#FF0101" />
-		<variable name="home_button_x" value="10" />
+		<variable name="home_button_x" value="50" />
 		<variable name="home_button_y" value="1226" />
-		<variable name="back_button_x" value="625" />
+		<variable name="back_button_x" value="645" />
 		<variable name="back_button_y" value="1226" />
-		<variable name="sort_text_x" value="80" />
+		<variable name="sort_text_x" value="100" />
 		<variable name="sort_asc_text_y" value="1090" />
 		<variable name="sort_asc_button_y" value="1080" />
 		<variable name="sort_desc_text_y" value="1150" />
@@ -249,7 +250,7 @@
 
 		<template name="action_page_console">
 			<object type="console">
-				<placement x="0" y="%row2_y%" w="720" h="470" />
+				<placement x="0" y="%row2_y%" w="800" h="470" />
 				<color foreground="#A0A0A0" background="#303030" scroll="#303030" />
 				<font resource="fixed" />
 			</object>
@@ -257,8 +258,8 @@
 
 		<template name="footer">
 			<object type="console">
-				<slideout resource="slideout" x="325" y="1220" />
-				<placement x="0" y="0" w="720" h="1220" />
+				<slideout resource="slideout" x="355" y="1220" />
+				<placement x="0" y="0" w="800" h="1280" />
 				<color foreground="#A0A0A0" background="#303030" scroll="#303030" />
 				<font resource="fixed" />
 			</object>
@@ -355,7 +356,7 @@
 			</object>
 
 			<object type="fileselector">
-				<placement x="5" y="%row1_y%" w="710" h="890" />
+				<placement x="45" y="%row1_y%" w="710" h="890" />
 				<header background="#202020" textcolor="#AAAAAA" separatorcolor="#33B5E5" separatorheight="3" />
 				<text>%tw_zip_location%</text>
 				<separator color="#505050" height="2" />
@@ -520,7 +521,7 @@
 			<object type="template" name="header" />
 
 			<object type="console">
-				<placement x="0" y="%row1_y%" w="720" h="600" />
+				<placement x="0" y="%row1_y%" w="800" h="600" />
 				<color foreground="#A0A0A0" background="#303030" scroll="#303030" />
 				<font resource="fixed" />
 			</object>
@@ -555,7 +556,7 @@
 			</object>
 
 			<object type="console">
-				<placement x="0" y="%row1_y%" w="720" h="440" />
+				<placement x="0" y="%row1_y%" w="800" h="440" />
 				<color foreground="#A0A0A0" background="#303030" scroll="#303030" />
 				<font resource="fixed" />
 			</object>
@@ -1369,7 +1370,7 @@
 				<placement x="%col1_x%" y="%row1_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<condition var1="mounted" op="!=" var2="/system" />
-				<text>Mount System</text>
+				<text>  Mount System</text>
 				<image resource="checkbox_false" />
 				<action function="mount">/system</action>
 			</object>
@@ -1378,7 +1379,7 @@
 				<placement x="%col1_x%" y="%row1_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<condition var1="mounted" op="=" var2="/system" />
-				<text>Unmount System</text>
+				<text>  Unmount System</text>
 				<image resource="checkbox_true" />
 				<action function="umount">/system</action>
 			</object>
@@ -1387,7 +1388,7 @@
 				<placement x="%col1_x%" y="%row2_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<condition var1="mounted" op="!=" var2="/data" />
-				<text>Mount Data</text>
+				<text>  Mount Data</text>
 				<image resource="checkbox_false" />
 				<action function="mount">/data</action>
 			</object>
@@ -1396,7 +1397,7 @@
 				<placement x="%col1_x%" y="%row2_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<condition var1="mounted" op="=" var2="/data" />
-				<text>Unmount Data</text>
+				<text>  Unmount Data</text>
 				<image resource="checkbox_true" />
 				<action function="umount">/data</action>
 			</object>
@@ -1405,7 +1406,7 @@
 				<placement x="%col1_x%" y="%row3_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<condition var1="mounted" op="!=" var2="/cache" />
-				<text>Mount Cache</text>
+				<text>  Mount Cache</text>
 				<image resource="checkbox_false" />
 				<action function="mount">/cache</action>
 			</object>
@@ -1414,7 +1415,7 @@
 				<placement x="%col1_x%" y="%row3_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<condition var1="mounted" op="=" var2="/cache" />
-				<text>Unmount Cache</text>
+				<text>  Unmount Cache</text>
 				<image resource="checkbox_true" />
 				<action function="umount">/cache</action>
 			</object>
@@ -1426,7 +1427,7 @@
 					<condition var1="tw_has_external" var2="1" />
 					<condition var1="mounted" op="!=" var2="EXTERNAL" />
 				</conditions>
-				<text>Mount SDCard</text>
+				<text>  Mount SDCard</text>
 				<image resource="checkbox_false" />
 				<action function="mount">EXTERNAL</action>
 			</object>
@@ -1438,7 +1439,7 @@
 					<condition var1="tw_has_external" var2="1" />
 					<condition var1="mounted" op="=" var2="EXTERNAL" />
 				</conditions>
-				<text>Unmount SDCard</text>
+				<text>  Unmount SDCard</text>
 				<image resource="checkbox_true" />
 				<action function="umount">EXTERNAL</action>
 			</object>
@@ -1451,7 +1452,7 @@
 					<condition var1="tw_has_data_media" var2="0" />
 					<condition var1="mounted" op="!=" var2="INTERNAL" />
 				</conditions>
-				<text>                                      Mount Internal Storage</text>
+				<text>                                           Mount Internal Storage</text>
 				<image resource="checkbox_false" />
 				<action function="mount">INTERNAL</action>
 			</object>
@@ -1464,7 +1465,7 @@
 					<condition var1="tw_has_data_media" var2="0" />
 					<condition var1="mounted" op="=" var2="INTERNAL" />
 				</conditions>
-				<text>                                      Unmount Internal Storage</text>
+				<text>                                           Unmount Internal Storage</text>
 				<image resource="checkbox_true" />
 				<action function="umount">INTERNAL</action>
 			</object>
@@ -1521,7 +1522,7 @@
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="1" />
 				</conditions>
-				<text>Using external SDCard</text>
+				<text>                                            Using external SDCard</text>
 				<image resource="radio_true" />
 				<action function="togglestorage">external</action>
 			</object>
@@ -1533,31 +1534,31 @@
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="0" />
 				</conditions>
-				<text>Using external SDCard</text>
+				<text>                                            Using external SDCard</text>
 				<image resource="radio_false" />
 				<action function="togglestorage">external</action>
 			</object>
 
 			<object type="button">
-				<placement x="%col2_x%" y="%row8_text_y%" />
+				<placement x="%col3_x%" y="%row8_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<conditions>
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="1" />
 				</conditions>
-				<text>                                      Using internal storage</text>
+				<text>   Using internal storage</text>
 				<image resource="radio_false" />
 				<action function="togglestorage">internal</action>
 			</object>
 
 			<object type="button">
-				<placement x="%col2_x%" y="%row8_text_y%" />
+				<placement x="%col3_x%" y="%row8_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<conditions>
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="0" />
 				</conditions>
-				<text>                                      Using internal storage</text>
+				<text>   Using internal storage</text>
 				<image resource="radio_true" />
 				<action function="togglestorage">internal</action>
 			</object>
@@ -1969,6 +1970,14 @@
 				<action function="page">filemanagerlist</action>
 			</object>
 
+			<object type="button">
+				<placement x="%col1_x%" y="%row3_y%" />
+				<font resource="font" color="%button_text_color%" />
+				
+				<text>Reload Theme</text>
+				<image resource="main_button" />
+				<action function="reload"></action>
+			</object>
 			<object type="button">
 				<condition var1="tw_show_dumlock" var2="1" />
 				<placement x="%col2_x%" y="%row4_y%" />

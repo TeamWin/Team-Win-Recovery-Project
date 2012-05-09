@@ -6,7 +6,6 @@
 static const char tw_dinfo_file[] = "/etc/device.info";
 static const char tw_block[] = "/dev/block/";
 static const char tw_mtd[] = "/dev/mtd/";
-static int has_datadata = 0;
 
 enum backup_method {
     unknown = 0, 
@@ -32,6 +31,8 @@ struct dInfo {
     unsigned long long used;
 	unsigned long long bsze;
     int mountable;
+	int is_sub_partition;
+	char main_mnt[20];
     enum backup_method backup;
 	enum flash_memory_type memory_type;
 };
@@ -47,7 +48,7 @@ unsigned long long getUsedSizeViaDu(const char* path);
 int getLocations();
 void updateUsedSized();
 
-extern struct dInfo tmp, sys, dat, datadata, boo, rec, cac, sdcext, sdcint, ase, sde, sp1, sp2, sp3;
+extern struct dInfo tmp, sys, dat, datadata, boo, rec, cac, sdcext, sdcint, ase, sde, sp1, sp2, sp3, datdat;
 extern char tw_device_name[20];
 void update_system_details();
 

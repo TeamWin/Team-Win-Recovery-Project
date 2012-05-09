@@ -628,6 +628,8 @@ wipe_data(int confirm) {
 	wipe_data_without_wiping_media();
 #else
 	erase_volume("/data");
+	if (DataManager_GetIntValue(TW_HAS_DATADATA) == 1)
+		erase_volume("/datadata");
 #endif
 	ui_print("Formatting /cache...\n");
 	erase_volume("/cache");
@@ -1078,7 +1080,7 @@ main(int argc, char **argv) {
     get_args(&argc, &argv);
 
     LOGI("=> Installing busybox into /sbin\n");
-	__system("/sbin/busybox --install -s /sbin"); // Let's install busybox
+	__system("/sbin/bbinstall.sh"); // Let's install busybox
 	LOGI("=> Linking mtab\n");
 	__system("ln -s /proc/mounts /etc/mtab"); // And link mtab for mke2fs
 	LOGI("=> Getting locations\n");
