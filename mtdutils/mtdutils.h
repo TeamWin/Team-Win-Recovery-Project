@@ -53,4 +53,11 @@ off_t mtd_erase_blocks(MtdWriteContext *, int blocks);  /* 0 ok, -1 for all */
 off_t mtd_find_write_start(MtdWriteContext *ctx, off_t pos);
 int mtd_write_close(MtdWriteContext *);
 
+struct MtdPartition {
+    int device_index;
+    unsigned int size;
+    unsigned int erase_size;
+    char *name;
+};
+
 #endif  // MTDUTILS_H_

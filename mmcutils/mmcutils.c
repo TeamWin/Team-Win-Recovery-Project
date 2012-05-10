@@ -1,31 +1,31 @@
 /*
-* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are
-* met:
-* * Redistributions of source code must retain the above copyright
-* notice, this list of conditions and the following disclaimer.
-* * Redistributions in binary form must reproduce the above
-* copyright notice, this list of conditions and the following
-* disclaimer in the documentation and/or other materials provided
-* with the distribution.
-* * Neither the name of Code Aurora Forum, Inc. nor the names of its
-* contributors may be used to endorse or promote products derived
-* from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
-* BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-* BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-* WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-* OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-* IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Code Aurora Forum, Inc. nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -37,7 +37,7 @@
 #include <sys/reboot.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <sys/mount.h> // for _IOW, _IOR, mount()
+#include <sys/mount.h>  // for _IOW, _IOR, mount()
 
 #include "mmcutils.h"
 
@@ -64,9 +64,9 @@ typedef struct {
 } MmcState;
 
 static MmcState g_mmc_state = {
-    NULL, // partitions
-    0, // partitions_allocd
-    -1 // partition_count
+    NULL,   // partitions
+    0,      // partitions_allocd
+    -1      // partition_count
 };
 
 #define MMC_DEVICENAME "/dev/block/mmcblk0"
@@ -140,17 +140,17 @@ mmc_read_mbr (const char *device, MmcPartition *mbr) {
 
         mbr[mmc_partition_count].dstatus = \
                     buffer[idx + i * TABLE_ENTRY_SIZE + OFFSET_STATUS];
-        mbr[mmc_partition_count].dtype = \
+        mbr[mmc_partition_count].dtype   = \
                     buffer[idx + i * TABLE_ENTRY_SIZE + OFFSET_TYPE];
         mbr[mmc_partition_count].dfirstsec = \
                     GET_LWORD_FROM_BYTE(&buffer[idx + \
                                         i * TABLE_ENTRY_SIZE + \
                                         OFFSET_FIRST_SEC]);
-        mbr[mmc_partition_count].dsize = \
+        mbr[mmc_partition_count].dsize  = \
                     GET_LWORD_FROM_BYTE(&buffer[idx + \
                                         i * TABLE_ENTRY_SIZE + \
                                         OFFSET_SIZE]);
-        dtype = mbr[mmc_partition_count].dtype;
+        dtype  = mbr[mmc_partition_count].dtype;
         dfirstsec = mbr[mmc_partition_count].dfirstsec;
         mmc_partition_name(&mbr[mmc_partition_count], \
                         mbr[mmc_partition_count].dtype);
@@ -187,11 +187,11 @@ mmc_read_mbr (const char *device, MmcPartition *mbr) {
         }
         mbr[mmc_partition_count].dstatus = \
                     buffer[TABLE_ENTRY_0 + OFFSET_STATUS];
-        mbr[mmc_partition_count].dtype = \
+        mbr[mmc_partition_count].dtype   = \
                     buffer[TABLE_ENTRY_0 + OFFSET_TYPE];
         mbr[mmc_partition_count].dfirstsec = \
                     GET_LWORD_FROM_BYTE(&buffer[TABLE_ENTRY_0 + \
-                                        OFFSET_FIRST_SEC]) + \
+                                        OFFSET_FIRST_SEC])    + \
                                         EBR_current_sec;
         mbr[mmc_partition_count].dsize = \
                     GET_LWORD_FROM_BYTE(&buffer[TABLE_ENTRY_0 + \
@@ -213,7 +213,7 @@ mmc_read_mbr (const char *device, MmcPartition *mbr) {
             break;
         }
         /* More EBR to follow - read in the next EBR sector */
-        fseek (fd, ((EBR_first_sec + dfirstsec) * 512), SEEK_SET);
+        fseek (fd,  ((EBR_first_sec + dfirstsec) * 512), SEEK_SET);
         if ((fread(buffer, 512, 1, fd)) != 1)
             goto ERROR1;
 
@@ -249,9 +249,9 @@ mmc_scan_partitions() {
     vfat_count = 0;
 
     /* Initialize all of the entries to make things easier later.
-* (Lets us handle sparsely-numbered partitions, which
-* may not even be possible.)
-*/
+     * (Lets us handle sparsely-numbered partitions, which
+     * may not even be possible.)
+     */
     for (i = 0; i < g_mmc_state.partitions_allocd; i++) {
         MmcPartition *p = &g_mmc_state.partitions[i];
         if (p->device_index != NULL) {
@@ -316,9 +316,9 @@ mmc_find_partition_by_name(const char *name)
     return NULL;
 }
 
-#define MKE2FS_BIN "/sbin/mke2fs"
-#define TUNE2FS_BIN "/sbin/tune2fs"
-#define E2FSCK_BIN "/sbin/e2fsck"
+#define MKE2FS_BIN      "/sbin/mke2fs"
+#define TUNE2FS_BIN     "/sbin/tune2fs"
+#define E2FSCK_BIN      "/sbin/e2fsck"
 
 int
 run_exec_process ( char **argv) {
@@ -340,25 +340,26 @@ run_exec_process ( char **argv) {
 
 int
 format_ext3_device (const char *device) {
-#ifdef BOARD_HAS_LARGE_FILESYSTEM
     char *const mke2fs[] = {MKE2FS_BIN, "-j", "-q", device, NULL};
     char *const tune2fs[] = {TUNE2FS_BIN, "-C", "1", device, NULL};
-#else
-    char *const mke2fs[] = {MKE2FS_BIN, "-j", device, NULL};
-    char *const tune2fs[] = {TUNE2FS_BIN, "-j", "-C", "1", device, NULL};
-#endif
     // Run mke2fs
-    if(run_exec_process(mke2fs))
+    if(run_exec_process(mke2fs)) {
+        printf("failure while running mke2fs\n");
         return -1;
+    }
 
     // Run tune2fs
-    if(run_exec_process(tune2fs))
+    if(run_exec_process(tune2fs)) {
+        printf("failure while running mke2fs\n");
         return -1;
+    }
 
     // Run e2fsck
     char *const e2fsck[] = {E2FSCK_BIN, "-fy", device, NULL};
-    if(run_exec_process(e2fsck))
+    if(run_exec_process(e2fsck)) {
+        printf("failure while running e2fsck\n");
         return -1;
+    }
 
     return 0;
 }
@@ -429,11 +430,11 @@ mmc_raw_copy (const MmcPartition *partition, char *in_file) {
     int ret = -1;
     char *out_file = partition->device_index;
 
-    in = fopen ( in_file, "r" );
+    in  = fopen ( in_file,  "r" );
     if (in == NULL)
         goto ERROR3;
 
-    out = fopen ( out_file, "w" );
+    out = fopen ( out_file,  "w" );
     if (out == NULL)
         goto ERROR2;
 
@@ -480,11 +481,11 @@ mmc_raw_dump_internal (const char* in_file, const char *out_file) {
     unsigned i;
     int ret = -1;
 
-    in = fopen ( in_file, "r" );
+    in  = fopen ( in_file,  "r" );
     if (in == NULL)
         goto ERROR3;
 
-    out = fopen ( out_file, "w" );
+    out = fopen ( out_file,  "w" );
     if (out == NULL)
         goto ERROR2;
 
@@ -537,7 +538,7 @@ mmc_raw_read (const MmcPartition *partition, char *data, int data_size) {
     int ret = -1;
     char *in_file = partition->device_index;
 
-    in = fopen ( in_file, "r" );
+    in  = fopen ( in_file,  "r" );
     if (in == NULL)
         goto ERROR3;
 
@@ -567,7 +568,7 @@ mmc_raw_write (const MmcPartition *partition, char *data, int data_size) {
     int ret = -1;
     char *out_file = partition->device_index;
 
-    out = fopen ( out_file, "w" );
+    out  = fopen ( out_file,  "w" );
     if (out == NULL)
         goto ERROR3;
 
@@ -647,4 +648,3 @@ int cmd_mmc_get_partition_device(const char *partition, char *device)
     strcpy(device, p->device_index);
     return 0;
 }
-
