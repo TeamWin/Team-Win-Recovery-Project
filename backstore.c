@@ -1144,6 +1144,10 @@ int nandroid_back_exe()
     time(&stop);
 
     // Average BPS
+	if (img_byte_time == 0)
+		img_byte_time = 1;
+	if (file_byte_time == 0)
+		file_byte_time = 1;
     unsigned long int img_bps = total_img_bytes / img_byte_time;
     unsigned long int file_bps = total_file_bytes / file_byte_time;
 
