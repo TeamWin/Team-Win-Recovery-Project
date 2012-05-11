@@ -118,7 +118,7 @@ LOCAL_STATIC_LIBRARIES :=
 LOCAL_SHARED_LIBRARIES :=
 
 LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
-LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libjpegtwrp
+LOCAL_STATIC_LIBRARIES += libminuitwrp libpixelflinger_static libpng libjpegtwrp
 LOCAL_SHARED_LIBRARIES += libz libmtdutils libc libstlport libcutils libstdc++
 
 ifeq ($(TARGET_RECOVERY_UI_LIB),)
@@ -168,6 +168,7 @@ include $(commands_recovery_local_path)/injecttwrp/Android.mk
 include $(commands_recovery_local_path)/blobpack/Android.mk
 include $(commands_recovery_local_path)/htcdumlock/Android.mk
 include $(commands_recovery_local_path)/minui/Android.mk
+include $(commands_recovery_local_path)/minuitwrp/Android.mk
 include $(commands_recovery_local_path)/minelf/Android.mk
 include $(commands_recovery_local_path)/gui/Android.mk
 include $(commands_recovery_local_path)/minzip/Android.mk

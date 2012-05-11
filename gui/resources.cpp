@@ -22,7 +22,7 @@
 
 extern "C" {
 #include "../common.h"
-#include "../minui/minui.h"
+#include "../minuitwrp/minui.h"
 #include "../recovery_ui.h"
 }
 

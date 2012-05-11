@@ -35,7 +35,7 @@
 #include "common.h"
 #include "cutils/properties.h"
 #include "install.h"
-#include "minui/minui.h"
+#include "minuitwrp/minui.h"
 #include "minzip/DirUtil.h"
 #include "roots.h"
 #include "format.h"

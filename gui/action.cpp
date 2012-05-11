@@ -22,7 +22,7 @@ extern "C" {
 #include "../common.h"
 #include "../roots.h"
 #include "../tw_reboot.h"
-#include "../minui/minui.h"
+#include "../minuitwrp/minui.h"
 #include "../recovery_ui.h"
 #include "../ddftw.h"
 #include "../backstore.h"

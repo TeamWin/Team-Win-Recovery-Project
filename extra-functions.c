@@ -45,7 +45,7 @@
 #include "extra-functions.h"
 #include "cutils/properties.h"
 #include "install.h"
-#include "minui/minui.h"
+#include "minuitwrp/minui.h"
 #include "minzip/DirUtil.h"
 #include "minzip/Zip.h"
 #include "recovery_ui.h"

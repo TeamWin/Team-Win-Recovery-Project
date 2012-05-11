@@ -38,7 +38,7 @@ extern "C" {
 #include "../common.h"
 #include "../roots.h"
 #include "../ddftw.h"
-#include "../minui/minui.h"
+#include "../minuitwrp/minui.h"
 #include "../recovery_ui.h"
 #include "../minzip/Zip.h"
 #include <pixelflinger/pixelflinger.h>
