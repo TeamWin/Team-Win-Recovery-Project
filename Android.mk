@@ -119,7 +119,8 @@ LOCAL_SHARED_LIBRARIES :=
 
 LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
 LOCAL_STATIC_LIBRARIES += libminuitwrp libpixelflinger_static libpng libjpegtwrp
-LOCAL_SHARED_LIBRARIES += libz libmtdutils libc libstlport libcutils libstdc++
+LOCAL_SHARED_LIBRARIES += libz libc libstlport libcutils libstdc++
+LOCAL_STATIC_LIBRARIES += libmtdutils
 
 ifeq ($(TARGET_RECOVERY_UI_LIB),)
   LOCAL_SRC_FILES += default_recovery_ui.c

@@ -9,8 +9,9 @@ LOCAL_SRC_FILES := \
 	mounts.c 
 
 LOCAL_MODULE := libmtdutils
-
-include $(BUILD_SHARED_LIBRARY)
+LOCAL_STATIC_LIBRARIES := libcutils libc
+LOCAL_FORCE_STATIC_EXECUTABLE := true
+include $(BUILD_STATIC_LIBRARY)
 
 endif	# TARGET_ARCH == arm
 endif	# !TARGET_SIMULATOR
