@@ -988,7 +988,10 @@
 			<object type="slider">
 				<placement x="%slider_x%" y="slider_y" />
 				<resource base="slider" used="slider-used" touch="slider-touch" />
-				<action function="page">backup_run</action>
+				<actions>
+					<action function="set">tw_operation_state=0</action>
+					<action function="page">backup_run</action>
+				</actions>
 			</object>
 
 			<object type="text" color="%text_color%">
