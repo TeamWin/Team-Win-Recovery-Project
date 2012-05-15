@@ -127,17 +127,16 @@ static int get_framebuffer(GGLSurface *fb)
     } else if (PIXEL_FORMAT == GGL_PIXEL_FORMAT_RGB_565) {
         fprintf(stderr, "Pixel format: RGB_565\n");
         if (PIXEL_SIZE != 2)    fprintf(stderr, "E: Pixel Size mismatch!\n");
-        vi.blue.offset    = 11;
-        vi.green.offset   = 5;
-        vi.red.offset     = 0;
-        vi.blue.length    = 5;
-        vi.green.length   = 6;
-        vi.red.length     = 5;
-        vi.blue.msb_right = 0;
-        vi.green.msb_right = 0;
+        vi.red.offset = 11;
+        vi.red.length = 5;
         vi.red.msb_right = 0;
-        vi.transp.offset  = 0;
-        vi.transp.length  = 0;
+        vi.green.offset = 5;
+        vi.green.length = 6;
+        vi.blue.offset = 0;
+        vi.blue.length = 5;
+        vi.blue.msb_right = 0;
+        vi.transp.offset = 0;
+        vi.transp.length = 0;
     }
     else
     {
@@ -233,6 +232,16 @@ void gr_flip(void)
 
     /* swap front and back buffers */
     gr_active_fb = (gr_active_fb + 1) & 1;
+
+#ifdef BOARD_HAS_FLIPPED_SCREEN
+    /* flip buffer 180 degrees for devices with physicaly inverted screens */
+    unsigned int i;
+    for (i = 1; i < (vi.xres * vi.yres); i++) {
+        unsigned short tmp = gr_mem_surface.data[i];
+        gr_mem_surface.data[i] = gr_mem_surface.data[(vi.xres * vi.yres * 2) - i];
+        gr_mem_surface.data[(vi.xres * vi.yres * 2) - i] = tmp;
+    }
+#endif
 
     /* copy data from the in-memory surface to the buffer we're about
      * to make active. */
