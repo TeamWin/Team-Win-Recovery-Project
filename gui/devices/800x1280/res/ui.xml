@@ -1525,7 +1525,7 @@
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="1" />
 				</conditions>
-				<text>                                            Using external SDCard</text>
+				<text>   Using external SDCard</text>
 				<image resource="radio_true" />
 				<action function="togglestorage">external</action>
 			</object>
@@ -1537,7 +1537,7 @@
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="0" />
 				</conditions>
-				<text>                                            Using external SDCard</text>
+				<text>   Using external SDCard</text>
 				<image resource="radio_false" />
 				<action function="togglestorage">external</action>
 			</object>
@@ -1549,7 +1549,7 @@
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="1" />
 				</conditions>
-				<text>   Using internal storage</text>
+				<text>                                            Using internal storage</text>
 				<image resource="radio_false" />
 				<action function="togglestorage">internal</action>
 			</object>
@@ -1561,7 +1561,7 @@
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="0" />
 				</conditions>
-				<text>   Using internal storage</text>
+				<text>                                            Using internal storage</text>
 				<image resource="radio_true" />
 				<action function="togglestorage">internal</action>
 			</object>
@@ -2227,7 +2227,7 @@
 
 			<object type="image">
 				<image resource="unlock-icon" />
-				<placement x="160" y="400" />
+				<placement x="190" y="400" />
 			</object>
 
 			<object type="slider">
