@@ -1,4 +1,3 @@
-#gerrit test - master
 ifneq ($(TARGET_SIMULATOR),true)
 ifeq ($(TARGET_ARCH),arm)
 
