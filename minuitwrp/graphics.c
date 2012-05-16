@@ -30,8 +30,13 @@
 
 #include <pixelflinger/pixelflinger.h>
 
-#include "font_10x18.h"
 #include "minui.h"
+
+#ifdef BOARD_USE_CUSTOM_RECOVERY_FONT
+#include BOARD_USE_CUSTOM_RECOVERY_FONT
+#else
+#include "font_10x18.h"
+#endif
 
 #ifdef RECOVERY_BGRA
 #define PIXEL_FORMAT GGL_PIXEL_FORMAT_BGRA_8888

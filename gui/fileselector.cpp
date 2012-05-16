@@ -441,11 +441,11 @@ int GUIFileSelector::Update(void)
 	if (scrollingSpeed == 0) {
 		// Do nothing
 	} else if (scrollingSpeed > 0) {
-		if (scrollingSpeed < ((int) (actualLineHeight) * 2.5)) {
+		if (scrollingSpeed < ((int) (actualLineHeight * 2.5))) {
 			scrollingY += scrollingSpeed;
 			scrollingSpeed--;
 		} else {
-			scrollingY += ((int) (actualLineHeight) * 2.5);
+			scrollingY += ((int) (actualLineHeight * 2.5));
 			scrollingSpeed -= 3;
 		}
 		while (mStart && scrollingY > 0) {
@@ -466,11 +466,11 @@ int GUIFileSelector::Update(void)
 
 			bottom_offset -= actualLineHeight;
 
-			if (abs(scrollingSpeed) < ((int) (actualLineHeight) * 2.5)) {
+			if (abs(scrollingSpeed) < ((int) (actualLineHeight * 2.5))) {
 				scrollingY += scrollingSpeed;
 				scrollingSpeed++;
 			} else {
-				scrollingY -= ((int) (actualLineHeight) * 2.5);
+				scrollingY -= ((int) (actualLineHeight * 2.5));
 				scrollingSpeed += 3;
 			}
 			while (mStart + lines + (bottom_offset ? 1 : 0) < totalSize && abs(scrollingY) > actualLineHeight) {
