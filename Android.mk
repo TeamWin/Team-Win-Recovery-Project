@@ -106,6 +106,10 @@ endif
 ifeq ($(TW_INCLUDE_BLOBPACK), true)
     LOCAL_CFLAGS += -DTW_INCLUDE_BLOBPACK
 endif
+ifeq ($(TW_DEFAULT_EXTERNAL_STORAGE), true)
+    LOCAL_CFLAGS += -DTW_DEFAULT_EXTERNAL_STORAGE
+endif
+
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
 # It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses

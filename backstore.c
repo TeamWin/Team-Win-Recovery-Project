@@ -454,7 +454,7 @@ nan_restore_menu(int pIdx)
 char* 
 nan_img_set(int tw_setting, int tw_backstore)
 {
-	ensure_path_mounted("/sdcard");
+	mount_current_storage();
 	int isTrue = 0;
 	char* tmp_set = (char*)malloc(25);
 	struct stat st;
@@ -722,9 +722,9 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
         // detect mountable partitions
 		if (strcmp(bMnt.mnt,".android_secure") == 0) { // if it's android secure, add sdcard to prefix
 			if (DataManager_GetIntValue(TW_HAS_INTERNAL))
-				ensure_path_mounted(DataManager_GetSettingsStoragePath());
+				mount_internal_storage();
 			else
-				ensure_path_mounted(DataManager_GetStrValue(TW_EXTERNAL_PATH));
+				mount_current_storage();
 			strcpy(bMount, bMnt.dev);
 			sprintf(bImage,"and-sec.%s.win",bMnt.fst); // set image name based on filesystem, should always be vfat for android_secure
 		} else {
@@ -1011,9 +1011,9 @@ int nandroid_back_exe()
 {
     SetDataState("Starting", "backup", 0, 0);
 
-    if (ensure_path_mounted(SDCARD_ROOT) != 0) {
+    if (mount_current_storage() != 0) {
 		ui_print("-- Could not mount: %s.\n-- Aborting.\n",SDCARD_ROOT);
-        SetDataState("Unable to mount", "/sdcard", 1, 1);
+        SetDataState("Unable to mount", "storage", 1, 1);
 		return 1;
 	}
 
@@ -1021,6 +1021,7 @@ int nandroid_back_exe()
     struct tm *t;
     char timestamp[64];
 	char tw_image_dir[255];
+	char backup_loc[255];
 	char exe[255];
 	time_t start, stop;
 	time_t seconds;
@@ -1036,7 +1037,8 @@ int nandroid_back_exe()
 		memset(timestamp, 0 , sizeof(timestamp));
 		strncpy(timestamp, DataManager_GetStrValue(TW_BACKUP_NAME), copy_size);
 	}
-	sprintf(tw_image_dir,"%s/%s/%s/", backup_folder, device_id, timestamp); // for backup folder
+	strcpy(backup_loc, DataManager_GetStrValue(TW_BACKUPS_FOLDER_VAR));
+	sprintf(tw_image_dir,"%s/%s/", backup_loc, timestamp); // for backup folder
 	LOGI("Attempt to create folder '%s'\n", tw_image_dir);
     if (recursive_mkdir(tw_image_dir))
     {
@@ -1050,7 +1052,7 @@ int nandroid_back_exe()
 
     // Prepare operation
     ui_print("\n[BACKUP STARTED]\n");
-    ui_print(" * Backup Folder: %s\n", backup_folder);
+    ui_print(" * Backup Folder: %s\n", tw_image_dir);
     update_system_details();
     unsigned long long sdc_free;
 
@@ -1066,7 +1068,7 @@ int nandroid_back_exe()
 			return -1;
 		}
 	} else {
-		LOGI("Using external SDCard.\n");
+		LOGI("Using external storage.\n");
 		sdc_free = sdcext.sze - sdcext.used;
 	}
 
@@ -1329,8 +1331,8 @@ nandroid_rest_exe()
 
     const char* nan_dir = DataManager_GetStrValue("tw_restore");
 	ui_print("Restore folder: '%s'\n", nan_dir);
-	if (ensure_path_mounted(SDCARD_ROOT) != 0) {
-		ui_print("-- Could not mount: %s.\n-- Aborting.\n",SDCARD_ROOT);
+	if (mount_current_storage() != 0) {
+		ui_print("-- Could not mount storage.\n-- Aborting.\n");
 		return 1;
 	}
 
@@ -1455,7 +1457,7 @@ static int compare_string(const void* a, const void* b) {
 
 void choose_backup_folder() 
 {
-    ensure_path_mounted(SDCARD_ROOT);
+    mount_current_storage();
 
 	struct stat st;
     char tw_dir[255];
@@ -1570,8 +1572,8 @@ int makeMD5(const char *imgDir, const char *imgFile)
         return 0;
     }
 
-	if (ensure_path_mounted("/sdcard") != 0) {
-		LOGI("=> Can not mount sdcard.\n");
+	if (mount_current_storage() != 0) {
+		LOGI("=> Can not mount storage.\n");
 		return bool;
 	} else {
 		FILE *fp;
@@ -1601,8 +1603,8 @@ int checkMD5(const char *imgDir, const char *imgFile)
         return 0;
     }
 
-	if (ensure_path_mounted("/sdcard") != 0) {
-		LOGI("=> Can not mount sdcard.\n");
+	if (mount_current_storage() != 0) {
+		LOGI("=> Can not mount storage.\n");
 		return bool;
 	} else {
 		FILE *fp;

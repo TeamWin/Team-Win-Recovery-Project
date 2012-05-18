@@ -462,7 +462,7 @@ static char* copy_sideloaded_package(const char* original_path) {
 int install_zip_package(const char* zip_path_filename) {
 	int result;
 	
-    ensure_path_mounted(SDCARD_ROOT);
+    mount_current_storage();
 	ui_print("\n-- Verify md5 for %s", zip_path_filename);
 	int md5chk = check_md5((char*) zip_path_filename);
 	bool md5_req = DataManager_GetIntValue(TW_FORCE_MD5_CHECK_VAR);
@@ -474,7 +474,7 @@ int install_zip_package(const char* zip_path_filename) {
 		ui_print("\n-- Install %s ...\n", zip_path_filename);
 		set_sdcard_update_bootloader_message();
 		char* copy = copy_sideloaded_package(zip_path_filename);
-		ensure_path_unmounted(SDCARD_ROOT);
+		unmount_current_storage();
 		if (copy) {
 			result = install_package(copy);
 			free(copy);
@@ -505,7 +505,7 @@ int install_zip_package(const char* zip_path_filename) {
 		ui_print("\n-- Aborting install");
 		result = INSTALL_ERROR;
 	}
-    ensure_path_mounted(SDCARD_ROOT);
+    mount_current_storage();
     //finish_recovery(NULL);
 	return result;
 }
@@ -1048,10 +1048,13 @@ void advanced_menu()
 				show_menu_partition();
 				break;
             case ITEM_CPY_LOG:
-                ensure_path_mounted("/sdcard");
-            	__system("cp /tmp/recovery.log /sdcard");
+                mount_current_storage();
+				char mount_point[255], command[255];
+				strcpy(mount_point, DataManager_GetSettingsStorageMount());
+				sprintf(command, "cp /tmp/recovery.log %s", mount_point);
+				__system(command);
 				sync();
-                ui_print("Copied recovery log to /sdcard.\n");
+                ui_print("Copied recovery log to storage.\n");
             	break;
             case ADVANCED_MENU_BACK:
             	dec_menu_loc();

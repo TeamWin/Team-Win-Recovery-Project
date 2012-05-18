@@ -455,8 +455,10 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 		operation_start("Restore Defaults");
 		if (simulate) // Simulated so that people don't accidently wipe out the "simulation is on" setting
 			ui_print("Simulating actions...\n");
-		else
+		else {
 			DataManager::ResetDefaults();
+			mount_current_storage();
+		}
 		operation_end(0, simulate);
 	}
 	
@@ -465,10 +467,13 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 		operation_start("Copy Log");
 		if (!simulate)
 		{
-			ensure_path_mounted("/sdcard");
-			__system("cp /tmp/recovery.log /sdcard");
+			char command[255];
+
+			mount_current_storage();
+			sprintf(command, "cp /tmp/recovery.log %s", DataManager::GetCurrentStoragePath().c_str());
+			__system(command);
 			sync();
-			ui_print("Copied recovery log to /sdcard.\n");
+			ui_print("Copied recovery log to %s.\n", DataManager::GetCurrentStoragePath().c_str());
 		} else
 			simulate_progress_bar();
 		operation_end(0, simulate);
@@ -532,12 +537,12 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 	if (function == "togglestorage") {
 		if (arg == "internal") {
 			DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 0);
-			DataManager::SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcext.sze - sdcext.used) / 1048576LLU));
+			DataManager::SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcint.sze - sdcint.used) / 1048576LLU));
 		} else if (arg == "external") {
 			DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 1);
-			DataManager::SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcint.sze - sdcint.used) / 1048576LLU));
+			DataManager::SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcext.sze - sdcext.used) / 1048576LLU));
 		}
-		if (ensure_path_mounted("/sdcard") == 0) {
+		if (mount_current_storage() == 0) {
 			if (arg == "internal") {
 				// Save the current zip location to the external variable
 				DataManager::SetValue(TW_ZIP_EXTERNAL_VAR, DataManager::GetStrValue(TW_ZIP_LOCATION_VAR));
@@ -553,8 +558,10 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			// We weren't able to toggle for some reason, restore original setting
 			if (arg == "internal") {
 				DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 1);
+				DataManager::SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcext.sze - sdcext.used) / 1048576LLU));
 			} else if (arg == "external") {
 				DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 0);
+				DataManager::SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcint.sze - sdcint.used) / 1048576LLU));
 			}
 		}
 		return 0;
