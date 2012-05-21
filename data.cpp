@@ -48,6 +48,7 @@ extern "C"
 	#include "roots.h"
 
 	int ensure_path_mounted(const char* path);
+	int mount_current_storage(void);
 
     int get_battery_level(void);
     void get_device_id(void);
@@ -76,7 +77,9 @@ int DataManager::ResetDefaults()
 
 int DataManager::LoadValues(const string filename)
 {
-    if (!mInitialized)
+    string str;
+
+	if (!mInitialized)
         SetDefaultValues();
 
     // Save off the backing file for set operations
@@ -119,11 +122,21 @@ int DataManager::LoadValues(const string filename)
             mValues.insert(TNameValuePair(Name, TStrIntPair(Value, 1)));
     }
     fclose(in);
+
+	str = GetCurrentStoragePath();
+	str += "/TWRP/BACKUPS/";
+	str += device_id;
+	SetValue(TW_BACKUPS_FOLDER_VAR, str, 0);
+
     return 0;
 
 error:
     // File version mismatch. Use defaults.
     fclose(in);
+	str = GetCurrentStoragePath();
+	str += "/TWRP/BACKUPS/";
+	str += device_id;
+	SetValue(TW_BACKUPS_FOLDER_VAR, str, 0);
     return -1;
 }
 
@@ -249,8 +262,7 @@ int DataManager::SetValue(const string varName, string value, int persist /* = 0
 {
     if (!mInitialized)
         SetDefaultValues();
-	if (varName == "tw_operation_state" && value == "1")
-		LOGI("tw_operation_state being set to '%s'\n", value.c_str());
+
     // Don't allow empty values or numerical starting values
     if (varName.empty() || (varName[0] >= '0' && varName[0] <= '9'))
         return -1;
@@ -278,6 +290,27 @@ int DataManager::SetValue(const string varName, int value, int persist /* = 0 */
 {
 	ostringstream valStr;
     valStr << value;
+	if (varName == "tw_use_external_storage") {
+		string str;
+
+		if (GetIntValue(TW_HAS_DUAL_STORAGE) == 1) {
+			if (value == 0) {
+				str = GetStrValue(TW_INTERNAL_PATH);
+				SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcint.sze - sdcint.used) / 1048576LLU));
+			} else {
+				str = GetStrValue(TW_EXTERNAL_PATH);
+				SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcext.sze - sdcext.used) / 1048576LLU));
+			}
+		} else if (GetIntValue(TW_HAS_INTERNAL) == 1)
+			str = GetStrValue(TW_INTERNAL_PATH);
+		else
+			str = GetStrValue(TW_EXTERNAL_PATH);
+
+		str += "/TWRP/BACKUPS/";
+		str += device_id;
+
+		SetValue(TW_BACKUPS_FOLDER_VAR, str);
+	}
     return SetValue(varName, valStr.str(), persist);;
 }
 
@@ -304,16 +337,12 @@ void DataManager::SetDefaultValues()
 
     get_device_id();
 
-    str = "/sdcard/TWRP/BACKUPS/";
-    str += device_id;
-
     mInitialized = 1;
 
     mConstValues.insert(make_pair("true", "1"));
     mConstValues.insert(make_pair("false", "0"));
 
     mConstValues.insert(make_pair(TW_VERSION_VAR, TW_VERSION_STR));
-    mConstValues.insert(make_pair(TW_BACKUPS_FOLDER_VAR, str));
 
 #ifdef BOARD_HAS_NO_REAL_SDCARD
     mConstValues.insert(make_pair(TW_ALLOW_PARTITION_SDCARD, "0"));
@@ -333,6 +362,7 @@ void DataManager::SetDefaultValues()
 	mConstValues.insert(make_pair(TW_HAS_INTERNAL, "1"));
 	mConstValues.insert(make_pair(TW_INTERNAL_PATH, EXPAND(TW_INTERNAL_STORAGE_PATH)));
 	mConstValues.insert(make_pair(TW_INTERNAL_LABEL, EXPAND(TW_INTERNAL_STORAGE_MOUNT_POINT)));
+	mValues.insert(make_pair(TW_ZIP_INTERNAL_VAR, make_pair(EXPAND(TW_INTERNAL_STORAGE_PATH), 1)));
 	path.clear();
 	path = "/";
 	path += EXPAND(TW_INTERNAL_STORAGE_MOUNT_POINT);
@@ -344,6 +374,7 @@ void DataManager::SetDefaultValues()
 		mConstValues.insert(make_pair(TW_HAS_EXTERNAL, "1"));
 		mConstValues.insert(make_pair(TW_EXTERNAL_PATH, EXPAND(TW_EXTERNAL_STORAGE_PATH)));
 		mConstValues.insert(make_pair(TW_EXTERNAL_LABEL, EXPAND(TW_EXTERNAL_STORAGE_MOUNT_POINT)));
+		mValues.insert(make_pair(TW_ZIP_EXTERNAL_VAR, make_pair(EXPAND(TW_EXTERNAL_STORAGE_PATH), 1)));
 		path.clear();
 		path = "/";
 		path += EXPAND(TW_EXTERNAL_STORAGE_MOUNT_POINT);
@@ -381,6 +412,11 @@ void DataManager::SetDefaultValues()
 		mConstValues.insert(make_pair(TW_INTERNAL_PATH, "/data/media"));
 		mConstValues.insert(make_pair(TW_INTERNAL_MOUNT, "/data"));
 		mConstValues.insert(make_pair(TW_INTERNAL_LABEL, "data"));
+		#ifdef TW_EXTERNAL_STORAGE_PATH
+			mValues.insert(make_pair(TW_ZIP_INTERNAL_VAR, make_pair("/data/media", 1)));
+		#else
+			mValues.insert(make_pair(TW_ZIP_INTERNAL_VAR, make_pair("/sdcard", 1)));
+		#endif
 	#else
 		LOGI("No internal storage defined.\n");
 		// Device has no internal storage
@@ -396,21 +432,42 @@ void DataManager::SetDefaultValues()
 		mConstValues.insert(make_pair(TW_HAS_EXTERNAL, "1"));
 		mConstValues.insert(make_pair(TW_EXTERNAL_PATH, EXPAND(TW_EXTERNAL_STORAGE_PATH)));
 		mConstValues.insert(make_pair(TW_EXTERNAL_LABEL, EXPAND(TW_EXTERNAL_STORAGE_MOUNT_POINT)));
+		mValues.insert(make_pair(TW_ZIP_EXTERNAL_VAR, make_pair(EXPAND(TW_EXTERNAL_STORAGE_PATH), 1)));
 		path.clear();
 		path = "/";
 		path += EXPAND(TW_EXTERNAL_STORAGE_MOUNT_POINT);
 		mConstValues.insert(make_pair(TW_EXTERNAL_MOUNT, path));
 	#else
-		LOGI("No storage defined, defaulting to /sdcard.\n");
-		// Standard external definition
-		mConstValues.insert(make_pair(TW_HAS_EXTERNAL, "1"));
-		mConstValues.insert(make_pair(TW_EXTERNAL_PATH, "/sdcard"));
-		mConstValues.insert(make_pair(TW_EXTERNAL_MOUNT, "/sdcard"));
-		mConstValues.insert(make_pair(TW_EXTERNAL_LABEL, "sdcard"));
+		#ifndef RECOVERY_SDCARD_ON_DATA
+			LOGI("No storage defined, defaulting to /sdcard.\n");
+			// Standard external definition
+			mConstValues.insert(make_pair(TW_HAS_EXTERNAL, "1"));
+			mConstValues.insert(make_pair(TW_EXTERNAL_PATH, "/sdcard"));
+			mConstValues.insert(make_pair(TW_EXTERNAL_MOUNT, "/sdcard"));
+			mConstValues.insert(make_pair(TW_EXTERNAL_LABEL, "sdcard"));
+			mValues.insert(make_pair(TW_ZIP_EXTERNAL_VAR, make_pair("/sdcard", 1)));
+		#endif
 	#endif
 #endif
 
+#ifdef TW_DEFAULT_EXTERNAL_STORAGE
+	SetValue(TW_USE_EXTERNAL_STORAGE, 1);
+	LOGI("Defaulting to external storage.\n");
+#endif
 
+	str = GetCurrentStoragePath();
+#ifdef RECOVERY_SDCARD_ON_DATA
+	#ifndef TW_EXTERNAL_STORAGE_PATH
+		SetValue(TW_ZIP_LOCATION_VAR, "/sdcard", 1);
+	#else
+		SetValue(TW_ZIP_LOCATION_VAR, str.c_str(), 1);
+	#endif
+#else
+	SetValue(TW_ZIP_LOCATION_VAR, str.c_str(), 1);
+#endif
+	str += "/TWRP/BACKUPS/";
+    str += device_id;
+	SetValue(TW_BACKUPS_FOLDER_VAR, str, 0);
 
     if (strlen(EXPAND(SP1_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP1_PARTITION_NAME_VAR, EXPAND(SP1_DISPLAY_NAME)));
     if (strlen(EXPAND(SP2_DISPLAY_NAME)))    mConstValues.insert(make_pair(TW_SP2_PARTITION_NAME_VAR, EXPAND(SP2_DISPLAY_NAME)));
@@ -495,9 +552,6 @@ void DataManager::SetDefaultValues()
 	mValues.insert(make_pair(TW_IGNORE_IMAGE_SIZE, make_pair("0", 1)));
     mValues.insert(make_pair(TW_SHOW_SPAM_VAR, make_pair("0", 1)));
     mValues.insert(make_pair(TW_TIME_ZONE_VAR, make_pair("CST6CDT", 1)));
-    mValues.insert(make_pair(TW_ZIP_LOCATION_VAR, make_pair("/sdcard", 1)));
-	mValues.insert(make_pair(TW_ZIP_INTERNAL_VAR, make_pair("/sdcard", 1)));
-	mValues.insert(make_pair(TW_ZIP_EXTERNAL_VAR, make_pair("/sdcard", 1)));
     mValues.insert(make_pair(TW_SORT_FILES_BY_DATE_VAR, make_pair("0", 1)));
     mValues.insert(make_pair(TW_GUI_SORT_ORDER, make_pair("1", 1)));
     mValues.insert(make_pair(TW_RM_RF_VAR, make_pair("0", 1)));

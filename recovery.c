@@ -35,7 +35,7 @@
 #include "common.h"
 #include "cutils/properties.h"
 #include "install.h"
-#include "minui/minui.h"
+#include "minuitwrp/minui.h"
 #include "minzip/DirUtil.h"
 #include "roots.h"
 #include "format.h"
@@ -407,7 +407,7 @@ static int compare_string(const void* a, const void* b) {
 
 int
 sdcard_directory(const char* path) {
-    ensure_path_mounted(SDCARD_ROOT);
+    mount_current_storage();
 
     const char* MENU_HEADERS[] = { "Choose a package to install:",
                                    path,
@@ -417,7 +417,7 @@ sdcard_directory(const char* path) {
     d = opendir(path);
     if (d == NULL) {
         LOGE("error opening %s: %s\n", path, strerror(errno));
-        ensure_path_unmounted(SDCARD_ROOT);
+        unmount_current_storage();
         return 0;
     }
 
@@ -622,9 +622,8 @@ wipe_data(int confirm) {
 	ui_print("Formatting /data...\n");
 
 	//device_wipe_data(); // ??
-
-	// For the Tuna boards, we can't do this! The sdcard is actually /data/media
 #ifdef RECOVERY_SDCARD_ON_DATA
+	// The sdcard is actually /data/media
 	wipe_data_without_wiping_media();
 #else
 	erase_volume("/data");
@@ -634,13 +633,21 @@ wipe_data(int confirm) {
 	ui_print("Formatting /cache...\n");
 	erase_volume("/cache");
 	struct stat st;
+	char ase_path[255];
+
+	strcpy(ase_path, DataManager_GetSettingsStoragePath());
+	strcat(ase_path, "/.android_secure");
+	ensure_path_mounted("/sd-ext");
 	if (stat(sde.blk,&st) == 0) {
 		ui_print("Formatting /sd-ext...\n");
 		tw_format(sde.fst,sde.blk);
 	}
-	if (stat("/sdcard/.android_secure", &st) == 0) {
-		ui_print("Formatting /sdcard/.android_secure...\n");
-		__system("rm -rf /sdcard/.android_secure/* && rm -rf /sdcard/.android_secure/.*");
+	mount_internal_storage();
+	if (stat(ase_path, &st) == 0) {
+		char command[255];
+		ui_print("Formatting android_secure...\n");
+		sprintf(command, "rm -rf %s/* && rm -rf %s/.*", ase_path, ase_path);
+		__system(command);
 	}
 	ui_reset_progress();
 	ui_print("-- Factory reset complete.\n");
@@ -776,7 +783,7 @@ int run_script_file(void) {
 							LOGI("Zip file not found on internal storage, trying external...\n");
 							DataManager_SetIntValue(TW_USE_EXTERNAL_STORAGE, 1);
 						}
-						ensure_path_mounted("/sdcard");
+						mount_current_storage();
 					}
 				}
 				ui_print("Installing zip file '%s'\n", value);
@@ -911,7 +918,7 @@ int run_script_file(void) {
 							LOGI("Backup folder '%s' not found on internal storage, trying external...\n", folder_path);
 							DataManager_SetIntValue(TW_USE_EXTERNAL_STORAGE, 1);
 						}
-						ensure_path_mounted("/sdcard");
+						mount_current_storage();
 					}
 				}
 
@@ -1060,7 +1067,10 @@ main(int argc, char **argv) {
     freopen(TEMPORARY_LOG_FILE, "a", stderr); setbuf(stderr, NULL);
     printf("Starting recovery on %s", ctime(&start));
 
-    // Load default values to set DataManager constants and handle ifdefs
+    printf("Loading volume table...\n");
+    load_volume_table();
+
+	// Load default values to set DataManager constants and handle ifdefs
 	DataManager_LoadDefaults();
 
 	// Fire up the UI engine
@@ -1070,9 +1080,6 @@ main(int argc, char **argv) {
         ui_set_background(BACKGROUND_ICON_INSTALLING);
     }
 
-    printf("Loading volume table...\n");
-    load_volume_table();
-
 	// Load up all the resources
 	gui_loadResources();
 
@@ -1080,7 +1087,7 @@ main(int argc, char **argv) {
     get_args(&argc, &argv);
 
     LOGI("=> Installing busybox into /sbin\n");
-	__system("/sbin/busybox --install -s /sbin"); // Let's install busybox
+	__system("/sbin/bbinstall.sh"); // Let's install busybox
 	LOGI("=> Linking mtab\n");
 	__system("ln -s /proc/mounts /etc/mtab"); // And link mtab for mke2fs
 	LOGI("=> Getting locations\n");
@@ -1231,19 +1238,30 @@ main(int argc, char **argv) {
 		
 		mkdir(mkdir_path, 0777);
 
-        DataManager_LoadValues(settings_file);
+        LOGI("Attempt to load settings from settings file...\n");
+		DataManager_LoadValues(settings_file);
 		if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) != 0 && DataManager_GetIntValue(TW_USE_EXTERNAL_STORAGE) == 1) {
 			// Attempt to sdcard using external storage
-			if (ensure_path_mounted("/sdcard")) {
-				LOGE("Failed to remount /sdcard to external storage, using internal storage.\n");
+			if (mount_current_storage()) {
+				LOGE("Failed to mount external storage, using internal storage.\n");
 				// Remount failed, default back to internal storage
 				DataManager_SetIntValue(TW_USE_EXTERNAL_STORAGE, 0);
-				ensure_path_mounted("/sdcard");
+				mount_current_storage();
 			}
-		} else
-			ensure_path_mounted("/sdcard");
+		} else {
+			mount_current_storage();
+			if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 0 && DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1) {
+				__system("mount /data/media /sdcard");
+			}
+		}
 
-        // Update some of the main data
+        // Update storage free space after settings file is loaded
+		if (DataManager_GetIntValue(TW_USE_EXTERNAL_STORAGE) == 1)
+			DataManager_SetIntValue(TW_STORAGE_FREE_SIZE, (int)((sdcext.sze - sdcext.used) / 1048576LLU));
+		else
+			DataManager_SetIntValue(TW_STORAGE_FREE_SIZE, (int)((sdcint.sze - sdcint.used) / 1048576LLU));
+
+		// Update some of the main data
         update_tz_environment_variables();
         set_theme(DataManager_GetStrValue(TW_COLOR_THEME_VAR));
 

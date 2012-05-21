@@ -36,6 +36,11 @@ int ensure_path_mounted(const char* path);
 // success (volume is unmounted);
 int ensure_path_unmounted(const char* path);
 
+int mount_current_storage(void);
+int unmount_current_storage(void);
+int mount_internal_storage(void);
+int unmount_internal_storage(void);
+
 // Reformat the given volume (must be the mount point only, eg
 // "/cache"), no paths permitted.  Attempts to unmount the volume if
 // it is mounted.
