@@ -266,9 +266,12 @@ static void update_progress_locked(void)
     if (show_text || !gPagesIdentical) {
         draw_screen_locked();    // Must redraw the whole screen
         gPagesIdentical = 1;
-    } else {
+    }
+#ifndef BOARD_HAS_FLIPPED_SCREEN
+    else {
         draw_progress_locked();  // Draw only the progress bar
     }
+#endif
     gr_flip();
 }
 
