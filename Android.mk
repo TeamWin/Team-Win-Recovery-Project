@@ -112,6 +112,9 @@ endif
 ifneq ($(TARGET_USE_CUSTOM_LUN_FILE_PATH),)
     LOCAL_CFLAGS += -DCUSTOM_LUN_FILE=\"$(TARGET_USE_CUSTOM_LUN_FILE_PATH)\"
 endif
+ifeq ($(TW_FLASH_FROM_STORAGE), true)
+    LOCAL_CFLAGS += -DTW_FLASH_FROM_STORAGE
+endif
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
 # It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses

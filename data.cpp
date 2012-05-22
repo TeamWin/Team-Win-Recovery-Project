@@ -520,6 +520,9 @@ void DataManager::SetDefaultValues()
 	mConstValues.insert(make_pair(TW_HAS_INJECTTWRP, "0"));
 	mValues.insert(make_pair(TW_INJECT_AFTER_ZIP, make_pair("0", 1)));
 #endif
+#ifdef TW_FLASH_FROM_STORAGE
+	mConstValues.insert(make_pair(TW_FLASH_ZIP_IN_PLACE, "1"));
+#endif
 
     mValues.insert(make_pair(TW_BACKUP_NAME, make_pair("0", 0)));
 	mValues.insert(make_pair(TW_BACKUP_SYSTEM_VAR, make_pair("1", 1)));

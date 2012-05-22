@@ -461,7 +461,7 @@ static char* copy_sideloaded_package(const char* original_path) {
 
 int install_zip_package(const char* zip_path_filename) {
 	int result;
-	
+
     mount_current_storage();
 	ui_print("\n-- Verify md5 for %s", zip_path_filename);
 	int md5chk = check_md5((char*) zip_path_filename);
@@ -473,8 +473,14 @@ int install_zip_package(const char* zip_path_filename) {
 			ui_print("\n-- No md5 file found, ignoring");
 		ui_print("\n-- Install %s ...\n", zip_path_filename);
 		set_sdcard_update_bootloader_message();
-		char* copy = copy_sideloaded_package(zip_path_filename);
-		unmount_current_storage();
+		char* copy;
+		if (DataManager_GetIntValue(TW_FLASH_ZIP_IN_PLACE) == 1 && strlen(zip_path_filename) > 6 && strncmp(zip_path_filename, "/cache", 6) != 0) {
+			LOGI("Flashing zip in place.\n");
+			copy = strdup(zip_path_filename);
+		} else {
+			copy = copy_sideloaded_package(zip_path_filename);
+			unmount_current_storage();
+		}
 		if (copy) {
 			result = install_package(copy);
 			free(copy);

@@ -133,6 +133,7 @@
 #define TW_HAS_INJECTTWRP           "tw_has_injecttwrp"
 #define TW_INJECT_AFTER_ZIP         "tw_inject_after_zip"
 #define TW_HAS_DATADATA             "tw_has_datadata"
+#define TW_FLASH_ZIP_IN_PLACE       "tw_flash_zip_in_place"
 
 // Also used:
 //   tw_boot_is_mountable
