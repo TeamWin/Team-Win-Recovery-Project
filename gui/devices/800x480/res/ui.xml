@@ -10,7 +10,8 @@
 	</details>
 
 	<resources>
-		<resource name="font" type="font" filename="Roboto-Regular-20" />
+		<resource name="font" type="font" filename="Roboto-Condensed-20" />
+                <resource name="font_small" type="font" filename="Roboto-Condensed-16" />
 		<resource name="base" type="image" filename="background.jpg" />
 		<resource name="side" type="image" filename="backgroundside.jpg" />
 		<resource name="bottom" type="image" filename="backgroundbottom.jpg" />
@@ -74,11 +75,6 @@
 		<variable name="row11_text_y" value="380" />
 		<variable name="row12_text_y" value="410" />
 		<variable name="row13_text_y" value="440" />
-		<variable name="row14_text_y" value="470" />
-		<variable name="row15_text_y" value="500" />
-		<variable name="row16_text_y" value="530" />
-		<variable name="row17_text_y" value="560" />
-		<variable name="row18_text_y" value="590" />
 		<variable name="row_offsetmedium_y" value="360" />
 		<variable name="home_button_x" value="589" />
 		<variable name="home_button_y" value="5" />
@@ -109,8 +105,8 @@
 		<variable name="sort_col1_button_x" value="440" />
 		<variable name="sort_col2_button_x" value="510" />
 		<variable name="sort_col3_button_x" value="580" />
-		<variable name="col1_sdext_x" value="270" />
-		<variable name="col2_sdext_x" value="480" />
+		<variable name="col1_sdext_x" value="265" />
+		<variable name="col2_sdext_x" value="475" />
 		<variable name="row1_sdext_y" value="115" />
 		<variable name="row2_sdext_y" value="180" />
 		<variable name="row_extsize_y" value="130" />
@@ -532,7 +528,7 @@
 			</object>
 
 			<object type="text" color="%text_color%">
-				<font resource="font" />
+				<font resource="font_small" />
 				<placement x="%center_x%" y="%slider_text_y%" placement="4" />
 				<text>Swipe to Confirm Flash</text>
 			</object>
@@ -599,7 +595,7 @@
 
 			<object type="button">
 				<placement x="%col1_x%" y="%slider_y%" />
-				<font resource="font" color="%button_text_color%" />
+				<font resource="font_small" color="%button_text_color%" />
 				<text>Wipe Cache/Dalvik</text>
 				<image resource="main_button" />
 				<actions>
@@ -907,7 +903,7 @@
 			<object type="button">
 				<condition var1="tw_has_usb_storage" var2="1" />
 				<placement x="%col1_x%" y="%row1_y%" />
-				<font resource="font" color="%button_text_color%" />
+				<font resource="font_small" color="%button_text_color%" />
 				<text>Mount USB Storage</text>
 				<image resource="main_button" />
 				<action function="page">usb_mount</action>
@@ -1438,15 +1434,15 @@
 
 			<object type="checkbox">
 				<placement x="%nandcheck_col1%" y="%nandcheck_row6%"/>
-				<font resource="font" color="%text_color%" />
-				<text>Enable Compression</text>
+				<font resource="font_small" color="%text_color%" />
+				<text>Enable Compression(Requires more time)</text>
 				<data variable="tw_use_compression" />
 				<image checked="checkbox_true" unchecked="checkbox_false" />
 			</object>
 
 			<object type="checkbox">
 				<placement x="%nandcheck_col2%" y="%nandcheck_row6%"/>
-				<font resource="font" color="%text_color%" />
+				<font resource="font_small" color="%text_color%" />
 				<text>Skip MD5 generation on backups</text>
 				<data variable="tw_skip_md5_generate" />
 				<image checked="checkbox_true" unchecked="checkbox_false" />
@@ -1813,7 +1809,7 @@
 
 			<object type="button">
 				<placement x="%col2_x%" y="%row2_y%" />
-				<font resource="font" color="%button_text_color%" />
+				<font resource="font_small" color="%button_text_color%" />
 				<text>Restore Defaults</text>
 				<image resource="main_button" />
 				<action function="restoredefaultsettings"></action>
@@ -1977,7 +1973,7 @@
 
 			<object type="button">
 				<placement x="%col2_x%" y="%row1_y%" />
-				<font resource="font" color="%button_text_color%" />
+				<font resource="font_small" color="%button_text_color%" />
 				<text>Fix Permissions</text>
 				<image resource="main_button" />
 				<actions>
@@ -1996,7 +1992,7 @@
 			<object type="button">
 				<condition var1="tw_allow_partition_sdcard" var2="1" />
 				<placement x="%col1_x%" y="%row2_y%" />
-				<font resource="font" color="%button_text_color%" />
+				<font resource="font_small" color="%button_text_color%" />
 				<text>Partition SD Card</text>
 				<image resource="main_button" />
 				<action function="page">partsdcard</action>
@@ -2136,7 +2132,7 @@
 			</object>
 
 			<object type="text" color="%text_color%">
-				<font resource="font" />
+				<font resource="font_small" />
 				<placement x="%center_x%" y="%slider_text_y%" placement="4" />
 				<text>Swipe to Confirm Partition</text>
 			</object>
