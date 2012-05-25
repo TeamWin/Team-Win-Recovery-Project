@@ -141,7 +141,10 @@ Volume* volume_for_device(const char* device)
 
 int ensure_path_mounted(const char* path) {
 
-    Volume* v = volume_for_path(path);
+    if ((DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 || DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 0) && strncmp(path, "/sdcard", 7) == 0)
+		return 0; // sdcard is just a symlink
+
+	Volume* v = volume_for_path(path);
     if (v == NULL) {
         LOGE("unknown volume for path [%s]\n", path);
         return -1;
@@ -203,17 +206,15 @@ int ensure_path_mounted(const char* path) {
 }
 
 int ensure_path_unmounted(const char* path) {
+	if ((DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 || DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 0) && strncmp(path, "/sdcard", 7) == 0)
+		return 0; // sdcard is just a symlink
+
     // This is an old, common method for ensuring a flush
     sync();
     sync();
 
 	if (DataManager_GetIntValue(TW_DONT_UNMOUNT_SYSTEM) == 1 && strncmp(path, "/system", 7) == 0)
 		return 0;
-
-	if ((DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 || DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 1) && strncmp(path, "/sdcard", 7) == 0) {
-		LOGI("Unmounting /sdcard (dual storage path code)\n");
-		return system("umount /sdcard");;
-	}
 
 	Volume* v = volume_for_path(path);
     if (v == NULL) {
@@ -246,6 +247,7 @@ int mount_current_storage(void) {
 	char mount_point[255];
 
 	strcpy(mount_point, DataManager_GetCurrentStorageMount());
+
 	return ensure_path_mounted(mount_point);
 }
 
@@ -253,6 +255,7 @@ int unmount_current_storage(void) {
 	char mount_point[255];
 
 	strcpy(mount_point, DataManager_GetCurrentStorageMount());
+
 	return ensure_path_unmounted(mount_point);
 }
 
