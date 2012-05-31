@@ -1083,7 +1083,7 @@
 			</object>
 
 			<object type="button">
-				<placement x="%col2_x%" y="%row13_text_y%" />
+				<placement x="%col3_x%" y="%row13_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<conditions>
 					<condition var1="tw_has_dual_storage" var2="1" />
@@ -1095,7 +1095,7 @@
 			</object>
 
 			<object type="button">
-				<placement x="%col2_x%" y="%row13_text_y%" />
+				<placement x="%col3_x%" y="%row13_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<conditions>
 					<condition var1="tw_has_dual_storage" var2="1" />
