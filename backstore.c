@@ -33,6 +33,8 @@
 #include "roots.h"
 #include "format.h"
 #include "data.h"
+#include "makelist.h"
+#include "variables.h"
 
 int getWordFromString(int word, const char* string, char* buffer, int bufferLen)
 {
@@ -306,17 +308,21 @@ set_restore_files()
             extn = ptr;
         }
 
-        if (extn == NULL || strcmp(extn, "win") != 0)   continue;
+        if (extn == NULL || (strlen(extn) >= 3 && strncmp(extn, "win", 3) != 0))   continue;
 
         dev = findDeviceByLabel(label);
         if (dev == NULL)
         {
-            LOGE(" Unable to locate device by label\n");
+            LOGE(" Unable to locate device by label: '%s'\n", label);
             continue;
         }
 
-        strncpy(dev->fnm, de->d_name, 256);
-        dev->fnm[255] = '\0';
+		strncpy(dev->fnm, de->d_name, 256);
+		if (strlen(extn) > 3) {
+			LOGI("---- %i\n", (strlen(de->d_name) - strlen(extn) + 3));
+			dev->fnm[strlen(de->d_name) - strlen(extn) + 3] = '\0';
+        } else
+			dev->fnm[255] = '\0';
 
         // Now, we just need to find the correct label
         if (dev == &sys)        tw_restore_system = 1;
@@ -691,9 +697,9 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
     // set compression or not
 	char bTarArg[255];
 	if (DataManager_GetIntValue(TW_USE_COMPRESSION_VAR)) {
-		strcpy(bTarArg,"-czv");
+		strcpy(bTarArg,"-cz");
 	} else {
-		strcpy(bTarArg,"-cv");
+		strcpy(bTarArg,"-c");
 	}
     FILE *bFp;
 
@@ -716,6 +722,7 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
 	char *bImage = malloc(sizeof(char)*255);
 	char *bMount = malloc(sizeof(char)*255);
 	char *bCommand = malloc(sizeof(char)*255);
+	int breakup_archives = 0;
 
     if (bMnt.backup == files)
     {
@@ -742,7 +749,9 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
 			}
 		}
 		bPartSize = bMnt.bsze;
-		if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 && strcmp(bMount, "/data") == 0) {
+		if (bPartSize > MAX_ARCHIVE_SIZE) {
+			breakup_archives = 1;
+		} else if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 && strcmp(bMount, "/data") == 0) {
 			LOGI("Using special tar command for /data/media setups.\n");
 			sprintf(bCommand, "cd /data && tar %s ./ --exclude='media*' -f %s%s", bTarArg, bDir, bImage);
 		} else
@@ -764,7 +773,6 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
         return 1;
     }
 
-	LOGI("=> Filename: %s\n",bImage);
 	LOGI("=> Size of %s is %lu KB.\n\n", bMount, (unsigned long) (bPartSize / 1024));
 	int i;
 	char bUppr[255];
@@ -774,64 +782,102 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
 	}
 	ui_print("[%s (%lu MB)]\n", bUppr, (unsigned long) (bPartSize / (1024 * 1024))); // show size in MB
 
-    SetDataState("Backup", bMnt.mnt, 0, 0);
+	SetDataState("Backup", bMnt.mnt, 0, 0);
 	int bProgTime;
 	time_t bStart, bStop;
 	char bOutput[1024];
 
-    time(&bStart); // start timer
-    ui_print("...Backing up %s partition.\n",bMount);
-	LOGI("Backup command: '%s'\n", bCommand);
-    bFp = __popen(bCommand, "r"); // sending backup command formed earlier above
-    if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 2) { // if twrp spam is on, show all lines
-        while (fgets(bOutput,sizeof(bOutput),bFp) != NULL) {
-            ui_print_overwrite("%s",bOutput);
-        }
-    } else { // else just show single line
-        while (fscanf(bFp,"%s",bOutput) == 1) {
-            if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 1) ui_print_overwrite("%s",bOutput);
-        }
-    }
-    ui_print_overwrite(" * Done.\n");
-    __pclose(bFp);
+	time(&bStart); // start timer
+	ui_print("...Backing up %s partition.\n",bMount);
+	if (breakup_archives == 0) {
+		LOGI("=> Filename: %s\n",bImage);
+		LOGI("Backup command: '%s'\n", bCommand);
+		bFp = __popen(bCommand, "r"); // sending backup command formed earlier above
+		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 2) { // if twrp spam is on, show all lines
+			while (fgets(bOutput,sizeof(bOutput),bFp) != NULL) {
+				ui_print_overwrite("%s",bOutput);
+			}
+		} else { // else just show single line
+			while (fscanf(bFp,"%s",bOutput) == 1) {
+				if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 1) ui_print_overwrite("%s",bOutput);
+			}
+		}
+		ui_print_overwrite(" * Done.\n");
+		__pclose(bFp);
 
-    ui_print(" * Verifying backup size.\n");
-    SetDataState("Verifying", bMnt.mnt, 0, 0);
+		ui_print(" * Verifying backup size.\n");
+		SetDataState("Verifying", bMnt.mnt, 0, 0);
 
-    sprintf(bCommand, "%s%s", bDir, bImage);
-    struct stat st;
-    if (stat(bCommand, &st) != 0 || st.st_size == 0)
-    {
-        ui_print("E: File size is zero bytes. Aborting...\n\n"); // oh noes! file size is 0, abort! abort!
-        tw_unmount(bMnt);
-        free(bCommand);
-        free(bMount);
-        free(bImage);
-        return 1;
-    }
+		sprintf(bCommand, "%s%s", bDir, bImage);
+		struct stat st;
+		if (stat(bCommand, &st) != 0 || st.st_size == 0)
+		{
+			ui_print("E: File size is zero bytes. Aborting...\n\n"); // oh noes! file size is 0, abort! abort!
+			tw_unmount(bMnt);
+			free(bCommand);
+			free(bMount);
+			free(bImage);
+			return 1;
+		}
 
-    ui_print(" * File size: %llu bytes.\n", st.st_size); // file size
+		ui_print(" * File size: %llu bytes.\n", st.st_size); // file size
 
-    // Only verify image sizes
-    if (bMnt.backup == image)
-    {
-        LOGI(" * Expected size: %llu Got: %lld\n", bMnt.sze, st.st_size);
-        if (bMnt.sze != (unsigned long long) st.st_size)
-        {
-            if (DataManager_GetIntValue(TW_IGNORE_IMAGE_SIZE) == 1) {
-				ui_print("E: File size is incorrect. Aborting.\n\n"); // they dont :(
+		// Only verify image sizes
+		if (bMnt.backup == image)
+		{
+			LOGI(" * Expected size: %llu Got: %lld\n", bMnt.sze, st.st_size);
+			if (bMnt.sze != (unsigned long long) st.st_size)
+			{
+				if (DataManager_GetIntValue(TW_IGNORE_IMAGE_SIZE) == 1) {
+					LOGE("File size is incorrect. Aborting.\n\n"); // they dont :(
+					free(bCommand);
+					free(bMount);
+					free(bImage);
+					return 1;
+				} else
+					LOGW("Image size doesn't match, ignoring error due to TW_IGNORE_IMAGE_SIZE setting.\n");
+			}
+		}
+
+		makeMD5(bDir, bImage); // make md5 file
+	} else {
+		unsigned long long total_bsize = 0;
+		ui_print("Breaking backup file into multiple archives...\nGenerating file lists\n");
+		strcpy(str, "/");
+		strcat(str, bMnt.mnt);
+		int backup_count = make_file_list(str);
+		if (backup_count < 1) {
+			LOGE("Error generating file list!\n");
+			return 1;
+		}
+
+		for (i=0; i<backup_count; i++) {
+			sprintf(bImage, "%s.%s.win%03i", bMnt.mnt, bMnt.fst, i);
+			LOGI("=> Filename: %s\n",bImage);
+			sprintf(bCommand,"tar %s -f %s%s -T /tmp/list/filelist%03i", bTarArg, bDir, bImage, i);
+			LOGI("Backup command: '%s'\n", bCommand);
+			ui_print("Backup archive %i of %i...\n", (i + 1), backup_count);
+			__system(bCommand); // sending backup command formed earlier above
+			SetDataState("Verifying", bMnt.mnt, 0, 0);
+
+			sprintf(bCommand, "%s%s", bDir, bImage);
+			struct stat st;
+			if (stat(bCommand, &st) != 0 || st.st_size == 0)
+			{
+				LOGE("File size is zero bytes. Aborting...\n\n"); // oh noes! file size is 0, abort! abort!
+				tw_unmount(bMnt);
 				free(bCommand);
 				free(bMount);
 				free(bImage);
 				return 1;
-			} else
-				LOGW("Image size doesn't match, ignoring error due to TW_IGNORE_IMAGE_SIZE setting.\n");
-        }
-    }
+			}
+			total_bsize += st.st_size;
+			makeMD5(bDir, bImage); // make md5 file
+		}
+		ui_print(" * Total size: %llu bytes.\n", total_bsize);
+		__system("cd /tmp && rm -rf list");
+	}
 
-    ui_print(" * Generating md5...\n");
-    SetDataState("Generating MD5", bMnt.mnt, 0, 0);
-    makeMD5(bDir, bImage); // make md5 file
     time(&bStop); // stop timer
     ui_print("[%s DONE (%d SECONDS)]\n\n",bUppr,(int)difftime(bStop,bStart)); // done, finally. How long did it take?
 	if (strcmp(bMnt.mnt, ".android_secure") != 0) // any partition other than android secure,
@@ -1187,15 +1233,17 @@ int nandroid_back_exe()
 
 int tw_restore(struct dInfo rMnt, const char *rDir)
 {
-	int i;
+	int i, multiple_archives = 0;
 	FILE *reFp;
 	char rUppr[20];
 	char rMount[30];
 	char rFilesystem[10];
-	char rFilename[255];
+	char rFilename[255], rFilenameW[255];
 	char rCommand[255];
 	char rOutput[255];
 	time_t rStart, rStop;
+	struct stat st;
+
 	strcpy(rUppr,rMnt.mnt);
 	for (i = 0; i < (int) strlen(rUppr); i++) {
 		rUppr[i] = toupper(rUppr[i]);
@@ -1203,23 +1251,45 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
 	ui_print("[%s]\n",rUppr);
 	time(&rStart);
     int md5_result;
+
+	strcpy(rFilename,rDir);
+	if (rFilename[strlen(rFilename)-1] != '/')
+	{
+		strcat(rFilename, "/");
+	}
+	strcat(rFilename,rMnt.fnm);
+
 	if (DataManager_GetIntValue(TW_SKIP_MD5_CHECK_VAR)) {
 		SetDataState("Verifying MD5", rMnt.mnt, 0, 0);
 		ui_print("...Verifying md5 hash for %s.\n",rMnt.mnt);
-		md5_result = checkMD5(rDir, rMnt.fnm); // verify md5, check if no error; 0 = no error.
+		if (stat(rFilename, &st) != 0) {
+			char just_filename[255];
+
+			LOGI("MD5: Archive is multiple files.\n");
+			i = 0;
+			sprintf(just_filename, "%s%03i", rMnt.fnm, i);
+			sprintf(rFilenameW, "%s%03i", rFilename, i);
+			while (i < 1000 && stat(rFilenameW, &st) == 0) {
+				if (checkMD5(rDir, just_filename) != 0) {
+					LOGE("...Failed md5 check on '%s'. Aborted.\n\n", just_filename);
+					return 1;
+				}
+				i++;
+				sprintf(just_filename, "%s%03i", rMnt.fnm, i);
+				sprintf(rFilenameW, "%s%03i", rFilename, i);
+			}
+			md5_result = 0;
+		} else
+			md5_result = checkMD5(rDir, rMnt.fnm); // verify md5, check if no error; 0 = no error.
 	} else {
 		md5_result = 0;
 		ui_print("Skipping MD5 check based on user setting.\n");
 	}
 	if(md5_result == 0)
 	{
-		strcpy(rFilename,rDir);
-        if (rFilename[strlen(rFilename)-1] != '/')
-        {
-            strcat(rFilename, "/");
-        }
-		strcat(rFilename,rMnt.fnm);
-		sprintf(rCommand,"ls -l %s | awk -F'.' '{ print $2 }'",rFilename); // let's get the filesystem type from filename
+		strcpy(rFilenameW, rFilename);
+		strcat(rFilenameW, "*");
+		sprintf(rCommand,"ls -l %s | awk -F'.' '{ print $2 }'",rFilenameW); // let's get the filesystem type from filename
         reFp = __popen(rCommand, "r");
 		LOGI("=> Filename is: %s\n",rMnt.fnm);
 		while (fscanf(reFp,"%s",rFilesystem) == 1) { // if we get a match, store filesystem type
@@ -1274,7 +1344,11 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
 				strcpy(rMount, "/");
 				strcat(rMount, rMnt.mnt);
 			}
-            sprintf(rCommand, "cd %s && tar -xvf %s", rMount, rFilename); // formulate shell command to restore
+			if (stat(rFilename, &st) != 0) {
+				LOGI("Archive is multiple files.\n");
+				multiple_archives = 1;
+			} else
+				sprintf(rCommand, "cd %s && tar -xf %s", rMount, rFilename); // formulate shell command to restore
         } else if (rMnt.backup == image) {
             if (strcmp(rFilesystem, "mtd") == 0) { // if filesystem is mtd, we use flash image
     			sprintf(rCommand, "flash_image %s %s", rMnt.mnt, rFilename);
@@ -1299,19 +1373,32 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
         }
 
 		ui_print("...Restoring %s\n\n",rMount);
-        SetDataState("Restoring", rMnt.mnt, 0, 0);
-		LOGI("Restore command is: '%s'\n", rCommand);
-		reFp = __popen(rCommand, "r");
-		if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 2) { // twrp spam
-			while (fgets(rOutput,sizeof(rOutput),reFp) != NULL) {
-				ui_print_overwrite("%s",rOutput);
+		SetDataState("Restoring", rMnt.mnt, 0, 0);
+		if (multiple_archives == 0) {
+			LOGI("Restore command is: '%s'\n", rCommand);
+			reFp = __popen(rCommand, "r");
+			if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 2) { // twrp spam
+				while (fgets(rOutput,sizeof(rOutput),reFp) != NULL) {
+					ui_print_overwrite("%s",rOutput);
+				}
+			} else {
+				while (fscanf(reFp,"%s",rOutput) == 1) {
+					if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 1) ui_print_overwrite("%s",rOutput);
+				}
 			}
+			__pclose(reFp);
 		} else {
-			while (fscanf(reFp,"%s",rOutput) == 1) {
-				if(DataManager_GetIntValue(TW_SHOW_SPAM_VAR) == 1) ui_print_overwrite("%s",rOutput);
+			i = 0;
+			sprintf(rFilenameW, "%s%03i", rFilename, i);
+			while (i < 1000 && stat(rFilenameW, &st) == 0) {
+				sprintf(rCommand, "tar -xf %s", rFilenameW);
+				LOGI("Restore command is: '%s'\n", rCommand);
+				ui_print("Restoring archive %i...\n", (i + 1));
+				__system(rCommand);
+				i++;
+				sprintf(rFilenameW, "%s%03i", rFilename, i);
 			}
 		}
-		__pclose(reFp);
 		ui_print_overwrite("....done restoring.\n");
 		if (strcmp(rMnt.mnt, ".android_secure") != 0) // any partition other than android secure,
 			tw_unmount(rMnt); // let's unmount (unmountable partitions won't matter)
@@ -1571,6 +1658,9 @@ int makeMD5(const char *imgDir, const char *imgFile)
         // When skipping the generate, we return success
         return 0;
     }
+
+	ui_print(" * Generating md5...\n");
+	SetDataState("Generating MD5", imgFile, 0, 0);
 
 	if (mount_current_storage() != 0) {
 		LOGI("=> Can not mount storage.\n");

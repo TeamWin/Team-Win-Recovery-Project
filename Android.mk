@@ -25,7 +25,8 @@ LOCAL_SRC_FILES := \
     backstore.c \
     themes.c \
     format.c \
-    data.cpp
+    data.cpp \
+    makelist.c
 
 ifeq ($(TARGET_RECOVERY_REBOOT_SRC),)
   LOCAL_SRC_FILES += reboot.c
