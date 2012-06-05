@@ -323,41 +323,84 @@ void get_device_id()
     return;
 }
 
+char* get_path (char* path)
+{
+        char *s;
+
+        /* Go to the end of the string.  */
+        s = path + strlen(path) - 1;
+
+        /* Strip off trailing /s (unless it is also the leading /).  */
+        while (path < s && s[0] == '/')
+                s--;
+
+        /* Strip the last component.  */
+        while (path <= s && s[0] != '/')
+                s--;
+
+        while (path < s && s[0] == '/')
+                s--;
+
+        if (s < path)
+                return ".";
+
+        s[1] = '\0';
+	return path;
+}
+
+char* basename(char* name) 
+{
+	const char* base;	
+	for (base = name; *name; name++)
+	{
+		if(*name == '/')
+		{
+			base = name + 1;
+		}		
+	}
+	return (char *) base;
+}
 /*
     Checks md5 for a path
     Return values:
-        -3 : Different file name in MD5 than provided
-        -2 : Zip does not exist
         -1 : MD5 does not exist
         0 : Failed
         1 : Success
 */
 int check_md5(char* path) {
+    int o; 
     char cmd[PATH_MAX + 30];
-    sprintf(cmd, "/sbin/md5check.sh '%s'", path);
-    
-    //ui_print("\nMD5 Command: %s", cmd);
-    
-    FILE * cs = __popen(cmd, "r");
-    char cs_s[7];
-    fgets(cs_s, 7, cs);
+    char md5file[PATH_MAX + 40];
+    strcpy(md5file, path);
+    strcat(md5file, ".md5");
+    char dirpath[PATH_MAX];
+    char* file;
+    if (access(md5file, F_OK ) != -1) {
+	strcpy(dirpath, md5file);
+	get_path(dirpath);
+	chdir(dirpath);
+	file = basename(md5file);
+	sprintf(cmd, "/sbin/busybox md5sum -c '%s'", file);
+	FILE * cs = __popen(cmd, "r");
+	char cs_s[PATH_MAX + 50];
+	fgets(cs_s, PATH_MAX + 50, cs);
+	char* OK = strstr(cs_s, "OK");
+	if (OK != NULL) {
+		printf("MD5 is good. returning 1\n");
+		o = 1;
+	}
+	else {
+		printf("MD5 is bad. return -2\n");
+		o = -2;
+	}
 
-    //ui_print("\nMD5 Message: %s", cs_);
-    __pclose(cs);
-    
-    int o = -99;
-    if (strncmp(cs_s, "OK", 2) == 0)
-        o = 1;
-    else if (strncmp(cs_s, "FAILURE", 7) == 0)
-        o = 0;
-    else if (strncmp(cs_s, "NO5", 3) == 0)
-        o = -1;
-    else if (strncmp(cs_s, "NOZ", 3) == 0)
-        o = -2;
-    else if (strncmp(cs_s, "DF", 2) == 0)
-        o = -3;
-    else // Unknown error
-        o = -99;
+	__pclose(cs);
+    } 
+    else {
+	//No md5 file
+	printf("setting o to -1\n");
+	o = -1;
+    }
 
     return o;
 }
@@ -463,19 +506,36 @@ int install_zip_package(const char* zip_path_filename) {
 	int result;
 
     mount_current_storage();
-	ui_print("\n-- Verify md5 for %s", zip_path_filename);
-	int md5chk = check_md5((char*) zip_path_filename);
-	bool md5_req = DataManager_GetIntValue(TW_FORCE_MD5_CHECK_VAR);
-	if (md5chk > 0 || (!md5_req && md5chk == -1)) {
-		if (md5chk == 1)
+	int md5_req = DataManager_GetIntValue(TW_FORCE_MD5_CHECK_VAR);
+	if (md5_req == 1) {
+		ui_print("\n-- Verify md5 for %s", zip_path_filename);
+		int md5chk = check_md5((char*) zip_path_filename);
+		if (md5chk == 1) {
 			ui_print("\n-- Md5 verified, continue");
-		else if (md5chk == -1)
-			ui_print("\n-- No md5 file found, ignoring");
+			result = 0;
+		}
+		else if (md5chk == -1) {
+			if (md5_req == 1) {
+				ui_print("\n-- No md5 file found!");
+				ui_print("\n-- Aborting install");
+				result = INSTALL_ERROR;
+			}
+			else {
+				ui_print("\n-- No md5 file found, ignoring");
+			}
+		}
+		else if (md5chk == -2) {
+			ui_print("\n-- md5 file doesn't match!");
+			ui_print("\n-- Aborting install");
+			result = INSTALL_ERROR;
+		}
+		printf("%d\n", result);
+	}
+	if (result != INSTALL_ERROR) {
 		ui_print("\n-- Install %s ...\n", zip_path_filename);
 		set_sdcard_update_bootloader_message();
 		char* copy;
 		if (DataManager_GetIntValue(TW_FLASH_ZIP_IN_PLACE) == 1 && strlen(zip_path_filename) > 6 && strncmp(zip_path_filename, "/cache", 6) != 0) {
-			LOGI("Flashing zip in place.\n");
 			copy = strdup(zip_path_filename);
 		} else {
 			copy = copy_sideloaded_package(zip_path_filename);
@@ -488,28 +548,6 @@ int install_zip_package(const char* zip_path_filename) {
 		} else {
 			result = INSTALL_ERROR;
 		}
-	} else {
-	// MD5 check failed for some reason
-		switch (md5chk) {
-			case 0:
-				ui_print("\n-- Md5 did not match");
-				break;
-			case -1:
-				ui_print("\n-- Md5 file not found");
-				break;
-			case -2:
-				ui_print("\n-- Zip file not found");
-				break;
-			case -3:
-				ui_print("\n-- Invalid md5");
-				ui_print("\n-- Filename in md5 and zip do not match");
-				break;
-            default:
-                ui_print("\n-- Unknown md5 error");
-                break;
-		}
-		ui_print("\n-- Aborting install");
-		result = INSTALL_ERROR;
 	}
     mount_current_storage();
     //finish_recovery(NULL);

@@ -521,7 +521,7 @@
 			<object type="template" name="header" />
 
 			<object type="console">
-				<placement x="0" y="%row1_y%" w="800" h="600" />
+				<placement x="0" y="%row1_y%" w="800" h="700" />
 				<color foreground="#A0A0A0" background="#303030" scroll="#303030" />
 				<font resource="fixed" />
 			</object>
