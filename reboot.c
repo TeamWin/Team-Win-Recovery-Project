@@ -9,6 +9,9 @@
 #include "recovery_ui.h"
 #include "roots.h"
 #include "extra-functions.h"
+#include "data.h"
+#include "variables.h"
+#include "ddftw.h"
 
 // isRebootCommandSupported: Return 1 if command is supported, 0 if the command is not supported, -1 on error
 int tw_isRebootCommandSupported(RebootCommand command)
@@ -36,7 +39,15 @@ int tw_setRebootMode(RebootCommand command)
 // reboot: Reboot the system. Return -1 on error, no return on success
 int tw_reboot(RebootCommand command)
 {
-    // Always force a sync before we reboot
+    if (DataManager_GetIntValue(TW_BACKUP_SYSTEM_SIZE) < DataManager_GetIntValue(TW_MIN_SYSTEM_VAR)) {
+		update_system_details();
+		if (DataManager_GetIntValue(TW_BACKUP_SYSTEM_SIZE) < DataManager_GetIntValue(TW_MIN_SYSTEM_VAR)) {
+			LOGE("System is not installed - preventing reboot!\n");
+			return -1;
+		}
+	}
+
+	// Always force a sync before we reboot
     sync();
 
     ensure_path_unmounted("/sdcard");

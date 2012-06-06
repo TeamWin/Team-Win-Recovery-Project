@@ -410,7 +410,7 @@
 			<object type="text" color="%text_color%">
 				<font resource="font" />
 				<placement x="%center_x%" y="%row3_text_y%" placement="4" />
-				<text>Folder:</text>
+				<text>Folder & File to Flash:</text>
 			</object>
 
 			<object type="text" color="%text_color%">
@@ -422,23 +422,17 @@
 			<object type="text" color="%text_color%">
 				<font resource="font" />
 				<placement x="%center_x%" y="%row5_text_y%" placement="4" />
-				<text>File to flash:</text>
-			</object>
-
-			<object type="text" color="%text_color%">
-				<font resource="font" />
-				<placement x="%center_x%" y="%row6_text_y%" placement="4" />
 				<text>%tw_file%</text>
 			</object>
 
 			<object type="text" color="%text_color%">
 				<font resource="font" />
-				<placement x="%center_x%" y="%row7_text_y%" placement="4" />
+				<placement x="%center_x%" y="%row6_text_y%" placement="4" />
 				<text>Press back to cancel adding this zip.</text>
 			</object>
 
 			<object type="checkbox">
-				<placement x="%col1_x%" y="%row8_text_y%" />
+				<placement x="%col1_x%" y="%row7_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Zip file signature verification?</text>
 				<data variable="tw_signed_zip_verify" />
@@ -446,7 +440,7 @@
 			</object>
 
 			<object type="checkbox">
-				<placement x="%col1_x%" y="%row9_text_y%" />
+				<placement x="%col1_x%" y="%row8_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Force MD5 check on all zips?</text>
 				<data variable="tw_force_md5_check" />
@@ -455,7 +449,7 @@
 
 			<object type="checkbox">
 				<condition var1="tw_has_injecttwrp" var2="1" />
-				<placement x="%col1_x%" y="%row10_text_y%" />
+				<placement x="%col1_x%" y="%row9_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Inject TWRP after install?</text>
 				<data variable="tw_inject_after_zip" />
@@ -464,7 +458,7 @@
 
 			<object type="text" color="%text_color%">
 				<font resource="font" />
-				<placement x="%center_x%" y="%row12_text_y%" placement="4" />
+				<placement x="%center_x%" y="%row11_text_y%" placement="4" />
 				<text>File %tw_zip_queue_count% of max of 10</text>
 			</object>
 
@@ -581,7 +575,10 @@
 			</object>
 
 			<object type="button">
-				<condition var1="tw_reboot_system" var2="1" />
+				<conditions>
+					<condition var1="tw_reboot_system" var2="1" />
+					<condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
+				</conditions>
 				<placement x="%col2_x%" y="%row4_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Reboot System</text>
@@ -1454,7 +1451,7 @@
 					<condition var1="tw_has_data_media" var2="0" />
 					<condition var1="mounted" op="!=" var2="INTERNAL" />
 				</conditions>
-				<text>                                      Mount Internal Storage</text>
+				<text>                                         Mount Internal Storage</text>
 				<image resource="checkbox_false" />
 				<action function="mount">INTERNAL</action>
 			</object>
@@ -1467,7 +1464,7 @@
 					<condition var1="tw_has_data_media" var2="0" />
 					<condition var1="mounted" op="=" var2="INTERNAL" />
 				</conditions>
-				<text>                                      Unmount Internal Storage</text>
+				<text>                                         Unmount Internal Storage</text>
 				<image resource="checkbox_true" />
 				<action function="umount">INTERNAL</action>
 			</object>
@@ -1548,7 +1545,7 @@
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="1" />
 				</conditions>
-				<text>                                      Using internal storage</text>
+				<text>                                         Using internal storage</text>
 				<image resource="radio_false" />
 				<action function="togglestorage">internal</action>
 			</object>
@@ -1560,7 +1557,7 @@
 					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="0" />
 				</conditions>
-				<text>                                      Using internal storage</text>
+				<text>                                         Using internal storage</text>
 				<image resource="radio_true" />
 				<action function="togglestorage">internal</action>
 			</object>
@@ -1642,8 +1639,25 @@
 				<text>Reboot Menu</text>
 			</object>
 
+			<object type="text" color="%text_color%">
+				<condition var1="tw_backup_system_size" op="<" var2="%tw_min_system%" />
+				<font resource="font" />
+				<placement x="%center_x%" y="%row3_text_y%" placement="4" />
+				<text>No Android OS Installed!</text>
+			</object>
+
+			<object type="text" color="%text_color%">
+				<condition var1="tw_backup_system_size" op="<" var2="%tw_min_system%" />
+				<font resource="font" />
+				<placement x="%center_x%" y="%row4_text_y%" placement="4" />
+				<text>Install a ROM or restore a backup to reboot.</text>
+			</object>
+
 			<object type="button">
-				<condition var1="tw_reboot_system" var2="1" />
+				<conditions>
+					<condition var1="tw_reboot_system" var2="1" />
+					<condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
+				</conditions>
 				<placement x="%col1_x%" y="%row1_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>System</text>
@@ -1652,7 +1666,10 @@
 			</object>
 
 			<object type="button">
-				<condition var1="tw_reboot_poweroff" var2="1" />
+				<conditions>
+					<condition var1="tw_reboot_poweroff" var2="1" />
+					<condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
+				</conditions>
 				<placement x="%col2_x%" y="%row1_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Power Off</text>
@@ -1661,6 +1678,10 @@
 			</object>
 
 			<object type="button">
+				<conditions>
+					<condition var1="tw_reboot_recovery" var2="1" />
+					<condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
+				</conditions>
 				<condition var1="tw_reboot_recovery" var2="1" />
 				<placement x="%col1_x%" y="%row2_y%" />
 				<font resource="font" color="%button_text_color%" />
@@ -1670,7 +1691,10 @@
 			</object>
 
 			<object type="button">
-				<condition var1="tw_reboot_bootloader" var2="1" />
+				<conditions>
+					<condition var1="tw_reboot_bootloader" var2="1" />
+					<condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
+				</conditions>
 				<placement x="%col2_x%" y="%row2_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Bootloader</text>

@@ -291,6 +291,8 @@ set_restore_files()
         struct dInfo* dev = NULL;
 
         strcpy(str, de->d_name);
+		if (strlen(str) <= 2)
+			continue;
         label = str;
         ptr = label;
         while (*ptr && *ptr != '.')     ptr++;
@@ -319,7 +321,6 @@ set_restore_files()
 
 		strncpy(dev->fnm, de->d_name, 256);
 		if (strlen(extn) > 3) {
-			LOGI("---- %i\n", (strlen(de->d_name) - strlen(extn) + 3));
 			dev->fnm[strlen(de->d_name) - strlen(extn) + 3] = '\0';
         } else
 			dev->fnm[255] = '\0';

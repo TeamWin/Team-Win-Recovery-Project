@@ -578,7 +578,10 @@
 			</object>
 
 			<object type="button">
-				<condition var1="tw_reboot_system" var2="1" />
+				<conditions>
+					<condition var1="tw_reboot_system" var2="1" />
+					<condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
+				</conditions>
 				<placement x="%col2_x%" y="%row4_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Reboot System</text>
@@ -1657,8 +1660,25 @@
 				<text>Reboot Menu</text>
 			</object>
 
+			<object type="text" color="%text_color%">
+				<condition var1="tw_backup_system_size" op="<" var2="%tw_min_system%" />
+				<font resource="font" />
+				<placement x="%center_x%" y="%row3_text_y%" placement="4" />
+				<text>No Android OS Installed!</text>
+			</object>
+
+			<object type="text" color="%text_color%">
+				<condition var1="tw_backup_system_size" op="<" var2="%tw_min_system%" />
+				<font resource="font" />
+				<placement x="%center_x%" y="%row4_text_y%" placement="4" />
+				<text>Install a ROM or restore a backup to reboot.</text>
+			</object>
+
 			<object type="button">
-				<condition var1="tw_reboot_system" var2="1" />
+				<conditions>
+					<condition var1="tw_reboot_system" var2="1" />
+					<condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
+				</conditions>
 				<placement x="%col1_x%" y="%row1_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>System</text>
@@ -1667,7 +1687,10 @@
 			</object>
 
 			<object type="button">
-				<condition var1="tw_reboot_poweroff" var2="1" />
+				<conditions>
+					<condition var1="tw_reboot_poweroff" var2="1" />
+					<condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
+				</conditions>
 				<placement x="%col2_x%" y="%row1_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Power Off</text>
@@ -1676,7 +1699,10 @@
 			</object>
 
 			<object type="button">
-				<condition var1="tw_reboot_recovery" var2="1" />
+				<conditions>
+					<condition var1="tw_reboot_recovery" var2="1" />
+					<condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
+				</conditions>
 				<placement x="%col1_x%" y="%row2_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Recovery</text>
@@ -1685,7 +1711,10 @@
 			</object>
 
 			<object type="button">
-				<condition var1="tw_reboot_bootloader" var2="1" />
+				<conditions>
+					<condition var1="tw_reboot_bootloader" var2="1" />
+					<condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
+				</conditions>
 				<placement x="%col2_x%" y="%row2_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Bootloader</text>

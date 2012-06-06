@@ -618,7 +618,10 @@
 			</object>
 
 			<object type="button">
-				<condition var1="tw_reboot_system" var2="1" />
+				<conditions>
+					<condition var1="tw_reboot_system" var2="1" />
+					<condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
+				</conditions>
 				<placement x="%col4_x%" y="%slider_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Reboot System</text>
@@ -846,8 +849,25 @@
 				<text>Reboot Menu</text>
 			</object>
 
+			<object type="text" color="%text_color%">
+				<condition var1="tw_backup_system_size" op="<" var2="%tw_min_system%" />
+				<font resource="font" />
+				<placement x="%center_x%" y="%row3_text_y%" placement="4" />
+				<text>No Android OS Installed!</text>
+			</object>
+
+			<object type="text" color="%text_color%">
+				<condition var1="tw_backup_system_size" op="<" var2="%tw_min_system%" />
+				<font resource="font" />
+				<placement x="%center_x%" y="%row4_text_y%" placement="4" />
+				<text>Install a ROM or restore a backup to reboot.</text>
+			</object>
+
 			<object type="button">
-				<condition var1="tw_reboot_system" var2="1" />
+				<conditions>
+					<condition var1="tw_reboot_system" var2="1" />
+					<condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
+				</conditions>
 				<placement x="%col1_x%" y="%row1_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>System</text>
@@ -856,7 +876,10 @@
 			</object>
 
 			<object type="button">
-				<condition var1="tw_reboot_poweroff" var2="1" />
+				<conditions>
+					<condition var1="tw_reboot_poweroff" var2="1" />
+					<condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
+				</conditions>
 				<placement x="%col2_x%" y="%row1_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Power Off</text>
@@ -865,7 +888,10 @@
 			</object>
 
 			<object type="button">
-				<condition var1="tw_reboot_recovery" var2="1" />
+				<conditions>
+					<condition var1="tw_reboot_recovery" var2="1" />
+					<condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
+				</conditions>
 				<placement x="%col1_x%" y="%row2_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Recovery</text>
@@ -874,7 +900,10 @@
 			</object>
 
 			<object type="button">
-				<condition var1="tw_reboot_bootloader" var2="1" />
+				<conditions>
+					<condition var1="tw_reboot_bootloader" var2="1" />
+					<condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
+				</conditions>
 				<placement x="%col2_x%" y="%row2_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Bootloader</text>
@@ -995,7 +1024,7 @@
 				<placement x="%col2_x%" y="%row10_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<conditions>
-					<condition var1="tw_has_internal" var2="0" />
+					<condition var1="tw_has_internal" var2="1" />
 					<condition var1="tw_has_data_media" var2="0" />
 					<condition var1="mounted" op="!=" var2="INTERNAL" />
 				</conditions>
@@ -1066,7 +1095,7 @@
 				<placement x="%col1_x%" y="%row13_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<conditions>
-					<condition var1="tw_has_dual_storage" var2="0" />
+					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="1" />
 				</conditions>
 				<text>   Using external SD</text>
@@ -1078,7 +1107,7 @@
 				<placement x="%col1_x%" y="%row13_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<conditions>
-					<condition var1="tw_has_dual_storage" var2="0" />
+					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="0" />
 				</conditions>
 				<text>   Using external SD</text>
@@ -1090,7 +1119,7 @@
 				<placement x="%col2_x%" y="%row13_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<conditions>
-					<condition var1="tw_has_dual_storage" var2="0" />
+					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="1" />
 				</conditions>
 				<text>                                            Using internal storage</text>
@@ -1102,7 +1131,7 @@
 				<placement x="%col2_x%" y="%row13_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<conditions>
-					<condition var1="tw_has_dual_storage" var2="0" />
+					<condition var1="tw_has_dual_storage" var2="1" />
 					<condition var1="tw_use_external_storage" var2="0" />
 				</conditions>
 				<text>                                            Using internal storage</text>

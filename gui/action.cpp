@@ -47,7 +47,6 @@ void update_tz_environment_variables();
 void install_htc_dumlock(void);
 void htc_dumlock_restore_original_boot(void);
 void htc_dumlock_reflash_recovery_to_boot(void);
-void update_system_details();
 };
 
 #include "rapidxml.hpp"
@@ -668,6 +667,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 					DataManager::Flush();
 				}
 			}
+			update_system_details();
             operation_end(0, simulate);
             return 0;
         }
