@@ -24,6 +24,7 @@ typedef enum
     rb_recovery, 
     rb_poweroff, 
     rb_bootloader,     // May also be fastboot
+    rb_download,
 } RebootCommand;
 
 // tw_isRebootCommandSupported: Return 1 if command is supported, 0 if the command is not supported, -1 on error

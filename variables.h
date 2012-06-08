@@ -136,6 +136,7 @@
 #define TW_FLASH_ZIP_IN_PLACE       "tw_flash_zip_in_place"
 #define TW_MIN_SYSTEM_SIZE          "50" // minimum system size to allow a reboot
 #define TW_MIN_SYSTEM_VAR           "tw_min_system"
+#define TW_DOWNLOAD_MODE	    "tw_download_mode"
 
 // Also used:
 //   tw_boot_is_mountable

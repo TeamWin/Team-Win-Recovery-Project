@@ -22,6 +22,7 @@ int tw_isRebootCommandSupported(RebootCommand command)
     case rb_recovery:
     case rb_poweroff:
     case rb_bootloader:
+    case rb_download:
         return 1;
 
     default:
@@ -69,7 +70,9 @@ int tw_reboot(RebootCommand command)
     case rb_poweroff:
 		check_and_run_script("/sbin/poweroff.sh", "power off");
         return reboot(RB_POWER_OFF);
-
+    case rb_download:
+		__system("/sbin/reboot download");
+	return 1;
     default:
         return -1;
     }

@@ -523,6 +523,9 @@ void DataManager::SetDefaultValues()
 #ifdef TW_FLASH_FROM_STORAGE
 	mConstValues.insert(make_pair(TW_FLASH_ZIP_IN_PLACE, "1"));
 #endif
+#ifdef TW_HAS_DOWNLOAD_MODE
+	mConstValues.insert(make_pair(TW_DOWNLOAD_MODE, "1"));
+#endif
 
     mConstValues.insert(make_pair(TW_MIN_SYSTEM_VAR, TW_MIN_SYSTEM_SIZE));
 	mValues.insert(make_pair(TW_BACKUP_NAME, make_pair("0", 0)));

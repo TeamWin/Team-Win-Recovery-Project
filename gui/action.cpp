@@ -318,6 +318,8 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
             tw_reboot(rb_poweroff);
         else if (arg == "bootloader")
             tw_reboot(rb_bootloader);
+        else if (arg == "download")
+	    tw_reboot(rb_download);
         else
             tw_reboot(rb_system);
 
