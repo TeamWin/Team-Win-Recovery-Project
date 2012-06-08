@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <sys/vfs.h>
 
 #include "common.h"
 #include "install.h"
@@ -33,38 +34,50 @@
 #include "roots.h"
 #include "verifier.h"
 #include "data.h"
+#include "extra-functions.h"
 
 #define ASSUMED_UPDATE_BINARY_NAME  "META-INF/com/google/android/update-binary"
 #define PUBLIC_KEYS_FILE "/res/keys"
+#define INCLUDED_BINARY_NAME "/sbin/update-binary"
 
 static const char *LAST_INSTALL_FILE = "/cache/recovery/last_install";
 
 // If the package contains an update binary, extract it and run it.
 static int
 try_update_binary(const char *path, ZipArchive *zip) {
-    const ZipEntry* binary_entry =
-            mzFindZipEntry(zip, ASSUMED_UPDATE_BINARY_NAME);
-    if (binary_entry == NULL) {
-        mzCloseZipArchive(zip);
-        return INSTALL_CORRUPT;
-    }
+	struct statfs st;
+	char* binary = (char*)malloc(20);
 
-    char* binary = "/tmp/update_binary";
-    unlink(binary);
-    int fd = creat(binary, 0755);
-    if (fd < 0) {
-        mzCloseZipArchive(zip);
-        LOGE("Can't make %s\n", binary);
-        return 1;
-    }
-    bool ok = mzExtractZipEntryToFile(zip, binary_entry, fd);
-    close(fd);
-    mzCloseZipArchive(zip);
+	if (statfs(INCLUDED_BINARY_NAME, &st) != 0) {
+		// No update-binary included in recovery, extract it from the zip
+		strcpy(binary, "/tmp/update_binary");
+		const ZipEntry* binary_entry =
+				mzFindZipEntry(zip, ASSUMED_UPDATE_BINARY_NAME);
+		if (binary_entry == NULL) {
+			mzCloseZipArchive(zip);
+			return INSTALL_CORRUPT;
+		}
 
-    if (!ok) {
-        LOGE("Can't copy %s\n", ASSUMED_UPDATE_BINARY_NAME);
-        return 1;
-    }
+		unlink(binary);
+		int fd = creat(binary, 0755);
+		if (fd < 0) {
+			mzCloseZipArchive(zip);
+			LOGE("Can't make %s\n", binary);
+			return 1;
+		}
+		bool ok = mzExtractZipEntryToFile(zip, binary_entry, fd);
+		close(fd);
+		mzCloseZipArchive(zip);
+
+		if (!ok) {
+			LOGE("Can't copy %s\n", ASSUMED_UPDATE_BINARY_NAME);
+			return 1;
+		}
+	} else {
+		// Use the update-binary that is included in the recovery
+		strcpy(binary, INCLUDED_BINARY_NAME);
+		LOGI("Using update-binary included in recovery: '%s'.\n", binary);
+	}
 
     int pipefd[2];
     pipe(pipefd);
