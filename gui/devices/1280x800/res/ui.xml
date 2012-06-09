@@ -911,6 +911,18 @@
 				<action function="reboot">bootloader</action>
 			</object>
 
+                        <object type="button">
+                                <conditions>
+                                        <condition var1="tw_download_mode" var2="1" />
+                                        <condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
+                                </conditions>
+                                <placement x="%col2_x%" y="%row2_y%" />
+                                <font resource="font" color="%button_text_color%" />
+                                <text>Download</text>
+                                <image resource="main_button" />
+                                <action function="reboot">download</action>
+                        </object>
+
 			<object type="action">
 				<touch key="home" />
 				<action function="page">main</action>
