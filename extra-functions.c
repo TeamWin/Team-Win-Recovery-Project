@@ -640,55 +640,118 @@ TODO: Currently only one mount is supported, defaulting
 /mnt/sdcard to lun0 and anything else gets no love. Fix this.
 */
 #ifndef CUSTOM_LUN_FILE
-#define CUSTOM_LUN_FILE "/sys/devices/platform/usb_mass_storage/lun"
+#define CUSTOM_LUN_FILE "/sys/devices/platform/usb_mass_storage/lun%d/file"
 #endif
 
 int usb_storage_enable(void)
 {
     int fd;
+	char lun_file[255];
 
-    Volume *vol = volume_for_path("/sdcard"); 
-    if (!vol)
-    {
-        LOGE("Unable to locate volume information.");
-        return -1;
-    }
+	if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 1 && DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 0) {
+		Volume *vol = volume_for_path(DataManager_GetSettingsStoragePath());
+		if (!vol)
+		{
+			LOGE("Unable to locate volume information.");
+			return -1;
+		}
 
-    if ((fd = open(CUSTOM_LUN_FILE"0/file", O_WRONLY)) < 0)
-    {
-        LOGE("Unable to open ums lunfile: (%s)", strerror(errno));
-        return -1;
-    }
+		sprintf(lun_file, CUSTOM_LUN_FILE, 0);
 
-    if ((write(fd, vol->device, strlen(vol->device)) < 0) &&
-        (!vol->device2 || (write(fd, vol->device, strlen(vol->device2)) < 0))) {
-        LOGE("Unable to write to ums lunfile: (%s)", strerror(errno));
-        close(fd);
-        return -1;
-    }
-    close(fd);
-    return 0;
+		if ((fd = open(lun_file, O_WRONLY)) < 0)
+		{
+			LOGE("Unable to open ums lunfile '%s': (%s)\n", lun_file, strerror(errno));
+			return -1;
+		}
+
+		if ((write(fd, vol->device, strlen(vol->device)) < 0) &&
+			(!vol->device2 || (write(fd, vol->device, strlen(vol->device2)) < 0))) {
+			LOGE("Unable to write to ums lunfile '%s': (%s)\n", lun_file, strerror(errno));
+			close(fd);
+			return -1;
+		}
+		close(fd);
+
+		Volume *vol2 = volume_for_path(DataManager_GetStrValue(TW_EXTERNAL_PATH));
+		if (!vol)
+		{
+			LOGE("Unable to locate volume information.\n");
+			return -1;
+		}
+
+		sprintf(lun_file, CUSTOM_LUN_FILE, 1);
+
+		if ((fd = open(lun_file, O_WRONLY)) < 0)
+		{
+			LOGE("Unable to open ums lunfile '%s': (%s)\n", lun_file, strerror(errno));
+			return -1;
+		}
+
+		if ((write(fd, vol2->device, strlen(vol2->device)) < 0) &&
+			(!vol2->device2 || (write(fd, vol2->device, strlen(vol2->device2)) < 0))) {
+			LOGE("Unable to write to ums lunfile '%s': (%s)\n", lun_file, strerror(errno));
+			close(fd);
+			return -1;
+		}
+		close(fd);
+	} else {
+		if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 0)
+			strcpy(lun_file, DataManager_GetCurrentStoragePath());
+		else
+			strcpy(lun_file, DataManager_GetStrValue(TW_EXTERNAL_PATH));
+
+		Volume *vol = volume_for_path(lun_file);
+		if (!vol)
+		{
+			LOGE("Unable to locate volume information.\n");
+			return -1;
+		}
+
+		sprintf(lun_file, CUSTOM_LUN_FILE, 0);
+
+		if ((fd = open(lun_file, O_WRONLY)) < 0)
+		{
+			LOGE("Unable to open ums lunfile '%s': (%s)\n", lun_file, strerror(errno));
+			return -1;
+		}
+
+		if ((write(fd, vol->device, strlen(vol->device)) < 0) &&
+			(!vol->device2 || (write(fd, vol->device, strlen(vol->device2)) < 0))) {
+			LOGE("Unable to write to ums lunfile '%s': (%s)\n", lun_file, strerror(errno));
+			close(fd);
+			return -1;
+		}
+		close(fd);
+	}
+	return 0;
 }
 
 int usb_storage_disable(void)
 {
-    int fd;
+    int fd, index;
+	char lun_file[255];
 
-    if ((fd = open(CUSTOM_LUN_FILE"0/file", O_WRONLY)) < 0)
-    {
-        LOGE("Unable to open ums lunfile: (%s)", strerror(errno));
-        return -1;
-    }
+	for (index=0; index<2; index++) {
+		sprintf(lun_file, CUSTOM_LUN_FILE, index);
 
-    char ch = 0;
-    if (write(fd, &ch, 1) < 0)
-    {
-        LOGE("Unable to write to ums lunfile: (%s)", strerror(errno));
-        close(fd);
-        return -1;
-    }
+		if ((fd = open(CUSTOM_LUN_FILE, O_WRONLY)) < 0)
+		{
+			if (index == 0)
+				LOGE("Unable to open ums lunfile: (%s)", strerror(errno));
+			return -1;
+		}
 
-    close(fd);
+		char ch = 0;
+		if (write(fd, &ch, 1) < 0)
+		{
+			if (index == 0)
+				LOGE("Unable to write to ums lunfile: (%s)", strerror(errno));
+			close(fd);
+			return -1;
+		}
+
+		close(fd);
+	}
     return 0;
 }
 
