@@ -71,7 +71,8 @@ int tw_reboot(RebootCommand command)
 		check_and_run_script("/sbin/poweroff.sh", "power off");
         return reboot(RB_POWER_OFF);
     case rb_download:
-		__system("/sbin/reboot download");
+		check_and_run_script("/sbin/rebootdownload.sh", "reboot download");
+		return __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, (void*) "download");
 	return 1;
     default:
         return -1;
