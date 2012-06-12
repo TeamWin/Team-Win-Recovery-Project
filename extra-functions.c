@@ -734,10 +734,10 @@ int usb_storage_disable(void)
 	for (index=0; index<2; index++) {
 		sprintf(lun_file, CUSTOM_LUN_FILE, index);
 
-		if ((fd = open(CUSTOM_LUN_FILE, O_WRONLY)) < 0)
+		if ((fd = open(lun_file, O_WRONLY)) < 0)
 		{
 			if (index == 0)
-				LOGE("Unable to open ums lunfile: (%s)", strerror(errno));
+				LOGE("Unable to open ums lunfile '%s': (%s)", lun_file, strerror(errno));
 			return -1;
 		}
 
@@ -745,7 +745,7 @@ int usb_storage_disable(void)
 		if (write(fd, &ch, 1) < 0)
 		{
 			if (index == 0)
-				LOGE("Unable to write to ums lunfile: (%s)", strerror(errno));
+				LOGE("Unable to write to ums lunfile '%s': (%s)", lun_file, strerror(errno));
 			close(fd);
 			return -1;
 		}
