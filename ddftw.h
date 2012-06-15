@@ -32,6 +32,7 @@ struct dInfo {
 	unsigned long long bsze;
     int mountable;
 	int is_sub_partition;
+	int is_encrypted;
 	char main_mnt[20];
     enum backup_method backup;
 	enum flash_memory_type memory_type;

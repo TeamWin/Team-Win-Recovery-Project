@@ -526,6 +526,9 @@ void DataManager::SetDefaultValues()
 #ifdef TW_HAS_DOWNLOAD_MODE
 	mConstValues.insert(make_pair(TW_DOWNLOAD_MODE, "1"));
 #endif
+#ifdef TW_INCLUDE_CRYPTO
+	mConstValues.insert(make_pair(TW_HAS_CRYPTO, "1"));
+#endif
 
     mConstValues.insert(make_pair(TW_MIN_SYSTEM_VAR, TW_MIN_SYSTEM_SIZE));
 	mValues.insert(make_pair(TW_BACKUP_NAME, make_pair("0", 0)));
@@ -586,6 +589,8 @@ void DataManager::SetDefaultValues()
 	mValues.insert(make_pair(TW_FILENAME, make_pair("/sdcard", 0)));
 	mValues.insert(make_pair(TW_SIMULATE_ACTIONS, make_pair("0", 1)));
 	mValues.insert(make_pair(TW_SIMULATE_FAIL, make_pair("0", 1)));
+	mValues.insert(make_pair(TW_IS_ENCRYPTED, make_pair("0", 0)));
+	mValues.insert(make_pair(TW_CRYPTO_PASSWORD, make_pair("0", 0)));
 }
 
 // Magic Values

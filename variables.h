@@ -17,7 +17,7 @@
 #ifndef _VARIABLES_HEADER_
 #define _VARIABLES_HEADER_
 
-#define TW_VERSION_STR              "2.1.8"
+#define TW_VERSION_STR              "2.1.9"
 
 #define TW_USE_COMPRESSION_VAR      "tw_use_compression"
 #define TW_IGNORE_IMAGE_SIZE        "tw_ignore_image_size"
@@ -136,7 +136,10 @@
 #define TW_FLASH_ZIP_IN_PLACE       "tw_flash_zip_in_place"
 #define TW_MIN_SYSTEM_SIZE          "50" // minimum system size to allow a reboot
 #define TW_MIN_SYSTEM_VAR           "tw_min_system"
-#define TW_DOWNLOAD_MODE	    "tw_download_mode"
+#define TW_DOWNLOAD_MODE            "tw_download_mode"
+#define TW_IS_ENCRYPTED             "tw_is_encrypted"
+#define TW_HAS_CRYPTO               "tw_has_crypto"
+#define TW_CRYPTO_PASSWORD          "tw_crypto_password"
 
 // Also used:
 //   tw_boot_is_mountable

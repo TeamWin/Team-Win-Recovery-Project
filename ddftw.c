@@ -26,6 +26,10 @@
 #include "bootloader.h"
 #include "backstore.h"
 #include "data.h"
+#ifdef TW_INCLUDE_CRYPTO
+#include "cryptfs.h"
+#include "cutils/properties.h"
+#endif
 
 struct dInfo tmp, sys, dat, boo, rec, cac, sdcext, sdcint, ase, sde, sp1, sp2, sp3, datdat;
 char tw_device_name[20];
@@ -408,9 +412,69 @@ void updateMntUsedSize(struct dInfo* mMnt)
     mounted = tw_isMounted(*mMnt);
     if (!mounted)
     {
-        // If we fail, just move on
-        if (tw_mount(*mMnt))
-            return;
+        if (tw_mount(*mMnt)) {
+#ifdef TW_INCLUDE_CRYPTO
+			if (strcmp(mMnt->mnt, "data") == 0 && DataManager_GetIntValue(TW_HAS_CRYPTO) == 1) {
+				// Data might be encrypted
+				int ret_val, password_len;
+				char crypto_blkdev[255], password[255];
+				FILE *passwordFile;
+				size_t result;
+				int return_val;
+
+				tw_mount(sys);
+				// Read the original boot image
+				passwordFile = fopen("/system/password", "rb");
+				if(passwordFile==NULL){
+					LOGE("Unabled to open password file '%s'.\n", "/system/password");
+					return;
+				}
+
+				fseek (passwordFile , 0 , SEEK_END);
+				password_len = ftell(passwordFile);
+				rewind(passwordFile);
+				if (password_len <= 1) {
+					LOGE("Password file is empty!\n");
+					fclose(passwordFile);
+					return;
+				}
+
+				result = fread(password, 1, password_len, passwordFile);
+				if (result != password_len) {
+					LOGE("Error reading password file '%s'\n", "/system/password");
+					fclose(passwordFile);
+					return;
+				}
+				password[password_len - 1] = '\0';
+				fclose(passwordFile);
+
+				property_set("ro.crypto.state", "encrypted");
+				property_set("ro.crypto.fs_type", CRYPTO_FS_TYPE);
+				property_set("ro.crypto.fs_real_blkdev", CRYPTO_REAL_BLKDEV);
+				property_set("ro.crypto.fs_mnt_point", CRYPTO_MNT_POINT);
+				property_set("ro.crypto.fs_options", CRYPTO_FS_OPTIONS);
+				property_set("ro.crypto.fs_flags", CRYPTO_FS_FLAGS);
+				property_set("ro.crypto.keyfile.userdata", CRYPTO_KEY_LOC);
+				ret_val = cryptfs_check_passwd(password);
+				property_get("ro.crypto.fs_crypto_blkdev", crypto_blkdev, "error");
+				if (ret_val == 0) {
+					LOGI("Data successfully decrypted, new block device: '%s'\n", crypto_blkdev);
+					DataManager_SetIntValue(TW_IS_ENCRYPTED, 1);
+				} else
+					LOGE("Failed to decrypt data\n");
+				strcpy(mMnt->blk, crypto_blkdev);
+				createFstab();
+				if (tw_mount(*mMnt)) {
+					LOGE("Failed to mount data!\n");
+					return;
+				}
+			} else {
+				return; // If we fail, just move on
+			}
+#else
+			return;
+#endif
+		}
     }
 
 	if (mMnt->sze == 0) // We weren't able to get the size earlier, try another method
@@ -570,6 +634,20 @@ int getLocations()
     sp1.backup = SP1_BACKUP_METHOD;
     sp2.backup = SP2_BACKUP_METHOD;
     sp3.backup = SP3_BACKUP_METHOD;
+
+	sys.is_encrypted = 0;
+    dat.is_encrypted = 0;
+	datdat.is_encrypted = 0;
+    cac.is_encrypted = 0;
+    sde.is_encrypted = 0;
+    boo.is_encrypted = 0;
+    rec.is_encrypted = 0;
+    sdcext.is_encrypted = 0;
+    sdcint.is_encrypted = 0;
+    ase.is_encrypted = 0;
+    sp1.is_encrypted = 0;
+    sp2.is_encrypted = 0;
+    sp3.is_encrypted = 0;
 
     if (getLocationsViaProc("emmc") != 0 && getLocationsViaProc("mtd") != 0 && getLocationsViafstab() != 0)
     {

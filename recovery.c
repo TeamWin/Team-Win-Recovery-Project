@@ -1078,13 +1078,7 @@ main(int argc, char **argv) {
         ui_set_background(BACKGROUND_ICON_INSTALLING);
     }
 
-	// Load up all the resources
-	gui_loadResources();
-
-    printf("Processing arguments (%d)...\n", argc);
-    get_args(&argc, &argv);
-
-    LOGI("=> Installing busybox into /sbin\n");
+	LOGI("=> Installing busybox into /sbin\n");
 	__system("/sbin/bbinstall.sh"); // Let's install busybox
 	LOGI("=> Linking mtab\n");
 	__system("ln -s /proc/mounts /etc/mtab"); // And link mtab for mke2fs
@@ -1094,6 +1088,12 @@ main(int argc, char **argv) {
         LOGE("Failing out of recovery.\n");
         return -1;
     }
+
+	// Load up all the resources
+	gui_loadResources();
+
+    printf("Processing arguments (%d)...\n", argc);
+    get_args(&argc, &argv);
 
     int previous_runs = 0;
     const char *send_intent = NULL;

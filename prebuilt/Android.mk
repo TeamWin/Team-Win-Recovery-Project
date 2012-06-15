@@ -47,6 +47,9 @@ endif
 ifeq ($(TW_INCLUDE_DUMLOCK), true)
     RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/htcdumlock
 endif
+ifeq ($(TW_INCLUDE_CRYPTO), true)
+    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libcrypto.so
+endif
 
 
 TWRP_AUTOGEN := $(intermediates)/teamwin

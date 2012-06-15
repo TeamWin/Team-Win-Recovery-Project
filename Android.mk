@@ -138,6 +138,19 @@ LOCAL_STATIC_LIBRARIES += libminuitwrp libpixelflinger_static libpng libjpegtwrp
 LOCAL_SHARED_LIBRARIES += libz libc libstlport libcutils libstdc++
 LOCAL_STATIC_LIBRARIES += libmtdutils
 
+ifeq ($(TW_INCLUDE_CRYPTO), true)
+    LOCAL_CFLAGS += -DTW_INCLUDE_CRYPTO
+    LOCAL_CFLAGS += -DCRYPTO_FS_TYPE=\"$(TW_CRYPTO_FS_TYPE)\"
+    LOCAL_CFLAGS += -DCRYPTO_REAL_BLKDEV=\"$(TW_CRYPTO_REAL_BLKDEV)\"
+    LOCAL_CFLAGS += -DCRYPTO_MNT_POINT=\"$(TW_CRYPTO_MNT_POINT)\"
+    LOCAL_CFLAGS += -DCRYPTO_FS_OPTIONS=\"$(TW_CRYPTO_FS_OPTIONS)\"
+    LOCAL_CFLAGS += -DCRYPTO_FS_FLAGS=\"$(TW_CRYPTO_FS_FLAGS)\"
+    LOCAL_CFLAGS += -DCRYPTO_KEY_LOC=\"$(TW_CRYPTO_KEY_LOC)\"
+    LOCAL_SHARED_LIBRARIES += libcrypto
+    LOCAL_SRC_FILES += cryptfs.c
+    LOCAL_C_INCLUDES += system/extras/ext4_utils external/openssl/include
+endif
+
 ifeq ($(TARGET_RECOVERY_UI_LIB),)
   LOCAL_SRC_FILES += default_recovery_ui.c
 else
