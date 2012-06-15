@@ -619,7 +619,6 @@ wipe_data(int confirm) {
 	}
 	ui_print("\n-- Factory reset started.\n");
 	ui_set_background(BACKGROUND_ICON_WIPE);
-	ui_print("Formatting /data...\n");
 
 	//device_wipe_data(); // ??
 #ifdef RECOVERY_SDCARD_ON_DATA
@@ -630,7 +629,6 @@ wipe_data(int confirm) {
 	if (DataManager_GetIntValue(TW_HAS_DATADATA) == 1)
 		erase_volume("/datadata");
 #endif
-	ui_print("Formatting /cache...\n");
 	erase_volume("/cache");
 	struct stat st;
 	char ase_path[255];
