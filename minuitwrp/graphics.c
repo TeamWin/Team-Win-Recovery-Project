@@ -294,6 +294,21 @@ int gr_measureEx(const char *s, void* font)
     return total;
 }
 
+unsigned character_width(const char *s, void* pFont)
+{
+	GRFont *font = (GRFont*) pFont;
+	unsigned off;
+
+	/* Handle default font */
+    if (!font)  font = gr_font;
+
+	off = *s - 32;
+	if (off == 0)
+		return 0;
+
+	return font->offset[off+1] - font->offset[off];
+}
+
 int gr_textEx(int x, int y, const char *s, void* pFont)
 {
     GGLContext *gl = gr_context;

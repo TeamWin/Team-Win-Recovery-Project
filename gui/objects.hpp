@@ -591,6 +591,41 @@ protected:
     int sUpdate;
 };
 
+#define MAX_KEYBOARD_LAYOUTS 5
+#define MAX_KEYBOARD_ROWS 9
+#define MAX_KEYBOARD_KEYS 20
+
+class GUIKeyboard : public RenderObject, public ActionObject, public Conditional
+{
+public:
+	GUIKeyboard(xml_node<>* node);
+    virtual ~GUIKeyboard();
+
+public:
+	virtual int Render(void);
+	virtual int Update(void);
+	virtual int NotifyTouch(TOUCH_STATE state, int x, int y);
+	virtual int SetRenderPos(int x, int y, int w = 0, int h = 0);
+
+protected:
+	struct keyboard_key_class
+    {
+        unsigned char key;
+        unsigned int end_x;
+		unsigned int layout;
+    };
+
+	Resource* keyboardImg[MAX_KEYBOARD_LAYOUTS];
+	struct keyboard_key_class keyboard_keys[MAX_KEYBOARD_LAYOUTS][MAX_KEYBOARD_ROWS][MAX_KEYBOARD_KEYS];
+	bool mRendered;
+	std::string mVariable;
+	unsigned int cursorLocation;
+	unsigned int currentLayout;
+	unsigned int row_heights[MAX_KEYBOARD_LAYOUTS][MAX_KEYBOARD_ROWS];
+	unsigned int KeyboardWidth, KeyboardHeight;
+	GUIAction* mAction;
+};
+
 // Helper APIs
 bool LoadPlacement(xml_node<>* node, int* x, int* y, int* w = NULL, int* h = NULL, RenderObject::Placement* placement = NULL);
 
