@@ -158,8 +158,8 @@ int GUIButton::SetRenderPos(int x, int y, int w, int h)
         // As a special case, we'll allow large text which automatically moves it to the right.
         if (mTextW > mRenderW)
         {
-            mTextX = mRenderW + 10;
-            mRenderW += mTextW + 10;
+            mTextX = mRenderW + mRenderX + 5;
+            mRenderW += mTextW + 5;
         }
         else
         {

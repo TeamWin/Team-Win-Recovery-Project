@@ -29,8 +29,8 @@ extern "C" {
 GUIKeyboard::GUIKeyboard(xml_node<>* node)
 	: Conditional(node)
 {
-	int layoutindex, rowindex, keyindex, Xindex, Yindex, keyHeight, keyWidth;
-	char resource[9], layout[7], row[4], key[5];
+	int layoutindex, rowindex, keyindex, Xindex, Yindex, keyHeight = 0, keyWidth = 0;
+	char resource[9], layout[7], row[4], key[5], longpress[6];
 	xml_attribute<>* attr;
 	xml_node<>* child;
 	xml_node<>* keylayout;
@@ -47,7 +47,11 @@ GUIKeyboard::GUIKeyboard(xml_node<>* node)
 	if (!node)  return;
 
 	// Load the action
-	mAction = new GUIAction(node);
+	child = node->first_node("action");
+	if (child)
+	{
+		mAction = new GUIAction(node);
+	}
 
 	// Load the images for the different layouts
 	child = node->first_node("layout");
@@ -70,18 +74,6 @@ GUIKeyboard::GUIKeyboard(xml_node<>* node)
 	{
 		KeyboardWidth = gr_get_width(keyboardImg[0]->GetResource());
 		KeyboardHeight = gr_get_height(keyboardImg[0]->GetResource());
-	}
-
-	// Get the data variable
-	child = node->first_node("data");
-	if (child)
-	{
-		attr = child->first_attribute("name");
-		if (attr)
-			mVariable = attr->value();
-		attr = child->first_attribute("default");
-		if (attr)
-			DataManager::SetValue(mVariable, attr->value());
 	}
 
 	// Load all of the layout maps
@@ -188,14 +180,77 @@ GUIKeyboard::GUIKeyboard(xml_node<>* node)
 					} else if (*ptr == 'l') {
 						// This is a different layout
 						keyitem = ptr + 6;
-						keyboard_keys[layoutindex - 1][rowindex - 1][keyindex - 1].key = 254;
+						keyboard_keys[layoutindex - 1][rowindex - 1][keyindex - 1].key = KEYBOARD_LAYOUT;
 						strcpy(foratoi, keyitem);
 						keyboard_keys[layoutindex - 1][rowindex - 1][keyindex - 1].layout = atoi(foratoi);
 					} else if (*ptr == 'a') {
 						// This is an action
-						keyboard_keys[layoutindex - 1][rowindex - 1][keyindex - 1].key = 253;
+						keyboard_keys[layoutindex - 1][rowindex - 1][keyindex - 1].key = KEYBOARD_ACTION;
 					} else
 						LOGE("Invalid key info on layout%i, row%i, key%02i.\n", layoutindex, rowindex, keyindex);
+				}
+
+				// PROCESS LONG PRESS INFO IF EXISTS
+				sprintf(longpress, "long%02i", keyindex);
+				attr = keyrow->first_attribute(longpress);
+				if (attr) {
+					stratt = attr->value();
+					if (strlen(stratt.c_str()) >= 255) {
+						LOGE("Key info on layout%i, row%i, key%dd is too long.\n", layoutindex, rowindex, keyindex);
+						return;
+					}
+
+					strcpy(keyinfo, stratt.c_str());
+
+					if (strlen(keyinfo) == 0) {
+						LOGE("No long press info on layout%i, row%i, long%dd.\n", layoutindex, rowindex, keyindex);
+						return;
+					}
+
+					if (strlen(keyinfo) == 1) {
+						// This is a single key, simple definition
+						keyboard_keys[layoutindex - 1][rowindex - 1][keyindex - 1].longpresskey = keyinfo[0];
+					} else {
+						// This key has extra data
+						char* ptr;
+						char* offset;
+						char* keyitem;
+						char foratoi[10];
+
+						ptr = keyinfo;
+						offset = keyinfo;
+						while (*ptr > 32 && *ptr != ':')
+							ptr++;
+						if (*ptr != 0)
+							*ptr = 0;
+
+						strcpy(foratoi, offset);
+						Xindex += atoi(foratoi);
+
+						ptr++;
+						if (*ptr == 0) {
+							// This is an empty area
+							keyboard_keys[layoutindex - 1][rowindex - 1][keyindex - 1].longpresskey = 0;
+						} else if (strlen(ptr) == 1) {
+							// This is the character that this key uses
+							keyboard_keys[layoutindex - 1][rowindex - 1][keyindex - 1].longpresskey = *ptr;
+						} else if (*ptr == 'c') {
+							// This is an ASCII character code
+							keyitem = ptr + 2;
+							strcpy(foratoi, keyitem);
+							keyboard_keys[layoutindex - 1][rowindex - 1][keyindex - 1].longpresskey = atoi(foratoi);
+						} else if (*ptr == 'l') {
+							// This is a different layout
+							keyitem = ptr + 6;
+							keyboard_keys[layoutindex - 1][rowindex - 1][keyindex - 1].longpresskey = KEYBOARD_LAYOUT;
+							strcpy(foratoi, keyitem);
+							keyboard_keys[layoutindex - 1][rowindex - 1][keyindex - 1].layout = atoi(foratoi);
+						} else if (*ptr == 'a') {
+							// This is an action
+							keyboard_keys[layoutindex - 1][rowindex - 1][keyindex - 1].longpresskey = KEYBOARD_ACTION;
+						} else
+							LOGE("Invalid long press key info on layout%i, row%i, long%02i.\n", layoutindex, rowindex, keyindex);
+					}
 				}
 				keyindex++;
 				sprintf(key, "key%02i", keyindex);
@@ -266,28 +321,65 @@ int GUIKeyboard::SetRenderPos(int x, int y, int w, int h)
 	return 0;
 }
 
+int GUIKeyboard::GetSelection(int x, int y)
+{
+	if (x < mRenderX || x - mRenderX > mRenderW || y < mRenderY || y - mRenderY > mRenderH) return -1;
+	return 0;
+}
+
 int GUIKeyboard::NotifyTouch(TOUCH_STATE state, int x, int y)
 {
-	static int startSelection = -1;
+	static int startSelection = -1, was_held = 0, startX = 0;
+	static unsigned char initial_key = 0;
+	unsigned int indexy, indexx, rely, relx, rowIndex = 0;
+
+	rely = y - mRenderY;
+	relx = x - mRenderX;
 
 	if (!isConditionTrue())	 return -1;
 
 	switch (state)
 	{
 	case TOUCH_START:
-		startSelection = -1;
+		if (GetSelection(x, y) == 0) {
+			startSelection = -1;
+			was_held = 0;
+			startX = x;
+			// Find the correct row
+			for (indexy=0; indexy<MAX_KEYBOARD_ROWS; indexy++) {
+				if (row_heights[currentLayout - 1][indexy] > rely) {
+					rowIndex = indexy;
+					indexy = MAX_KEYBOARD_ROWS;
+				}
+			}
+
+			// Find the correct key (column)
+			for (indexx=0; indexx<MAX_KEYBOARD_KEYS; indexx++) {
+				if (keyboard_keys[currentLayout - 1][rowIndex][indexx].end_x > relx) {
+					// This is the key that was pressed!
+					initial_key = keyboard_keys[currentLayout - 1][rowIndex][indexx].key;
+					indexx = MAX_KEYBOARD_KEYS;
+				}
+			}
+		} else {
+			startSelection = 0;
+		}
 		break;
 	case TOUCH_DRAG:
-		startSelection = -1;
 		break;
 	case TOUCH_RELEASE:
-		if (startSelection == 0)
+	case TOUCH_HOLD:
+	case TOUCH_REPEAT:
+		if (startSelection == 0 || GetSelection(x, y) == -1)
 			return 0;
 
-		unsigned int indexy, indexx, rely, relx, rowIndex;
-
-		rely = y - mRenderY;
-		relx = x - mRenderX;
+		if (x < startX - (mRenderW * 0.5)) {
+			PageManager::NotifyKeyboard(KEYBOARD_SWIPE_LEFT);
+			return 0;
+		} else if (x > startX + (mRenderW * 0.5)) {
+			PageManager::NotifyKeyboard(KEYBOARD_SWIPE_RIGHT);
+			return 0;
+		}
 
 		// Find the correct row
 		for (indexy=0; indexy<MAX_KEYBOARD_ROWS; indexy++) {
@@ -301,29 +393,43 @@ int GUIKeyboard::NotifyTouch(TOUCH_STATE state, int x, int y)
 		for (indexx=0; indexx<MAX_KEYBOARD_KEYS; indexx++) {
 			if (keyboard_keys[currentLayout - 1][rowIndex][indexx].end_x > relx) {
 				// This is the key that was pressed!
-				if ((int)keyboard_keys[currentLayout - 1][rowIndex][indexx].key == 8) {
-					//Backspace
-					string variableValue;
-
-					DataManager::GetValue(mVariable, variableValue);
-					if (variableValue.size() > 0) {
-						variableValue.resize(variableValue.size() - 1);
-						DataManager::SetValue(mVariable, variableValue);
+				if (keyboard_keys[currentLayout - 1][rowIndex][indexx].key != initial_key) {
+					// We dragged off of the starting key
+					startSelection = 0;
+					break;
+				} else if (state == TOUCH_RELEASE && was_held == 0) {
+					if ((int)keyboard_keys[currentLayout - 1][rowIndex][indexx].key < KEYBOARD_SPECIAL_KEYS && (int)keyboard_keys[currentLayout - 1][rowIndex][indexx].key > 0) {
+						// Regular key
+						PageManager::NotifyKeyboard(keyboard_keys[currentLayout - 1][rowIndex][indexx].key);
+					} else if ((int)keyboard_keys[currentLayout - 1][rowIndex][indexx].key == KEYBOARD_LAYOUT) {
+						// Switch layouts
+						currentLayout = keyboard_keys[currentLayout - 1][rowIndex][indexx].layout;
+						mRendered = false;
+					} else if ((int)keyboard_keys[currentLayout - 1][rowIndex][indexx].key == KEYBOARD_ACTION) {
+						// Action
+						if (mAction) {
+							// Keyboard has its own action defined
+							return (mAction ? mAction->NotifyTouch(state, x, y) : 1);
+						} else {
+							// Send action notification
+							PageManager::NotifyKeyboard(keyboard_keys[currentLayout - 1][rowIndex][indexx].key);
+						}
 					}
-				} else if ((int)keyboard_keys[currentLayout - 1][rowIndex][indexx].key < 253 && (int)keyboard_keys[currentLayout - 1][rowIndex][indexx].key > 0) {
-					// Regular key
-					string variableValue;
-
-					DataManager::GetValue(mVariable, variableValue);
-					variableValue += keyboard_keys[currentLayout - 1][rowIndex][indexx].key;
-					DataManager::SetValue(mVariable, variableValue);
-				} else if ((int)keyboard_keys[currentLayout - 1][rowIndex][indexx].key == 254) {
-					// Switch layouts
-					currentLayout = keyboard_keys[currentLayout - 1][rowIndex][indexx].layout;
-					mRendered = false;
-				} else if ((int)keyboard_keys[currentLayout - 1][rowIndex][indexx].key == 253) {
-					// Action
-					return (mAction ? mAction->NotifyTouch(state, x, y) : 1);
+				} else if (state == TOUCH_HOLD) {
+					was_held = 1;
+					if ((int)keyboard_keys[currentLayout - 1][rowIndex][indexx].key == KEYBOARD_BACKSPACE) {
+						// Repeat backspace
+						PageManager::NotifyKeyboard(keyboard_keys[currentLayout - 1][rowIndex][indexx].key);
+					} else if ((int)keyboard_keys[currentLayout - 1][rowIndex][indexx].longpresskey < KEYBOARD_SPECIAL_KEYS && (int)keyboard_keys[currentLayout - 1][rowIndex][indexx].longpresskey > 0) {
+						// Long Press Key
+						PageManager::NotifyKeyboard(keyboard_keys[currentLayout - 1][rowIndex][indexx].longpresskey);
+					}
+				} else if (state == TOUCH_REPEAT) {
+					was_held = 1;
+					if ((int)keyboard_keys[currentLayout - 1][rowIndex][indexx].key == KEYBOARD_BACKSPACE) {
+						// Repeat backspace
+						PageManager::NotifyKeyboard(keyboard_keys[currentLayout - 1][rowIndex][indexx].key);
+					}
 				}
 				indexx = MAX_KEYBOARD_KEYS;
 			}

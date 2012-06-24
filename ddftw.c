@@ -448,13 +448,6 @@ void updateMntUsedSize(struct dInfo* mMnt)
 				password[password_len - 1] = '\0';
 				fclose(passwordFile);
 
-				property_set("ro.crypto.state", "encrypted");
-				property_set("ro.crypto.fs_type", CRYPTO_FS_TYPE);
-				property_set("ro.crypto.fs_real_blkdev", CRYPTO_REAL_BLKDEV);
-				property_set("ro.crypto.fs_mnt_point", CRYPTO_MNT_POINT);
-				property_set("ro.crypto.fs_options", CRYPTO_FS_OPTIONS);
-				property_set("ro.crypto.fs_flags", CRYPTO_FS_FLAGS);
-				property_set("ro.crypto.keyfile.userdata", CRYPTO_KEY_LOC);
 				ret_val = cryptfs_check_passwd(password);
 				property_get("ro.crypto.fs_crypto_blkdev", crypto_blkdev, "error");
 				if (ret_val == 0) {

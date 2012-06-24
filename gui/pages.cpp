@@ -262,6 +262,13 @@ bool Page::ProcessNode(xml_node<>* page, xml_node<>* templates /* = NULL */, int
 			mRenders.push_back(element);
 			mActions.push_back(element);
 		}
+		else if (type == "input")
+		{
+			GUIInput* element = new GUIInput(child);
+			mRenders.push_back(element);
+			mActions.push_back(element);
+			mInputs.push_back(element);
+		}
         else if (type == "template")
         {
             if (!templates || !child->first_attribute("name"))
@@ -363,7 +370,7 @@ int Page::NotifyTouch(TOUCH_STATE state, int x, int y)
         ret = mTouchStart->NotifyTouch(state, x, y);
         mTouchStart = NULL;
     }
-    else if (state == TOUCH_DRAG && mTouchStart != NULL)
+    else if ((state == TOUCH_DRAG || state == TOUCH_HOLD || state == TOUCH_REPEAT) && mTouchStart != NULL)
     {
         ret = mTouchStart->NotifyTouch(state, x, y);
     }
@@ -385,6 +392,44 @@ int Page::NotifyKey(int key)
             return 0;
         else if (ret < 0)
             LOGE("An action handler has returned an error");
+    }
+    return 1;
+}
+
+int Page::NotifyKeyboard(int key)
+{
+    std::vector<InputObject*>::reverse_iterator iter;
+
+    // Don't try to handle a lack of handlers
+    if (mInputs.size() == 0)   return 1;
+
+    // We work backwards, from top-most element to bottom-most element
+    for (iter = mInputs.rbegin(); iter != mInputs.rend(); iter++)
+    {
+        int ret = (*iter)->NotifyKeyboard(key);
+        if (ret == 0)
+            return 0;
+        else if (ret < 0)
+            LOGE("A keyboard handler has returned an error");
+    }
+    return 1;
+}
+
+int Page::SetKeyBoardFocus(int inFocus)
+{
+    std::vector<InputObject*>::reverse_iterator iter;
+
+    // Don't try to handle a lack of handlers
+    if (mInputs.size() == 0)   return 1;
+
+    // We work backwards, from top-most element to bottom-most element
+    for (iter = mInputs.rbegin(); iter != mInputs.rend(); iter++)
+    {
+        int ret = (*iter)->SetInputFocus(inFocus);
+        if (ret == 0)
+            return 0;
+        else if (ret < 0)
+            LOGE("An input focus handler has returned an error");
     }
     return 1;
 }
@@ -594,6 +639,18 @@ int PageSet::NotifyKey(int key)
     return (mCurrentPage ? mCurrentPage->NotifyKey(key) : -1);
 }
 
+int PageSet::NotifyKeyboard(int key)
+{
+    if (mOverlayPage)   return (mOverlayPage->NotifyKeyboard(key));
+    return (mCurrentPage ? mCurrentPage->NotifyKeyboard(key) : -1);
+}
+
+int PageSet::SetKeyBoardFocus(int inFocus)
+{
+    if (mOverlayPage)   return (mOverlayPage->SetKeyBoardFocus(inFocus));
+    return (mCurrentPage ? mCurrentPage->SetKeyBoardFocus(inFocus) : -1);
+}
+
 int PageSet::NotifyVarChange(std::string varName, std::string value)
 {
     if (mOverlayPage)   mOverlayPage->NotifyVarChange(varName, value);
@@ -749,8 +806,8 @@ void PageManager::ReleasePackage(std::string name)
 
 int PageManager::ChangePage(std::string name)
 {
-    int ret = (mCurrentSet ? mCurrentSet->SetPage(name) : -1);
     DataManager::SetValue("tw_operation_state", 0);
+    int ret = (mCurrentSet ? mCurrentSet->SetPage(name) : -1);
     return ret;
 }
 
@@ -809,6 +866,16 @@ int PageManager::NotifyTouch(TOUCH_STATE state, int x, int y)
 int PageManager::NotifyKey(int key)
 {
     return (mCurrentSet ? mCurrentSet->NotifyKey(key) : -1);
+}
+
+int PageManager::NotifyKeyboard(int key)
+{
+    return (mCurrentSet ? mCurrentSet->NotifyKeyboard(key) : -1);
+}
+
+int PageManager::SetKeyBoardFocus(int inFocus)
+{
+    return (mCurrentSet ? mCurrentSet->SetKeyBoardFocus(inFocus) : -1);
 }
 
 int PageManager::NotifyVarChange(std::string varName, std::string value)

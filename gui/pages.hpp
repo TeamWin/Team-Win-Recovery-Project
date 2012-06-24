@@ -21,6 +21,7 @@ class Resource;
 class ResourceManager;
 class RenderObject;
 class ActionObject;
+class InputObject;
 
 class Page
 {
@@ -36,6 +37,8 @@ public:
     virtual int Update(void);
     virtual int NotifyTouch(TOUCH_STATE state, int x, int y);
     virtual int NotifyKey(int key);
+	virtual int NotifyKeyboard(int key);
+	virtual int SetKeyBoardFocus(int inFocus);
     virtual int NotifyVarChange(std::string varName, std::string value);
     virtual void SetPageFocus(int inFocus);
 
@@ -43,6 +46,7 @@ protected:
     std::string mName;
     std::vector<RenderObject*> mRenders;
     std::vector<ActionObject*> mActions;
+	std::vector<InputObject*> mInputs;
 
     ActionObject* mTouchStart;
     COLOR mBackground;
@@ -73,6 +77,8 @@ public:
     int Update(void);
     int NotifyTouch(TOUCH_STATE state, int x, int y);
     int NotifyKey(int key);
+	int NotifyKeyboard(int key);
+	int SetKeyBoardFocus(int inFocus);
     int NotifyVarChange(std::string varName, std::string value);
 
 protected:
@@ -114,6 +120,8 @@ public:
     static int Update(void);
     static int NotifyTouch(TOUCH_STATE state, int x, int y);
     static int NotifyKey(int key);
+	static int NotifyKeyboard(int key);
+	static int SetKeyBoardFocus(int inFocus);
     static int NotifyVarChange(std::string varName, std::string value);
 
 protected:

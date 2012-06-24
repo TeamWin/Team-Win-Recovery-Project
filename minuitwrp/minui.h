@@ -32,7 +32,6 @@ void gr_fb_blank(int blank);
 void gr_color(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 void gr_fill(int x, int y, int w, int h);
 
-unsigned character_width(const char *s, void* pFont);
 int gr_textEx(int x, int y, const char *s, void* font);
 int gr_textExW(int x, int y, const char *s, void* font, int max_width);
 int gr_textExWH(int x, int y, const char *s, void* pFont, int max_width, int max_height);

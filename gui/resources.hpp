@@ -24,7 +24,9 @@ protected:
 typedef enum {
     TOUCH_START = 0, 
     TOUCH_DRAG = 1,
-    TOUCH_RELEASE = 2
+    TOUCH_RELEASE = 2,
+	TOUCH_HOLD = 3,
+	TOUCH_REPEAT = 4
 } TOUCH_STATE;
 
 class FontResource : public Resource

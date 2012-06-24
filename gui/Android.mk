@@ -18,7 +18,8 @@ LOCAL_SRC_FILES := \
     conditional.cpp \
     slider.cpp \
     listbox.cpp \
-    keyboard.cpp
+    keyboard.cpp \
+    input.cpp
 
 LOCAL_MODULE := libgui
 

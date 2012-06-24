@@ -36,6 +36,8 @@ GUIText::GUIText(xml_node<>* node)
     mIsStatic = 1;
     mVarChanged = 0;
     mFontHeight = 0;
+	maxWidth = 0;
+	charSkip = 0;
 
     if (!node)      return;
 
@@ -85,14 +87,20 @@ int GUIText::Render(void)
     if (!isConditionTrue())     return 0;
 
     void* fontResource = NULL;
+	string displayValue;
 
     if (mFont)  fontResource = mFont->GetResource();
 
     mLastValue = parseText();
+	displayValue = mLastValue;
+
+	if (charSkip)
+		displayValue.erase(0, charSkip);
+
     mVarChanged = 0;
 
     int x = mRenderX, y = mRenderY;
-    int width = gr_measureEx(mLastValue.c_str(), fontResource);
+    int width = gr_measureEx(displayValue.c_str(), fontResource);
 
     if (mPlacement != TOP_LEFT && mPlacement != BOTTOM_LEFT)
     {
@@ -110,7 +118,11 @@ int GUIText::Render(void)
     }
 
     gr_color(mColor.red, mColor.green, mColor.blue, mColor.alpha);
-    gr_textEx(x, y, mLastValue.c_str(), fontResource);
+
+	if (maxWidth)
+		gr_textExW(x, y, displayValue.c_str(), fontResource, maxWidth + x);
+	else
+		gr_textEx(x, y, displayValue.c_str(), fontResource);
     return 0;
 }
 
@@ -185,3 +197,16 @@ int GUIText::NotifyVarChange(std::string varName, std::string value)
     return 0;
 }
 
+int GUIText::SetMaxWidth(unsigned width)
+{
+	maxWidth = width;
+	mVarChanged = 1;
+	return 0;
+}
+
+int GUIText::SkipCharCount(unsigned skip)
+{
+	charSkip = skip;
+	mVarChanged = 1;
+	return 0;
+}

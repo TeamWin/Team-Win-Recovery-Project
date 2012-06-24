@@ -389,6 +389,8 @@ int GUIConsole::NotifyTouch(TOUCH_STATE state, int x, int y)
             mCurrentLine = -1;
 
         mLastTouchY = -1;
+	case TOUCH_REPEAT:
+	case TOUCH_HOLD:
         break;
     }
     return 0;

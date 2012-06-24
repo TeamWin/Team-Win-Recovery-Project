@@ -302,6 +302,8 @@ int GUIListBox::NotifyTouch(TOUCH_STATE state, int x, int y)
                 }
             }
         }
+	case TOUCH_HOLD:
+	case TOUCH_REPEAT:
         break;
     }
     return 0;

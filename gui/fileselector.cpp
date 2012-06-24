@@ -651,6 +651,8 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
 			// This is for kinetic scrolling
 			scrollingSpeed = lastY - last2Y;
 		}
+	case TOUCH_REPEAT:
+	case TOUCH_HOLD:
 		break;
 	}
 	return 0;

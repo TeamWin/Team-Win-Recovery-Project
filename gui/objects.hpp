@@ -126,6 +126,23 @@ protected:
 
 };
 
+class InputObject
+{
+public:
+    InputObject()              { HasInputFocus = 0; }
+    virtual ~InputObject()     {}
+
+public:
+    // NotifyKeyboard - Notify of keyboard input
+    //  Return 0 on success (and consume key), >0 to pass key to next handler, and <0 on error
+    virtual int NotifyKeyboard(int key)                                  { return 1; }
+
+	virtual int SetInputFocus(int focus)    { HasInputFocus = focus; return 1; }
+
+protected:
+	int HasInputFocus;
+};
+
 // Derived Objects
 // GUIText - Used for static text
 class GUIText : public RenderObject, public ActionObject, public Conditional
@@ -150,6 +167,12 @@ public:
     // Notify of a variable change
     virtual int NotifyVarChange(std::string varName, std::string value);
 
+	// Set maximum width in pixels
+	virtual int SetMaxWidth(unsigned width);
+
+	// Set number of characters to skip (for scrolling)
+	virtual int SkipCharCount(unsigned skip);
+
 protected:
     std::string mText;
     std::string mLastValue;
@@ -158,6 +181,8 @@ protected:
     int mIsStatic;
     int mVarChanged;
     int mFontHeight;
+	unsigned maxWidth;
+	unsigned charSkip;
 
 protected:
     std::string parseText(void);
@@ -594,6 +619,12 @@ protected:
 #define MAX_KEYBOARD_LAYOUTS 5
 #define MAX_KEYBOARD_ROWS 9
 #define MAX_KEYBOARD_KEYS 20
+#define KEYBOARD_ACTION 253
+#define KEYBOARD_LAYOUT 254
+#define KEYBOARD_SWIPE_LEFT 252
+#define KEYBOARD_SWIPE_RIGHT 251
+#define KEYBOARD_SPECIAL_KEYS 251
+#define KEYBOARD_BACKSPACE 8
 
 class GUIKeyboard : public RenderObject, public ActionObject, public Conditional
 {
@@ -608,9 +639,13 @@ public:
 	virtual int SetRenderPos(int x, int y, int w = 0, int h = 0);
 
 protected:
+	virtual int GetSelection(int x, int y);
+
+protected:
 	struct keyboard_key_class
     {
         unsigned char key;
+		unsigned char longpresskey;
         unsigned int end_x;
 		unsigned int layout;
     };
@@ -624,6 +659,71 @@ protected:
 	unsigned int row_heights[MAX_KEYBOARD_LAYOUTS][MAX_KEYBOARD_ROWS];
 	unsigned int KeyboardWidth, KeyboardHeight;
 	GUIAction* mAction;
+};
+
+// GUIInput - Used for keyboard input
+class GUIInput : public RenderObject, public ActionObject, public Conditional, public InputObject
+{
+public:
+    // w and h may be ignored, in which case, no bounding box is applied
+    GUIInput(xml_node<>* node);
+	virtual ~GUIInput();
+
+public:
+    // Render - Render the full object to the GL surface
+    //  Return 0 on success, <0 on error
+    virtual int Render(void);
+
+    // Update - Update any UI component animations (called <= 30 FPS)
+    //  Return 0 if nothing to update, 1 on success and contiue, >1 if full render required, and <0 on error
+    virtual int Update(void);
+
+    // Notify of a variable change
+    virtual int NotifyVarChange(std::string varName, std::string value);
+
+	// NotifyTouch - Notify of a touch event
+    //  Return 0 on success, >0 to ignore remainder of touch, and <0 on error
+    virtual int NotifyTouch(TOUCH_STATE state, int x, int y);
+
+	virtual int NotifyKeyboard(int key);
+
+protected:
+	virtual int GetSelection(int x, int y);
+
+	// Handles displaying the text properly when chars are added, deleted, or for scrolling
+	virtual int HandleTextLocation(int x);
+
+protected:
+    GUIText* mInputText;
+	GUIAction* mAction;
+	Resource* mBackground;
+	Resource* mCursor;
+	Resource* mFont;
+	std::string mText;
+    std::string mLastValue;
+	std::string mVariable;
+	std::string mMask;
+	std::string mMaskVariable;
+    COLOR mBackgroundColor;
+	COLOR mCursorColor;
+	int scrollingX;
+	int lastX;
+	int mCursorLocation;
+	int mBackgroundX, mBackgroundY, mBackgroundW, mBackgroundH;
+	int mFontY;
+	unsigned skipChars;
+	unsigned mFontHeight;
+	unsigned CursorWidth;
+	bool mRendered;
+	bool HasMask;
+	bool DrawCursor;
+	bool isLocalChange;
+	bool HasAllowed;
+	bool HasDisabled;
+	std::string AllowedList;
+	std::string DisabledList;
+	unsigned MinLen;
+	unsigned MaxLen;
 };
 
 // Helper APIs

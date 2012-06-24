@@ -50,7 +50,6 @@ extern "C" {
 
 #include "curtain.h"
 
-
 const static int CURTAIN_RATE = 16;
 const static int CURTAIN_FADE = 32;
 
@@ -164,21 +163,60 @@ void curtainClose()
     return;
 }
 
+timespec timespec_diff(timespec& start, timespec& end)
+{
+	timespec temp;
+	if ((end.tv_nsec-start.tv_nsec)<0) {
+		temp.tv_sec = end.tv_sec-start.tv_sec-1;
+		temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
+	} else {
+		temp.tv_sec = end.tv_sec-start.tv_sec;
+		temp.tv_nsec = end.tv_nsec-start.tv_nsec;
+	}
+	return temp;
+}
+
 static void *input_thread(void *cookie)
 {
     int drag = 0;
+	static int touch_and_hold = 0, dontwait = 0, touch_repeat = 0, x = 0, y = 0;
+	static struct timeval touchStart;
 
     for (;;) {
 
         // wait for the next event
         struct input_event ev;
-        int state = 0;
+        int state = 0, ret = 0;
 
-        ev_get(&ev, 0);
+		ret = ev_get(&ev, dontwait);
 
-        if (ev.type == EV_ABS)
-        {
-            int x, y;
+		if (ret < 0) {
+			struct timeval curTime;
+			gettimeofday(&curTime, NULL);
+
+			long mtime, seconds, useconds;
+
+			seconds  = curTime.tv_sec  - touchStart.tv_sec;
+			useconds = curTime.tv_usec - touchStart.tv_usec;
+
+			mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+			if (touch_and_hold && mtime > 500) {
+				touch_and_hold = 0;
+				touch_repeat = 1;
+				gettimeofday(&touchStart, NULL);
+#ifdef _EVENT_LOGGING
+                LOGE("TOUCH_HOLD: %d,%d\n", x, y);
+#endif
+				PageManager::NotifyTouch(TOUCH_HOLD, x, y);
+			}
+			if (touch_repeat && mtime > 100) {
+#ifdef _EVENT_LOGGING
+                LOGE("TOUCH_REPEAT: %d,%d\n", x, y);
+#endif
+				gettimeofday(&touchStart, NULL);
+				PageManager::NotifyTouch(TOUCH_REPEAT, x, y);
+			}
+		} else if (ev.type == EV_ABS) {
 
             x = ev.value >> 16;
             y = ev.value & 0xFFFF;
@@ -191,6 +229,9 @@ static void *input_thread(void *cookie)
                     LOGE("TOUCH_RELEASE: %d,%d\n", x, y);
 #endif
                     PageManager::NotifyTouch(TOUCH_RELEASE, x, y);
+					touch_and_hold = 0;
+					touch_repeat = 0;
+					dontwait = 0;
                 }
                 state = 0;
                 drag = 0;
@@ -205,6 +246,9 @@ static void *input_thread(void *cookie)
                     if (PageManager::NotifyTouch(TOUCH_START, x, y) > 0)
                         state = 1;
                     drag = 1;
+					touch_and_hold = 1;
+					dontwait = 1;
+					gettimeofday(&touchStart, NULL);
                 }
                 else
                 {
@@ -226,22 +270,12 @@ static void *input_thread(void *cookie)
             LOGE("TOUCH_KEY: %d\n", ev.code);
 #endif
             PageManager::NotifyKey(ev.code);
+			touch_and_hold = 0;
+			touch_repeat = 0;
+			dontwait = 0;
         }
     }
     return NULL;
-}
-
-timespec timespec_diff(timespec& start, timespec& end)
-{
-	timespec temp;
-	if ((end.tv_nsec-start.tv_nsec)<0) {
-		temp.tv_sec = end.tv_sec-start.tv_sec-1;
-		temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
-	} else {
-		temp.tv_sec = end.tv_sec-start.tv_sec;
-		temp.tv_nsec = end.tv_nsec-start.tv_nsec;
-	}
-	return temp;
 }
 
 // This special function will return immediately the first time, but then

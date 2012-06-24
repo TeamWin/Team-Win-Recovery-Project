@@ -162,6 +162,8 @@ int GUISlider::NotifyTouch(TOUCH_STATE state, int x, int y)
         sCurTouchX = mRenderX;
         dragging = false;
         sUpdate = 1;
+	case TOUCH_REPEAT:
+	case TOUCH_HOLD:
         break;
     }
     return 0;
