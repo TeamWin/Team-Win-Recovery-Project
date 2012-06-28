@@ -104,7 +104,7 @@ int GUIText::Render(void)
 
     if (mPlacement != TOP_LEFT && mPlacement != BOTTOM_LEFT)
     {
-        if (mPlacement == CENTER)
+        if (mPlacement == CENTER || mPlacement == CENTER_X_ONLY)
             x -= (width / 2);
         else
             x -= width;
@@ -113,7 +113,7 @@ int GUIText::Render(void)
     {
         if (mPlacement == CENTER)
             y -= (mFontHeight / 2);
-        else
+        else if (mPlacement == BOTTOM_LEFT || mPlacement == BOTTOM_RIGHT)
             y -= mFontHeight;
     }
 

@@ -46,6 +46,7 @@ extern "C"
 	#include "ddftw.h"
     #include "tw_reboot.h"
 	#include "roots.h"
+	//#include "extra-functions.h"
 
 	int ensure_path_mounted(const char* path);
 	int mount_current_storage(void);
@@ -56,6 +57,8 @@ extern "C"
     extern char device_id[15];
 
     void gui_notifyVarChange(const char *name, const char* value);
+
+	int __system(const char *command);
 }
 
 #define FILE_VERSION    0x00010001
@@ -528,6 +531,7 @@ void DataManager::SetDefaultValues()
 #endif
 #ifdef TW_INCLUDE_CRYPTO
 	mConstValues.insert(make_pair(TW_HAS_CRYPTO, "1"));
+	LOGI("Device has crypto support compiled into recovery.\n");
 #endif
 
     mConstValues.insert(make_pair(TW_MIN_SYSTEM_VAR, TW_MIN_SYSTEM_SIZE));
@@ -590,7 +594,11 @@ void DataManager::SetDefaultValues()
 	mValues.insert(make_pair(TW_SIMULATE_ACTIONS, make_pair("0", 1)));
 	mValues.insert(make_pair(TW_SIMULATE_FAIL, make_pair("0", 1)));
 	mValues.insert(make_pair(TW_IS_ENCRYPTED, make_pair("0", 0)));
+	mValues.insert(make_pair(TW_IS_DECRYPTED, make_pair("0", 0)));
 	mValues.insert(make_pair(TW_CRYPTO_PASSWORD, make_pair("0", 0)));
+	mValues.insert(make_pair(TW_DATA_BLK_DEVICE, make_pair("0", 0)));
+	mValues.insert(make_pair("tw_terminal_state", make_pair("0", 0)));
+	mValues.insert(make_pair("tw_background_thread_running", make_pair("0", 0)));
 }
 
 // Magic Values
@@ -623,6 +631,69 @@ int DataManager::GetMagicValue(const string varName, string& value)
         return 0;
     }
     return -1;
+}
+
+void DataManager::ReadSettingsFile(void)
+{
+	// Load up the values for TWRP - Sleep to let the card be ready
+	char mkdir_path[255], settings_file[255];
+	int is_enc, has_dual, use_ext, has_data_media, has_ext;
+
+	GetValue(TW_IS_ENCRYPTED, is_enc);
+	GetValue(TW_HAS_DATA_MEDIA, has_data_media);
+	if (is_enc == 1 && has_data_media == 1) {
+		LOGI("Cannot load settings -- encrypted.\n");
+		return;
+	}
+
+	memset(mkdir_path, 0, sizeof(mkdir_path));
+	memset(settings_file, 0, sizeof(settings_file));
+	sprintf(mkdir_path, "%s/TWRP", DataManager_GetSettingsStoragePath());
+	sprintf(settings_file, "%s/.twrps", mkdir_path);
+
+	if (ensure_path_mounted(DataManager_GetSettingsStorageMount()) < 0)
+	{
+		usleep(500000);
+		if (ensure_path_mounted(DataManager_GetSettingsStorageMount()) < 0)
+			LOGE("Unable to mount %s\n", DataManager_GetSettingsStorageMount());
+	}
+
+	mkdir(mkdir_path, 0777);
+
+	LOGI("Attempt to load settings from settings file...\n");
+	LoadValues(settings_file);
+	GetValue(TW_HAS_DUAL_STORAGE, has_dual);
+	GetValue(TW_USE_EXTERNAL_STORAGE, use_ext);
+	if (has_dual != 0 && use_ext == 1) {
+		// Attempt to sdcard using external storage
+		if (mount_current_storage()) {
+			LOGE("Failed to mount external storage, using internal storage.\n");
+			// Remount failed, default back to internal storage
+			SetValue(TW_USE_EXTERNAL_STORAGE, 0);
+			mount_current_storage();
+		}
+	} else {
+		mount_current_storage();
+		if (has_dual == 0 && has_data_media == 1) {
+			system("mount /data/media /sdcard");
+		}
+	}
+
+	// Update storage free space after settings file is loaded
+	if (use_ext == 1)
+		SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcext.sze - sdcext.used) / 1048576LLU));
+	else if (has_data_media == 1)
+		SetValue(TW_STORAGE_FREE_SIZE, (int)((dat.sze - dat.used) / 1048576LLU));
+	else
+		SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcint.sze - sdcint.used) / 1048576LLU));
+
+	GetValue(TW_HAS_EXTERNAL, has_ext);
+	if (has_ext) {
+		string ext_path;
+
+		GetValue(TW_EXTERNAL_PATH, ext_path);
+		ensure_path_mounted(ext_path.c_str());
+	}
 }
 
 string DataManager::GetCurrentStoragePath(void)
@@ -803,3 +874,7 @@ extern "C" void DataManager_DumpValues()
     return DataManager::DumpValues();
 }
 
+extern "C" void DataManager_ReadSettingsFile()
+{
+    return DataManager::ReadSettingsFile();
+}

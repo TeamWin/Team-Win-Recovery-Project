@@ -130,7 +130,7 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
     if (strcmp(loc->mnt, "boot") == 0 && fstype)
     {
         loc->mountable = 0;
-        if (strcmp(fstype, "vfat") == 0 || memcmp(fstype, "ext", 3) == 0)
+        if (strcmp(fstype, "vfat") == 0 || memcmp(fstype, "ext", 3) == 0 || strcmp(fstype, "auto") == 0)
             loc->mountable = 1;
     }
 
@@ -413,60 +413,7 @@ void updateMntUsedSize(struct dInfo* mMnt)
     if (!mounted)
     {
         if (tw_mount(*mMnt)) {
-#ifdef TW_INCLUDE_CRYPTO
-			if (strcmp(mMnt->mnt, "data") == 0 && DataManager_GetIntValue(TW_HAS_CRYPTO) == 1) {
-				// Data might be encrypted
-				int ret_val, password_len;
-				char crypto_blkdev[255], password[255];
-				FILE *passwordFile;
-				size_t result;
-				int return_val;
-
-				tw_mount(sys);
-				// Read the original boot image
-				passwordFile = fopen("/system/password", "rb");
-				if(passwordFile==NULL){
-					LOGE("Unabled to open password file '%s'.\n", "/system/password");
-					return;
-				}
-
-				fseek (passwordFile , 0 , SEEK_END);
-				password_len = ftell(passwordFile);
-				rewind(passwordFile);
-				if (password_len <= 1) {
-					LOGE("Password file is empty!\n");
-					fclose(passwordFile);
-					return;
-				}
-
-				result = fread(password, 1, password_len, passwordFile);
-				if (result != password_len) {
-					LOGE("Error reading password file '%s'\n", "/system/password");
-					fclose(passwordFile);
-					return;
-				}
-				password[password_len - 1] = '\0';
-				fclose(passwordFile);
-
-				ret_val = cryptfs_check_passwd(password);
-				property_get("ro.crypto.fs_crypto_blkdev", crypto_blkdev, "error");
-				if (ret_val == 0) {
-					LOGI("Data successfully decrypted, new block device: '%s'\n", crypto_blkdev);
-					DataManager_SetIntValue(TW_IS_ENCRYPTED, 1);
-				} else
-					LOGE("Failed to decrypt data\n");
-				strcpy(mMnt->blk, crypto_blkdev);
-				createFstab();
-				if (tw_mount(*mMnt)) {
-					LOGE("Failed to mount data!\n");
-					return;
-				}
-			} else {
-				return; // If we fail, just move on
-			}
-#else
 			return;
-#endif
 		}
     }
 
@@ -804,6 +751,7 @@ void verifyFst()
 void createFstab()
 {
 	FILE *fp;
+
 	fp = fopen("/etc/fstab", "w");
 	if (fp == NULL)
         LOGI("=> Can not open /etc/fstab.\n");
@@ -813,6 +761,8 @@ void createFstab()
 		if (boo.mountable)      createFstabEntry(fp, &boo);
         if (sys.mountable)      createFstabEntry(fp, &sys);
 		if (dat.mountable)      createFstabEntry(fp, &dat);
+		if (strcmp(DataManager_GetStrValue(TW_DATA_BLK_DEVICE), "0") == 0)
+			DataManager_SetStrValue(TW_DATA_BLK_DEVICE, dat.blk);
 		if (DataManager_GetIntValue(TW_HAS_DATADATA) == 1)
 			createFstabEntry(fp, &datdat);
         if (cac.mountable)      createFstabEntry(fp, &cac);
@@ -875,4 +825,42 @@ void dumpPartitionTable(void)
     dumpPartitionEntry(&sp2);
     dumpPartitionEntry(&sp3);
     fprintf(stderr, "+----------+-----------------------------+--------+----------+----------+---+---+\n");
+}
+
+int decrypt_device(void)
+{
+#ifdef TW_INCLUDE_CRYPTO
+	int ret_val, password_len;
+	char crypto_blkdev[255], password[255];
+	size_t result;
+
+	strcpy(password, DataManager_GetStrValue(TW_CRYPTO_PASSWORD));
+	property_set("ro.crypto.state", "encrypted");
+	property_set("ro.crypto.fs_type", CRYPTO_FS_TYPE);
+	property_set("ro.crypto.fs_real_blkdev", CRYPTO_REAL_BLKDEV);
+	property_set("ro.crypto.fs_mnt_point", CRYPTO_MNT_POINT);
+	property_set("ro.crypto.fs_options", CRYPTO_FS_OPTIONS);
+	property_set("ro.crypto.fs_flags", CRYPTO_FS_FLAGS);
+	property_set("ro.crypto.keyfile.userdata", CRYPTO_KEY_LOC);
+	if (cryptfs_check_passwd(password) != 0) {
+		LOGE("Failed to decrypt data\n");
+		return -1;
+	}
+	property_get("ro.crypto.fs_crypto_blkdev", crypto_blkdev, "error");
+	if (strcmp(crypto_blkdev, "error") == 0) {
+		LOGE("Error retrieving decrypted data block device.\n");
+	} else {
+		DataManager_SetStrValue(TW_DATA_BLK_DEVICE, dat.blk);
+		DataManager_SetIntValue(TW_IS_DECRYPTED, 1);
+		strcpy(dat.blk, crypto_blkdev);
+		LOGI("Data successfully decrypted, new block device: '%s'\n", crypto_blkdev);
+		// Sleep for a bit so that the device will be ready
+		sleep(1);
+		update_system_details();
+	}
+	return 0;
+#else
+	LOGE("No crypto support was compiled into this build.\n");
+	return -1;
+#endif
 }

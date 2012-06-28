@@ -86,7 +86,8 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
 		}
 		attr = child->first_attribute("separatorheight");
 		if (attr) {
-			mHeaderSeparatorH = atoi(attr->value());
+			string parsevalue = gui_parse_text(attr->value());
+			mHeaderSeparatorH = atoi(parsevalue.c_str());
 			header_separator_height_specified = -1;
 		}
 	}
@@ -148,8 +149,10 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
 		}
 
 		attr = child->first_attribute("spacing");
-		if (attr)
-			mLineSpacing = atoi(attr->value());
+		if (attr) {
+			string parsevalue = gui_parse_text(attr->value());
+			mLineSpacing = atoi(parsevalue.c_str());
+		}
 	}
 
 	// Load the separator if it exists
@@ -167,7 +170,8 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
 
 		attr = child->first_attribute("height");
 		if (attr) {
-			mSeparatorH = atoi(attr->value());
+			string parsevalue = gui_parse_text(attr->value());
+			mSeparatorH = atoi(parsevalue.c_str());
 			if (!header_separator_height_specified)
 				mHeaderSeparatorH = mSeparatorH;
 		}
@@ -249,7 +253,7 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
 	{
 		mFolderIconWidth = gr_get_width(mFolderIcon->GetResource());
 		mFolderIconHeight = gr_get_height(mFolderIcon->GetResource());
-		if (mFolderIconHeight > mLineHeight)
+		if (mFolderIconHeight > (int)mLineHeight)
 			mLineHeight = mFolderIconHeight;
 		mIconWidth = mFolderIconWidth;
 	}
@@ -258,7 +262,7 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
 	{
 		mFileIconWidth = gr_get_width(mFileIcon->GetResource());
 		mFileIconHeight = gr_get_height(mFileIcon->GetResource());
-		if (mFileIconHeight > mLineHeight)
+		if (mFileIconHeight > (int)mLineHeight)
 			mLineHeight = mFileIconHeight;
 		if (mFileIconWidth > mIconWidth)
 			mIconWidth = mFileIconWidth;

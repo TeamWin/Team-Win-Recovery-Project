@@ -17,7 +17,7 @@
 #ifndef _VARIABLES_HEADER_
 #define _VARIABLES_HEADER_
 
-#define TW_VERSION_STR              "2.1.9"
+#define TW_VERSION_STR              "2.2.0b1"
 
 #define TW_USE_COMPRESSION_VAR      "tw_use_compression"
 #define TW_IGNORE_IMAGE_SIZE        "tw_ignore_image_size"
@@ -25,6 +25,7 @@
 #define TW_ZIP_INDEX                "tw_zip_index"
 #define TW_ZIP_QUEUE_COUNT			"tw_zip_queue_count"
 
+#define MAX_BACKUP_NAME_LEN 64
 #define TW_BACKUP_NAME		        "tw_backup_name"
 #define TW_BACKUP_SYSTEM_VAR        "tw_backup_system"
 #define TW_BACKUP_DATA_VAR          "tw_backup_data"
@@ -138,8 +139,10 @@
 #define TW_MIN_SYSTEM_VAR           "tw_min_system"
 #define TW_DOWNLOAD_MODE            "tw_download_mode"
 #define TW_IS_ENCRYPTED             "tw_is_encrypted"
+#define TW_IS_DECRYPTED             "tw_is_decrypted"
 #define TW_HAS_CRYPTO               "tw_has_crypto"
 #define TW_CRYPTO_PASSWORD          "tw_crypto_password"
+#define TW_DATA_BLK_DEVICE          "tw_data_blk_device"  // Original block device - not decrypted
 
 // Also used:
 //   tw_boot_is_mountable

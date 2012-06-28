@@ -35,6 +35,7 @@ int DataManager_SetFloatValue(const char* varName, float value);
 int DataManager_ToggleIntValue(const char* varName);
 
 void DataManager_DumpValues();
+void DataManager_ReadSettingsFile();
 
 #endif  // _DATA_HEADER
 

@@ -1,3 +1,6 @@
+#ifndef _EXTRAFUNCTIONS_HEADER
+#define _EXTRAFUNCTIONS_HEADER
+
 int __system(const char *command);
 FILE * __popen(const char *program, const char *type);
 int __pclose(FILE *iop);
@@ -16,6 +19,9 @@ void show_fake_main_menu();
 
 void usb_storage_toggle();
 void wipe_dalvik_cache();
+void wipe_battery_stats();
+void wipe_rotate_data();
+int format_data_media();
 
 void format_menu();
 void main_wipe_menu();
@@ -84,3 +90,5 @@ void htc_dumlock_restore_original_boot(void);
 void htc_dumlock_reflash_recovery_to_boot(void);
 
 void check_and_run_script(const char* script_file, const char* display_name);
+
+#endif // _EXTRAFUNCTIONS_HEADER

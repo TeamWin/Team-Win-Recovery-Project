@@ -657,7 +657,7 @@ int PageSet::NotifyVarChange(std::string varName, std::string value)
     return (mCurrentPage ? mCurrentPage->NotifyVarChange(varName, value) : -1);
 }
 
-int PageManager::LoadPackage(std::string name, std::string package)
+int PageManager::LoadPackage(std::string name, std::string package, std::string startpage)
 {
     int fd;
     ZipArchive zip, *pZip = NULL;
@@ -717,7 +717,7 @@ int PageManager::LoadPackage(std::string name, std::string package)
     ret = mCurrentSet->Load(pZip);
     if (ret == 0)
     {
-        mCurrentSet->SetPage("main");
+        mCurrentSet->SetPage(startpage);
         mPageSets.insert(std::pair<std::string, PageSet*>(name, mCurrentSet));
     }
     else
@@ -779,7 +779,7 @@ int PageManager::ReloadPackage(std::string name, std::string package)
     PageSet* set = (*iter).second;
     mPageSets.erase(iter);
 
-    if (LoadPackage(name, package) != 0)
+    if (LoadPackage(name, package, "main") != 0)
     {
         LOGE("Failed to load package.\n");
         mPageSets.insert(std::pair<std::string, PageSet*>(name, set));

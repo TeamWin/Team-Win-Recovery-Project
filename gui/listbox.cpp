@@ -88,8 +88,10 @@ GUIListBox::GUIListBox(xml_node<>* node)
         }
 
         attr = child->first_attribute("spacing");
-        if (attr)
-            mLineSpacing = atoi(attr->value());
+        if (attr) {
+			string parsevalue = gui_parse_text(attr->value());
+            mLineSpacing = atoi(parsevalue.c_str());
+		}
     }
 
     // Handle the result variable

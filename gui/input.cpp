@@ -108,7 +108,7 @@ GUIInput::GUIInput(xml_node<>* node)
 		attr = child->first_attribute("width");
 		if (attr)
 		{
-			std::string cwidth = attr->value();
+			std::string cwidth = gui_parse_text(attr->value());
 			CursorWidth = atoi(cwidth.c_str());
 		}
 	}

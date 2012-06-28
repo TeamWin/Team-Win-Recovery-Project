@@ -48,6 +48,7 @@ public:
 
     static void DumpValues();
 	static void SetDefaultValues();
+	static void ReadSettingsFile(void);
 	
 	static string GetCurrentStoragePath(void);
 	static string& CGetCurrentStoragePath();

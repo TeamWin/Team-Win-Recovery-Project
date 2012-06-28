@@ -6,3 +6,4 @@ done
 
 ln -sf /sbin/pigz /sbin/gzip
 ln -sf /sbin/unpigz /sbin/gunzip
+rm /sbin/mkdosfs

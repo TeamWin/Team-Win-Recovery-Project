@@ -50,7 +50,6 @@ extern "C" {
 
 #include "curtain.h"
 
-const static int CURTAIN_RATE = 16;
 const static int CURTAIN_FADE = 32;
 
 using namespace rapidxml;
@@ -101,13 +100,14 @@ static void curtainSet()
 
 static void curtainRaise(gr_surface surface)
 {
-    int sy = 0;
+	int sy = 0;
     int h = gr_get_height(gCurtain) - 1;
     int w = gr_get_width(gCurtain);
     int fy = 1;
 
     int msw = gr_get_width(surface);
     int msh = gr_get_height(surface);
+	int CURTAIN_RATE = msh / 30;
 
     if (gNoAnimation == 0)
     {
@@ -130,6 +130,7 @@ void curtainClose()
     int h = 1;
     int sy = gr_get_height(gCurtain) - 1;
     int fbh = gr_fb_height();
+	int CURTAIN_RATE = fbh / 30;
 
     if (gNoAnimation == 0)
     {
@@ -473,9 +474,24 @@ extern "C" int gui_loadResources()
 //    rename("/sdcard/video.bin", "/sdcard/video.last");
 //    gRecorder = open("/sdcard/video.bin", O_CREAT | O_WRONLY);
 
-	if (PageManager::LoadPackage("TWRP", "/script/ui.xml"))
-	{
-		int check = 0;
+	int check = 0;
+	DataManager::GetValue(TW_HAS_CRYPTO, check);
+	if (check) {
+		if (ensure_path_mounted("/data") < 0) {
+			// Data failed to mount - probably encrypted
+			DataManager::SetValue(TW_IS_ENCRYPTED, 1);
+			DataManager::SetValue(TW_CRYPTO_PASSWORD, "");
+			DataManager::SetValue("tw_crypto_display", "");
+			if (PageManager::LoadPackage("TWRP", "/res/ui.xml", "decrypt"))
+			{
+				LOGE("Failed to load base packages.\n");
+				goto error;
+			} else
+				check = 1;
+		} else
+			check = 0; // Data mounted, not ecrypted, keep going like normal
+	}
+	if (check == 0 && PageManager::LoadPackage("TWRP", "/script/ui.xml", "main")) {
 		std::string theme_path;
 
 		theme_path = DataManager::GetSettingsStoragePath();
@@ -493,9 +509,9 @@ extern "C" int gui_loadResources()
 		}
 
 		theme_path += "/TWRP/theme/ui.zip";
-		if (check || PageManager::LoadPackage("TWRP", theme_path))
+		if (check || PageManager::LoadPackage("TWRP", theme_path, "main"))
 		{
-			if (PageManager::LoadPackage("TWRP", "/res/ui.xml"))
+			if (PageManager::LoadPackage("TWRP", "/res/ui.xml", "main"))
 			{
 				LOGE("Failed to load base packages.\n");
 				goto error;
@@ -578,4 +594,3 @@ extern "C" int gui_console_only()
 
     return 0;
 }
-

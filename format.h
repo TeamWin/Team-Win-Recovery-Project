@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+int tw_format_ext23(const char* fstype, const char* device);
+
 void wipe_data_without_wiping_media(void);
 
 int tw_format(const char *fstype, const char *fsblock);

@@ -143,7 +143,7 @@ int GUICheckbox::SetRenderPos(int x, int y, int w, int h)
 
     w = textW + mCheckW + 5;
     mRenderW = w;
-    mRenderH = mCheckH;;
+    mRenderH = mCheckH;
 
     mTextX = mRenderX + mCheckW + 5;
     mTextY = mRenderY + ((mCheckH / 2) - (textH / 2));

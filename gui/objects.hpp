@@ -27,6 +27,7 @@ public:
         BOTTOM_LEFT = 2,
         BOTTOM_RIGHT = 3,
         CENTER = 4,
+		CENTER_X_ONLY = 5,
     };
 
 public:
@@ -253,7 +254,7 @@ protected:
     int flash_zip(std::string filename, std::string pageName, const int simulate);
 	void operation_start(const string operation_name);
 	void operation_end(const int operation_status, const int simulate);
-
+	static void* command_thread(void *cookie);
 };
 
 class GUIConsole : public RenderObject, public ActionObject

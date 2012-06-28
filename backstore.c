@@ -621,8 +621,13 @@ int tw_mount(struct dInfo mMnt)
     sprintf(target, "/%s", mMnt.mnt);
     if (mount(mMnt.blk, target, mMnt.fst, 0, NULL) != 0)
     {
-        if (strcmp(target, "/sd-ext") != 0)
+        if (strcmp(target, "/sd-ext") == 0) {
+			// Do nothing
+		} else if (strcmp(target, "/data") == 0 && DataManager_GetIntValue(TW_HAS_CRYPTO) == 1) {
+			DataManager_SetIntValue(TW_IS_ENCRYPTED, 1);
+		} else {
 			LOGE("Unable to mount %s\n", target);
+		}
         ret = 1;
     }
     return ret;
@@ -1054,6 +1059,57 @@ int tw_do_backup(const char* enableVar, struct dInfo* mnt, const char* tw_image_
     return 0;
 }
 
+int check_backup_name(int show_error) {
+	// Check the backup name to ensure that it is the correct size and contains only valid characters
+	// and that a backup with that name doesn't already exist
+	char backup_name[MAX_BACKUP_NAME_LEN];
+	char backup_loc[255], tw_image_dir[255];
+	int copy_size = strlen(DataManager_GetStrValue(TW_BACKUP_NAME));
+	int index, cur_char;
+	struct statfs st;
+
+	// Check size
+	if (copy_size < 1) {
+		LOGE("Backup name is too short.\n");
+		return -1;
+	} else if (copy_size > MAX_BACKUP_NAME_LEN) {
+		if (show_error)
+			LOGE("Backup name is too long.\n");
+		return -2;
+	}
+
+	// Check characters
+	strncpy(backup_name, DataManager_GetStrValue(TW_BACKUP_NAME), copy_size);
+	if (strcmp(backup_name, "0") == 0)
+		return 0; // A "0" (zero) means to use the current timestamp for the backup name
+	for (index=0; index<copy_size; index++) {
+		cur_char = (int)backup_name[index];
+		if ((cur_char >= 48  && cur_char <= 57) || (cur_char >= 65 && cur_char <= 91) || cur_char == 93 || cur_char == 95 || (cur_char >= 97 && cur_char <= 123) || cur_char == 125 || cur_char == 45 || cur_char == 46) {
+			// These are valid characters
+			// Numbers
+			// Upper case letters
+			// Lower case letters
+			// and -_.{}[]
+		} else {
+			if (show_error)
+				LOGE("Backup name contains invalid character: '%c'\n", (char)cur_char);
+			return -3;
+		}
+	}
+
+	// Check to make sure that a backup with this name doesn't already exist
+	strcpy(backup_loc, DataManager_GetStrValue(TW_BACKUPS_FOLDER_VAR));
+	sprintf(tw_image_dir,"%s/%s/.", backup_loc, backup_name);
+    if (statfs(tw_image_dir, &st) == 0) {
+		if (show_error)
+			LOGE("A backup with this name already exists.\n");
+		return -4;
+	}
+
+	// No problems found, return 0
+	return 0;
+}
+
 int nandroid_back_exe()
 {
     SetDataState("Starting", "backup", 0, 0);
@@ -1066,7 +1122,7 @@ int nandroid_back_exe()
 
     // Create backup folder
     struct tm *t;
-    char timestamp[64];
+    char timestamp[MAX_BACKUP_NAME_LEN];
 	char tw_image_dir[255];
 	char backup_loc[255];
 	char exe[255];
@@ -1084,6 +1140,8 @@ int nandroid_back_exe()
 		memset(timestamp, 0 , sizeof(timestamp));
 		strncpy(timestamp, DataManager_GetStrValue(TW_BACKUP_NAME), copy_size);
 	}
+	if (check_backup_name(1))
+		return -1;
 	strcpy(backup_loc, DataManager_GetStrValue(TW_BACKUPS_FOLDER_VAR));
 	sprintf(tw_image_dir,"%s/%s/", backup_loc, timestamp); // for backup folder
 	LOGI("Attempt to create folder '%s'\n", tw_image_dir);

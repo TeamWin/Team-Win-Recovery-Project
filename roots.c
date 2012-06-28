@@ -184,6 +184,7 @@ int ensure_path_mounted(const char* path) {
     } else if (strcmp(v->fs_type, "ext4") == 0 ||
                strcmp(v->fs_type, "ext3") == 0 ||
                strcmp(v->fs_type, "ext2") == 0 ||
+			   strcmp(v->fs_type, "auto") == 0 ||
                strcmp(v->fs_type, "vfat") == 0) {
         result = mount(v->device, v->mount_point, v->fs_type,
                        MS_NOATIME | MS_NODEV | MS_NODIRATIME, "");
@@ -197,7 +198,10 @@ int ensure_path_mounted(const char* path) {
             if (result == 0) return 0;
         }
 
-        LOGE("failed to mount %s (%s)\n", v->mount_point, strerror(errno));
+        if (strncmp(path, "/data", 5) == 0 && DataManager_GetIntValue(TW_IS_ENCRYPTED) == 1)
+			LOGI("failed to mount %s (%s)\n", v->mount_point, strerror(errno));
+		else
+			LOGE("failed to mount %s (%s)\n", v->mount_point, strerror(errno));
         return -1;
     }
 
@@ -281,7 +285,7 @@ int format_volume(const char* volume) {
     }
 
     if (strcmp(v->mount_point, volume) != 0) {
-        LOGE("can't give path \"%s\" to format_volume\n", volume);
+        LOGE("can't give path \"%s\" to format_volume, mount point is \"%s\"\n", volume, v->mount_point);
         return -1;
     }
 

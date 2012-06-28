@@ -1220,44 +1220,7 @@ main(int argc, char **argv) {
         //assume we want to be here and its not an error - give us the pretty icon!
         ui_set_background(BACKGROUND_ICON_MAIN);
 
-        // Load up the values for TWRP - Sleep to let the card be ready
-		char mkdir_path[255], settings_file[255];
-		memset(mkdir_path, 0, sizeof(mkdir_path));
-		memset(settings_file, 0, sizeof(settings_file));
-		sprintf(mkdir_path, "%s/TWRP", DataManager_GetSettingsStoragePath());
-		sprintf(settings_file, "%s/.twrps", mkdir_path);
-
-        if (ensure_path_mounted(DataManager_GetSettingsStorageMount()) < 0)
-        {
-            usleep(500000);
-            if (ensure_path_mounted(DataManager_GetSettingsStorageMount()) < 0)
-                LOGE("Unable to mount %s\n", DataManager_GetSettingsStorageMount());
-        }
-		
-		mkdir(mkdir_path, 0777);
-
-        LOGI("Attempt to load settings from settings file...\n");
-		DataManager_LoadValues(settings_file);
-		if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) != 0 && DataManager_GetIntValue(TW_USE_EXTERNAL_STORAGE) == 1) {
-			// Attempt to sdcard using external storage
-			if (mount_current_storage()) {
-				LOGE("Failed to mount external storage, using internal storage.\n");
-				// Remount failed, default back to internal storage
-				DataManager_SetIntValue(TW_USE_EXTERNAL_STORAGE, 0);
-				mount_current_storage();
-			}
-		} else {
-			mount_current_storage();
-			if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 0 && DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1) {
-				__system("mount /data/media /sdcard");
-			}
-		}
-
-        // Update storage free space after settings file is loaded
-		if (DataManager_GetIntValue(TW_USE_EXTERNAL_STORAGE) == 1)
-			DataManager_SetIntValue(TW_STORAGE_FREE_SIZE, (int)((sdcext.sze - sdcext.used) / 1048576LLU));
-		else
-			DataManager_SetIntValue(TW_STORAGE_FREE_SIZE, (int)((sdcint.sze - sdcint.used) / 1048576LLU));
+        DataManager_ReadSettingsFile();
 
 		// Update some of the main data
         update_tz_environment_variables();

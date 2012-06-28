@@ -129,7 +129,7 @@ static int tw_format_vfat(const char* device)
     return 0;
 }
 
-static int tw_format_ext23(const char* fstype, const char* device)
+int tw_format_ext23(const char* fstype, const char* device)
 {
     if (file_exists("/sbin/mke2fs"))
     {

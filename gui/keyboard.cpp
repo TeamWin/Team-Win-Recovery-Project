@@ -368,11 +368,6 @@ int GUIKeyboard::NotifyTouch(TOUCH_STATE state, int x, int y)
 	case TOUCH_DRAG:
 		break;
 	case TOUCH_RELEASE:
-	case TOUCH_HOLD:
-	case TOUCH_REPEAT:
-		if (startSelection == 0 || GetSelection(x, y) == -1)
-			return 0;
-
 		if (x < startX - (mRenderW * 0.5)) {
 			PageManager::NotifyKeyboard(KEYBOARD_SWIPE_LEFT);
 			return 0;
@@ -380,6 +375,12 @@ int GUIKeyboard::NotifyTouch(TOUCH_STATE state, int x, int y)
 			PageManager::NotifyKeyboard(KEYBOARD_SWIPE_RIGHT);
 			return 0;
 		}
+
+	case TOUCH_HOLD:
+	case TOUCH_REPEAT:
+
+		if (startSelection == 0 || GetSelection(x, y) == -1)
+			return 0;
 
 		// Find the correct row
 		for (indexy=0; indexy<MAX_KEYBOARD_ROWS; indexy++) {

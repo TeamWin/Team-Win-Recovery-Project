@@ -13,6 +13,7 @@ char tw_nandroid_string[1024];
 
 void nandroid_menu();
 void nan_backup_menu(int pIdx);
+int check_backup_name(int show_error);
 int nandroid_back_exe();
 int nandroid_rest_exe();
 

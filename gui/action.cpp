@@ -27,26 +27,33 @@ extern "C" {
 #include "../ddftw.h"
 #include "../backstore.h"
 #include "../extra-functions.h"
+#include "../format.h"
 
 int install_zip_package(const char* zip_path_filename);
 void fix_perms();
 int erase_volume(const char* path);
 void wipe_dalvik_cache(void);
 void update_system_details();
+int check_backup_name(int show_error);
 int nandroid_back_exe(void);
 void set_restore_files(void);
 int nandroid_rest_exe(void);
 void wipe_data(int confirm);
 void wipe_battery_stats(void);
 void wipe_rotate_data(void);
+int format_data_media();
 int usb_storage_enable(void);
 int usb_storage_disable(void);
 int __system(const char *command);
+FILE * __popen(const char *program, const char *type);
+int __pclose(FILE *iop);
 void run_script(const char *str1, const char *str2, const char *str3, const char *str4, const char *str5, const char *str6, const char *str7, int request_confirm);
 void update_tz_environment_variables();
 void install_htc_dumlock(void);
 void htc_dumlock_restore_original_boot(void);
 void htc_dumlock_reflash_recovery_to_boot(void);
+int decrypt_device(void);
+int tw_format(const char *fstype, const char *fsblock);
 };
 
 #include "rapidxml.hpp"
@@ -190,7 +197,7 @@ int GUIAction::flash_zip(std::string filename, std::string pageName, const int s
     }
     if (fd >= 0 && twrp != NULL && 
         mzExtractZipEntryToFile(&zip, twrp, fd) && 
-        !PageManager::LoadPackage("install", "/tmp/twrp.zip"))
+        !PageManager::LoadPackage("install", "/tmp/twrp.zip", "main"))
     {
         mzCloseZipArchive(&zip);
         PageManager::SelectPackage("install");
@@ -259,8 +266,10 @@ void* GUIAction::thread_start(void *cookie)
     {
         ourThis->doAction(ourThis->mActions.at(0), 1);
     }
-
-	DataManager::SetValue(TW_ACTION_BUSY, 0);
+	int check = 0;
+	DataManager::GetValue("tw_background_thread_running", check);
+	if (check == 0)
+		DataManager::SetValue(TW_ACTION_BUSY, 0);
     return NULL;
 }
 
@@ -298,6 +307,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 {
 	static string zip_queue[10];
 	static int zip_queue_index;
+	static pthread_t terminal_command;
 	int simulate;
 
 	std::string arg = gui_parse_text(action.mArg);
@@ -606,13 +616,27 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 
 	if (function == "sleep")
 	{
+		operation_start("Sleep");
 		usleep(atoi(arg.c_str()));
+		operation_end(0, simulate);
 		return 0;
 	}
 
     if (isThreaded)
     {
-        if (function == "flash")
+        if (function == "fileexists")
+		{
+			struct stat st;
+			string newpath = arg + "/.";
+
+			operation_start("FileExists");
+			if (stat(arg.c_str(), &st) == 0 || stat(newpath.c_str(), &st) == 0)
+				operation_end(0, simulate);
+			else
+				operation_end(1, simulate);
+		}
+
+		if (function == "flash")
         {
 			int i, ret_val = 0;
 
@@ -649,6 +673,8 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
             operation_start("Format");
             DataManager::SetValue("tw_partition", arg);
 
+			int ret_val = 0;
+
 			if (simulate) {
 				simulate_progress_bar();
 			} else {
@@ -660,9 +686,24 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 					wipe_rotate_data();
 				else if (arg == "dalvik")
 					wipe_dalvik_cache();
-				else
+				else if (arg == "DATAMEDIA")
+					ret_val = format_data_media();
+				else if (arg == "INTERNAL") {
+					int has_datamedia;
+
+					DataManager::GetValue(TW_HAS_DATA_MEDIA, has_datamedia);
+					if (has_datamedia) {
+						ensure_path_mounted("/data");
+						__system("rm -rf /data/media");
+						__system("cd /data && mkdir media && chmod 775 media");
+					} else {
+						ret_val = tw_format(sdcint.fst, sdcint.blk);
+					}
+				} else if (arg == "EXTERNAL") {
+					ret_val = tw_format(sdcext.fst, sdcext.blk);
+				} else
 					erase_volume(arg.c_str());
-				
+
 				if (arg == "/sdcard") {
 					ensure_path_mounted(SDCARD_ROOT);
 					mkdir("/sdcard/TWRP", 0777);
@@ -690,9 +731,10 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 				DataManager::SetValue("tw_partition", "Simulation");
 				simulate_progress_bar();
 			} else {
-				if (arg == "backup")
+				if (arg == "backup") {
 					nandroid_back_exe();
-				else if (arg == "restore")
+					DataManager::SetValue("tw_backup_name", "0");
+				} else if (arg == "restore")
 					nandroid_rest_exe();
 				else {
 					operation_end(1, simulate);
@@ -816,7 +858,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			int op_status = 0;
 
 			operation_start("Command");
-			ui_print("Running command: '%s'\n", arg.c_str());
+			LOGI("Running command: '%s'\n", arg.c_str());
 			if (simulate) {
 				simulate_progress_bar();
 			} else {
@@ -826,6 +868,49 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			}
 
 			operation_end(op_status, simulate);
+			return 0;
+		}
+		if (function == "terminalcommand")
+		{
+			int op_status = 0;
+			string cmdpath, command;
+
+			DataManager::GetValue("tw_terminal_location", cmdpath);
+			operation_start("CommandOutput");
+			ui_print("%s # %s\n", cmdpath.c_str(), arg.c_str());
+			if (simulate) {
+				simulate_progress_bar();
+				operation_end(op_status, simulate);
+			} else {
+				command = "cd \"";
+				command += cmdpath;
+				command += "\" && ";
+				command += arg;
+				LOGI("Actual command is: '%s'\n", command.c_str());
+				DataManager::SetValue("tw_terminal_command_thread", command);
+				DataManager::SetValue("tw_terminal_state", 1);
+				DataManager::SetValue("tw_background_thread_running", 1);
+				op_status = pthread_create(&terminal_command, NULL, command_thread, NULL);
+				if (op_status != 0) {
+					LOGE("Error starting terminal command thread, %1.\n", op_status);
+					DataManager::SetValue("tw_terminal_state", 0);
+					DataManager::SetValue("tw_background_thread_running", 0);
+					operation_end(1, simulate);
+				}
+			}
+			return 0;
+		}
+		if (function == "killterminal")
+		{
+			int op_status = 0;
+
+			LOGI("Sending kill command...\n");
+			operation_start("KillCommand");
+			DataManager::SetValue("tw_operation_status", 0);
+			DataManager::SetValue("tw_operation_state", 1);
+			DataManager::SetValue("tw_terminal_state", 0);
+			DataManager::SetValue("tw_background_thread_running", 0);
+			DataManager::SetValue(TW_ACTION_BUSY, 0);
 			return 0;
 		}
 		if (function == "reinjecttwrp")
@@ -839,6 +924,42 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			} else {
 				__system("injecttwrp --dump /tmp/backup_recovery_ramdisk.img /tmp/injected_boot.img --flash");
 				ui_print("TWRP injection complete.\n");
+			}
+
+			operation_end(op_status, simulate);
+			return 0;
+		}
+		if (function == "checkbackupname")
+		{
+			int op_status = 0;
+
+			operation_start("CheckBackupName");
+			if (simulate) {
+				simulate_progress_bar();
+			} else {
+				op_status = check_backup_name(1);
+				if (op_status != 0)
+					op_status = 1;
+			}
+
+			operation_end(op_status, simulate);
+			return 0;
+		}
+		if (function == "decrypt")
+		{
+			int op_status = 0;
+
+			operation_start("Decrypt");
+			if (simulate) {
+				simulate_progress_bar();
+			} else {
+				op_status = decrypt_device();
+				if (op_status != 0)
+					op_status = 1;
+				else {
+					DataManager::SetValue(TW_IS_ENCRYPTED, 0);
+					DataManager::ReadSettingsFile();
+				}
 			}
 
 			operation_end(op_status, simulate);
@@ -874,3 +995,52 @@ int GUIAction::getKeyByName(std::string key)
     return atol(key.c_str());
 }
 
+void* GUIAction::command_thread(void *cookie)
+{
+	string command;
+	FILE* fp;
+	char line[512];
+
+	DataManager::GetValue("tw_terminal_command_thread", command);
+	fp = __popen(command.c_str(), "r");
+	if (fp == NULL) {
+		LOGE("Error opening command to run.\n");
+	} else {
+		int fd = fileno(fp), has_data = 0, check = 0, keep_going = -1, bytes_read = 0;
+		struct timeval timeout;
+		fd_set fdset;
+
+		while(keep_going)
+		{
+			FD_ZERO(&fdset);
+			FD_SET(fd, &fdset);
+			timeout.tv_sec = 0;
+			timeout.tv_usec = 400000;
+			has_data = select(fd+1, &fdset, NULL, NULL, &timeout);
+			if (has_data == 0) {
+				// Timeout reached
+				DataManager::GetValue("tw_terminal_state", check);
+				if (check == 0) {
+					keep_going = 0;
+				}
+			} else if (has_data < 0) {
+				// End of execution
+				keep_going = 0;
+			} else {
+				// Try to read output
+				bytes_read = read(fd, line, sizeof(line));
+				if (bytes_read > 0)
+					ui_print("%s", line); // Display output
+				else
+					keep_going = 0; // Done executing
+			}
+		}
+		fclose(fp);
+	}
+	DataManager::SetValue("tw_operation_status", 0);
+	DataManager::SetValue("tw_operation_state", 1);
+	DataManager::SetValue("tw_terminal_state", 0);
+	DataManager::SetValue("tw_background_thread_running", 0);
+	DataManager::SetValue(TW_ACTION_BUSY, 0);
+	return NULL;
+}

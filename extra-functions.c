@@ -54,6 +54,7 @@
 #include "backstore.h"
 #include "themes.h"
 #include "data.h"
+#include "format.h"
 
 //kang system() from bionic/libc/unistd and rename it __system() so we can be even more hackish :)
 #undef _PATH_BSHELL
@@ -503,7 +504,7 @@ static char* copy_sideloaded_package(const char* original_path) {
 }
 
 int install_zip_package(const char* zip_path_filename) {
-	int result;
+	int result = 0;
 
     mount_current_storage();
 	int md5_req = DataManager_GetIntValue(TW_FORCE_MD5_CHECK_VAR);
@@ -1076,6 +1077,20 @@ void wipe_rotate_data()
     ui_print("Cleared: Rotatation Data...\n");
     ensure_path_unmounted("/data");
 }   
+
+int format_data_media() {
+	if (memcmp(dat.fst, "ext", 3) == 0) {
+        int ret_val = tw_format_ext23(dat.fst, DataManager_GetStrValue(TW_DATA_BLK_DEVICE));
+		if (ret_val == 0) {
+			ensure_path_mounted("/data");
+			__system("cd /data && mkdir media && chmod 775 media");
+		}
+		return ret_val;
+	} else {
+		LOGE("Unsupported file system for formatting data media, '%s'\n", dat.fst);
+		return -1;
+	}
+}
 
 void fix_perms()
 {
