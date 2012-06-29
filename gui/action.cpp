@@ -892,7 +892,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 				DataManager::SetValue("tw_background_thread_running", 1);
 				op_status = pthread_create(&terminal_command, NULL, command_thread, NULL);
 				if (op_status != 0) {
-					LOGE("Error starting terminal command thread, %1.\n", op_status);
+					LOGE("Error starting terminal command thread, %i.\n", op_status);
 					DataManager::SetValue("tw_terminal_state", 0);
 					DataManager::SetValue("tw_background_thread_running", 0);
 					operation_end(1, simulate);
