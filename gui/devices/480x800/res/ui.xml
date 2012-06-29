@@ -2127,6 +2127,7 @@
 			</object>
 
 			<object type="button">
+				<condition var1="tw_reboot_system" var2="1" />
 				<placement x="%col1_x%" y="%row1_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>System</text>
@@ -2146,6 +2147,7 @@
 			</object>
 
 			<object type="button">
+				<condition var1="tw_reboot_poweroff" var2="1" />
 				<placement x="%col2_x%" y="%row1_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Power Off</text>
@@ -2165,6 +2167,7 @@
 			</object>
 
 			<object type="button">
+				<condition var1="tw_reboot_recovery" var2="1" />
 				<placement x="%col1_x%" y="%row2_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Recovery</text>
@@ -2184,6 +2187,7 @@
 			</object>
 
 			<object type="button">
+				<condition var1="tw_reboot_bootloader" var2="1" />
 				<placement x="%col2_x%" y="%row2_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Bootloader</text>
@@ -2203,6 +2207,7 @@
 			</object>
 
 			<object type="button">
+				<condition var1="tw_download_mode" var2="1" />
 				<placement x="%col1_x%" y="%row3_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Download</text>
