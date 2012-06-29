@@ -149,7 +149,8 @@
 		<variable name="filemanager_select_y" value="690" />
 		<variable name="backup_name_y" value="350" />
 		<variable name="terminal_console_height" value="370" />
-		<variable name="terminal_input_width" value="350" />
+		<variable name="terminal_text_y" value="390" />
+		<variable name="terminal_button_y" value="380" />
 	</variables>
 
 	<templates>
@@ -586,8 +587,16 @@
 			</object>
 
 			<object type="checkbox">
-				<condition var1="tw_has_injecttwrp" var2="1" />
 				<placement x="%col1_x%" y="%row10_text_y%" />
+				<font resource="font" color="%text_color%" />
+				<text>Disable zip asserts?</text>
+				<data variable="tw_disable_asserts" />
+				<image checked="checkbox_true" unchecked="checkbox_false" />
+			</object>
+
+			<object type="checkbox">
+				<condition var1="tw_has_injecttwrp" var2="1" />
+				<placement x="%col1_x%" y="%row11_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Inject TWRP after install?</text>
 				<data variable="tw_inject_after_zip" />
@@ -2253,13 +2262,21 @@
 			<object type="checkbox">
 				<placement x="%col1_x%" y="%row3_text_y%" />
 				<font resource="font" color="%text_color%" />
+				<text>Disable zip asserts?</text>
+				<data variable="tw_disable_asserts" />
+				<image checked="checkbox_true" unchecked="checkbox_false" />
+			</object>
+
+			<object type="checkbox">
+				<placement x="%col1_x%" y="%row4_text_y%" />
+				<font resource="font" color="%text_color%" />
 				<text>Use rm -rf instead of formatting?</text>
 				<data variable="tw_rm_rf" />
 				<image checked="checkbox_true" unchecked="checkbox_false" />
 			</object>
 
 			<object type="checkbox">
-				<placement x="%col1_x%" y="%row4_text_y%" />
+				<placement x="%col1_x%" y="%row5_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Skip MD5 generation on backups</text>
 				<data variable="tw_skip_md5_generate" />
@@ -2267,7 +2284,7 @@
 			</object>
 
 			<object type="checkbox">
-				<placement x="%col1_x%" y="%row5_text_y%" />
+				<placement x="%col1_x%" y="%row6_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Enable MD5 checking of backup files</text>
 				<data variable="tw_skip_md5_check" />
@@ -2275,7 +2292,7 @@
 			</object>
 
 			<object type="checkbox">
-				<placement x="%col1_x%" y="%row6_text_y%" />
+				<placement x="%col1_x%" y="%row7_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Ignore image size errors during backup</text>
 				<data variable="tw_ignore_image_size" />
@@ -2283,7 +2300,7 @@
 			</object>
 
 			<object type="checkbox">
-				<placement x="%col1_x%" y="%row7_text_y%" />
+				<placement x="%col1_x%" y="%row8_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Simulate most actions for theme testing</text>
 				<data variable="tw_simulate_actions" />
@@ -2292,7 +2309,7 @@
 
 			<object type="checkbox">
 				<condition var1="tw_simulate_actions" var2="1" />
-				<placement x="%col1_x%" y="%row8_text_y%" />
+				<placement x="%col1_x%" y="%row9_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Simulate failure for actions</text>
 				<data variable="tw_simulate_fail" />
@@ -3436,14 +3453,14 @@
 			</object>
 
 			<object type="text" color="%text_color%">
-				<placement x="%col1_x%" y="%row9_text_y%" placement="0" />
+				<placement x="%col1_x%" y="%terminal_text_y%" placement="0" />
 				<font resource="font" />
 				<text>Starting Path: %tw_terminal_location%</text>
 			</object>
 
 			<object type="input">
 				<condition var1="tw_terminal_state" var2="0" />
-				<placement x="%col1_x%" y="%row9_text_y%" w="%terminal_input_width%" h="%input_height%" placement="0" />
+				<placement x="%col1_x%" y="%terminal_text_y%" w="%input_width%" h="%input_height%" placement="0" />
 				<background color="%input_background_color%" />
 				<cursor color="%input_cursor_color%" hasfocus="1" width="%input_cursor_width%" />
 				<font resource="font" color="%text_color%" />
@@ -3454,17 +3471,8 @@
 			</object>
 
 			<object type="button">
-				<condition var1="tw_terminal_state" var2="0" />
-				<placement x="%filemanager_select_x%" y="%row9_text_y%" />
-				<font resource="font" color="%button_text_color%" />
-				<text>Back</text>
-				<image resource="medium_button" />
-				<action function="page">terminalfolder</action>
-			</object>
-
-			<object type="button">
 				<condition var1="tw_terminal_state" var2="1" />
-				<placement x="%filemanager_select_x%" y="%row9_text_y%" />
+				<placement x="%filemanager_select_x%" y="%terminal_button_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>KILL</text>
 				<image resource="medium_button" />
