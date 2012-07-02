@@ -849,8 +849,10 @@
 
 			<object type="action">
 				<touch key="back" />
-				<action function="set">tw_clear_destination=%tw_back%</action>
-				<action function="page">clear_vars</action>
+				<actions>
+					<action function="set">tw_clear_destination=%tw_back%</action>
+					<action function="page">clear_vars</action>
+				</actions>
 			</object>
 
 			<object type="action">

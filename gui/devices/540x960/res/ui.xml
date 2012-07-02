@@ -49,7 +49,7 @@
 		<variable name="row2_y" value="332" />
 		<variable name="row3_y" value="524" />
 		<variable name="row4_y" value="716" />
-		<variable name="row_queue_y" value="564" />
+		<variable name="row_queue_y" value="625" />
 		<variable name="row1_header_y" value="110" />
 		<variable name="row1_text_y" value="140" />
 		<variable name="row2_text_y" value="180" />
@@ -74,7 +74,7 @@
 		<variable name="tz_set_y" value="720" />
 		<variable name="tz_current_y" value="895" />
 		<variable name="col_progressbar_x" value="144" />
-		<variable name="row_progressbar_y" value="840" />
+		<variable name="row_progressbar_y" value="850" />
 		<variable name="col1_medium_x" value="10" />
 		<variable name="col2_medium_x" value="145" />
 		<variable name="col3_medium_x" value="280" />
@@ -844,8 +844,10 @@
 
 			<object type="action">
 				<touch key="back" />
-				<action function="set">tw_clear_destination=%tw_back%</action>
-				<action function="page">clear_vars</action>
+				<actions>
+					<action function="set">tw_clear_destination=%tw_back%</action>
+					<action function="page">clear_vars</action>
+				</actions>
 			</object>
 
 			<object type="action">
