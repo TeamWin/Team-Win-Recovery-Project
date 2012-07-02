@@ -1084,6 +1084,8 @@ int format_data_media() {
 		if (ret_val == 0) {
 			ensure_path_mounted("/data");
 			__system("cd /data && mkdir media && chmod 775 media");
+		} else {
+			LOGE("Unable to format data.\n");
 		}
 		return ret_val;
 	} else {

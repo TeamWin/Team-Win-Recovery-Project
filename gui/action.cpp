@@ -711,7 +711,9 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 				}
 			}
 			update_system_details();
-            operation_end(0, simulate);
+			if (ret_val != 0)
+				ret_val = 1;
+            operation_end(ret_val, simulate);
             return 0;
         }
 		if (function == "refreshsizes")

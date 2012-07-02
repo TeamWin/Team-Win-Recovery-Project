@@ -675,7 +675,7 @@ void DataManager::ReadSettingsFile(void)
 	} else {
 		mount_current_storage();
 		if (has_dual == 0 && has_data_media == 1) {
-			system("mount /data/media /sdcard");
+			system("ln -s /sdcard /data/media");
 		}
 	}
 

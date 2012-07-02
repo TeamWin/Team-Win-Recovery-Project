@@ -137,7 +137,7 @@ int tw_format_ext23(const char* fstype, const char* device)
 
         sprintf(exe, "mke2fs -t %s -m 0 %s", fstype, device);
         LOGI("mke2fs command: %s\n", exe);
-        __system(exe);
+        return __system(exe);
     }
     else
         return tw_format_rmfr(device);
