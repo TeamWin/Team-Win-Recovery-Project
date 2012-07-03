@@ -114,12 +114,12 @@
 		<variable name="sort_col1_button_x" value="440" />
 		<variable name="sort_col2_button_x" value="510" />
 		<variable name="sort_col3_button_x" value="580" />
-		<variable name="col1_sdext_x" value="380" />
-		<variable name="col2_sdext_x" value="590" />
+		<variable name="col1_sdext_x" value="370" />
+		<variable name="col2_sdext_x" value="600" />
 		<variable name="row1_sdext_y" value="115" />
 		<variable name="row2_sdext_y" value="180" />
-		<variable name="row_extsize_y" value="130" />
-		<variable name="row_swapsize_y" value="195" />
+		<variable name="row_extsize_y" value="115" />
+		<variable name="row_swapsize_y" value="180" />
 		<variable name="input_x" value="28" />
 		<variable name="input_width" value="944" />
 		<variable name="input_height" value="30" />
@@ -640,14 +640,6 @@
 				<image checked="checkbox_true" unchecked="checkbox_false" />
 			</object>
 
-			<object type="checkbox">
-				<placement x="%col2_x%" y="%row9_text_y%" />
-				<font resource="font" color="%text_color%" />
-				<text>Disable zip asserts?</text>
-				<data variable="tw_disable_asserts" />
-				<image checked="checkbox_true" unchecked="checkbox_false" />
-			</object>
-
 			<object type="text" color="%text_color%">
 				<font resource="font" />
 				<placement x="%center_x%" y="%row10_text_y%" placement="5" />
@@ -767,10 +759,7 @@
 			</object>
 
 			<object type="button">
-				<conditions>
-					<condition var1="tw_reboot_system" var2="1" />
-					<condition var1="tw_backup_system_size" op=">=" var2="%tw_min_system%" />
-				</conditions>
+				<condition var1="tw_reboot_system" var2="1" />
 				<placement x="%col4_x%" y="%slider_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Reboot System</text>
@@ -1812,6 +1801,7 @@
 				<text>Set Backup Name</text>
 				<image resource="main_button" />
 				<actions>
+					<action function="set">tw_backup_name=(</action>
 					<action function="set">tw_fileexists=0</action>
 					<action function="page">backupname</action>
 				</actions>
@@ -1832,6 +1822,11 @@
 
 		<page name="backupname">
 			<object type="template" name="header" />
+
+			<object type="action">
+				<condition var1="tw_backup_name" op="=" var2="(" />
+				<action function="set">tw_backup_name=</function>
+			</object>
 
 			<object type="text" color="%text_color%">
 				<placement x="%center_x%" y="%row1_text_y%" placement="5" />
@@ -1865,10 +1860,10 @@
 			<object type="button">
 				<placement x="%col_center_x%" y="%cancel_button_y%" />
 				<font resource="font" color="%button_text_color%" />
-				<text>Cancel</text>
+				<text>Cancel / Clear</text>
 				<image resource="main_button" />
 				<actions>
-					<action function="set">tw_backup_name=</action>
+					<action function="set">tw_backup_name=(Current Date)</action>
 					<action function="page">backup</action>
 				</actions>
 			</object>
@@ -1878,7 +1873,7 @@
 			<object type="action">
 				<touch key="home" />
 				<actions>
-					<action function="set">tw_backup_name=</action>
+					<action function="set">tw_backup_name=(Current Date)</action>
 					<action function="page">main</action>
 				</actions>
 			</object>
@@ -1886,7 +1881,7 @@
 			<object type="action">
 				<touch key="back" />
 				<actions>
-					<action function="set">tw_backup_name=</action>
+					<action function="set">tw_backup_name=(Current Date)</action>
 					<action function="page">backup</action>
 				</actions>
 			</object>

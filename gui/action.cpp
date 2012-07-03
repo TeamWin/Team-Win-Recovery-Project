@@ -735,7 +735,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			} else {
 				if (arg == "backup") {
 					nandroid_back_exe();
-					DataManager::SetValue("tw_backup_name", "");
+					DataManager::SetValue(TW_BACKUP_NAME, "(Current Date)");
 				} else if (arg == "restore")
 					nandroid_rest_exe();
 				else {

@@ -1106,7 +1106,7 @@ int check_backup_name(int show_error) {
 			// and -_.{}[]
 		} else {
 			if (show_error)
-				LOGE("Backup name contains invalid character: '%c'\n", (char)cur_char);
+				LOGE("Backup name '%s' contains invalid character: '%c'\n", backup_name, (char)cur_char);
 			return -3;
 		}
 	}
@@ -1144,18 +1144,22 @@ int nandroid_back_exe()
 	time_t seconds;
 	seconds = time(0);
     t = localtime(&seconds);
+	unsigned int copy_size = strlen(DataManager_GetStrValue(TW_BACKUP_NAME));
 
-	if (strcmp(DataManager_GetStrValue(TW_BACKUP_NAME), "0") == 0 || strlen(DataManager_GetStrValue(TW_BACKUP_NAME)) == 0) {
+	if (copy_size > sizeof(timestamp))
+		copy_size = sizeof(timestamp);
+
+	memset(timestamp, 0 , sizeof(timestamp));
+	strncpy(timestamp, DataManager_GetStrValue(TW_BACKUP_NAME), copy_size);
+
+	if (strcmp(timestamp, "0") == 0 || strcmp(timestamp, "(Current Date)") == 0) {
+		memset(timestamp, 0 , sizeof(timestamp));
 		sprintf(timestamp,"%04d-%02d-%02d--%02d-%02d-%02d",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min,t->tm_sec); // make time stamp
 	} else {
-		unsigned int copy_size = strlen(DataManager_GetStrValue(TW_BACKUP_NAME));
-		if (copy_size > sizeof(timestamp))
-			copy_size = sizeof(timestamp);
-		memset(timestamp, 0 , sizeof(timestamp));
-		strncpy(timestamp, DataManager_GetStrValue(TW_BACKUP_NAME), copy_size);
+		if (check_backup_name(1))
+			return -1;
 	}
-	if (check_backup_name(1))
-		return -1;
+
 	strcpy(backup_loc, DataManager_GetStrValue(TW_BACKUPS_FOLDER_VAR));
 	sprintf(tw_image_dir,"%s/%s/", backup_loc, timestamp); // for backup folder
 	LOGI("Attempt to create folder '%s'\n", tw_image_dir);
