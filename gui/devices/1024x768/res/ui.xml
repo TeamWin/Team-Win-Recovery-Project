@@ -161,11 +161,15 @@
 		<variable name="lock_y" value="200" />
 		<variable name="filemanager_select_x" value="761" />
 		<variable name="filemanager_select_y" value="620" />
-		<variable name="backup_name_y" value="240" />
-		<variable name="terminal_console_y" value="62" />
-		<variable name="terminal_console_height" value="300" />
+		<variable name="backup_name_text_y" value="440" />
+		<variable name="backup_name_button_y" value="240" />
+		<variable name="col_right_x" value="996" />
+		<variable name="cancel_button_y" value="240" />
+		<variable name="terminal_console_y" value="0" />
+		<variable name="terminal_console_height" value="362" />
 		<variable name="terminal_text_y" value="368" />
 		<variable name="terminal_button_y" value="358" />
+		<variable name="terminal_input_width" value="775" />
 	</variables>
 
 	<templates>
@@ -1619,8 +1623,14 @@
 
 			<object type="text" color="%text_color%">
 				<font resource="font" />
-				<placement x="%center_x%" y="%row2_text_y%" placement="5" />
+				<placement x="%col1_x%" y="%row2_text_y%" placement="0" />
 				<text>Free Space: %tw_storage_free_size% MB</text>
+			</object>
+
+			<object type="text" color="%text_color%">
+				<font resource="font" />
+				<placement x="%col_right_x%" y="%row2_text_y%" placement="1" />
+				<text>Backup Name: %tw_backup_name%</text>
 			</object>
 
 			<object type="checkbox">
@@ -1797,12 +1807,11 @@
 			</object>
 
 			<object type="button">
-				<placement x="%col4_x%" y="%backup_name_y%" />
+				<placement x="%col4_x%" y="%backup_name_button_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Set Backup Name</text>
 				<image resource="main_button" />
 				<actions>
-					<action function="set">tw_backup_name=</action>
 					<action function="set">tw_fileexists=0</action>
 					<action function="page">backupname</action>
 				</actions>
@@ -1854,12 +1863,12 @@
 			</object>
 
 			<object type="button">
-				<placement x="%col_center_x%" y="%backup_name_y%" />
+				<placement x="%col_center_x%" y="%cancel_button_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Cancel</text>
 				<image resource="main_button" />
 				<actions>
-					<action function="set">tw_backup_name=0</action>
+					<action function="set">tw_backup_name=</action>
 					<action function="page">backup</action>
 				</actions>
 			</object>
@@ -1869,7 +1878,7 @@
 			<object type="action">
 				<touch key="home" />
 				<actions>
-					<action function="set">tw_backup_name=0</action>
+					<action function="set">tw_backup_name=</action>
 					<action function="page">main</action>
 				</actions>
 			</object>
@@ -1877,7 +1886,7 @@
 			<object type="action">
 				<touch key="back" />
 				<actions>
-					<action function="set">tw_backup_name=0</action>
+					<action function="set">tw_backup_name=</action>
 					<action function="page">backup</action>
 				</actions>
 			</object>
@@ -2012,6 +2021,12 @@
 				<text>Package to Restore: %tw_restore_name%</text>
 			</object>
 
+			<object type="text" color="%text_color%">
+				<font resource="font" />
+				<placement x="%center_x%" y="%row2_text_y%" placement="5" />
+				<text>Package Date: %tw_restore_file_date%</text>
+			</object>
+
 			<object type="checkbox">
 				<placement x="%nandcheck_col1%" y="%nandcheck_row1%" />
 				<font resource="font" color="%text_color%" />
@@ -2123,7 +2138,7 @@
 			</object>
 
 			<object type="button">
-				<placement x="%col4_x%" y="%backup_name_y%" />
+				<placement x="%col4_x%" y="%backup_name_button_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Delete Backup</text>
 				<image resource="main_button" />
@@ -2206,7 +2221,7 @@
 			</object>
 
 			<object type="button">
-				<placement x="%col_center_x%" y="%backup_name_y%" />
+				<placement x="%col_center_x%" y="%cancel_button_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Cancel</text>
 				<image resource="main_button" />
@@ -2298,21 +2313,13 @@
 			<object type="checkbox">
 				<placement x="%col1_x%" y="%row4_text_y%" />
 				<font resource="font" color="%text_color%" />
-				<text>Disable zip asserts?</text>
-				<data variable="tw_disable_asserts" />
-				<image checked="checkbox_true" unchecked="checkbox_false" />
-			</object>
-
-			<object type="checkbox">
-				<placement x="%col1_x%" y="%row5_text_y%" />
-				<font resource="font" color="%text_color%" />
 				<text>Use rm -rf instead of formatting?</text>
 				<data variable="tw_rm_rf" />
 				<image checked="checkbox_true" unchecked="checkbox_false" />
 			</object>
 
 			<object type="checkbox">
-				<placement x="%col1_x%" y="%row6_text_y%" />
+				<placement x="%col1_x%" y="%row5_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Skip MD5 generation on backups</text>
 				<data variable="tw_skip_md5_generate" />
@@ -2320,7 +2327,7 @@
 			</object>
 
 			<object type="checkbox">
-				<placement x="%col1_x%" y="%row7_text_y%" />
+				<placement x="%col1_x%" y="%row6_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Enable MD5 checking of backup files</text>
 				<data variable="tw_skip_md5_check" />
@@ -2328,7 +2335,7 @@
 			</object>
 
 			<object type="checkbox">
-				<placement x="%col1_x%" y="%row8_text_y%" />
+				<placement x="%col1_x%" y="%row7_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Ignore image size errors during backup</text>
 				<data variable="tw_ignore_image_size" />
@@ -2336,7 +2343,7 @@
 			</object>
 
 			<object type="checkbox">
-				<placement x="%col1_x%" y="%row9_text_y%" />
+				<placement x="%col1_x%" y="%row8_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Simulate most actions for theme testing</text>
 				<data variable="tw_simulate_actions" />
@@ -2345,7 +2352,7 @@
 
 			<object type="checkbox">
 				<condition var1="tw_simulate_actions" var2="1" />
-				<placement x="%col1_x%" y="%row10_text_y%" />
+				<placement x="%col1_x%" y="%row9_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Simulate failure for actions</text>
 				<data variable="tw_simulate_fail" />
@@ -3104,7 +3111,7 @@
 			</object>
 
 			<object type="button">
-				<placement x="%col_center_x%" y="%backup_name_y%" />
+				<placement x="%col_center_x%" y="%cancel_button_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Cancel</text>
 				<image resource="main_button" />
@@ -3153,7 +3160,7 @@
 			</object>
 
 			<object type="button">
-				<placement x="%col_center_x%" y="%backup_name_y%" />
+				<placement x="%col_center_x%" y="%cancel_button_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Cancel</text>
 				<image resource="main_button" />
@@ -3201,7 +3208,7 @@
 			</object>
 
 			<object type="button">
-				<placement x="%col_center_x%" y="%backup_name_y%" />
+				<placement x="%col_center_x%" y="%cancel_button_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Cancel</text>
 				<image resource="main_button" />
@@ -3362,7 +3369,7 @@
 			</object>
 
 			<object type="button">
-				<placement x="%col_center_x%" y="%backup_name_y%" />
+				<placement x="%col_center_x%" y="%cancel_button_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Cancel</text>
 				<image resource="main_button" />
@@ -3477,7 +3484,7 @@
 		</page>
 
 		<page name="terminalcommand">
-			<object type="template" name="header" />
+			<background color="#000000FF" />
 
 			<object type="console">
 				<placement x="%console_x%" y="%terminal_console_y%" w="%console_width%" h="%terminal_console_height%" />
@@ -3493,7 +3500,7 @@
 
 			<object type="input">
 				<condition var1="tw_terminal_state" var2="0" />
-				<placement x="%input_x%" y="%terminal_text_y%" w="%input_width%" h="%input_height%" placement="0" />
+				<placement x="%input_x%" y="%terminal_text_y%" w="%terminal_input_width%" h="%input_height%" placement="0" />
 				<background color="%input_background_color%" />
 				<cursor color="%input_cursor_color%" hasfocus="1" width="%input_cursor_width%" />
 				<font resource="font" color="%text_color%" />
@@ -3510,6 +3517,29 @@
 				<text>KILL</text>
 				<image resource="medium_button" />
 				<action function="killterminal"></action>
+			</object>
+
+			<object type="button">
+				<placement x="%home_button_x%" y="%terminal_button_y%" />
+				<font resource="font" color="%button_text_color%" />
+				<text></text>
+				<image resource="home_icon" />
+				<condition var1="tw_busy" var2="0" />
+				<action function="key">home</action>
+			</object>
+
+			<object type="button">
+				<placement x="%back_button_x%" y="%terminal_button_y%" />
+				<font resource="font" color="%button_text_color%" />
+				<text></text>
+				<image resource="back_icon" />
+				<condition var1="tw_busy" var2="0" />
+				<action function="key">back</action>
+			</object>
+
+			<object type="action">
+				<touch key="power" />
+				<action function="overlay">lock</action>
 			</object>
 
 			<object type="template" name="keyboardtemplate" />

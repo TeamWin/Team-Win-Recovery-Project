@@ -535,7 +535,7 @@ void DataManager::SetDefaultValues()
 #endif
 
     mConstValues.insert(make_pair(TW_MIN_SYSTEM_VAR, TW_MIN_SYSTEM_SIZE));
-	mValues.insert(make_pair(TW_BACKUP_NAME, make_pair("0", 0)));
+	mValues.insert(make_pair(TW_BACKUP_NAME, make_pair("", 0)));
 	mValues.insert(make_pair(TW_BACKUP_SYSTEM_VAR, make_pair("1", 1)));
     mValues.insert(make_pair(TW_BACKUP_DATA_VAR, make_pair("1", 1)));
     mValues.insert(make_pair(TW_BACKUP_BOOT_VAR, make_pair("1", 1)));
@@ -599,6 +599,7 @@ void DataManager::SetDefaultValues()
 	mValues.insert(make_pair(TW_DATA_BLK_DEVICE, make_pair("0", 0)));
 	mValues.insert(make_pair("tw_terminal_state", make_pair("0", 0)));
 	mValues.insert(make_pair("tw_background_thread_running", make_pair("0", 0)));
+	mValues.insert(make_pair(TW_RESTORE_FILE_DATE, make_pair("0", 0)));
 }
 
 // Magic Values

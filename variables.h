@@ -65,6 +65,7 @@
 #define TW_RESTORE_AVG_IMG_RATE     "tw_restore_avg_img_rate"
 #define TW_RESTORE_AVG_FILE_RATE    "tw_restore_avg_file_rate"
 #define TW_RESTORE_AVG_FILE_COMP_RATE    "tw_restore_avg_file_comp_rate"
+#define TW_RESTORE_FILE_DATE        "tw_restore_file_date"
 
 #define TW_SHOW_SPAM_VAR            "tw_show_spam"
 #define TW_COLOR_THEME_VAR          "tw_color_theme"

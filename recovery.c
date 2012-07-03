@@ -828,7 +828,7 @@ int run_script_file(void) {
 					DataManager_SetStrValue(TW_BACKUP_NAME, value2);
 					ui_print("Backup folder set to '%s'\n", value2);
 				} else {
-					DataManager_SetStrValue(TW_BACKUP_NAME, "0");
+					DataManager_SetStrValue(TW_BACKUP_NAME, "");
 				}
 
 				DataManager_SetIntValue(TW_BACKUP_SYSTEM_VAR, 0);

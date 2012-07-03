@@ -270,6 +270,7 @@ set_restore_files()
     int tw_restore_sp1 = -1;
     int tw_restore_sp2 = -1;
     int tw_restore_sp3 = -1;
+	int get_date = -1;
 
     DIR* d;
     d = opendir(nan_dir);
@@ -290,9 +291,22 @@ set_restore_files()
         char* ptr;
         struct dInfo* dev = NULL;
 
-        strcpy(str, de->d_name);
+		strcpy(str, de->d_name);
 		if (strlen(str) <= 2)
 			continue;
+
+		if (get_date) {
+			char file_path[255];
+			struct stat st;
+
+			strcpy(file_path, nan_dir);
+			strcat(file_path, "/");
+			strcat(file_path, str);
+			stat(file_path, &st);
+			DataManager_SetStrValue(TW_RESTORE_FILE_DATE, ctime(&st.st_mtime));
+			get_date = 0;
+		}
+
         label = str;
         ptr = label;
         while (*ptr && *ptr != '.')     ptr++;
@@ -1131,7 +1145,7 @@ int nandroid_back_exe()
 	seconds = time(0);
     t = localtime(&seconds);
 
-	if (strcmp(DataManager_GetStrValue(TW_BACKUP_NAME), "0") == 0) {
+	if (strcmp(DataManager_GetStrValue(TW_BACKUP_NAME), "0") == 0 || strlen(DataManager_GetStrValue(TW_BACKUP_NAME)) == 0) {
 		sprintf(timestamp,"%04d-%02d-%02d--%02d-%02d-%02d",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min,t->tm_sec); // make time stamp
 	} else {
 		unsigned int copy_size = strlen(DataManager_GetStrValue(TW_BACKUP_NAME));
