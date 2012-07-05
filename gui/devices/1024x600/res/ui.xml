@@ -53,7 +53,7 @@
 		<variable name="col_center_x" value="392" />
 		<variable name="center_x" value="512" />
 		<variable name="screen_width" value="1024" />
-		<variable name="screen_height" value="768" />
+		<variable name="screen_height" value="600" />
 		<variable name="col_progressbar_x" value="386" />
 		<variable name="row_progressbar_y" value="540" />
 		<variable name="col1_medium_x" value="257" />
@@ -157,8 +157,8 @@
 		<variable name="listbox_background" value="#303030" />
 		<variable name="listbox_spacing" value="18" />
 		<variable name="sd_plus_x" value="280" />
-		<variable name="lock_x" value="40" />
-		<variable name="lock_y" value="200" />
+		<variable name="lock_x" value="312" />
+		<variable name="lock_y" value="184" />
 		<variable name="filemanager_select_x" value="761" />
 		<variable name="filemanager_select_y" value="495" />
 		<variable name="backup_name_text_y" value="440" />
@@ -1504,7 +1504,7 @@
 			</object>
 
 			<object type="button">
-				<condition var1="tw_use_external_storage" var2="1" />
+				<condition var1="tw_has_external" var2="1" />
 				<placement x="%col1_x%" y="%row2_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>External Storage</text>
@@ -1526,7 +1526,7 @@
 
 			<object type="button">
 				<condition var1="tw_has_internal" var2="1" />
-				<placement x="%col2_x%" y="%row1_y%" />
+				<placement x="%col2_x%" y="%row2_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Internal Storage</text>
 				<image resource="main_button" />
@@ -2788,7 +2788,7 @@
 
 			<object type="image">
 				<image resource="unlock-icon" />
-				<placement x="312" y="184" />
+				<placement x="%lock_x%" y="%lock_y%" />
 			</object>
 
 			<object type="slider">
@@ -3551,4 +3551,3 @@
 		</page>
 	</pages>
 </recovery>
-
