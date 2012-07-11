@@ -444,7 +444,7 @@ int GUIInput::Render(void)
 		}
 		cursorX += scrollingX;
 		// Make sure that the cursor doesn't go past the boundaries of the box
-		if (cursorX + CursorWidth > mRenderX + mRenderW)
+		if (cursorX + (int)CursorWidth > mRenderX + mRenderW)
 			cursorX = mRenderX + mRenderW - CursorWidth;
 
 		// Set the color for the cursor
@@ -676,7 +676,7 @@ int GUIInput::NotifyKeyboard(int key)
 			// Action
 			DataManager::GetValue(mVariable, variableValue);
 			if (mAction) {
-				int inputLen = variableValue.length();
+				unsigned inputLen = variableValue.length();
 				if (inputLen < MinLen)
 					return 0;
 				else if (MaxLen != 0 && inputLen > MaxLen)

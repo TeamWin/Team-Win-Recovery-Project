@@ -32,6 +32,8 @@ extern "C" {
 #include "objects.hpp"
 #include "../data.hpp"
 
+#define TW_FILESELECTOR_UP_A_LEVEL "(Up A Level)"
+
 int GUIFileSelector::mSortOrder = 0;
 
 GUIFileSelector::GUIFileSelector(xml_node<>* node)
@@ -602,7 +604,7 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
 					oldcwd = cwd;
 					// Ignore requests to do nothing
 					if (str == ".")	 return 0;
-					if (str == "..")
+					if (str == TW_FILESELECTOR_UP_A_LEVEL)
 					{
 						if (cwd != "/")
 						{
@@ -710,9 +712,9 @@ bool GUIFileSelector::fileSort(FileData d1, FileData d2)
 		return -1;
 	if (d2.fileName == ".")
 		return 0;
-	if (d1.fileName == "..")
+	if (d1.fileName == TW_FILESELECTOR_UP_A_LEVEL)
 		return -1;
-	if (d2.fileName == "..")
+	if (d2.fileName == TW_FILESELECTOR_UP_A_LEVEL)
 		return 0;
 	
 	switch (mSortOrder) {
@@ -761,6 +763,12 @@ int GUIFileSelector::GetFileList(const std::string folder)
 		FileData data;
 
 		data.fileName = de->d_name;
+		if (data.fileName == ".")
+			continue;
+		if (data.fileName == ".." && folder == "/")
+			continue;
+		if (data.fileName == "..")
+			data.fileName = TW_FILESELECTOR_UP_A_LEVEL;
 		data.fileType = de->d_type;
 
 		std::string path = folder + "/" + data.fileName;
@@ -775,7 +783,7 @@ int GUIFileSelector::GetFileList(const std::string folder)
 
 		if (data.fileType == DT_DIR)
 		{
-			if (mShowNavFolders || (data.fileName != "." && data.fileName != ".."))
+			if (mShowNavFolders || (data.fileName != "." && data.fileName != TW_FILESELECTOR_UP_A_LEVEL))
 				mFolderList.push_back(data);
 		}
 		else if (data.fileType == DT_REG)

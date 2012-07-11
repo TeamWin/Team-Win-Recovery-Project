@@ -213,7 +213,7 @@
 				<conditions>
 					<condition var1="tw_no_battery_percent" var2="0" />
 					<condition var1="tw_battery" op=">" var2="0" />
-					<condition var1="tw_battery" op="<=" var2="100" />
+					<condition var1="tw_battery" op="<" var2="101" />
 				</conditions>
 				<text>Battery Level: %tw_battery%</text>
 			</object>
@@ -1801,9 +1801,8 @@
 				<text>Set Backup Name</text>
 				<image resource="main_button" />
 				<actions>
-					<action function="set">tw_backup_name=(</action>
 					<action function="set">tw_fileexists=0</action>
-					<action function="page">backupname</action>
+					<action function="page">backupname1</action>
 				</actions>
 			</object>
 
@@ -1820,13 +1819,19 @@
 			<object type="template" name="footer" />
 		</page>
 
-		<page name="backupname">
-			<object type="template" name="header" />
-
+		<page name="backupname1">
 			<object type="action">
-				<condition var1="tw_backup_name" op="=" var2="(" />
+				<condition var1="tw_backup_name" op="=" var2="(Current Date)" />
 				<action function="set">tw_backup_name=</function>
 			</object>
+
+			<object type="action">
+				<action function="page">backupname2</function>
+			</object>
+		</page>
+
+		<page name="backupname2">
+			<object type="template" name="header" />
 
 			<object type="text" color="%text_color%">
 				<placement x="%center_x%" y="%row1_text_y%" placement="5" />
@@ -2046,15 +2051,6 @@
 				<text>Boot</text>
 				<condition var1="tw_restore_boot" op=">=" var2="0" />
 				<data variable="tw_restore_boot" />
-				<image checked="checkbox_true" unchecked="checkbox_false" />
-			</object>
-
-			<object type="checkbox">
-				<placement x="%nandcheck_col1%" y="%nandcheck_row4%" />
-				<font resource="font" color="%text_color%" />
-				<text>Recovery</text>
-				<condition var1="tw_restore_recovery" op=">=" var2="0" />
-				<data variable="tw_restore_recovery" />
 				<image checked="checkbox_true" unchecked="checkbox_false" />
 			</object>
 

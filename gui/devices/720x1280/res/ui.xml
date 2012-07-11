@@ -132,7 +132,7 @@
 		<variable name="fileselector_separatorcolor" value="#505050" />
 		<variable name="fileselector_separatorheight" value="2" />
 		<variable name="fileselector_background" value="#303030" />
-		<variable name="fileselector_spacing" value="16" />
+		<variable name="fileselector_spacing" value="36" />
 		<variable name="listbox_x" value="5" />
 		<variable name="listbox_width" value="710" />
 		<variable name="listbox_tz_height" value="540" />
@@ -190,7 +190,7 @@
 				<conditions>
 					<condition var1="tw_no_battery_percent" var2="0" />
 					<condition var1="tw_battery" op=">" var2="0" />
-					<condition var1="tw_battery" op="<=" var2="100" />
+					<condition var1="tw_battery" op="<" var2="101" />
 				</conditions>
 				<text>Battery: %tw_battery%</text>
 			</object>
@@ -590,16 +590,8 @@
 			</object>
 
 			<object type="checkbox">
-				<placement x="%col1_x%" y="%row10_text_y%" />
-				<font resource="font" color="%text_color%" />
-				<text>Disable zip asserts?</text>
-				<data variable="tw_disable_asserts" />
-				<image checked="checkbox_true" unchecked="checkbox_false" />
-			</object>
-
-			<object type="checkbox">
 				<condition var1="tw_has_injecttwrp" var2="1" />
-				<placement x="%col1_x%" y="%row11_text_y%" />
+				<placement x="%col1_x%" y="%row10_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Inject TWRP after install?</text>
 				<data variable="tw_inject_after_zip" />
@@ -1192,6 +1184,12 @@
 			<object type="template" name="header" />
 
 			<object type="text" color="%text_color%">
+				<font resource="font" />
+				<placement x="%center_x%" y="%row1_header_y%" placement="5" />
+				<text>Backup Name: %tw_backup_name%</text>
+			</object>
+
+			<object type="text" color="%text_color%">
 				<placement x="%col1_x%" y="%row1_text_y%" />
 				<font resource="font" />
 				<text>Backup Device</text>
@@ -1223,9 +1221,8 @@
 				<text>Set Backup Name</text>
 				<image resource="main_button" />
 				<actions>
-					<action function="set">tw_backup_name=</action>
 					<action function="set">tw_fileexists=0</action>
-					<action function="page">backupname</action>
+					<action function="page">backupname1</action>
 				</actions>
 			</object>
 
@@ -1400,7 +1397,18 @@
 			<object type="template" name="footer" />
 		</page>
 
-		<page name="backupname">
+		<page name="backupname1">
+			<object type="action">
+				<condition var1="tw_backup_name" op="=" var2="(Current Date)" />
+				<action function="set">tw_backup_name=</function>
+			</object>
+
+			<object type="action">
+				<action function="page">backupname2</function>
+			</object>
+		</page>
+
+		<page name="backupname2">
 			<object type="template" name="header" />
 
 			<object type="text" color="%text_color%">
@@ -1438,7 +1446,7 @@
 				<text>Cancel</text>
 				<image resource="main_button" />
 				<actions>
-					<action function="set">tw_backup_name=0</action>
+					<action function="set">tw_backup_name=(Current Date)</action>
 					<action function="page">backup</action>
 				</actions>
 			</object>
@@ -1448,7 +1456,7 @@
 			<object type="action">
 				<touch key="home" />
 				<actions>
-					<action function="set">tw_backup_name=0</action>
+					<action function="set">tw_backup_name=(Current Date)</action>
 					<action function="page">main</action>
 				</actions>
 			</object>
@@ -1456,7 +1464,7 @@
 			<object type="action">
 				<touch key="back" />
 				<actions>
-					<action function="set">tw_backup_name=0</action>
+					<action function="set">tw_backup_name=(Current Date)</action>
 					<action function="page">backup</action>
 				</actions>
 			</object>
@@ -1659,15 +1667,6 @@
 			</object>
 
 			<object type="checkbox">
-				<placement x="%col1_x%" y="%row5_text_y%" />
-				<font resource="font" color="%text_color%" />
-				<text>Recovery</text>
-				<condition var1="tw_restore_recovery" op=">=" var2="0" />
-				<data variable="tw_restore_recovery" />
-				<image checked="checkbox_true" unchecked="checkbox_false" />
-			</object>
-
-			<object type="checkbox">
 				<placement x="%col1_x%" y="%row6_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Cache</text>
@@ -1727,6 +1726,12 @@
 				<text>Enable MD5 checking of backup files</text>
 				<data variable="tw_skip_md5_check" />
 				<image checked="checkbox_true" unchecked="checkbox_false" />
+			</object>
+
+			<object type="text" color="%text_color%">
+				<font resource="font" />
+				<placement x="%center_x%" y="%row15_text_y%" placement="5" />
+				<text>Package Date: %tw_restore_file_date%</text>
 			</object>
 
 			<object type="action">
@@ -2272,21 +2277,13 @@
 			<object type="checkbox">
 				<placement x="%col1_x%" y="%row3_text_y%" />
 				<font resource="font" color="%text_color%" />
-				<text>Disable zip asserts?</text>
-				<data variable="tw_disable_asserts" />
-				<image checked="checkbox_true" unchecked="checkbox_false" />
-			</object>
-
-			<object type="checkbox">
-				<placement x="%col1_x%" y="%row4_text_y%" />
-				<font resource="font" color="%text_color%" />
 				<text>Use rm -rf instead of formatting?</text>
 				<data variable="tw_rm_rf" />
 				<image checked="checkbox_true" unchecked="checkbox_false" />
 			</object>
 
 			<object type="checkbox">
-				<placement x="%col1_x%" y="%row5_text_y%" />
+				<placement x="%col1_x%" y="%row4_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Skip MD5 generation on backups</text>
 				<data variable="tw_skip_md5_generate" />
@@ -2294,7 +2291,7 @@
 			</object>
 
 			<object type="checkbox">
-				<placement x="%col1_x%" y="%row6_text_y%" />
+				<placement x="%col1_x%" y="%row5_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Enable MD5 checking of backup files</text>
 				<data variable="tw_skip_md5_check" />
@@ -2302,7 +2299,7 @@
 			</object>
 
 			<object type="checkbox">
-				<placement x="%col1_x%" y="%row7_text_y%" />
+				<placement x="%col1_x%" y="%row6_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Ignore image size errors during backup</text>
 				<data variable="tw_ignore_image_size" />
@@ -2310,7 +2307,7 @@
 			</object>
 
 			<object type="checkbox">
-				<placement x="%col1_x%" y="%row8_text_y%" />
+				<placement x="%col1_x%" y="%row7_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Simulate most actions for theme testing</text>
 				<data variable="tw_simulate_actions" />
@@ -2319,7 +2316,7 @@
 
 			<object type="checkbox">
 				<condition var1="tw_simulate_actions" var2="1" />
-				<placement x="%col1_x%" y="%row9_text_y%" />
+				<placement x="%col1_x%" y="%row8_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Simulate failure for actions</text>
 				<data variable="tw_simulate_fail" />

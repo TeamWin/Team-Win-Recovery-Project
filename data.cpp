@@ -398,9 +398,10 @@ void DataManager::SetDefaultValues()
 			// Device has /data/media + external storage
 			mConstValues.insert(make_pair(TW_HAS_DUAL_STORAGE, "1"));
 		#else
-			LOGI("Single storage only.\n");
+			LOGI("Single storage only -- data/media.\n");
 			// Device just has external storage
 			mConstValues.insert(make_pair(TW_HAS_DUAL_STORAGE, "0"));
+			mConstValues.insert(make_pair(TW_HAS_EXTERNAL, "0"));
 		#endif
 	#else
 		LOGI("Single storage only.\n");
@@ -656,7 +657,7 @@ void DataManager::ReadSettingsFile(void)
 	{
 		usleep(500000);
 		if (ensure_path_mounted(DataManager_GetSettingsStorageMount()) < 0)
-			LOGE("Unable to mount %s\n", DataManager_GetSettingsStorageMount());
+			LOGE("Unable to mount %s when trying to read settings file.\n", DataManager_GetSettingsStorageMount());
 	}
 
 	mkdir(mkdir_path, 0777);
@@ -676,7 +677,8 @@ void DataManager::ReadSettingsFile(void)
 	} else {
 		mount_current_storage();
 		if (has_dual == 0 && has_data_media == 1) {
-			system("ln -s /sdcard /data/media");
+			system("umount /sdcard");
+			system("mount /data/media /sdcard");
 		}
 	}
 

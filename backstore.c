@@ -635,12 +635,21 @@ int tw_mount(struct dInfo mMnt)
     sprintf(target, "/%s", mMnt.mnt);
     if (mount(mMnt.blk, target, mMnt.fst, 0, NULL) != 0)
     {
-        if (strcmp(target, "/sd-ext") == 0) {
+		if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 1) {
+			char external_path[255];
+
+			memset(external_path, 0, sizeof(external_path));
+			strcpy(external_path, DataManager_GetStrValue(TW_EXTERNAL_PATH));
+			if (strncmp(external_path, target, strlen(target)) == 0)
+				return 1;
+		}
+
+		if (strcmp(target, "/sd-ext") == 0) {
 			// Do nothing
 		} else if (strcmp(target, "/data") == 0 && DataManager_GetIntValue(TW_HAS_CRYPTO) == 1) {
 			DataManager_SetIntValue(TW_IS_ENCRYPTED, 1);
 		} else {
-			LOGE("Unable to mount %s\n", target);
+			LOGE("Unable to mount '%s' (tw_mount)\n", target);
 		}
         ret = 1;
     }

@@ -1317,7 +1317,7 @@ int get_battery_level(void)
             fgets(cap_s, 4, cap);
             fclose(cap);
             lastVal = atoi(cap_s);
-            if (lastVal > 100)  lastVal = 100;
+            if (lastVal > 100)  lastVal = 101;
             if (lastVal < 0)    lastVal = 0;
         }
         nextSecCheck = curTime.tv_sec + 60;

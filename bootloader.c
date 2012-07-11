@@ -32,31 +32,31 @@ static int set_bootloader_message_block(const struct bootloader_message *in, con
 
 int get_bootloader_message(struct bootloader_message *out) {
     Volume* v = volume_for_path("/misc");
-    if (v == NULL) {
-      //LOGE("Cannot load volume /misc!\n");
-      return -1;
+    if(v)
+    {
+        if (strcmp(v->fs_type, "mtd") == 0) {
+                return get_bootloader_message_mtd(out, v);
+        } else if (strcmp(v->fs_type, "emmc") == 0) {
+                return get_bootloader_message_block(out, v);
+        }
+        //LOGE("unknown misc partition fs_type \"%s\"\n", v->fs_type);
+        return -1;
     }
-    if (strcmp(v->fs_type, "mtd") == 0) {
-        return get_bootloader_message_mtd(out, v);
-    } else if (strcmp(v->fs_type, "emmc") == 0) {
-        return get_bootloader_message_block(out, v);
-    }
-    LOGE("unknown misc partition fs_type \"%s\"\n", v->fs_type);
     return -1;
 }
 
 int set_bootloader_message(const struct bootloader_message *in) {
     Volume* v = volume_for_path("/misc");
-    if (v == NULL) {
-      //LOGE("Cannot load volume /misc!\n");
-      return -1;
+    if(v)
+    {
+        if (strcmp(v->fs_type, "mtd") == 0) {
+            return set_bootloader_message_mtd(in, v);
+        } else if (strcmp(v->fs_type, "emmc") == 0) {
+            return set_bootloader_message_block(in, v);
+        }
+        //LOGE("unknown misc partition fs_type \"%s\"\n", v->fs_type);
+        return -1;
     }
-    if (strcmp(v->fs_type, "mtd") == 0) {
-        return set_bootloader_message_mtd(in, v);
-    } else if (strcmp(v->fs_type, "emmc") == 0) {
-        return set_bootloader_message_block(in, v);
-    }
-    LOGE("unknown misc partition fs_type \"%s\"\n", v->fs_type);
     return -1;
 }
 
@@ -198,5 +198,155 @@ static int set_bootloader_message_block(const struct bootloader_message *in,
         LOGE("Failed closing %s\n(%s)\n", v->device, strerror(errno));
         return -1;
     }
+    return 0;
+}
+
+/* Update Image
+ *
+ * - will be stored in the "cache" partition
+ * - bad blocks will be ignored, like boot.img and recovery.img
+ * - the first block will be the image header (described below)
+ * - the size is in BYTES, inclusive of the header
+ * - offsets are in BYTES from the start of the update header
+ * - two raw bitmaps will be included, the "busy" and "fail" bitmaps
+ * - for dream, the bitmaps will be 320x480x16bpp RGB565
+ */
+ 
+#define UPDATE_MAGIC       "MSM-RADIO-UPDATE"
+#define UPDATE_MAGIC_SIZE  16
+#define UPDATE_VERSION     0x00010000
+ 
+struct update_header {
+    unsigned char MAGIC[UPDATE_MAGIC_SIZE];
+ 
+    unsigned version;
+    unsigned size;
+ 
+    unsigned image_offset;
+    unsigned image_length;
+ 
+    unsigned bitmap_width;
+    unsigned bitmap_height;
+    unsigned bitmap_bpp;
+ 
+    unsigned busy_bitmap_offset;
+    unsigned busy_bitmap_length;
+ 
+    unsigned fail_bitmap_offset;
+    unsigned fail_bitmap_length;
+};
+
+int write_update_for_bootloader(
+        const char *update, int update_length,
+        int bitmap_width, int bitmap_height, int bitmap_bpp,
+        const char *busy_bitmap, const char *fail_bitmap) {
+    if (ensure_path_unmounted("/cache")) {
+        LOGE("Can't unmount /cache\n");
+        return -1;
+    }
+ 
+    const MtdPartition *part = mtd_find_partition_by_name("cache");
+    if (part == NULL) {
+        LOGE("Can't find cache\n");
+        return -1;
+    }
+ 
+    MtdWriteContext *write = mtd_write_partition(part);
+    if (write == NULL) {
+        LOGE("Can't open cache\n(%s)\n", strerror(errno));
+        return -1;
+    }
+ 
+    /* Write an invalid (zero) header first, to disable any previous
+     * update and any other structured contents (like a filesystem),
+     * and as a placeholder for the amount of space required.
+     */
+ 
+    struct update_header header;
+    memset(&header, 0, sizeof(header));
+    const ssize_t header_size = sizeof(header);
+    if (mtd_write_data(write, (char*) &header, header_size) != header_size) {
+        LOGE("Can't write header to cache\n(%s)\n", strerror(errno));
+        mtd_write_close(write);
+        return -1;
+    }
+ 
+    /* Write each section individually block-aligned, so we can write
+     * each block independently without complicated buffering.
+     */
+ 
+    memcpy(&header.MAGIC, UPDATE_MAGIC, UPDATE_MAGIC_SIZE);
+    header.version = UPDATE_VERSION;
+    header.size = header_size;
+ 
+    off_t image_start_pos = mtd_erase_blocks(write, 0);
+    header.image_length = update_length;
+    if ((int) header.image_offset == -1 ||
+        mtd_write_data(write, update, update_length) != update_length) {
+        LOGE("Can't write update to cache\n(%s)\n", strerror(errno));
+        mtd_write_close(write);
+        return -1;
+    }
+    off_t busy_start_pos = mtd_erase_blocks(write, 0);
+    header.image_offset = mtd_find_write_start(write, image_start_pos);
+ 
+    header.bitmap_width = bitmap_width;
+    header.bitmap_height = bitmap_height;
+    header.bitmap_bpp = bitmap_bpp;
+ 
+    int bitmap_length = (bitmap_bpp + 7) / 8 * bitmap_width * bitmap_height;
+ 
+    header.busy_bitmap_length = busy_bitmap != NULL ? bitmap_length : 0;
+    if ((int) header.busy_bitmap_offset == -1 ||
+        mtd_write_data(write, busy_bitmap, bitmap_length) != bitmap_length) {
+        LOGE("Can't write bitmap to cache\n(%s)\n", strerror(errno));
+        mtd_write_close(write);
+        return -1;
+    }
+    off_t fail_start_pos = mtd_erase_blocks(write, 0);
+    header.busy_bitmap_offset = mtd_find_write_start(write, busy_start_pos);
+ 
+    header.fail_bitmap_length = fail_bitmap != NULL ? bitmap_length : 0;
+    if ((int) header.fail_bitmap_offset == -1 ||
+        mtd_write_data(write, fail_bitmap, bitmap_length) != bitmap_length) {
+        LOGE("Can't write bitmap to cache\n(%s)\n", strerror(errno));
+        mtd_write_close(write);
+        return -1;
+    }
+    mtd_erase_blocks(write, 0);
+    header.fail_bitmap_offset = mtd_find_write_start(write, fail_start_pos);
+ 
+    /* Write the header last, after all the blocks it refers to, so that
+     * when the magic number is installed everything is valid.
+     */
+ 
+    if (mtd_write_close(write)) {
+        LOGE("Can't finish writing cache\n(%s)\n", strerror(errno));
+        return -1;
+    }
+ 
+    write = mtd_write_partition(part);
+    if (write == NULL) {
+        LOGE("Can't reopen cache\n(%s)\n", strerror(errno));
+        return -1;
+    }
+ 
+    if (mtd_write_data(write, (char*) &header, header_size) != header_size) {
+        LOGE("Can't rewrite header to cache\n(%s)\n", strerror(errno));
+        mtd_write_close(write);
+        return -1;
+    }
+ 
+    if (mtd_erase_blocks(write, 0) != image_start_pos) {
+        LOGE("Misalignment rewriting cache\n(%s)\n", strerror(errno));
+        mtd_write_close(write);
+        return -1;
+    }
+ 
+    if (mtd_write_close(write)) {
+        LOGE("Can't finish header of cache\n(%s)\n", strerror(errno));
+        return -1;
+    }
+ 
     return 0;
 }

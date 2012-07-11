@@ -26,7 +26,8 @@ LOCAL_SRC_FILES := \
     themes.c \
     format.c \
     data.cpp \
-    makelist.c
+    makelist.c \
+    firmware.c
 
 ifeq ($(TARGET_RECOVERY_REBOOT_SRC),)
   LOCAL_SRC_FILES += reboot.c
@@ -116,9 +117,9 @@ endif
 ifneq ($(BOARD_UMS_LUNFILE),)
     LOCAL_CFLAGS += -DCUSTOM_LUN_FILE=\"$(BOARD_UMS_LUNFILE)\"
 endif
-ifeq ($(TW_FLASH_FROM_STORAGE), true)
+#ifeq ($(TW_FLASH_FROM_STORAGE), true) Making this the default behavior
     LOCAL_CFLAGS += -DTW_FLASH_FROM_STORAGE
-endif
+#endif
 ifeq ($(TW_HAS_DOWNLOAD_MODE), true)
     LOCAL_CFLAGS += -DTW_HAS_DOWNLOAD_MODE
 endif
@@ -214,6 +215,8 @@ include $(commands_recovery_local_path)/applypatch/Android.mk
 include $(commands_recovery_local_path)/htc-offmode-charge/Android.mk
 include $(commands_recovery_local_path)/pigz/Android.mk
 include $(commands_recovery_local_path)/cryptsettings/Android.mk
+include $(commands_recovery_local_path)/libcrecovery/Android.mk
+
 commands_recovery_local_path :=
 
 endif   # TARGET_ARCH == arm

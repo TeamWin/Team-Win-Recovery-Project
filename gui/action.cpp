@@ -54,6 +54,10 @@ void htc_dumlock_restore_original_boot(void);
 void htc_dumlock_reflash_recovery_to_boot(void);
 int decrypt_device(void);
 int tw_format(const char *fstype, const char *fsblock);
+int check_for_script_file(void);
+int gui_console_only();
+int run_script_file(void);
+int gui_start();
 };
 
 #include "rapidxml.hpp"
@@ -468,6 +472,7 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			ui_print("Simulating actions...\n");
 		else {
 			DataManager::ResetDefaults();
+			update_system_details();
 			mount_current_storage();
 		}
 		operation_end(0, simulate);
@@ -686,16 +691,29 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 					wipe_rotate_data();
 				else if (arg == "dalvik")
 					wipe_dalvik_cache();
-				else if (arg == "DATAMEDIA")
+				else if (arg == "DATAMEDIA") {
 					ret_val = format_data_media();
-				else if (arg == "INTERNAL") {
-					int has_datamedia;
+					int has_datamedia, dual_storage;
+
+					DataManager::GetValue(TW_HAS_DATA_MEDIA, has_datamedia);
+					DataManager::GetValue(TW_HAS_DUAL_STORAGE, dual_storage);
+					if (has_datamedia && !dual_storage) {
+						system("umount /sdcard");
+						system("mount /data/media /sdcard");
+					}
+				} else if (arg == "INTERNAL") {
+					int has_datamedia, dual_storage;
 
 					DataManager::GetValue(TW_HAS_DATA_MEDIA, has_datamedia);
 					if (has_datamedia) {
 						ensure_path_mounted("/data");
 						__system("rm -rf /data/media");
 						__system("cd /data && mkdir media && chmod 775 media");
+						DataManager::GetValue(TW_HAS_DUAL_STORAGE, dual_storage);
+						if (!dual_storage) {
+							system("umount /sdcard");
+							system("mount /data/media /sdcard");
+						}
 					} else {
 						ret_val = tw_format(sdcint.fst, sdcint.blk);
 					}
@@ -959,8 +977,50 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 				if (op_status != 0)
 					op_status = 1;
 				else {
+					int load_theme = 1;
+
 					DataManager::SetValue(TW_IS_ENCRYPTED, 0);
 					DataManager::ReadSettingsFile();
+
+					if (check_for_script_file()) {
+						ui_print("Processing OpenRecoveryScript file...\n");
+						if (run_script_file() == 0) {
+							usleep(2000000); // Sleep for 2 seconds before rebooting
+							tw_reboot(rb_system);
+							load_theme = 0;
+						}
+					}
+
+					if (load_theme) {
+						int has_datamedia;
+
+						// Check for a custom theme and load it if exists
+						DataManager::GetValue(TW_HAS_DATA_MEDIA, has_datamedia);
+						if (has_datamedia != 0) {
+							struct stat st;
+							int check = 0;
+							std::string theme_path;
+
+							theme_path = DataManager::GetSettingsStoragePath();
+							if (ensure_path_mounted(theme_path.c_str()) < 0) {
+								LOGE("Unable to mount %s during reload function startup.\n", theme_path.c_str());
+								check = 1;
+							}
+
+							theme_path += "/TWRP/theme/ui.zip";
+							if (check == 0 && stat(theme_path.c_str(), &st) == 0) {
+								if (PageManager::ReloadPackage("TWRP", theme_path) != 0)
+								{
+									// Loading the custom theme failed - try loading the stock theme
+									LOGI("Attempting to reload stock theme...\n");
+									if (PageManager::ReloadPackage("TWRP", "/res/ui.xml"))
+									{
+										LOGE("Failed to load base packages.\n");
+									}
+								}
+							}
+						}
+					}
 				}
 			}
 

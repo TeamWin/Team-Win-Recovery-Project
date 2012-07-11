@@ -772,16 +772,41 @@ int run_script_file(void) {
 			if (strcmp(command, "install") == 0) {
 				// Install zip
 				struct statfs st;
-				if (statfs(value, &st) != 0) {
-					if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE)) {
-						if (DataManager_GetIntValue(TW_USE_EXTERNAL_STORAGE)) {
-							LOGI("Zip file not found on external storage, trying internal...\n");
-							DataManager_SetIntValue(TW_USE_EXTERNAL_STORAGE, 0);
-						} else {
-							LOGI("Zip file not found on internal storage, trying external...\n");
-							DataManager_SetIntValue(TW_USE_EXTERNAL_STORAGE, 1);
+
+				if (value[0] != '/') {
+					// Relative path given
+					char full_path[SCRIPT_COMMAND_SIZE];
+
+					sprintf(full_path, "%s/%s", DataManager_GetCurrentStoragePath(), value);
+					LOGI("Full zip path: '%s'\n", full_path);
+					if (statfs(full_path, &st) != 0) {
+						if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE)) {
+							if (DataManager_GetIntValue(TW_USE_EXTERNAL_STORAGE)) {
+								LOGI("Zip file not found on external storage, trying internal...\n");
+								DataManager_SetIntValue(TW_USE_EXTERNAL_STORAGE, 0);
+							} else {
+								LOGI("Zip file not found on internal storage, trying external...\n");
+								DataManager_SetIntValue(TW_USE_EXTERNAL_STORAGE, 1);
+							}
+							sprintf(full_path, "%s/%s", DataManager_GetCurrentStoragePath(), value);
+							LOGI("Full zip path: '%s'\n", full_path);
+							mount_current_storage();
 						}
-						mount_current_storage();
+					}
+					strcpy(value, full_path);
+				} else {
+					// Full path given
+					if (statfs(value, &st) != 0) {
+						if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE)) {
+							if (DataManager_GetIntValue(TW_USE_EXTERNAL_STORAGE)) {
+								LOGI("Zip file not found on external storage, trying internal...\n");
+								DataManager_SetIntValue(TW_USE_EXTERNAL_STORAGE, 0);
+							} else {
+								LOGI("Zip file not found on internal storage, trying external...\n");
+								DataManager_SetIntValue(TW_USE_EXTERNAL_STORAGE, 1);
+							}
+							mount_current_storage();
+						}
 					}
 				}
 				ui_print("Installing zip file '%s'\n", value);
@@ -1040,6 +1065,8 @@ int run_script_file(void) {
 				} else {
 					LOGE("No value given for cmd\n");
 				}
+			} else if (strcmp(command, "print") == 0) {
+				ui_print("%s\n", value);
 			} else {
 				LOGE("Unrecognized script command: '%s'\n", command);
 				ret_val = 1;
@@ -1228,7 +1255,7 @@ main(int argc, char **argv) {
 
         // This clears up a bug about reboot coming back to recovery with the GUI
         finish_recovery(NULL);
-		if (check_for_script_file()) {
+		if (DataManager_GetIntValue(TW_IS_ENCRYPTED) == 0 && check_for_script_file()) {
 			gui_console_only();
 			if (run_script_file() != 0) {
 				// There was an error, boot the recovery
