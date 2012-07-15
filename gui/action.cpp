@@ -553,10 +553,8 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 	if (function == "togglestorage") {
 		if (arg == "internal") {
 			DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 0);
-			DataManager::SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcint.sze - sdcint.used) / 1048576LLU));
 		} else if (arg == "external") {
 			DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 1);
-			DataManager::SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcext.sze - sdcext.used) / 1048576LLU));
 		}
 		if (mount_current_storage() == 0) {
 			if (arg == "internal") {
