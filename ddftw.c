@@ -458,16 +458,12 @@ void updateMntUsedSize(struct dInfo* mMnt)
 
 void updateUsedSized()
 {
-    boo.used = 0;
-	boo.sze = 0;
 	updateMntUsedSize(&boo);
     updateMntUsedSize(&sys);
     updateMntUsedSize(&dat);
 	if (DataManager_GetIntValue(TW_HAS_DATADATA) == 1)
 		updateMntUsedSize(&datdat);
     updateMntUsedSize(&cac);
-	rec.used = 0;
-	rec.sze = 0;
     updateMntUsedSize(&rec);
     updateMntUsedSize(&sdcext);
     updateMntUsedSize(&sdcint);
