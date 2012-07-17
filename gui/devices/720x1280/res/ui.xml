@@ -1243,6 +1243,7 @@
 			</object>
 
 			<object type="checkbox">
+				<condition var1="tw_has_boot_partition" var2="1" />
 				<placement x="%col1_x%" y="%row4_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Boot (%tw_backup_boot_size% MB)</text>
@@ -1427,7 +1428,7 @@
 				<restrict minlen="1" maxlen="64" allow="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-_.{}[]" />
 				<actions>
 					<action function="set">tw_filecheck=%tw_backups_folder%/%tw_backup_name%</action>
-					<action function="set">tw_existpage=backupname</action>
+					<action function="set">tw_existpage=backupname2</action>
 					<action function="set">tw_notexistpage=backup</action>
 					<action function="page">filecheck</action>
 				</actions>

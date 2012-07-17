@@ -17,7 +17,7 @@
 #ifndef _VARIABLES_HEADER_
 #define _VARIABLES_HEADER_
 
-#define TW_VERSION_STR              "2.2.0"
+#define TW_VERSION_STR              "2.2.1"
 
 #define TW_USE_COMPRESSION_VAR      "tw_use_compression"
 #define TW_IGNORE_IMAGE_SIZE        "tw_ignore_image_size"
@@ -120,6 +120,7 @@
 
 #define TW_HAS_DATA_MEDIA           "tw_has_data_media"
 
+#define TW_HAS_BOOT_PARTITION       "tw_has_boot_partition"
 #define TW_HAS_RECOVERY_PARTITION   "tw_has_recovery_partition"
 #define TW_HAS_ANDROID_SECURE       "tw_has_android_secure"
 #define TW_HAS_SDEXT_PARTITION      "tw_has_sdext_partition"

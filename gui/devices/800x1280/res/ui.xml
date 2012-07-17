@@ -102,7 +102,7 @@
 		<variable name="home_button_y" value="1226" />
 		<variable name="back_button_x" value="645" />
 		<variable name="back_button_y" value="1226" />
-		<variable name="sort_text_x" value="100" />
+		<variable name="sort_text_x" value="85" />
 		<variable name="sort_asc_text_y" value="1090" />
 		<variable name="sort_asc_button_y" value="1080" />
 		<variable name="sort_desc_text_y" value="1150" />
@@ -125,7 +125,7 @@
 		<variable name="console_installdone_height" value="440" />
 		<variable name="fileselector_x" value="5" />
 		<variable name="fileselector_width" value="800" />
-		<variable name="fileselector_install_height" value="840" />
+		<variable name="fileselector_install_height" value="750" />
 		<variable name="fileselector_header_background" value="#202020" />
 		<variable name="fileselector_header_textcolor" value="#AAAAAA" />
 		<variable name="fileselector_header_separatorcolor" value="#33B5E5" />
@@ -1242,6 +1242,7 @@
 			</object>
 
 			<object type="checkbox">
+				<condition var1="tw_has_boot_partition" var2="1" />
 				<placement x="%col1_x%" y="%row4_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<text>Boot (%tw_backup_boot_size% MB)</text>
@@ -1426,7 +1427,7 @@
 				<restrict minlen="1" maxlen="64" allow="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-_.{}[]" />
 				<actions>
 					<action function="set">tw_filecheck=%tw_backups_folder%/%tw_backup_name%</action>
-					<action function="set">tw_existpage=backupname</action>
+					<action function="set">tw_existpage=backupname2</action>
 					<action function="set">tw_notexistpage=backup</action>
 					<action function="page">filecheck</action>
 				</actions>

@@ -644,6 +644,9 @@ int tw_mount(struct dInfo mMnt)
 				return 1;
 		}
 
+		if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 0 && DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 && strcmp(target, "/sdcard") == 0)
+			return 0;
+
 		if (strcmp(target, "/sd-ext") == 0) {
 			// Do nothing
 		} else if (strcmp(target, "/data") == 0 && DataManager_GetIntValue(TW_HAS_CRYPTO) == 1) {
@@ -1092,10 +1095,7 @@ int check_backup_name(int show_error) {
 	struct statfs st;
 
 	// Check size
-	if (copy_size < 1) {
-		LOGE("Backup name is too short.\n");
-		return -1;
-	} else if (copy_size > MAX_BACKUP_NAME_LEN) {
+	if (copy_size > MAX_BACKUP_NAME_LEN) {
 		if (show_error)
 			LOGE("Backup name is too long.\n");
 		return -2;
@@ -1161,7 +1161,7 @@ int nandroid_back_exe()
 	memset(timestamp, 0 , sizeof(timestamp));
 	strncpy(timestamp, DataManager_GetStrValue(TW_BACKUP_NAME), copy_size);
 
-	if (strcmp(timestamp, "0") == 0 || strcmp(timestamp, "(Current Date)") == 0) {
+	if (copy_size == 0 || strcmp(timestamp, "0") == 0 || strcmp(timestamp, "(Current Date)") == 0) {
 		memset(timestamp, 0 , sizeof(timestamp));
 		sprintf(timestamp,"%04d-%02d-%02d--%02d-%02d-%02d",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min,t->tm_sec); // make time stamp
 	} else {
@@ -1248,10 +1248,12 @@ int nandroid_back_exe()
 		if (tw_do_backup(TW_BACKUP_DATA_VAR, &datdat, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))  return 1;
 
     // BOOT
-    if (tw_do_backup(TW_BACKUP_BOOT_VAR, &boo, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))         return 1;
+	if (DataManager_GetIntValue(TW_HAS_BOOT_PARTITION) == 1)
+		if (tw_do_backup(TW_BACKUP_BOOT_VAR, &boo, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))         return 1;
 
     // RECOVERY
-    if (tw_do_backup(TW_BACKUP_RECOVERY_VAR, &rec, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))     return 1;
+	if (DataManager_GetIntValue(TW_HAS_RECOVERY_PARTITION) == 1)
+		if (tw_do_backup(TW_BACKUP_RECOVERY_VAR, &rec, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))     return 1;
 
     // CACHE
     if (tw_do_backup(TW_BACKUP_CACHE_VAR, &cac, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))        return 1;
@@ -1266,7 +1268,7 @@ int nandroid_back_exe()
     if (tw_do_backup(TW_BACKUP_SP3_VAR, &sp3, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))          return 1;
 
     // ANDROID-SECURE
-	if (stat(ase.dev, &st) ==0)
+	if (stat(ase.dev, &st) ==0 && DataManager_GetIntValue(TW_HAS_ANDROID_SECURE) != 0)
 		if (tw_do_backup(TW_BACKUP_ANDSEC_VAR, &ase, tw_image_dir, total_img_bytes, total_file_bytes, &img_bytes_remaining, &file_bytes_remaining, &img_byte_time, &file_byte_time))   return 1;
 
     // SD-EXT

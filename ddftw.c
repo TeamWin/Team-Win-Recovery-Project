@@ -458,12 +458,16 @@ void updateMntUsedSize(struct dInfo* mMnt)
 
 void updateUsedSized()
 {
-    updateMntUsedSize(&boo);
+    boo.used = 0;
+	boo.sze = 0;
+	updateMntUsedSize(&boo);
     updateMntUsedSize(&sys);
     updateMntUsedSize(&dat);
 	if (DataManager_GetIntValue(TW_HAS_DATADATA) == 1)
 		updateMntUsedSize(&datdat);
     updateMntUsedSize(&cac);
+	rec.used = 0;
+	rec.sze = 0;
     updateMntUsedSize(&rec);
     updateMntUsedSize(&sdcext);
     updateMntUsedSize(&sdcint);
@@ -472,6 +476,12 @@ void updateUsedSized()
     updateMntUsedSize(&sp1);
     updateMntUsedSize(&sp2);
     updateMntUsedSize(&sp3);
+
+	if (boo.used == 0 && boo.sze == 0) {
+		DataManager_SetIntValue(TW_HAS_BOOT_PARTITION, 0);
+		DataManager_SetIntValue(TW_BACKUP_BOOT_VAR, 0);
+	} else
+		DataManager_SetIntValue(TW_HAS_BOOT_PARTITION, 1);
 
 	if (rec.used == 0 && rec.sze == 0) {
 		DataManager_SetIntValue(TW_HAS_RECOVERY_PARTITION, 0);
