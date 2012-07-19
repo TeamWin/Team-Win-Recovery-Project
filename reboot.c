@@ -40,14 +40,6 @@ int tw_setRebootMode(RebootCommand command)
 // reboot: Reboot the system. Return -1 on error, no return on success
 int tw_reboot(RebootCommand command)
 {
-    if (DataManager_GetIntValue(TW_BACKUP_SYSTEM_SIZE) < DataManager_GetIntValue(TW_MIN_SYSTEM_VAR)) {
-		update_system_details();
-		if (DataManager_GetIntValue(TW_BACKUP_SYSTEM_SIZE) < DataManager_GetIntValue(TW_MIN_SYSTEM_VAR)) {
-			LOGE("System is not installed - preventing reboot!\n");
-			return -1;
-		}
-	}
-
 	// Always force a sync before we reboot
     sync();
 

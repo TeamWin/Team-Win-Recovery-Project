@@ -675,6 +675,9 @@ int GUIFileSelector::NotifyVarChange(std::string varName, std::string value)
 		std::string newValue = gui_parse_text(mHeaderText);
 		if (mLastValue != newValue) {
 			mLastValue = newValue;
+			mStart = 0;
+			scrollingY = 0;
+			scrollingSpeed = 0;
 			mUpdate = 1;
 		}
 	}
@@ -682,10 +685,10 @@ int GUIFileSelector::NotifyVarChange(std::string varName, std::string value)
 	{
 		DataManager::GetValue(mPathVar, value);  // sometimes the value will be the sort order instead of the path, so we read the path everytime
 		DataManager::GetValue(mSortVariable, mSortOrder);
-		GetFileList(value);
 		mStart = 0;
 		scrollingY = 0;
 		scrollingSpeed = 0;
+		GetFileList(value);
 		mUpdate = 1;
 		return 0;
 	}
