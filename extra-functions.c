@@ -230,6 +230,22 @@ __pclose(FILE *iop)
 	return (pid == -1 ? -1 : pstat);
 }
 
+char* sanitize_device_id(char* id)
+{
+        const char* whitelist ="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._";
+        char* c = id;
+        char* str = (int*) calloc(50, sizeof *id);
+        while (*c)
+        {
+                if (strchr(whitelist, *c))
+                {
+                        strncat(str, c, 1);
+                }
+                c++;
+        }
+        return str;
+}
+
 #define CMDLINE_SERIALNO        "androidboot.serialno="
 #define CMDLINE_SERIALNO_LEN    (strlen(CMDLINE_SERIALNO))
 #define CPUINFO_SERIALNO        "Serial"
@@ -240,9 +256,10 @@ __pclose(FILE *iop)
 void get_device_id()
 {
 	FILE *fp;
-    char line[2048];
+	char line[2048];
 	char hardware_id[32];
 	char* token;
+	char* new_device_id;
 
     // Assign a blank device_id to start with
     device_id[0] = 0;
@@ -266,6 +283,9 @@ void get_device_id()
             {
                 // We found the serial number!
                 strcpy(device_id, token + CMDLINE_SERIALNO_LEN);
+		new_device_id = sanitize_device_id(device_id);
+		strcpy(device_id, new_device_id);
+		free(new_device_id);
                 return;
             }
             token = strtok(NULL, " ");
@@ -292,6 +312,9 @@ void get_device_id()
 					}
 					LOGI("=> serial from cpuinfo: '%s'\n", device_id);
 					fclose(fp);
+					new_device_id = sanitize_device_id(device_id);
+					strcpy(device_id, new_device_id);
+					free(new_device_id);
 					return;
 				}
 			} else if (memcmp(line, CPUINFO_HARDWARE, CPUINFO_HARDWARE_LEN) == 0) {// We're also going to look for the hardware line in cpuinfo and save it for later in case we don't find the device ID
@@ -316,6 +339,9 @@ void get_device_id()
 	if (hardware_id[0] != 0) {
 		LOGW("\nusing hardware id for device id: '%s'\n", hardware_id);
 		strcpy(device_id, hardware_id);
+		new_device_id = sanitize_device_id(device_id);
+		strcpy(device_id, new_device_id);
+		free(new_device_id);
 		return;
 	}
 
