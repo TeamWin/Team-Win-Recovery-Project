@@ -491,7 +491,7 @@ void updateUsedSized()
 	} else
 		DataManager_SetIntValue(TW_HAS_SDEXT_PARTITION, 1);
 
-	if (ase.used == 0 && ase.sze == 0) {
+	if ((ase.used == 0 && ase.sze == 0) || DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1) {
 		DataManager_SetIntValue(TW_HAS_ANDROID_SECURE, 0);
 		DataManager_SetIntValue(TW_BACKUP_ANDSEC_VAR, 0);
 	} else
