@@ -334,9 +334,13 @@ static int vk_modify(struct ev *e, struct input_event *ev)
     LOGI("EV: %s => type: %x  code: %x  value: %d\n", e->deviceName, ev->type, ev->code, ev->value);
 #endif
 
-    // Discard key-up messages
-    if (ev->type == EV_KEY && ev->value == 0)
-        return 1;
+	// Handle keyboard events
+	if (ev->type == EV_KEY) {
+		if (ev->value == 0 && ev->code != KEY_LEFTSHIFT && ev->code != KEY_RIGHTSHIFT)
+			return 1;
+		else
+			return 0;
+	}
 
     if (ev->type == EV_ABS) {
         switch (ev->code) {

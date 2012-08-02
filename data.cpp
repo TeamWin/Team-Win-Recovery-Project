@@ -369,7 +369,6 @@ void DataManager::SetDefaultValues()
 	mConstValues.insert(make_pair(TW_HAS_INTERNAL, "1"));
 	mConstValues.insert(make_pair(TW_INTERNAL_PATH, EXPAND(TW_INTERNAL_STORAGE_PATH)));
 	mConstValues.insert(make_pair(TW_INTERNAL_LABEL, EXPAND(TW_INTERNAL_STORAGE_MOUNT_POINT)));
-	mValues.insert(make_pair(TW_ZIP_INTERNAL_VAR, make_pair(EXPAND(TW_INTERNAL_STORAGE_PATH), 1)));
 	path.clear();
 	path = "/";
 	path += EXPAND(TW_INTERNAL_STORAGE_MOUNT_POINT);
@@ -386,9 +385,15 @@ void DataManager::SetDefaultValues()
 		path = "/";
 		path += EXPAND(TW_EXTERNAL_STORAGE_MOUNT_POINT);
 		mConstValues.insert(make_pair(TW_EXTERNAL_MOUNT, path));
+		if (strcmp(EXPAND(TW_EXTERNAL_STORAGE_PATH), "/sdcard") == 0) {
+			mValues.insert(make_pair(TW_ZIP_INTERNAL_VAR, make_pair("/emmc", 1)));
+		} else {
+			mValues.insert(make_pair(TW_ZIP_INTERNAL_VAR, make_pair("/sdcard", 1)));
+		}
 	#else
 		LOGI("Just has internal storage.\n");
 		// Just has internal storage
+		mValues.insert(make_pair(TW_ZIP_INTERNAL_VAR, make_pair("/sdcard", 1)));
 		mConstValues.insert(make_pair(TW_HAS_DUAL_STORAGE, "0"));
 		mConstValues.insert(make_pair(TW_HAS_EXTERNAL, "0"));
 		mConstValues.insert(make_pair(TW_EXTERNAL_PATH, "0"));
@@ -421,7 +426,11 @@ void DataManager::SetDefaultValues()
 		mConstValues.insert(make_pair(TW_INTERNAL_MOUNT, "/data"));
 		mConstValues.insert(make_pair(TW_INTERNAL_LABEL, "data"));
 		#ifdef TW_EXTERNAL_STORAGE_PATH
-			mValues.insert(make_pair(TW_ZIP_INTERNAL_VAR, make_pair("/data/media", 1)));
+			if (strcmp(EXPAND(TW_EXTERNAL_STORAGE_PATH), "/sdcard") == 0) {
+				mValues.insert(make_pair(TW_ZIP_INTERNAL_VAR, make_pair("/emmc", 1)));
+			} else {
+				mValues.insert(make_pair(TW_ZIP_INTERNAL_VAR, make_pair("/sdcard", 1)));
+			}
 		#else
 			mValues.insert(make_pair(TW_ZIP_INTERNAL_VAR, make_pair("/sdcard", 1)));
 		#endif
@@ -468,7 +477,11 @@ void DataManager::SetDefaultValues()
 	#ifndef TW_EXTERNAL_STORAGE_PATH
 		SetValue(TW_ZIP_LOCATION_VAR, "/sdcard", 1);
 	#else
-		SetValue(TW_ZIP_LOCATION_VAR, str.c_str(), 1);
+		if (strcmp(EXPAND(TW_EXTERNAL_STORAGE_PATH), "/sdcard") == 0) {
+			SetValue(TW_ZIP_LOCATION_VAR, "/emmc", 1);
+		} else {
+			SetValue(TW_ZIP_LOCATION_VAR, "/sdcard", 1);
+		}
 	#endif
 #else
 	SetValue(TW_ZIP_LOCATION_VAR, str.c_str(), 1);
@@ -605,6 +618,7 @@ void DataManager::SetDefaultValues()
 	mValues.insert(make_pair("tw_terminal_state", make_pair("0", 0)));
 	mValues.insert(make_pair("tw_background_thread_running", make_pair("0", 0)));
 	mValues.insert(make_pair(TW_RESTORE_FILE_DATE, make_pair("0", 0)));
+	mValues.insert(make_pair(TW_SHIFT_KEY, make_pair("0", 0)));
 }
 
 // Magic Values
@@ -670,6 +684,7 @@ void DataManager::ReadSettingsFile(void)
 	LoadValues(settings_file);
 	GetValue(TW_HAS_DUAL_STORAGE, has_dual);
 	GetValue(TW_USE_EXTERNAL_STORAGE, use_ext);
+	GetValue(TW_HAS_EXTERNAL, has_ext);
 	if (has_dual != 0 && use_ext == 1) {
 		// Attempt to sdcard using external storage
 		if (mount_current_storage()) {
@@ -680,9 +695,26 @@ void DataManager::ReadSettingsFile(void)
 		}
 	} else {
 		mount_current_storage();
-		if (has_dual == 0 && has_data_media == 1) {
+	}
+	if (has_data_media == 1) {
+		if (has_dual == 0) {
+			LOGI("Mounting /data/media to /sdcard\n");
 			system("umount /sdcard");
 			system("mount /data/media /sdcard");
+		} else {
+			string ext_path;
+
+			GetValue(TW_EXTERNAL_PATH, ext_path);
+			if (ext_path == "/sdcard") {
+				LOGI("Mounting /data/media to /emmc\n");
+				system("cd / && mkdir emmc");
+				system("umount /emmc");
+				system("mount /data/media /emmc");
+			} else {
+				LOGI("Mounting /data/media to /sdcard\n");
+				system("umount /sdcard");
+				system("mount /data/media /sdcard");
+			}
 		}
 	}
 
@@ -694,7 +726,6 @@ void DataManager::ReadSettingsFile(void)
 	else
 		SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcint.sze - sdcint.used) / 1048576LLU));
 
-	GetValue(TW_HAS_EXTERNAL, has_ext);
 	if (has_ext) {
 		string ext_path;
 

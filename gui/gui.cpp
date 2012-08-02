@@ -180,7 +180,7 @@ timespec timespec_diff(timespec& start, timespec& end)
 static void *input_thread(void *cookie)
 {
     int drag = 0;
-	static int touch_and_hold = 0, dontwait = 0, touch_repeat = 0, x = 0, y = 0;
+	static int touch_and_hold = 0, dontwait = 0, touch_repeat = 0, x = 0, y = 0, lshift = 0, rshift = 0;
 	static struct timeval touchStart;
 
     for (;;) {
@@ -270,7 +270,35 @@ static void *input_thread(void *cookie)
 #ifdef _EVENT_LOGGING
             LOGE("TOUCH_KEY: %d\n", ev.code);
 #endif
-            PageManager::NotifyKey(ev.code);
+            if (ev.value != 0) {
+				// Key down event
+				if (ev.code == KEY_CAPSLOCK) {
+					int capslock;
+
+					DataManager::GetValue(TW_SHIFT_KEY, capslock);
+					if (capslock && lshift == 0 && rshift == 0)
+						DataManager::SetValue(TW_SHIFT_KEY, 0);
+					else
+						DataManager::SetValue(TW_SHIFT_KEY, 1);
+				} else if (ev.code == KEY_LEFTSHIFT) {
+					lshift = 1;
+					DataManager::SetValue(TW_SHIFT_KEY, 1);
+				} else if (ev.code == KEY_RIGHTSHIFT) {
+					rshift = 1;
+					DataManager::SetValue(TW_SHIFT_KEY, 1);
+				} else {
+					PageManager::NotifyKey(ev.code);
+				}
+			} else {
+				// This is a key up event for releasing a shift key
+				if (ev.code == KEY_LEFTSHIFT) {
+					lshift = 0;
+				} else if (ev.code == KEY_RIGHTSHIFT) {
+					rshift = 0;
+				}
+				if (lshift == 0 && rshift == 0)
+					DataManager::SetValue(TW_SHIFT_KEY, 0);
+			}
 			touch_and_hold = 0;
 			touch_repeat = 0;
 			dontwait = 0;

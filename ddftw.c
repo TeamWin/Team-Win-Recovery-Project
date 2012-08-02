@@ -101,7 +101,7 @@ struct dInfo* findDeviceByBlockDevice(const char* blockDevice)
 #define SAFE_STR(str)       (str ? str : "<NULL>")
 
 // This routine handles the case where we can't open either /proc/mtd or /proc/emmc
-int setLocationData(const char* label, const char* blockDevice, const char* mtdDevice, const char* fstype, unsigned long long size)
+int setLocationData(const char* label, const char* blockDevice, const char* mtdDevice, const char* fstype, unsigned long long size, const char* alternate)
 {
     struct dInfo* loc = NULL;
 
@@ -136,6 +136,7 @@ int setLocationData(const char* label, const char* blockDevice, const char* mtdD
 
     if (fstype)                 strcpy(loc->fst, fstype);
     if (size && loc->sze == 0)  loc->sze = size;
+	if (alternate)				strcpy(loc->alt, alternate);
 
     return 0;
 }
@@ -178,7 +179,7 @@ int getSizeViaDf(struct dInfo* mMnt)
         // Adjust block size to byte size
         unsigned long long size = blocks * 1024ULL;
         sprintf(tmpString, "%s%s", tw_block, device);
-        setLocationData(NULL, mMnt->blk, NULL, NULL, size);
+        setLocationData(NULL, mMnt->blk, NULL, NULL, size, NULL);
     }
     fclose(fp);
     return 0;
@@ -207,7 +208,7 @@ int getSizesViaPartitions()
         // Adjust block size to byte size
         unsigned long long size = blocks * 1024ULL;
         sprintf(tmpString, "%s%s", tw_block, device);
-        setLocationData(NULL, tmpString, NULL, NULL, size);
+        setLocationData(NULL, tmpString, NULL, NULL, size, NULL);
     }
     fclose(fp);
     return 0;
@@ -229,11 +230,12 @@ int getLocationsViafstab()
 
     while (fgets(line, sizeof(line), fp) != NULL)
     {
-        char mount[32], fstype[32], device[256];
+        char mount[32], fstype[32], device[256], alternate[256];
         char* pDevice = device;
+		char* aDevice = alternate;
 
         if (line[0] != '/')     continue;
-        sscanf(line + 1, "%s %s %s", mount, fstype, device);
+        sscanf(line + 1, "%s %s %s %s", mount, fstype, device, alternate);
 
         // Attempt to flip mounts until we find the block device
         char realDevice[256];
@@ -245,7 +247,17 @@ int getLocationsViafstab()
         }
 
         if (device[0] != '/')   pDevice = NULL;
-        setLocationData(mount, pDevice, pDevice, fstype, 0);
+
+		memset(realDevice, 0, sizeof(realDevice));
+        while (readlink(alternate, realDevice, sizeof(realDevice)) > 0)
+        {
+            strcpy(alternate, realDevice);
+            memset(realDevice, 0, sizeof(realDevice));
+        }
+
+        if (alternate[0] != '/')   aDevice = NULL;
+
+        setLocationData(mount, pDevice, pDevice, fstype, 0, aDevice);
     }
     fclose(fp);
 
@@ -283,7 +295,7 @@ int getLocationsViafstab()
                 size = ((unsigned long long) atol(pSizeBlock)) * 1024ULL;
             }
 
-            if (size && (setLocationData(NULL, device, NULL, NULL, size) == 0))
+            if (size && (setLocationData(NULL, device, NULL, NULL, size, NULL) == 0))
             {
 //                LOGI("  Mount %s size: %d\n", device, size);
             }
@@ -350,7 +362,7 @@ int getLocationsViaProc(const char* fstype)
         if (strcmp(label, "efs") == 0)
             fstype = "yaffs2";
 
-        setLocationData(label, device, mtdDevice, fstype, (unsigned long long) size);
+        setLocationData(label, device, mtdDevice, fstype, (unsigned long long) size, NULL);
     }
 
     fclose(fp);
@@ -524,7 +536,7 @@ void updateUsedSized()
 
 void listMntInfo(struct dInfo* mMnt, char* variable_name)
 {
-	LOGI("%s information:\n   mnt: '%s'\n   blk: '%s'\n   dev: '%s'\n   fst: '%s'\n   fnm: '%s'\n   format location: '%s'\n   mountable: %i\n   backup method: %i\n   memory type: %i\n\n", variable_name, mMnt->mnt, mMnt->blk, mMnt->dev, mMnt->fst, mMnt->fnm, mMnt->format_location, mMnt->mountable, mMnt->backup, mMnt->memory_type);
+	LOGI("%s information:\n   mnt: '%s'\n   blk: '%s'\n   dev: '%s'\n   alt: '%s'\n   fst: '%s'\n   fnm: '%s'\n   format location: '%s'\n   mountable: %i\n   backup method: %i\n   memory type: %i\n\n", variable_name, mMnt->mnt, mMnt->blk, mMnt->dev, mMnt->alt, mMnt->fst, mMnt->fnm, mMnt->format_location, mMnt->mountable, mMnt->backup, mMnt->memory_type);
 }
 
 void update_system_details()
@@ -671,6 +683,16 @@ static void createFstabEntry(FILE* fp, struct dInfo* mnt)
         mnt->mountable = 0;
         return;
     }
+
+	if (mnt->alt != NULL && stat(mnt->blk, &st) != 0 && stat(mnt->alt, &st) == 0) {
+		char switch_block[100];
+
+		LOGI("Switching '%s' to alternate '%s'\n", mnt->blk, mnt->alt);
+		strcpy(switch_block, mnt->blk);
+		strcpy(mnt->blk, mnt->alt);
+		strcpy(mnt->dev, mnt->alt);
+		strcpy(mnt->alt, switch_block);
+	}
 
     sprintf(tmpString,"%s /%s %s rw\n", mnt->blk, mnt->mnt, mnt->fst);
     fputs(tmpString, fp);

@@ -24,6 +24,7 @@ struct dInfo {
 	char mnt[20];
 	char blk[100];
 	char dev[100];
+	char alt[100];
 	char fst[10];
 	char fnm[256];
 	char format_location[256];

@@ -141,8 +141,14 @@ Volume* volume_for_device(const char* device)
 
 int ensure_path_mounted(const char* path) {
 
-    if ((DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 && DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 0) && strncmp(path, "/sdcard", 7) == 0)
-		return 0; // sdcard is just a symlink
+	if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1) {
+		if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 0 && strncmp(path, "/sdcard", 7) == 0) {
+			return 0; // sdcard is just a "symlink"
+		} else if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 1) {
+			if ((strncmp(DataManager_GetStrValue(TW_EXTERNAL_PATH), "/sdcard", 7) == 0 && strncmp(path, "/emmc", 5) == 0) || strncmp(path, "/sdcard", 7) == 0)
+				return 0; // sdcard or emmc is a "symlink"
+		}
+	}
 
 	Volume* v = volume_for_path(path);
     if (v == NULL) {
