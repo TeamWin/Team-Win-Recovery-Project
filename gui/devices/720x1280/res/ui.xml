@@ -1863,7 +1863,6 @@
 			</object>
 
 			<object type="button">
-				<condition var1="tw_has_usb_storage" var2="1" />
 				<placement x="%col1_x%" y="%row1_text_y%" />
 				<font resource="font" color="%text_color%" />
 				<condition var1="mounted" op="!=" var2="/system" />
@@ -2062,6 +2061,7 @@
 			</object>
 
 			<object type="button">
+				<condition var1="tw_has_usb_storage" var2="1" />
 				<placement x="%col1_x%" y="row3_y" />
 				<font resource="font" color="%button_text_color%" />
 				<text>Mount USB Storage</text>

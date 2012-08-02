@@ -137,10 +137,317 @@ int GUIAction::NotifyTouch(TOUCH_STATE state, int x, int y)
 
 int GUIAction::NotifyKey(int key)
 {
-    if (!mKey || key != mKey)    return 1;
+	if (!mKey || key != mKey) {
+		int keyboard = -1, shiftkey = 0;
 
-    doActions();
-    return 0;
+		DataManager::GetValue(TW_SHIFT_KEY, shiftkey);
+
+		switch (key) {
+			case KEY_A:
+				if (shiftkey)
+					keyboard = 'A';
+				else
+					keyboard = 'a';
+				break;
+			case KEY_B:
+				if (shiftkey)
+					keyboard = 'B';
+				else
+					keyboard = 'b';
+				break;
+			case KEY_C:
+				if (shiftkey)
+					keyboard = 'C';
+				else
+					keyboard = 'c';
+				break;
+			case KEY_D:
+				if (shiftkey)
+					keyboard = 'D';
+				else
+					keyboard = 'd';
+				break;
+			case KEY_E:
+				if (shiftkey)
+					keyboard = 'E';
+				else
+					keyboard = 'e';
+				break;
+			case KEY_F:
+				if (shiftkey)
+					keyboard = 'F';
+				else
+					keyboard = 'f';
+				break;
+			case KEY_G:
+				if (shiftkey)
+					keyboard = 'G';
+				else
+					keyboard = 'g';
+				break;
+			case KEY_H:
+				if (shiftkey)
+					keyboard = 'H';
+				else
+					keyboard = 'h';
+				break;
+			case KEY_I:
+				if (shiftkey)
+					keyboard = 'I';
+				else
+					keyboard = 'i';
+				break;
+			case KEY_J:
+				if (shiftkey)
+					keyboard = 'J';
+				else
+					keyboard = 'j';
+				break;
+			case KEY_K:
+				if (shiftkey)
+					keyboard = 'K';
+				else
+					keyboard = 'k';
+				break;
+			case KEY_L:
+				if (shiftkey)
+					keyboard = 'L';
+				else
+					keyboard = 'l';
+				break;
+			case KEY_M:
+				if (shiftkey)
+					keyboard = 'M';
+				else
+					keyboard = 'm';
+				break;
+			case KEY_N:
+				if (shiftkey)
+					keyboard = 'N';
+				else
+					keyboard = 'n';
+				break;
+			case KEY_O:
+				if (shiftkey)
+					keyboard = 'O';
+				else
+					keyboard = 'o';
+				break;
+			case KEY_P:
+				if (shiftkey)
+					keyboard = 'P';
+				else
+					keyboard = 'p';
+				break;
+			case KEY_Q:
+				if (shiftkey)
+					keyboard = 'Q';
+				else
+					keyboard = 'q';
+				break;
+			case KEY_R:
+				if (shiftkey)
+					keyboard = 'R';
+				else
+					keyboard = 'r';
+				break;
+			case KEY_S:
+				if (shiftkey)
+					keyboard = 'S';
+				else
+					keyboard = 's';
+				break;
+			case KEY_T:
+				if (shiftkey)
+					keyboard = 'T';
+				else
+					keyboard = 't';
+				break;
+			case KEY_U:
+				if (shiftkey)
+					keyboard = 'U';
+				else
+					keyboard = 'u';
+				break;
+			case KEY_V:
+				if (shiftkey)
+					keyboard = 'V';
+				else
+					keyboard = 'v';
+				break;
+			case KEY_W:
+				if (shiftkey)
+					keyboard = 'W';
+				else
+					keyboard = 'w';
+				break;
+			case KEY_X:
+				if (shiftkey)
+					keyboard = 'X';
+				else
+					keyboard = 'x';
+				break;
+			case KEY_Y:
+				if (shiftkey)
+					keyboard = 'Y';
+				else
+					keyboard = 'y';
+				break;
+			case KEY_Z:
+				if (shiftkey)
+					keyboard = 'Z';
+				else
+					keyboard = 'z';
+				break;
+			case KEY_0:
+				if (shiftkey)
+					keyboard = ')';
+				else
+					keyboard = '0';
+				break;
+			case KEY_1:
+				if (shiftkey)
+					keyboard = '!';
+				else
+					keyboard = '1';
+				break;
+			case KEY_2:
+				if (shiftkey)
+					keyboard = '@';
+				else
+					keyboard = '2';
+				break;
+			case KEY_3:
+				if (shiftkey)
+					keyboard = '#';
+				else
+					keyboard = '3';
+				break;
+			case KEY_4:
+				if (shiftkey)
+					keyboard = '$';
+				else
+					keyboard = '4';
+				break;
+			case KEY_5:
+				if (shiftkey)
+					keyboard = '%';
+				else
+					keyboard = '5';
+				break;
+			case KEY_6:
+				if (shiftkey)
+					keyboard = '^';
+				else
+					keyboard = '6';
+				break;
+			case KEY_7:
+				if (shiftkey)
+					keyboard = '&';
+				else
+					keyboard = '7';
+				break;
+			case KEY_8:
+				if (shiftkey)
+					keyboard = '*';
+				else
+					keyboard = '8';
+				break;
+			case KEY_9:
+				if (shiftkey)
+					keyboard = '(';
+				else
+					keyboard = '9';
+				break;
+			case KEY_SPACE:
+				keyboard = ' ';
+				break;
+			case KEY_BACKSPACE:
+				keyboard = KEYBOARD_BACKSPACE;
+				break;
+			case KEY_ENTER:
+				keyboard = KEYBOARD_ACTION;
+				break;
+			case KEY_SLASH:
+				if (shiftkey)
+					keyboard = '?';
+				else
+					keyboard = '/';
+				break;
+			case KEY_DOT:
+				if (shiftkey)
+					keyboard = '>';
+				else
+					keyboard = '.';
+				break;
+			case KEY_COMMA:
+				if (shiftkey)
+					keyboard = '<';
+				else
+					keyboard = ',';
+				break;
+			case KEY_MINUS:
+				if (shiftkey)
+					keyboard = '_';
+				else
+					keyboard = '-';
+				break;
+			case KEY_GRAVE:
+				if (shiftkey)
+					keyboard = '~';
+				else
+					keyboard = '`';
+				break;
+			case KEY_EQUAL:
+				if (shiftkey)
+					keyboard = '+';
+				else
+					keyboard = '=';
+				break;
+			case KEY_LEFTBRACE:
+				if (shiftkey)
+					keyboard = '{';
+				else
+					keyboard = '[';
+				break;
+			case KEY_RIGHTBRACE:
+				if (shiftkey)
+					keyboard = '}';
+				else
+					keyboard = ']';
+				break;
+			case KEY_BACKSLASH:
+				if (shiftkey)
+					keyboard = '|';
+				else
+					keyboard = '\\';
+				break;
+			case KEY_SEMICOLON:
+				if (shiftkey)
+					keyboard = ':';
+				else
+					keyboard = ';';
+				break;
+			case KEY_APOSTROPHE:
+				if (shiftkey)
+					keyboard = '\"';
+				else
+					keyboard = '\'';
+				break;
+#ifdef _EVENT_LOGGING
+			default:
+				LOGE("Unmapped keycode: %i\n", key);
+				break;
+#endif
+		}
+		if (keyboard == -1)
+			return 1;
+		PageManager::NotifyKeyboard(keyboard);
+		return 0;
+	}
+
+	doActions();
+	return 0;
 }
 
 int GUIAction::NotifyVarChange(std::string varName, std::string value)
@@ -572,10 +879,8 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 			// We weren't able to toggle for some reason, restore original setting
 			if (arg == "internal") {
 				DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 1);
-				DataManager::SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcext.sze - sdcext.used) / 1048576LLU));
 			} else if (arg == "external") {
 				DataManager::SetValue(TW_USE_EXTERNAL_STORAGE, 0);
-				DataManager::SetValue(TW_STORAGE_FREE_SIZE, (int)((sdcint.sze - sdcint.used) / 1048576LLU));
 			}
 		}
 		return 0;

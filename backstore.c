@@ -620,7 +620,7 @@ int tw_isMounted(struct dInfo mMnt)
 }
 
 /* Made my own mount, because aosp api "ensure_path_mounted" relies on recovery.fstab
-** and we needed one that can mount based on what the file system really is (from blkid), 
+** and we needed one that can mount based on what the file system really is (from blkid),
 ** and not what's in fstab or recovery.fstab
 */
 int tw_mount(struct dInfo mMnt)
@@ -633,6 +633,7 @@ int tw_mount(struct dInfo mMnt)
     if (tw_isMounted(mMnt))     return 0;
 
     sprintf(target, "/%s", mMnt.mnt);
+
     if (mount(mMnt.blk, target, mMnt.fst, 0, NULL) != 0)
     {
 		if (DataManager_GetIntValue(TW_HAS_DUAL_STORAGE) == 1) {
@@ -654,7 +655,7 @@ int tw_mount(struct dInfo mMnt)
 		} else {
 			LOGE("Unable to mount '%s' (tw_mount)\n", target);
 		}
-        ret = 1;
+		ret = 1;
     }
     return ret;
 }
