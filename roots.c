@@ -176,6 +176,17 @@ int ensure_path_mounted(const char* path) {
 
     mkdir(v->mount_point, 0755);  // in case it doesn't already exist
 
+	// Check and update fs_type if needed
+	struct dInfo* loc = NULL;
+
+	loc = findDeviceByBlockDevice(v->device);
+	if (loc) {
+		if (strcmp(v->fs_type, loc->fst) != 0) {
+			LOGI("Changing file system '%s' on '%s' to '%s'.\n", v->fs_type, v->device, loc->fst);
+			v->fs_type = strdup(loc->fst);
+		}
+	}
+
     if (strcmp(v->fs_type, "yaffs2") == 0) {
         // mount an MTD partition as a YAFFS2 filesystem.
         mtd_scan_partitions();
