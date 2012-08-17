@@ -1364,15 +1364,26 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
 	}
 	if(md5_result == 0)
 	{
-		strcpy(rFilenameW, rFilename);
-		strcat(rFilenameW, "*");
-		sprintf(rCommand,"ls -l %s | awk -F'.' '{ print $2 }'",rFilenameW); // let's get the filesystem type from filename
-        reFp = __popen(rCommand, "r");
 		LOGI("=> Filename is: %s\n",rMnt.fnm);
-		while (fscanf(reFp,"%s",rFilesystem) == 1) { // if we get a match, store filesystem type
-			LOGI("=> Filesystem is: %s\n",rFilesystem); // show it off to the world!
-		}
-		__pclose(reFp);
+
+		// Find the file system
+		{
+			char* tok = strtok(rMnt.fnm, ".");
+			if (tok) {
+				// First part is the partition name e.g. system, data, boot, etc. and we need the second part
+				tok = strtok(NULL, ".");
+				if (tok) {
+					strcpy(rFilesystem, tok);
+					LOGI("=> File system is '%s'\n", rFilesystem);
+				} else {
+					LOGE("Unable to determine file system for '%s'\n", rMnt.fnm);
+					return 1;
+				}
+			} else {
+				LOGE("Unable to determine file system for '%s'\n", rMnt.fnm);
+				return 1;
+			}
+		} // Finish finding file system
 
 		if (DataManager_GetIntValue(TW_HAS_DATA_MEDIA) == 1 && strcmp(rMnt.mnt,"data") == 0) {
 			wipe_data_without_wiping_media();
