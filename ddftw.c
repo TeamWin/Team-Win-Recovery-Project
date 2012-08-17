@@ -712,6 +712,7 @@ static void createFstabEntry(FILE* fp, struct dInfo* mnt)
 void verifyFst()
 {
 	FILE *fp;
+	char blkCommand[255];
 	char blkOutput[255];
 	char* blk;
     char* arg;
@@ -719,10 +720,18 @@ void verifyFst()
     struct dInfo* dat;
 
     // This has a tendency to hang on MTD devices.
-    if (isMTDdevice)    return;
+    if (isMTDdevice) {
+		struct statfs st;
 
-	LOGI("=> Let's update filesystem types via verifyFst aka blkid.\n");
-	fp = __popen("blkid","r");
+		if (statfs(sde.blk, &st) != 0)
+			return; // No sd-ext present
+
+		sprintf(blkCommand, "blkid %s", sde.blk);
+	} else
+		strcpy(blkCommand, "blkid");
+
+	LOGI("=> Let's update filesystem types via verifyFst aka blkid, command: '%s'.\n", blkCommand);
+	fp = __popen(blkCommand,"r");
 	while (fgets(blkOutput, sizeof(blkOutput), fp) != NULL)
     {
         blk = blkOutput;
