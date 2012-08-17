@@ -752,9 +752,9 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
 
     char str[512];
 	unsigned long long bPartSize;
-	char *bImage = malloc(sizeof(char)*255);
-	char *bMount = malloc(sizeof(char)*255);
-	char *bCommand = malloc(sizeof(char)*255);
+	char bImage[255];
+	char bMount[255];
+	char bCommand[255];
 	int breakup_archives = 0;
 
     if (bMnt.backup == files)
@@ -847,9 +847,6 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
 		{
 			ui_print("E: File size is zero bytes. Aborting...\n\n"); // oh noes! file size is 0, abort! abort!
 			tw_unmount(bMnt);
-			free(bCommand);
-			free(bMount);
-			free(bImage);
 			return 1;
 		}
 
@@ -863,9 +860,6 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
 			{
 				if (DataManager_GetIntValue(TW_IGNORE_IMAGE_SIZE) == 1) {
 					LOGE("File size is incorrect. Aborting.\n\n"); // they dont :(
-					free(bCommand);
-					free(bMount);
-					free(bImage);
 					return 1;
 				} else
 					LOGW("Image size doesn't match, ignoring error due to TW_IGNORE_IMAGE_SIZE setting.\n");
@@ -899,9 +893,6 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
 			{
 				LOGE("File size is zero bytes. Aborting...\n\n"); // oh noes! file size is 0, abort! abort!
 				tw_unmount(bMnt);
-				free(bCommand);
-				free(bMount);
-				free(bImage);
 				return 1;
 			}
 			total_bsize += st.st_size;
@@ -916,9 +907,6 @@ int tw_backup(struct dInfo bMnt, const char *bDir)
 	if (strcmp(bMnt.mnt, ".android_secure") != 0) // any partition other than android secure,
 		tw_unmount(bMnt); // unmount partition we just restored to (if it's not a mountable partition, it will just bypass)
 
-    free(bCommand);
-	free(bMount);
-	free(bImage);
 	return 0;
 }
 
