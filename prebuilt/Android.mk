@@ -50,7 +50,9 @@ endif
 ifeq ($(TW_INCLUDE_CRYPTO), true)
     RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libcrypto.so
 endif
-
+ifeq ($(TW_INCLUDE_JB_CRYPTO), true)
+    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libcrypto.so
+endif
 
 TWRP_AUTOGEN := $(intermediates)/teamwin
 

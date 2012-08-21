@@ -27,8 +27,12 @@
 #include "backstore.h"
 #include "data.h"
 #ifdef TW_INCLUDE_CRYPTO
-#include "cryptfs.h"
-#include "cutils/properties.h"
+	#ifdef TW_INCLUDE_JB_CRYPTO
+		#include "crypto/jb/cryptfs.h"
+	#else
+		#include "crypto/ics/cryptfs.h"
+	#endif
+	#include "cutils/properties.h"
 #endif
 
 struct dInfo tmp, sys, dat, boo, rec, cac, sdcext, sdcint, ase, sde, sp1, sp2, sp3, datdat;
@@ -873,12 +877,16 @@ int decrypt_device(void)
 
 	strcpy(password, DataManager_GetStrValue(TW_CRYPTO_PASSWORD));
 	property_set("ro.crypto.state", "encrypted");
+#ifdef TW_INCLUDE_JB_CRYPTO
+	// No extra flags needed
+#else
 	property_set("ro.crypto.fs_type", CRYPTO_FS_TYPE);
 	property_set("ro.crypto.fs_real_blkdev", CRYPTO_REAL_BLKDEV);
 	property_set("ro.crypto.fs_mnt_point", CRYPTO_MNT_POINT);
 	property_set("ro.crypto.fs_options", CRYPTO_FS_OPTIONS);
 	property_set("ro.crypto.fs_flags", CRYPTO_FS_FLAGS);
 	property_set("ro.crypto.keyfile.userdata", CRYPTO_KEY_LOC);
+#endif
 	if (cryptfs_check_passwd(password) != 0) {
 		LOGE("Failed to decrypt data\n");
 		return -1;
