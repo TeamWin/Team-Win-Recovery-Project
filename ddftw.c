@@ -448,6 +448,9 @@ void updateMntUsedSize(struct dInfo* mMnt)
 			sprintf(external_mount_point, "/%s/.", DataManager_GetStrValue(TW_EXTERNAL_PATH));
 			if (strcmp(path, external_mount_point) == 0)
 				return; // This prevents an error from showing on devices that have internal and external storage, but there is no sdcard installed.
+			sprintf(external_mount_point, "%s/.", DataManager_GetStrValue(TW_EXTERNAL_PATH));
+			if (strcmp(path, external_mount_point) == 0)
+				return; // This prevents an error from showing on devices that have internal and external storage, but there is no sdcard installed.
 		}
 		LOGE("Unable to stat '%s'\n", path);
         return;
