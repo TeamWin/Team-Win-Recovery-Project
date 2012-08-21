@@ -44,7 +44,7 @@
 		<variable name="col1_x" value="25" />
 		<variable name="col2_x" value="398" />
 		<variable name="col3_x" value="400" />
-		<variable name="col_center_x" value="191" />
+		<variable name="col_center_x" value="213" />
 		<variable name="center_x" value="400" />
 		<variable name="row1_y" value="185" />
 		<variable name="row2_y" value="425" />
@@ -100,7 +100,7 @@
 		<variable name="text_fail_color" value="#FF0101" />
 		<variable name="home_button_x" value="50" />
 		<variable name="home_button_y" value="1226" />
-		<variable name="back_button_x" value="645" />
+		<variable name="back_button_x" value="666" />
 		<variable name="back_button_y" value="1226" />
 		<variable name="sort_text_x" value="85" />
 		<variable name="sort_asc_text_y" value="1090" />
@@ -110,7 +110,7 @@
 		<variable name="sort_col1_button_x" value="330" />
 		<variable name="sort_col2_button_x" value="430" />
 		<variable name="sort_col3_button_x" value="530" />
-		<variable name="input_width" value="700" />
+		<variable name="input_width" value="750" />
 		<variable name="input_height" value="50" />
 		<variable name="input_background_color" value="#303030" />
 		<variable name="input_cursor_color" value="#33B5E5" />
@@ -147,7 +147,7 @@
 		<variable name="sdswap_text_y" value="270" />
 		<variable name="sdfilesystem_text_y" value="340" />
 		<variable name="sdfilesystem_button_y" value="380" />
-		<variable name="lock_x" value="160" />
+		<variable name="lock_x" value="200" />
 		<variable name="lock_y" value="400" />
 		<variable name="filemanager_select_x" value="320" />
 		<variable name="filemanager_select_y" value="950" />
