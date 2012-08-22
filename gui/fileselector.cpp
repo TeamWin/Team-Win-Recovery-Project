@@ -34,6 +34,10 @@ extern "C" {
 
 #define TW_FILESELECTOR_UP_A_LEVEL "(Up A Level)"
 
+#define SCROLLING_SPEED_DECREMENT 6
+#define SCROLLING_FLOOR 10
+#define SCROLLING_MULTIPLIER 6
+
 int GUIFileSelector::mSortOrder = 0;
 
 GUIFileSelector::GUIFileSelector(xml_node<>* node)
@@ -49,6 +53,7 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
 	mBackgroundX = mBackgroundY = mBackgroundW = mBackgroundH = 0;
 	mShowFolders = mShowFiles = mShowNavFolders = 1;
 	mUpdate = 0;
+	touchDebounce = 6;
 	mPathVar = "cwd";
 	ConvertStrToColor("black", &mBackgroundColor);
 	ConvertStrToColor("black", &mHeaderBackgroundColor);
@@ -285,6 +290,9 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
 	if (mHeaderH < actualLineHeight)
 		mHeaderH = actualLineHeight;
 
+	if (actualLineHeight / 3 > 6)
+		touchDebounce = actualLineHeight / 3;
+
 	if (mBackground && mBackground->GetResource())
 	{
 		mBackgroundW = gr_get_width(mBackground->GetResource());
@@ -449,10 +457,10 @@ int GUIFileSelector::Update(void)
 	} else if (scrollingSpeed > 0) {
 		if (scrollingSpeed < ((int) (actualLineHeight * 2.5))) {
 			scrollingY += scrollingSpeed;
-			scrollingSpeed--;
+			scrollingSpeed -= SCROLLING_SPEED_DECREMENT;
 		} else {
 			scrollingY += ((int) (actualLineHeight * 2.5));
-			scrollingSpeed -= 3;
+			scrollingSpeed -= SCROLLING_SPEED_DECREMENT;
 		}
 		while (mStart && scrollingY > 0) {
 			mStart--;
@@ -461,7 +469,8 @@ int GUIFileSelector::Update(void)
 		if (mStart == 0 && scrollingY > 0) {
 			scrollingY = 0;
 			scrollingSpeed = 0;
-		}
+		} else if (scrollingSpeed < SCROLLING_FLOOR)
+			scrollingSpeed = 0;
 		mUpdate = 1;
 	} else if (scrollingSpeed < 0) {
 		int totalSize = (mShowFolders ? mFolderList.size() : 0) + (mShowFiles ? mFileList.size() : 0);
@@ -474,10 +483,10 @@ int GUIFileSelector::Update(void)
 
 			if (abs(scrollingSpeed) < ((int) (actualLineHeight * 2.5))) {
 				scrollingY += scrollingSpeed;
-				scrollingSpeed++;
+				scrollingSpeed += SCROLLING_SPEED_DECREMENT;
 			} else {
 				scrollingY -= ((int) (actualLineHeight * 2.5));
-				scrollingSpeed += 3;
+				scrollingSpeed += SCROLLING_SPEED_DECREMENT;
 			}
 			while (mStart + lines + (bottom_offset ? 1 : 0) < totalSize && abs(scrollingY) > actualLineHeight) {
 				mStart++;
@@ -489,7 +498,8 @@ int GUIFileSelector::Update(void)
 			} else if (mStart + lines >= totalSize && scrollingY < 0) {
 				mStart = totalSize - lines;
 				scrollingY = 0;
-			}
+			} else if (scrollingSpeed * -1 < SCROLLING_FLOOR)
+				scrollingSpeed = 0;
 			mUpdate = 1;
 		}
 	}
@@ -529,7 +539,7 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
 		}
 
 		// Provide some debounce on initial touches
-		if (startSelection != -1 && abs(y - startY) < 6) {
+		if (startSelection != -1 && abs(y - startY) < touchDebounce) {
 			break;
 		}
 
@@ -656,6 +666,10 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
 		} else {
 			// This is for kinetic scrolling
 			scrollingSpeed = lastY - last2Y;
+			if (abs(scrollingSpeed) > SCROLLING_FLOOR)
+				scrollingSpeed *= SCROLLING_MULTIPLIER;
+			else
+				scrollingSpeed = 0;
 		}
 	case TOUCH_REPEAT:
 	case TOUCH_HOLD:

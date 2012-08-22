@@ -454,6 +454,7 @@ protected:
 	int scrollingSpeed;
 	int scrollingY;
 	int mHeaderIsStatic;
+	int touchDebounce;
     unsigned mFontHeight;
     unsigned mLineHeight;
     int mIconWidth, mIconHeight, mFolderIconHeight, mFileIconHeight, mFolderIconWidth, mFileIconWidth, mHeaderIconHeight, mHeaderIconWidth;
