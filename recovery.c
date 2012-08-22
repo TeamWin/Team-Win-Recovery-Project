@@ -1090,7 +1090,7 @@ main(int argc, char **argv) {
     // If these fail, there's not really anywhere to complain...
     freopen(TEMPORARY_LOG_FILE, "a", stdout); setbuf(stdout, NULL);
     freopen(TEMPORARY_LOG_FILE, "a", stderr); setbuf(stderr, NULL);
-    printf("Starting recovery on %s", ctime(&start));
+    printf("Starting TWRP %s on %s", EXPAND(TW_VERSION_STR), ctime(&start));
 
     // Recovery needs to install world-readable files, so clear umask
     // set by init
