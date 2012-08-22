@@ -146,6 +146,7 @@
 #define TW_CRYPTO_PASSWORD          "tw_crypto_password"
 #define TW_DATA_BLK_DEVICE          "tw_data_blk_device"  // Original block device - not decrypted
 #define TW_SHIFT_KEY                "tw_shift_key"
+#define TW_SDEXT_DISABLE_EXT4       "tw_sdext_disable_ext4"
 
 // Also used:
 //   tw_boot_is_mountable

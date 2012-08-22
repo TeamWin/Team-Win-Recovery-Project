@@ -2640,6 +2640,7 @@
 			</object>
 
 			<object type="button">
+				<condition var1="tw_sdext_disable_ext4" var2="0" />
 				<placement x="%col2_x%" y="%sdfilesystem_button_y%" />
 				<font resource="font" color="%button_text_color%" />
 				<text>EXT4</text>

@@ -123,6 +123,9 @@ endif
 ifeq ($(TW_HAS_DOWNLOAD_MODE), true)
     LOCAL_CFLAGS += -DTW_HAS_DOWNLOAD_MODE
 endif
+ifeq ($(TW_SDEXT_NO_EXT4), true)
+    LOCAL_CFLAGS += -DTW_SDEXT_NO_EXT4
+endif
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
 # It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses

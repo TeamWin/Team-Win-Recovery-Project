@@ -308,6 +308,17 @@ int format_volume(const char* volume) {
         return -1;
     }
 
+	// Check and update fs_type if needed
+	struct dInfo* loc = NULL;
+
+	loc = findDeviceByBlockDevice(v->device);
+	if (loc) {
+		if (strcmp(v->fs_type, loc->fst) != 0) {
+			LOGI("Changing file system '%s' on '%s' to '%s'.\n", v->fs_type, v->device, loc->fst);
+			v->fs_type = strdup(loc->fst);
+		}
+	}
+
     // Retrieve the fs_type
     const char* fs_type = v->fs_type;
     if (memcmp(fs_type, "ext", 3) == 0)

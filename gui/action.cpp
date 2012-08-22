@@ -1108,18 +1108,19 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 				} else {
 					// Below seen in Koush's recovery
 					char sddevice[256];
+					char mkdir_path[255];
 					Volume *vol = volume_for_path("/sdcard");
 					strcpy(sddevice, vol->device);
 					// Just need block not whole partition
 					sddevice[strlen("/dev/block/mmcblkX")] = NULL;
 
 					char es[64];
-					std::string ext_format;
+					std::string ext_format, sd_path;
 					int ext, swap;
 					DataManager::GetValue("tw_sdext_size", ext);
 					DataManager::GetValue("tw_swap_size", swap);
 					DataManager::GetValue("tw_sdpart_file_system", ext_format);
-					sprintf(es, "/sbin/sdparted -es %dM -ss %dM -efs %s -s > /cache/part.log",ext,swap,ext_format.c_str());
+					sprintf(es, "/sbin/sdparted -es %dM -ss %dM -efs ext3 -s > /cache/part.log",ext,swap);
 					LOGI("\nrunning script: %s\n", es);
 					run_script("\nContinue partitioning?",
 						   "\nPartitioning sdcard : ",
@@ -1130,12 +1131,35 @@ int GUIAction::doAction(Action action, int isThreaded /* = 0 */)
 						   "\nPartitioning aborted!\n\n", 0);
 					
 					// recreate TWRP folder and rewrite settings - these will be gone after sdcard is partitioned
-					ensure_path_mounted(SDCARD_ROOT);
-					mkdir("/sdcard/TWRP", 0777);
+#ifdef TW_EXTERNAL_STORAGE_PATH
+					ensure_path_mounted(EXPAND(TW_EXTERNAL_STORAGE_PATH));
+					DataManager::GetValue(TW_EXTERNAL_PATH, sd_path);
+					memset(mkdir_path, 0, sizeof(mkdir_path));
+					sprintf(mkdir_path, "%s/TWRP", sd_path.c_str());
+#else
+					ensure_path_mounted("/sdcard");
+					strcpy(mkdir_path, "/sdcard/TWRP");
+#endif
+					mkdir(mkdir_path, 0777);
 					DataManager::Flush();
+#ifdef TW_EXTERNAL_STORAGE_PATH
+					DataManager::SetValue(TW_ZIP_EXTERNAL_VAR, EXPAND(TW_EXTERNAL_STORAGE_PATH));
+					if (DataManager::GetIntValue(TW_USE_EXTERNAL_STORAGE) == 1)
+						DataManager::SetValue(TW_ZIP_LOCATION_VAR, EXPAND(TW_EXTERNAL_STORAGE_PATH));
+#else
 					DataManager::SetValue(TW_ZIP_EXTERNAL_VAR, "/sdcard");
 					if (DataManager::GetIntValue(TW_USE_EXTERNAL_STORAGE) == 1)
 						DataManager::SetValue(TW_ZIP_LOCATION_VAR, "/sdcard");
+#endif
+					// This is sometimes needed to make a healthy ext4 partition
+					if (ext > 0 && strcmp(ext_format.c_str(), "ext4") == 0) {
+						char command[256];
+						sprintf(command, "mke2fs -t ext4 -m 0 %s", sde.blk);
+						ui_print("Formatting sd-ext as ext4...\n");
+						LOGI("Formatting sd-ext after partitioning, command: '%s'\n", command);
+						__system(command);
+						ui_print("DONE\n");
+					}
 
 					update_system_details();
 				}
