@@ -633,14 +633,14 @@ wipe_data(int confirm) {
 	struct stat st;
 	char ase_path[255];
 
-	strcpy(ase_path, DataManager_GetSettingsStoragePath());
-	strcat(ase_path, "/.android_secure");
-	ensure_path_mounted("/sd-ext");
 	if (stat(sde.blk,&st) == 0) {
 		ui_print("Formatting /sd-ext...\n");
+		tw_unmount(sde);
 		tw_format(sde.fst,sde.blk);
 	}
 	mount_internal_storage();
+	strcpy(ase_path, DataManager_GetSettingsStoragePath());
+	strcat(ase_path, "/.android_secure");
 	if (stat(ase_path, &st) == 0) {
 		char command[255];
 		ui_print("Formatting android_secure...\n");
