@@ -1412,6 +1412,7 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
 		} else if (rMnt.backup == files) {
 			ui_print("...Formatting %s\n",rMnt.mnt);
             SetDataState("Formatting", rMnt.mnt, 0, 0);
+			tw_unmount(rMnt);
 			if (strcmp(rMnt.fst, "yaffs2") == 0) {
 				if (strcmp(rMnt.mnt, "data") == 0) {
 					tw_format(rFilesystem,"userdata"); // on MTD yaffs2, data is actually found under userdata
@@ -1421,6 +1422,7 @@ int tw_restore(struct dInfo rMnt, const char *rDir)
             } else {
 			    tw_format(rFilesystem,rMnt.blk); // let's format block, based on filesystem from filename above
             }
+			sleep(1);
 			ui_print("....done formatting.\n");
 		}
 
