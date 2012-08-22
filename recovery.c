@@ -1092,6 +1092,10 @@ main(int argc, char **argv) {
     freopen(TEMPORARY_LOG_FILE, "a", stderr); setbuf(stderr, NULL);
     printf("Starting recovery on %s", ctime(&start));
 
+    // Recovery needs to install world-readable files, so clear umask
+    // set by init
+    umask(0);
+
     printf("Loading volume table...\n");
     load_volume_table();
 
