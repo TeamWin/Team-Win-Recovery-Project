@@ -590,7 +590,7 @@ int GUIInput::NotifyKeyboard(int key)
 		if (key == KEYBOARD_BACKSPACE) {
 			//Backspace
 			DataManager::GetValue(mVariable, variableValue);
-			if (variableValue.size() > 0 && mCursorLocation + skipChars != 0) {
+			if (variableValue.size() > 0 && (mCursorLocation + skipChars != 0 || mCursorLocation == -1)) {
 				if (mCursorLocation == -1) {
 					variableValue.resize(variableValue.size() - 1);
 				} else {
@@ -637,6 +637,47 @@ int GUIInput::NotifyKeyboard(int key)
 			mInputText->SkipCharCount(skipChars);
 			isLocalChange = false;
 			mRendered = false;
+			return 0;
+		} else if (key == KEYBOARD_ARROW_LEFT) {
+			if (mCursorLocation == 0 && skipChars == 0)
+				return 0; // we're already at the beginning
+			if (mCursorLocation == -1) {
+				DataManager::GetValue(mVariable, variableValue);
+				if (variableValue.size() == 0)
+					return 0;
+				mCursorLocation = variableValue.size() - skipChars - 1;
+			} else if (mCursorLocation == 0) {
+				skipChars--;
+				HandleTextLocation(-1002);
+			} else {
+				mCursorLocation--;
+				HandleTextLocation(-1002);
+			}
+			mRendered = false;
+			return 0;
+		} else if (key == KEYBOARD_ARROW_RIGHT) {
+			if (mCursorLocation == -1)
+				return 0; // we're already at the end
+			mCursorLocation++;
+			DataManager::GetValue(mVariable, variableValue);
+			if (variableValue.size() <= mCursorLocation + skipChars)
+				mCursorLocation = -1;
+			HandleTextLocation(-1001);
+			mRendered = false;
+			return 0;
+		} else if (key == KEYBOARD_HOME || key == KEYBOARD_ARROW_UP) {
+			DataManager::GetValue(mVariable, variableValue);
+			if (variableValue.size() == 0)
+				return 0;
+			mCursorLocation = 0;
+			skipChars = 0;
+			mRendered = false;
+			HandleTextLocation(-1002);
+			return 0;
+		} else if (key == KEYBOARD_END || key == KEYBOARD_ARROW_DOWN) {
+			mCursorLocation = -1;
+			mRendered = false;
+			HandleTextLocation(-1003);
 			return 0;
 		} else if (key < KEYBOARD_SPECIAL_KEYS && key > 0) {
 			// Regular key

@@ -625,7 +625,13 @@ protected:
 #define KEYBOARD_LAYOUT 254
 #define KEYBOARD_SWIPE_LEFT 252
 #define KEYBOARD_SWIPE_RIGHT 251
-#define KEYBOARD_SPECIAL_KEYS 251
+#define KEYBOARD_ARROW_LEFT 250
+#define KEYBOARD_ARROW_RIGHT 249
+#define KEYBOARD_HOME 248
+#define KEYBOARD_END 247
+#define KEYBOARD_ARROW_UP 246
+#define KEYBOARD_ARROW_DOWN 245
+#define KEYBOARD_SPECIAL_KEYS 245
 #define KEYBOARD_BACKSPACE 8
 
 class GUIKeyboard : public RenderObject, public ActionObject, public Conditional
@@ -726,6 +732,18 @@ protected:
 	std::string DisabledList;
 	unsigned MinLen;
 	unsigned MaxLen;
+};
+
+class HardwareKeyboard
+{
+public:
+	HardwareKeyboard(void);
+	virtual ~HardwareKeyboard();
+
+public:
+	virtual int KeyDown(int key_code);
+	virtual int KeyUp(int key_code);
+	virtual int KeyRepeat(void);
 };
 
 // Helper APIs

@@ -623,7 +623,6 @@ void DataManager::SetDefaultValues()
 	mValues.insert(make_pair("tw_terminal_state", make_pair("0", 0)));
 	mValues.insert(make_pair("tw_background_thread_running", make_pair("0", 0)));
 	mValues.insert(make_pair(TW_RESTORE_FILE_DATE, make_pair("0", 0)));
-	mValues.insert(make_pair(TW_SHIFT_KEY, make_pair("0", 0)));
 }
 
 // Magic Values

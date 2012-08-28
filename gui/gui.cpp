@@ -180,8 +180,9 @@ timespec timespec_diff(timespec& start, timespec& end)
 static void *input_thread(void *cookie)
 {
     int drag = 0;
-	static int touch_and_hold = 0, dontwait = 0, touch_repeat = 0, x = 0, y = 0, lshift = 0, rshift = 0;
+	static int touch_and_hold = 0, dontwait = 0, touch_repeat = 0, x = 0, y = 0, lshift = 0, rshift = 0, key_repeat = 0;
 	static struct timeval touchStart;
+	HardwareKeyboard kb;
 
     for (;;) {
 
@@ -209,13 +210,25 @@ static void *input_thread(void *cookie)
                 LOGE("TOUCH_HOLD: %d,%d\n", x, y);
 #endif
 				PageManager::NotifyTouch(TOUCH_HOLD, x, y);
-			}
-			if (touch_repeat && mtime > 100) {
+			} else if (touch_repeat && mtime > 100) {
 #ifdef _EVENT_LOGGING
                 LOGE("TOUCH_REPEAT: %d,%d\n", x, y);
 #endif
 				gettimeofday(&touchStart, NULL);
 				PageManager::NotifyTouch(TOUCH_REPEAT, x, y);
+			} else if (key_repeat == 1 && mtime > 500) {
+#ifdef _EVENT_LOGGING
+                LOGE("KEY_HOLD: %d,%d\n", x, y);
+#endif
+				gettimeofday(&touchStart, NULL);
+				key_repeat = 2;
+				kb.KeyRepeat();
+			} else if (key_repeat == 2 && mtime > 100) {
+#ifdef _EVENT_LOGGING
+                LOGE("KEY_REPEAT: %d,%d\n", x, y);
+#endif
+				gettimeofday(&touchStart, NULL);
+				kb.KeyRepeat();
 			}
 		} else if (ev.type == EV_ABS) {
 
@@ -233,6 +246,7 @@ static void *input_thread(void *cookie)
 					touch_and_hold = 0;
 					touch_repeat = 0;
 					dontwait = 0;
+					key_repeat = 0;
                 }
                 state = 0;
                 drag = 0;
@@ -249,6 +263,7 @@ static void *input_thread(void *cookie)
                     drag = 1;
 					touch_and_hold = 1;
 					dontwait = 1;
+					key_repeat = 0;
 					gettimeofday(&touchStart, NULL);
                 }
                 else
@@ -260,6 +275,7 @@ static void *input_thread(void *cookie)
 #endif
                         if (PageManager::NotifyTouch(TOUCH_DRAG, x, y) > 0)
                             state = 1;
+						key_repeat = 0;
                     }
                 }
             }
@@ -270,38 +286,22 @@ static void *input_thread(void *cookie)
 #ifdef _EVENT_LOGGING
             LOGE("TOUCH_KEY: %d\n", ev.code);
 #endif
-            if (ev.value != 0) {
-				// Key down event
-				if (ev.code == KEY_CAPSLOCK) {
-					int capslock;
-
-					DataManager::GetValue(TW_SHIFT_KEY, capslock);
-					if (capslock && lshift == 0 && rshift == 0)
-						DataManager::SetValue(TW_SHIFT_KEY, 0);
-					else
-						DataManager::SetValue(TW_SHIFT_KEY, 1);
-				} else if (ev.code == KEY_LEFTSHIFT) {
-					lshift = 1;
-					DataManager::SetValue(TW_SHIFT_KEY, 1);
-				} else if (ev.code == KEY_RIGHTSHIFT) {
-					rshift = 1;
-					DataManager::SetValue(TW_SHIFT_KEY, 1);
-				} else {
-					PageManager::NotifyKey(ev.code);
-				}
+			if (ev.value != 0) {
+				// This is a key press
+				kb.KeyDown(ev.code);
+				key_repeat = 1;
+				touch_and_hold = 0;
+				touch_repeat = 0;
+				dontwait = 1;
+				gettimeofday(&touchStart, NULL);
 			} else {
-				// This is a key up event for releasing a shift key
-				if (ev.code == KEY_LEFTSHIFT) {
-					lshift = 0;
-				} else if (ev.code == KEY_RIGHTSHIFT) {
-					rshift = 0;
-				}
-				if (lshift == 0 && rshift == 0)
-					DataManager::SetValue(TW_SHIFT_KEY, 0);
+				// This is a key release
+				kb.KeyUp(ev.code);
+				key_repeat = 0;
+				touch_and_hold = 0;
+				touch_repeat = 0;
+				dontwait = 0;
 			}
-			touch_and_hold = 0;
-			touch_repeat = 0;
-			dontwait = 0;
         }
     }
     return NULL;

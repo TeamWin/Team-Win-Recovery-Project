@@ -17,7 +17,7 @@
 #ifndef _VARIABLES_HEADER_
 #define _VARIABLES_HEADER_
 
-#define TW_VERSION_STR              "2.2.2.0"
+#define TW_VERSION_STR              "2.2.2.1"
 
 #define TW_USE_COMPRESSION_VAR      "tw_use_compression"
 #define TW_IGNORE_IMAGE_SIZE        "tw_ignore_image_size"
@@ -145,7 +145,6 @@
 #define TW_HAS_CRYPTO               "tw_has_crypto"
 #define TW_CRYPTO_PASSWORD          "tw_crypto_password"
 #define TW_DATA_BLK_DEVICE          "tw_data_blk_device"  // Original block device - not decrypted
-#define TW_SHIFT_KEY                "tw_shift_key"
 #define TW_SDEXT_DISABLE_EXT4       "tw_sdext_disable_ext4"
 
 // Also used:

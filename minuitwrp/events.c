@@ -334,12 +334,9 @@ static int vk_modify(struct ev *e, struct input_event *ev)
     LOGI("EV: %s => type: %x  code: %x  value: %d\n", e->deviceName, ev->type, ev->code, ev->value);
 #endif
 
-	// Handle keyboard events
+	// Handle keyboard events, value of 1 indicates key down, 0 indicates key up
 	if (ev->type == EV_KEY) {
-		if (ev->value == 0 && ev->code != KEY_LEFTSHIFT && ev->code != KEY_RIGHTSHIFT)
-			return 1;
-		else
-			return 0;
+		return 0;
 	}
 
     if (ev->type == EV_ABS) {
