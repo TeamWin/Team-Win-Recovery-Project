@@ -29,19 +29,30 @@
 
 //#define _EVENT_LOGGING
 
-#define MAX_DEVICES 16
+#define MAX_DEVICES         16
 
 #define VIBRATOR_TIMEOUT_FILE	"/sys/class/timed_output/vibrator/enable"
-#define VIBRATOR_TIME_MS	50
+#define VIBRATOR_TIME_MS    50
 
-#define ABS_MT_POSITION		0x2a	/* Group a set of X and Y */
-#define ABS_MT_AMPLITUDE	0x2b	/* Group a set of Z and W */
-#define ABS_MT_POSITION_X 0x35
-#define ABS_MT_POSITION_Y 0x36
-#define ABS_MT_TOUCH_MAJOR 0x30
-#define ABS_MT_WIDTH_MAJOR 0x32
-#define SYN_MT_REPORT 2
-#define ABS_MT_PRESSURE    0x3a
+#define SYN_REPORT          0x00
+#define SYN_CONFIG          0x01
+#define SYN_MT_REPORT       0x02
+
+#define ABS_MT_POSITION     0x2a /* Group a set of X and Y */
+#define ABS_MT_AMPLITUDE    0x2b /* Group a set of Z and W */
+#define ABS_MT_SLOT         0x2f
+#define ABS_MT_TOUCH_MAJOR  0x30
+#define ABS_MT_TOUCH_MINOR  0x31
+#define ABS_MT_WIDTH_MAJOR  0x32
+#define ABS_MT_WIDTH_MINOR  0x33
+#define ABS_MT_ORIENTATION  0x34
+#define ABS_MT_POSITION_X   0x35
+#define ABS_MT_POSITION_Y   0x36
+#define ABS_MT_TOOL_TYPE    0x37
+#define ABS_MT_BLOB_ID      0x38
+#define ABS_MT_TRACKING_ID  0x39
+#define ABS_MT_PRESSURE     0x3a
+#define ABS_MT_DISTANCE     0x3b
 
 enum {
     DOWN_NOT,
@@ -341,45 +352,24 @@ static int vk_modify(struct ev *e, struct input_event *ev)
 
     if (ev->type == EV_ABS) {
         switch (ev->code) {
-        case ABS_X:
+
+        case ABS_X: //00
             e->p.synced |= 0x01;
             e->p.x = ev->value;
+#ifdef _EVENT_LOGGING
+            LOGI("EV: %s => EV_ABS  ABS_X  %d\n", e->deviceName, ev->value);
+#endif
             break;
-        case ABS_Y:
+
+        case ABS_Y: //01
             e->p.synced |= 0x02;
             e->p.y = ev->value;
-            break;
-        case ABS_MT_POSITION_X:
-            e->mt_p.synced |= 0x01;
-            e->mt_p.x = ev->value;
 #ifdef _EVENT_LOGGING
-            LOGI("EV: %s => EV_ABS  ABS_MT_POSITION_X  %d\n", e->deviceName, ev->value);
+            LOGI("EV: %s => EV_ABS  ABS_Y  %d\n", e->deviceName, ev->value);
 #endif
             break;
-        case ABS_MT_POSITION_Y:
-            e->mt_p.synced |= 0x02;
-            e->mt_p.y = ev->value;
-#ifdef _EVENT_LOGGING
-            LOGI("EV: %s => EV_ABS  ABS_MT_POSITION_Y  %d\n", e->deviceName, ev->value);
-#endif
-            break;
-        case ABS_MT_TOUCH_MAJOR:
-#ifdef _EVENT_LOGGING
-            LOGI("EV: %s => EV_ABS  ABS_MT_TOUCH_MAJOR  %d\n", e->deviceName, ev->value);
-#endif
-        case ABS_MT_PRESSURE:
-#ifdef _EVENT_LOGGING
-            LOGI("EV: %s => EV_ABS  ABS_MT_PRESSURE  %d\n", e->deviceName, ev->value);
-#endif
-            if (ev->value == 0)
-            {
-                // We're in a touch release, although some devices will still send positions as well
-                e->mt_p.x = 0;
-                e->mt_p.y = 0;
-                touchReleaseOnNextSynReport = 1;
-            }
-            break;
-        case ABS_MT_POSITION:
+
+        case ABS_MT_POSITION: //2a
             e->mt_p.synced = 0x03;
             if (ev->value == (1 << 31))
             {
@@ -394,6 +384,91 @@ static int vk_modify(struct ev *e, struct input_event *ev)
                 e->mt_p.y = (ev->value & 0xFFFF);
             }
             break;
+
+        case ABS_MT_TOUCH_MAJOR: //30
+            if (ev->value == 0)
+            {
+                // We're in a touch release, although some devices will still send positions as well
+                e->mt_p.x = 0;
+                e->mt_p.y = 0;
+                touchReleaseOnNextSynReport = 1;
+            }
+#ifdef _EVENT_LOGGING
+            LOGI("EV: %s => EV_ABS  ABS_MT_TOUCH_MAJOR  %d\n", e->deviceName, ev->value);
+#endif
+            break;
+
+		case ABS_MT_PRESSURE: //3a
+                    if (ev->value == 0)
+            {
+                // We're in a touch release, although some devices will still send positions as well
+                e->mt_p.x = 0;
+                e->mt_p.y = 0;
+                touchReleaseOnNextSynReport = 1;
+            }
+#ifdef _EVENT_LOGGING
+            LOGI("EV: %s => EV_ABS  ABS_MT_PRESSURE  %d\n", e->deviceName, ev->value);
+#endif
+            break;
+
+		case ABS_MT_POSITION_X: //35
+            e->mt_p.synced |= 0x01;
+            e->mt_p.x = ev->value;
+#ifdef _EVENT_LOGGING
+            LOGI("EV: %s => EV_ABS  ABS_MT_POSITION_X  %d\n", e->deviceName, ev->value);
+#endif
+            break;
+
+        case ABS_MT_POSITION_Y: //36
+            e->mt_p.synced |= 0x02;
+            e->mt_p.y = ev->value;
+#ifdef _EVENT_LOGGING
+            LOGI("EV: %s => EV_ABS  ABS_MT_POSITION_Y  %d\n", e->deviceName, ev->value);
+#endif
+            break;
+
+#ifdef _EVENT_LOGGING
+		// All of these items are strictly for logging purposes only. Return 1 because they don't need to be handled.
+        case ABS_MT_TOUCH_MINOR: //31
+            LOGI("EV: %s => EV_ABS ABS_MT_TOUCH_MINOR %d\n", e->deviceName, ev->value);
+			return 1;
+            break;
+
+        case ABS_MT_WIDTH_MAJOR: //32
+            LOGI("EV: %s => EV_ABS ABS_MT_WIDTH_MAJOR %d\n", e->deviceName, ev->value);
+			return 1;
+            break;
+
+        case ABS_MT_WIDTH_MINOR: //33
+            LOGI("EV: %s => EV_ABS ABS_MT_WIDTH_MINOR %d\n", e->deviceName, ev->value);
+			return 1;
+            break;
+
+        case ABS_MT_ORIENTATION: //34
+            LOGI("EV: %s => EV_ABS ABS_MT_ORIENTATION %d\n", e->deviceName, ev->value);
+			return 1;
+            break;
+
+		case ABS_MT_TOOL_TYPE: //37
+            LOGI("EV: %s => EV_ABS ABS_MT_TOOL_TYPE %d\n", e->deviceName, ev->value);
+			return 1;
+            break;
+
+        case ABS_MT_BLOB_ID: //38
+            LOGI("EV: %s => EV_ABS ABS_MT_BLOB_ID %d\n", e->deviceName, ev->value);
+			return 1;
+            break;
+
+        case ABS_MT_TRACKING_ID: //39
+            LOGI("EV: %s => EV_ABS ABS_MT_TRACKING_ID %d\n", e->deviceName, ev->value);
+			return 1;
+            break;
+
+		case ABS_MT_DISTANCE: //3b
+            LOGI("EV: %s => EV_ABS ABS_MT_DISTANCE %d\n", e->deviceName, ev->value);
+			return 1;
+            break;
+#endif
 
         default:
             // This is an unhandled message, just skip it
