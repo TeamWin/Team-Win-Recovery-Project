@@ -195,7 +195,6 @@ static void *input_thread(void *cookie)
 		if (ret < 0) {
 			struct timeval curTime;
 			gettimeofday(&curTime, NULL);
-
 			long mtime, seconds, useconds;
 
 			seconds  = curTime.tv_sec  - touchStart.tv_sec;
@@ -245,8 +244,8 @@ static void *input_thread(void *cookie)
                     PageManager::NotifyTouch(TOUCH_RELEASE, x, y);
 					touch_and_hold = 0;
 					touch_repeat = 0;
-					dontwait = 0;
-					key_repeat = 0;
+					if (!key_repeat)
+						dontwait = 0;
                 }
                 state = 0;
                 drag = 0;
@@ -288,12 +287,18 @@ static void *input_thread(void *cookie)
 #endif
 			if (ev.value != 0) {
 				// This is a key press
-				kb.KeyDown(ev.code);
-				key_repeat = 1;
-				touch_and_hold = 0;
-				touch_repeat = 0;
-				dontwait = 1;
-				gettimeofday(&touchStart, NULL);
+				if (kb.KeyDown(ev.code)) {
+					key_repeat = 1;
+					touch_and_hold = 0;
+					touch_repeat = 0;
+					dontwait = 1;
+					gettimeofday(&touchStart, NULL);
+				} else {
+					key_repeat = 0;
+					touch_and_hold = 0;
+					touch_repeat = 0;
+					dontwait = 0;
+				}
 			} else {
 				// This is a key release
 				kb.KeyUp(ev.code);

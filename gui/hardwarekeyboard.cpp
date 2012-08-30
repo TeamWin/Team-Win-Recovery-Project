@@ -40,7 +40,7 @@ int HardwareKeyboard::KeyDown(int key_code) {
 	LOGE("HardwareKeyboard::KeyDown %i\n", key_code);
 #endif
 	PageManager::NotifyKey(key_code);
-	return 0;
+	return 0; // 0 = no key repeat anything else turns on key repeat
 }
 
 int HardwareKeyboard::KeyUp(int key_code) {
