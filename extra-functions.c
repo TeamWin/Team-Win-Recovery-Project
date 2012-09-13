@@ -263,7 +263,7 @@ void get_device_id()
 
     // Assign a blank device_id to start with
     device_id[0] = 0;
-
+#ifndef TW_FORCE_CPUINFO_FOR_DEVICE_ID
     // First, try the cmdline to see if the serial number was supplied
 	fp = fopen("/proc/cmdline", "rt");
 	if (fp != NULL)
@@ -291,7 +291,7 @@ void get_device_id()
             token = strtok(NULL, " ");
         }
     }
-
+#endif
 	// Now we'll try cpuinfo for a serial number
 	fp = fopen("/proc/cpuinfo", "rt");
 	if (fp != NULL)
