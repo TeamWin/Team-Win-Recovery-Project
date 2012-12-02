@@ -39,24 +39,31 @@ int TWinstall_zip(const char* path, int* wipe_cache);
 
 static RecoveryUI* ui = NULL;
 
-static void
-set_usb_driver(bool enabled) {
+static void set_usb_driver(bool enabled) 
+{
     int fd = open("/sys/class/android_usb/android0/enable", O_WRONLY);
-    if (fd < 0) {
+    if (fd < 0) 
+    {
+		fd = open("sys/class/usb_composite/rndis/enable", O_WRONLY);
+		if (fd < 0)
+		{
 /* These error messages show when built in older Android branches (e.g. Gingerbread)
    It's not a critical error so we're disabling the error messages.
         ui->Print("failed to open driver control: %s\n", strerror(errno));
 */
-		LOGI("failed to open driver control: %s\n", strerror(errno));
-        return;
+			LOGI("failed to open driver control: %s\n", strerror(errno));
+			return;
+		}
     }
-    if (write(fd, enabled ? "1" : "0", 1) < 0) {
+    if (write(fd, enabled ? "1" : "0", 1) < 0) 
+    {
 /*
         ui->Print("failed to set driver control: %s\n", strerror(errno));
 */
 		LOGI("failed to set driver control: %s\n", strerror(errno));
     }
-    if (close(fd) < 0) {
+    if (close(fd) < 0) 
+    {
 /*
         ui->Print("failed to close driver control: %s\n", strerror(errno));
 */
@@ -64,26 +71,27 @@ set_usb_driver(bool enabled) {
     }
 }
 
-static void
-stop_adbd() {
+static void stop_adbd() 
+{
     property_set("ctl.stop", "adbd");
     set_usb_driver(false);
 }
 
 
-static void
-maybe_restart_adbd() {
+static void maybe_restart_adbd() 
+{
     char value[PROPERTY_VALUE_MAX+1];
     int len = property_get("ro.debuggable", value, NULL);
-    if (len == 1 && value[0] == '1') {
+    if (len == 1 && value[0] == '1') 
+    {
         ui->Print("Restarting adbd...\n");
         set_usb_driver(true);
         property_set("ctl.start", "adbd");
     }
 }
 
-int
-apply_from_adb(RecoveryUI* ui_, int* wipe_cache, const char* install_file) {
+int apply_from_adb(RecoveryUI* ui_, int* wipe_cache, const char* install_file) 
+{
     ui = ui_;
 
     stop_adbd();
@@ -93,7 +101,8 @@ apply_from_adb(RecoveryUI* ui_, int* wipe_cache, const char* install_file) {
               "to the device with \"adb sideload <filename>\"...\n");
 
     pid_t child;
-    if ((child = fork()) == 0) {
+    if ((child = fork()) == 0) 
+    {
         execl("/sbin/recovery", "recovery", "--adbd", install_file, NULL);
         _exit(-1);
     }
@@ -104,7 +113,8 @@ apply_from_adb(RecoveryUI* ui_, int* wipe_cache, const char* install_file) {
     // you just have to 'adb sideload' a file that's not a valid
     // package, like "/dev/null".
     waitpid(child, &status, 0);
-    if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+    if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) 
+    {
         ui->Print("status %d\n", WEXITSTATUS(status));
     }
 	DataManager_SetIntValue("tw_has_cancel", 0); // Remove cancel button from gui now that the zip install is going to start
@@ -112,10 +122,14 @@ apply_from_adb(RecoveryUI* ui_, int* wipe_cache, const char* install_file) {
     maybe_restart_adbd();
 
     struct stat st;
-    if (stat(install_file, &st) != 0) {
-        if (errno == ENOENT) {
+    if (stat(install_file, &st) != 0) 
+    {
+        if (errno == ENOENT) 
+        {
             ui->Print("No package received.\n");
-        } else {
+        } 
+        else 
+        {
             ui->Print("Error reading package:\n  %s\n", strerror(errno));
         }
         return INSTALL_ERROR;

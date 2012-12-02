@@ -792,6 +792,25 @@ int DataManager::GetMagicValue(const string varName, string& value)
         value = tmp;
         return 0;
     }
+    if (varName == "tw_time_cn")
+    {
+        char tmp[32];
+
+        struct tm *current;
+        time_t now;
+        now = time(0);
+        current = localtime(&now);
+
+        if (current->tm_hour >= 12)
+            //sprintf(tmp, "%d:%02d PM", current->tm_hour == 12 ? 12 : current->tm_hour - 12, current->tm_min);
+            sprintf(tmp, "%d:%02d下午", current->tm_hour == 12 ? 12 : current->tm_hour - 12, current->tm_min);
+        else
+            //sprintf(tmp, "%d:%02d AM", current->tm_hour == 0 ? 12 : current->tm_hour, current->tm_min);
+            sprintf(tmp, "%d:%02d上午", current->tm_hour == 0 ? 12 : current->tm_hour, current->tm_min);
+
+        value = tmp;
+        return 0;
+    }
     if (varName == "tw_battery")
     {
         char tmp[16];
@@ -805,6 +824,8 @@ int DataManager::GetMagicValue(const string varName, string& value)
 		{
 			char cap_s[4];
 			FILE * cap = fopen("/sys/class/power_supply/battery/capacity","rt");
+			if (!cap)
+				cap = fopen("/sys/class/power_supply/batterys/capacity","rt");
 			if (cap){
 				fgets(cap_s, 4, cap);
 				fclose(cap);
@@ -828,6 +849,47 @@ int DataManager::GetMagicValue(const string varName, string& value)
         value = tmp;
         return 0;
     }
+    if (varName == "tw_battery_cn")
+    {
+        char tmp[16];
+		static char charging = ' ';
+		static int lastVal = -1;
+		static time_t nextSecCheck = 0;
+
+		struct timeval curTime;
+		gettimeofday(&curTime, NULL);
+		if (curTime.tv_sec > nextSecCheck)
+		{
+			char cap_s[4];
+			FILE * cap = fopen("/sys/class/power_supply/battery/capacity","rt");
+			if (!cap)
+				cap = fopen("/sys/class/power_supply/batterys/capacity","rt");
+			if (cap){
+				fgets(cap_s, 4, cap);
+				fclose(cap);
+				lastVal = atoi(cap_s);
+				if (lastVal > 100)  lastVal = 101;
+				if (lastVal < 0)    lastVal = 0;
+			}
+			cap = fopen("/sys/class/power_supply/battery/status","rt");
+			if (cap) {
+				fgets(cap_s, 2, cap);
+				fclose(cap);
+				if (cap_s[0] == 'C')
+					//charging = '+';
+					charging = 1;
+				else
+					//charging = ' ';
+					charging = 0;
+			}
+			nextSecCheck = curTime.tv_sec + 60;
+		}
+
+		sprintf(tmp, "%i%%%s", lastVal, charging?" 充电中...":"              ");
+        value = tmp;
+        return 0;
+    }
+    
     return -1;
 }
 
