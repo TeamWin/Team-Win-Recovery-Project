@@ -37,6 +37,10 @@ GUIButton::GUIButton(xml_node<>* node)
     mButtonLabel = NULL;
     mAction = NULL;
     mRendered = false;
+    highlightRenderCount = 0;
+
+    memset(&mHighlightColor, 0, sizeof(COLOR));
+    ConvertStrToColor("#90909080", &mHighlightColor);
 
     if (!node)  return;
 
@@ -96,7 +100,16 @@ int GUIButton::Render(void)
         gr_blit(mButtonIcon->GetResource(), 0, 0, mIconW, mIconH, mIconX, mIconY);
     if (mButtonLabel)   ret = mButtonLabel->Render();
     if (ret < 0)        return ret;
-    mRendered = true;
+
+    if (highlightRenderCount != 0)
+	{
+        gr_color(mHighlightColor.red, mHighlightColor.green, mHighlightColor.blue, mHighlightColor.alpha);
+        gr_fill(mRenderX, mRenderY, mRenderW, mRenderH);
+        if (highlightRenderCount > 0)
+            --highlightRenderCount;
+    }
+    else
+        mRendered = true;
     return ret;
 }
 
@@ -207,11 +220,13 @@ int GUIButton::NotifyTouch(TOUCH_STATE state, int x, int y)
 				mButtonLabel->isHighlighted = true;
 			if (mButtonImg != NULL)
 				mButtonImg->isHighlighted = true;
+			highlightRenderCount = 1;
 			mRendered = false;
 		}
 	}
 	if (x < mRenderX || x - mRenderX > mRenderW || y < mRenderY || y - mRenderY > mRenderH)
 		return 0;
+
     return (mAction ? mAction->NotifyTouch(state, x, y) : 1);
 }
 
