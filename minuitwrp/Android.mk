@@ -1,12 +1,12 @@
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := events.c resources.c graphics.c
+LOCAL_SRC_FILES := events.c resources.c graphics_cn.c
 
 LOCAL_C_INCLUDES +=\
     external/libpng\
     external/zlib\
-	external/jpeg
+    external/jpeg
 
 
 ifeq ($(RECOVERY_TOUCHSCREEN_SWAP_XY), true)

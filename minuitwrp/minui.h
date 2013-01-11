@@ -32,19 +32,18 @@ void gr_fb_blank(int blank);
 void gr_color(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 void gr_fill(int x, int y, int w, int h);
 
-int gr_textEx(int x, int y, const char *s, void* font);
-int gr_textExW(int x, int y, const char *s, void* font, int max_width);
+int gr_textEx(int x, int y, const char *s, void* pFont);
+int gr_textExW(int x, int y, const char *s, void* pFont, int max_width);
 int gr_textExWH(int x, int y, const char *s, void* pFont, int max_width, int max_height);
 int twgr_text(int x, int y, const char *s);
-static inline int gr_text(int x, int y, const char *s)     { return gr_textEx(x, y, s, NULL); }
-int gr_measureEx(const char *s, void* font);
-static inline int gr_measure(const char *s)                { return gr_measureEx(s, NULL); }
+//static inline int gr_text(int x, int y, const char *s)     { return gr_textEx(x, y, s, NULL); }
+int gr_measureEx(const char *s, void* pFont);
+//static inline int gr_measure(const char *s)                { return gr_measureEx(s, NULL); }
 
-int gr_getFontDetails(void* font, unsigned* cheight, unsigned* maxwidth);
-static inline void gr_font_size(int *x, int *y)            { gr_getFontDetails(NULL, (unsigned*) y, (unsigned*) x); }
+int gr_getFontDetails(void* pFont, unsigned* cheight, unsigned* maxwidth);
+//static inline void gr_font_size(int *x, int *y)            { gr_getFontDetails(NULL, (unsigned*) y, (unsigned*) x); }
 
 void* gr_loadFont(const char* fontName);
-
 void gr_blit(gr_surface source, int sx, int sy, int w, int h, int dx, int dy);
 unsigned int gr_get_width(gr_surface surface);
 unsigned int gr_get_height(gr_surface surface);
