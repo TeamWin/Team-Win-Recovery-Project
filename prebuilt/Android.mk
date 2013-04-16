@@ -52,7 +52,9 @@ ifeq ($(BUILD_ID), GINGERBREAD)
     TW_NO_EXFAT := true
 endif
 ifneq ($(TW_NO_EXFAT), true)
+ifneq ($(TW_NO_EXFAT_FUSE), true)
     RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/exfat-fuse
+endif
     RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/mkexfatfs
     RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libexfat.so
 endif
@@ -110,7 +112,8 @@ LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/etc
 LOCAL_SRC_FILES := $(LOCAL_MODULE)
 include $(BUILD_PREBUILT)
 
-ifeq ($(BOARD_HAS_NO_REAL_SDCARD),)
+ifneq ($(BOARD_HAS_NO_REAL_SDCARD), true)
+ifneq ($(TW_NO_PARTITION_SD_CARD), true)
 	#parted
 	include $(CLEAR_VARS)
 	LOCAL_MODULE := parted
@@ -119,6 +122,7 @@ ifeq ($(BOARD_HAS_NO_REAL_SDCARD),)
 	LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
 	LOCAL_SRC_FILES := $(LOCAL_MODULE)
 	include $(BUILD_PREBUILT)
+endif
 endif
 
 ifeq ($(TW_INCLUDE_DUMLOCK), true)

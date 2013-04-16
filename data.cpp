@@ -572,8 +572,13 @@ void DataManager::SetDefaultValues()
 	printf("TW_FORCE_CPUINFO_FOR_DEVICE_ID := true\n");
 #endif
 
+#if defined BOARD_HAS_NO_REAL_SDCARD || defined TW_NO_PARTITION_SD_CARD
 #ifdef BOARD_HAS_NO_REAL_SDCARD
 	printf("BOARD_HAS_NO_REAL_SDCARD := true\n");
+#endif
+#ifdef TW_NO_PARTITION_SD_CARD
+    printf("TW_NO_PARTITION_SD_CARD := true\n");
+#endif
     mConstValues.insert(make_pair(TW_ALLOW_PARTITION_SDCARD, "0"));
 #else
     mConstValues.insert(make_pair(TW_ALLOW_PARTITION_SDCARD, "1"));
