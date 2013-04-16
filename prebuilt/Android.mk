@@ -52,7 +52,9 @@ ifeq ($(BUILD_ID), GINGERBREAD)
     TW_NO_EXFAT := true
 endif
 ifneq ($(TW_NO_EXFAT), true)
+ifneq ($(TW_NO_EXFAT_FUSE), true)
     RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/exfat-fuse
+endif
     RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/mkexfatfs
     RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libexfat.so
 endif

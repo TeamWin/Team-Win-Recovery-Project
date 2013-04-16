@@ -1,3 +1,5 @@
+ifneq ($(TW_NO_EXFAT_FUSE), true)
+
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
@@ -20,3 +22,5 @@ include $(BUILD_EXECUTABLE)
 # local module name
 ALL_MODULES.$(LOCAL_MODULE).INSTALLED := \
     $(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) $(SYMLINKS)
+
+endif # TW_NO_EXFAT_FUSE
