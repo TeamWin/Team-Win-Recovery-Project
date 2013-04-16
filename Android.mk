@@ -232,6 +232,9 @@ endif
 ifeq ($(TARGET_BOARD_PLATFORM),rk30xx)
     LOCAL_CFLAGS += -DRK3066
 endif
+ifeq ($(TW_NO_PARTITION_SD_CARD), true)
+    LOCAL_CFLAGS += -DTW_NO_PARTITION_SD_CARD
+endif
 
 include $(BUILD_EXECUTABLE)
 
