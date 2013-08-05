@@ -245,7 +245,7 @@ int TWPartitionManager::Mount_By_Path(string Path, bool Display_Error) {
 	bool found = false;
 	string Local_Path = TWFunc::Get_Root_Path(Path);
 
-	if (Local_Path == "/tmp")
+	if (Local_Path == "/tmp" || Local_Path == "/")
 		return true;
 
 	// Iterate through all partitions
@@ -865,7 +865,7 @@ int TWPartitionManager::Run_Restore(string Restore_Name) {
 					}
 				}
 			} else {
-				LOGERR("Unable to locate '%s' partition for restoring.\n", restore_path.c_str());
+				LOGERR("Unable to locate '%s' partition for restoring (restore list).\n", restore_path.c_str());
 			}
 			start_pos = end_pos + 1;
 			end_pos = Restore_List.find(";", start_pos);
@@ -1191,6 +1191,9 @@ int TWPartitionManager::Wipe_Media_From_Data(void) {
 			return -1;
 		if (dat->Has_Data_Media) {
 			dat->Recreate_Media_Folder();
+			// Unmount and remount - slightly hackish way to ensure that the "/sdcard" folder is still mounted properly after wiping
+			dat->UnMount(false);
+			dat->Mount(false);
 		}
 		return true;
 	} else {
@@ -1417,6 +1420,7 @@ int TWPartitionManager::Decrypt_Device(string Password) {
 			dat->Is_Decrypted = true;
 			dat->Decrypted_Block_Device = crypto_blkdev;
 			dat->Setup_File_System(false);
+			dat->Current_File_System = dat->Fstab_File_System; // Needed if we're ignoring blkid because encrypted devices start out as emmc
 			gui_print("Data successfully decrypted, new block device: '%s'\n", crypto_blkdev);
 
 #ifdef CRYPTO_SD_FS_TYPE
@@ -1810,9 +1814,10 @@ void TWPartitionManager::Get_Partition_List(string ListType, std::vector<Partiti
 			size_t start_pos = 0, end_pos = Restore_List.find(";", start_pos);
 			while (end_pos != string::npos && start_pos < Restore_List.size()) {
 				restore_path = Restore_List.substr(start_pos, end_pos - start_pos);
-				if ((restore_part = Find_Partition_By_Path(restore_path)) != NULL && !restore_part->Is_SubPartition) {
-					if (restore_part->Backup_Name == "recovery") {
+				if ((restore_part = Find_Partition_By_Path(restore_path)) != NULL) {
+					if (restore_part->Backup_Name == "recovery" || restore_part->Is_SubPartition) {
 						// Don't allow restore of recovery (causes problems on some devices)
+						// Don't add subpartitions to the list of items
 					} else {
 						struct PartitionList part;
 						part.Display_Name = restore_part->Backup_Display_Name;
@@ -1848,6 +1853,13 @@ void TWPartitionManager::Get_Partition_List(string ListType, std::vector<Partiti
 				part.selected = 0;
 				Partition_List->push_back(part);
 			}
+			if ((*iter)->Has_Data_Media) {
+				struct PartitionList datamedia;
+				datamedia.Display_Name = (*iter)->Storage_Name;
+				datamedia.Mount_Point = "INTERNAL";
+				datamedia.selected = 0;
+				Partition_List->push_back(datamedia);
+			}
 		}
 	} else {
 		LOGERR("Unknown list type '%s' requested for TWPartitionManager::Get_Partition_List\n", ListType.c_str());
@@ -1856,4 +1868,26 @@ void TWPartitionManager::Get_Partition_List(string ListType, std::vector<Partiti
 
 int TWPartitionManager::Fstab_Processed(void) {
 	return Partitions.size();
+}
+
+void TWPartitionManager::Output_Storage_Fstab(void) {
+	std::vector<TWPartition*>::iterator iter;
+	char storage_partition[255];
+	string Temp;
+	FILE *fp = fopen("/cache/recovery/storage.fstab", "w");
+
+	if (fp == NULL) {
+		LOGERR("Unable to open '/cache/recovery/storage.fstab'.\n");
+		return;
+	}
+
+	// Iterate through all partitions
+	for (iter = Partitions.begin(); iter != Partitions.end(); iter++) {
+		if ((*iter)->Is_Storage) {
+			Temp = (*iter)->Storage_Path + ";" + (*iter)->Storage_Name + ";\n";
+			strcpy(storage_partition, Temp.c_str());
+			fwrite(storage_partition, sizeof(storage_partition[0]), strlen(storage_partition) / sizeof(storage_partition[0]), fp);
+		}
+	}
+	fclose(fp);
 }

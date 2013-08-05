@@ -544,9 +544,11 @@ void DataManager::SetBackupFolder()
 			SetValue(TW_ZIP_LOCATION_VAR, storage_path);
 		} else {
 			zip_root= zip_path;
-			zip_root.resize(storage_path.size() + 1);
-			if (zip_root != storage_path)
+			zip_root.resize(storage_path.size());
+			if (zip_root != storage_path) {
+				LOGINFO("DataManager::SetBackupFolder zip path was %s changing to %s, %s\n", zip_path.c_str(), storage_path.c_str(), zip_root.c_str());
 				SetValue(TW_ZIP_LOCATION_VAR, storage_path);
+			}
 		}
 	} else {
 		if (PartitionManager.Fstab_Processed() != 0)
@@ -834,9 +836,9 @@ void DataManager::SetDefaultValues()
 #endif
 
 #ifdef TW_HAS_NO_BOOT_PARTITION
-	mValues.insert(make_pair("tw_backup_list", make_pair("/system;/data;", 0)));
+	mValues.insert(make_pair("tw_backup_list", make_pair("/system;/data;", 1)));
 #else
-	mValues.insert(make_pair("tw_backup_list", make_pair("/system;/data;/boot;", 0)));
+	mValues.insert(make_pair("tw_backup_list", make_pair("/system;/data;/boot;", 1)));
 #endif
 	mConstValues.insert(make_pair(TW_MIN_SYSTEM_VAR, TW_MIN_SYSTEM_SIZE));
 	mValues.insert(make_pair(TW_BACKUP_NAME, make_pair("(Current Date)", 0)));
@@ -1042,6 +1044,8 @@ void DataManager::Output_Version(void) {
 	strcpy(version, TW_VERSION_STR);
 	fwrite(version, sizeof(version[0]), strlen(version) / sizeof(version[0]), fp);
 	fclose(fp);
+	TWFunc::copy_file("/etc/recovery.fstab", "/cache/recovery/recovery.fstab", 0644);
+	PartitionManager.Output_Storage_Fstab();
 	sync();
 	LOGINFO("Version number saved to '%s'\n", Path.c_str());
 }
@@ -1086,10 +1090,6 @@ void DataManager::ReadSettingsFile(void)
 			// Remount failed, default back to internal storage
 			SetValue(TW_USE_EXTERNAL_STORAGE, 0);
 			PartitionManager.Mount_Current_Storage(true);
-			string int_zip_path;
-			GetValue(TW_ZIP_INTERNAL_VAR, int_zip_path);
-			SetValue(TW_USE_EXTERNAL_STORAGE, 0);
-			SetValue(TW_ZIP_LOCATION_VAR, int_zip_path);
 		}
 	} else {
 		PartitionManager.Mount_Current_Storage(true);
