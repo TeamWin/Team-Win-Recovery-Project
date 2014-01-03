@@ -26,7 +26,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/mount.h>
-#include <sys/reboot.h>
 #include <sys/sendfile.h>
 #include <sys/stat.h>
 #include <sys/vfs.h>
@@ -44,6 +43,7 @@
 #include "data.hpp"
 #include "variables.h"
 #include "bootloader.h"
+#include "reboot.h"
 #ifndef TW_EXCLUDE_ENCRYPTED_BACKUPS
 	#include "openaes/inc/oaes_lib.h"
 #endif
