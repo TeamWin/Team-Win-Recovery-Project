@@ -140,6 +140,10 @@ else
     LOCAL_SRC_FILES += truetype.c
 endif
 
+ifeq ($(TW_DISABLE_DOUBLE_BUFFERING), true)
+    LOCAL_CFLAGS += -DTW_DISABLE_DOUBLE_BUFFERING
+endif
+
 LOCAL_CFLAGS += -DTWRES=\"$(TWRES_PATH)\"
 LOCAL_SHARED_LIBRARIES += libz libc libcutils libjpeg libpng
 LOCAL_STATIC_LIBRARIES += libpixelflinger_static
