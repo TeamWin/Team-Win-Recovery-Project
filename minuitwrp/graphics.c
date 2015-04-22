@@ -298,7 +298,11 @@ static int get_framebuffer(GGLSurface *fb)
     if (vi.yres * fi.line_length * 2 > fi.smem_len)
         return fd;
 
+#ifdef TW_DISABLE_DOUBLE_BUFFERING
+    double_buffering = 0;
+#else
     double_buffering = 1;
+#endif
 
     fb->version = sizeof(*fb);
     fb->width = vi.xres;
