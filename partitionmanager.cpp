@@ -473,7 +473,7 @@ bool TWPartitionManager::Make_MD5(bool generate_md5, string Backup_Folder, strin
 		return true;
 
 	TWFunc::GUI_Operation_Text(TW_GENERATE_MD5_TEXT, "Generating MD5");
-	gui_print(" * Generating md5...\n");
+	gui_print(" * Generating MD5...\n");
 
 	if (TWFunc::Path_Exists(Full_File)) {
 		md5sum.setfn(Backup_Folder + Backup_Filename);
