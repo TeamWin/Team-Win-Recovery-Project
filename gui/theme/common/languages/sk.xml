@@ -11,8 +11,8 @@
 
 		<string name="system">Systém</string>
 		<string name="system_image">Obraz systému</string>
-		<string name="vendor">Dodávateľ</string>
-		<string name="vendor_image">Obrázok dodávateľa</string>
+		<string name="vendor">Výrobca</string>
+		<string name="vendor_image">Obraz výrobcu</string>
 		<string name="boot">Boot</string>
 		<string name="recovery">Recovery</string>
 		<string name="cache">Cache</string>
@@ -472,18 +472,18 @@
 		<string name="available_space"> * Zozstatok miesta: {1}MB</string>
 		<string name="unable_locate_storage">Nemožno nájsť uložisko.</string>
 		<string name="no_space">Nedostatok miesta na úložisku.</string>
-		<string name="backup_started">[ZÁLOHOVANIE ZAČALO]</string>
+		<string name="backup_started">[ZAČIATOK ZÁLOHOVANIA]</string>
 		<string name="backup_folder"> * Adresár zálohy: {1}</string>
 		<string name="fail_backup_folder">Nemožno vytvoriť adresár zálohy.</string>
-		<string name="avg_backup_fs">Priemerná miera zálohovania súborových systémov: {1} MB/sek</string>
-		<string name="avg_backup_img">Priemerná miera zálohovania diskov: {1} MB/sek</string>
+		<string name="avg_backup_fs">Priemerná rýchlosť zálohovania súborových systémov: {1} MB/sek</string>
+		<string name="avg_backup_img">Priemerná rýchlosť zálohovania diskov: {1} MB/sek</string>
 		<string name="total_backed_size">[{1} MB ZÁLOH DOHROMADY]</string>
 		<string name="backup_completed">[ZÁLOHA DOKONČENÁ ZA {1} SEKÚND]</string>
-		<string name="restore_started">[ZAČIATOK OBNOVY]</string>
+		<string name="restore_started">[ZAČIATOK OBNOVOVANIA]</string>
 		<string name="restore_folder">Obnoviť adresár: \'{1}\'</string>
 		<string name="verifying_md5">Kontrolovanie MD5</string>
 		<string name="skip_md5">Vynechanie kontroly MD5 na základe užívateľského nastavenia.</string>
-		<string name="calc_restore">Počitanie detailov obnovy...</string>
+		<string name="calc_restore">Počítanie detailov obnovy...</string>
 		<string name="restore_read_only">Nemožno obnoviť {1} -- pripojené len na čítanie.</string>
 		<string name="restore_unable_locate">Nemožno nájsť partíciu \'{1}\' pre obnovu.</string>
 		<string name="no_part_restore">Žiadne partície neboli vybrané pre obnovu.</string>
