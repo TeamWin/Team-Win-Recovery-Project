@@ -13,8 +13,8 @@
 		<!-- Partition display names -->
 		<string name="system">System</string>
 		<string name="system_image">System-Image</string>
-		<string name="vendor">Anbieter</string>
-		<string name="vendor_image">Anbieter-Image</string>
+		<string name="vendor">Hersteller</string>
+		<string name="vendor_image">Hersteller-Image</string>
 		<string name="boot">Boot</string>
 		<string name="recovery">Recovery</string>
 		<string name="cache">Cache</string>
@@ -50,14 +50,14 @@
 		<string name="tab_language">SPRACHE</string>
 
 		<string name="install_btn">Installieren</string>
-		<string name="wipe_btn">Löschen</string>
+		<string name="wipe_btn">Formatieren</string>
 		<string name="backup_btn">Sichern</string>
 		<string name="restore_btn">Wiederherstellen</string>
 		<string name="mount_btn">Einhängen</string>
 		<string name="settings_btn">Einstellungen</string>
 		<string name="advanced_btn">Erweitert</string>
 		<string name="reboot_btn">Neustart</string>
-		<string name="files_btn">Dateien</string>
+		<string name="files_btn">Dateimanager</string>
 		<string name="copy_log_btn">Log kopieren</string>
 		<string name="select_type_hdr">Typ wählen</string>
 		<string name="install_zip_hdr">ZIP installieren</string>
@@ -73,7 +73,7 @@
 		<string name="select_storage_btn">Speicher auswählen</string>
 		<string name="queue_hdr">Einreihen</string>
 		<string name="zip_queue_count">%tw_zip_queue_count% von 10 Dateien eingereiht</string>
-		<string name="zip_queue_count_s">File %tw_zip_queue_count% von 10:</string>
+		<string name="zip_queue_count_s">Datei %tw_zip_queue_count% von 10:</string>
 		<string name="zip_warn1">Dieser Vorgang kann möglicherweise inkompatible</string>
 		<string name="zip_warn2">Software installieren und das Gerät unbrauchbar machen.</string>
 		<string name="zip_back_cancel">Zurück-Taste drücken, um den Vorgang abzubrechen.</string>
@@ -119,25 +119,25 @@
 		<string name="back_cancel">Zurück-Taste drücken, um den Vorgang abzubrechen.</string>
 		<string name="cancel_btn">Abbruch</string>
 		<string name="wipe_hdr">Löschen</string>
-		<string name="factory_reset_hdr">Werkseinstellungen herstellen</string>
+		<string name="factory_reset_hdr">Auf Werkseinstellungen zurücksetzen</string>
 		<string name="factory_reset_btn">Werkseinstellungen</string>
 		<string name="factory_reset1">Löscht Daten, Cache und Dalvik</string>
 		<string name="factory_reset2">(ohne internen Speicher)</string>
 		<string name="factory_reset3">Diese Lösch-Aktion ist in der Regel</string>
 		<string name="factory_reset4">die einzige die benötigt wird.</string>
-		<string name="factory_resetting">Werkseinstellungen herstellen...</string>
+		<string name="factory_resetting">Setze auf Werkseinstellungen zurück...</string>
 		<string name="advanced_wipe_hdr">Erweitertes Löschen</string>
 		<string name="advanced_wipe_btn">Erweitertes Löschen</string>
 		<string name="wipe_enc_confirm">Verschlüsselung der Daten-Partition enfernen?</string>
-		<string name="formatting_data">Data wird formatiert...</string>
+		<string name="formatting_data">Daten-Partition wird formatiert...</string>
 		<string name="swipe_format_data">Daten-Partition formatieren</string>
 		<string name="swipe_format_data_s">Formatieren </string>
-		<string name="factory_reset_complete">Werkseinstellungen wiederhergestellt</string>
+		<string name="factory_reset_complete">Auf Werkseinstellungen zurückgesetzt</string>
 		<string name="sel_part_hdr">Partitionen auswählen</string>
-		<string name="wipe_sel_confirm">Ausgewählte Partition(en) löschen?</string>
-		<string name="wiping_part">Lösche Partition(en)...</string>
-		<string name="wipe_complete">Löschen abgeschlossen </string>
-		<string name="sel_part_wipe">Partitionen zum Löschen auswählen:</string>
+		<string name="wipe_sel_confirm">Ausgewählte Partition(en) formatieren?</string>
+		<string name="wiping_part">Formatiere Partition(en)...</string>
+		<string name="wipe_complete">Formatierung abgeschlossen </string>
+		<string name="sel_part_wipe">Partitionen zum Formatieren auswählen:</string>
 		<string name="invalid_part_sel">Ungültige Partitionsauswahl</string>
 		<string name="format_data_hdr">Daten-Partition formatieren</string>
 		<string name="format_data_btn">Daten formatieren</string>
@@ -186,7 +186,7 @@
 		<string name="change_fs_for_hdr">Dateisystem für %tw_partition_name% ändern</string>
 		<string name="change_fs_for_hdr_s">Partition: %tw_partition_name% &gt; Dateisystem auswählen</string>
 		<string name="change_fs_warn1">Einige ROMs oder Kernel unterstützen möglicherweise manche</string>
-		<string name="change_fs_warn2">Dateisysteme nicht. Überlegt handeln!</string>
+		<string name="change_fs_warn2">Dateisysteme nicht. Bitte nochmals überprüfen!</string>
 		<string name="change_fs_confirm">%tw_partition_name% ändern?</string>
 		<string name="formatting">Formatierung...</string>
 		<string name="format_complete">Formatieren abgeschlossen</string>
@@ -194,7 +194,7 @@
 		<string name="swipe_change_s">Ändern</string>
 		<string name="back_btn">Zurück</string>
 		<string name="wipe_enc_btn">Verschlüsselung entfernen</string>
-		<string name="swipe_factory_reset">Werkseinstellungen herstellen</string>
+		<string name="swipe_factory_reset">Zurücksetzen</string>
 		<string name="repair_change_btn">Dateisystem reparieren oder ändern</string>
 		<string name="storage_hdr">Speicher: %tw_storage_display_name% (%tw_storage_free_size% MB)</string>
 		<string name="backup_hdr">Sicherung</string>
@@ -221,7 +221,7 @@
 		<string name="disabled">Deaktiviert</string>
 		<string name="enabled">Aktiviert</string>
 		<string name="backup_name_hdr">Sicherung benennen</string>
-		<string name="progress">Fortschritt:</string>
+		<string name="progress">Fortschritt: </string>
 		<string name="backup_complete">Sicherung abgeschlossen</string>
 		<string name="restore_hdr">Wiederherstellen</string>
 		<string name="sel_backup_hdr">Sicherung auswählen</string>
@@ -292,7 +292,7 @@
 		<string name="settings_gen_hdr">Allgemein</string>
 		<string name="settings_gen_s_hdr">Allgemein</string>
 		<string name="settings_gen_btn">Allgemein</string>
-		<string name="use_rmrf_chk">rekursiv löschen anstatt formatieren</string>
+		<string name="use_rmrf_chk">Rekursiv löschen (rm -rf) statt formatieren</string>
 		<string name="use24clock_chk">24-Stunden-Format</string>
 		<string name="rev_navbar_chk">Navigationsleiste umkehren</string>
 		<string name="simact_chk">Benutzeraktionen für Design-Test simulieren</string>
@@ -300,7 +300,7 @@
 		<string name="ctr_navbar_rdo">Navigationsleisten-Schaltflächen zentrieren</string>
 		<string name="lft_navbar_rdo">Navigationsleisten-Schaltflächen linksbündig</string>
 		<string name="rht_navbar_rdo">Navigationsleisten-Schaltflächen rechtsbündig</string>
-		<string name="restore_defaults_btn">Standard herstellen</string>
+		<string name="restore_defaults_btn">Standard einstellen</string>
 		<string name="settings_tz_btn">Zeitzone</string>
 		<string name="settings_screen_btn">Bildschirm</string>
 		<string name="settings_screen_bright_btn">Helligkeit</string>
@@ -483,7 +483,7 @@
 		<string name="unable_to_decrypt">Entschlüsselung mit Standardpasswort nicht möglich. Eventuell muss die Daten-Partition formatiert werden.</string>
 		<string name="generating_md51">Generiere MD5</string>
 		<!-- Message displayed during a backup if we are generating an MD5, ideally, leave the leading " * " to help align and separate this text from other console text -->
-		<string name="generating_md52"> * generiere MD5...</string>
+		<string name="generating_md52"> * Generiere MD5-Prüfsumme...</string>
 		<string name="md5_created"> * MD5 erstellt.</string>
 		<string name="md5_error"> * MD5-Fehler!</string>
 		<string name="md5_compute_error"> * Fehler bei MD5-Berechnung.</string>
@@ -493,9 +493,9 @@
 		<string name="no_partition_selected">Keine Partitionen für die Sicherung ausgewählt.</string>
 		<string name="total_partitions_backup"> * Anzahl der zu sichernden Partitionen: {1}</string>
 		<string name="total_backup_size"> * Gesamtgröße aller Daten: {1}MB</string>
-		<string name="available_space"> * Verfügbare Speicherplatz: {1}MB</string>
+		<string name="available_space"> * Verfügbarer Speicherplatz: {1}MB</string>
 		<string name="unable_locate_storage">Kann Sicherungsgerät nicht finden.</string>
-		<string name="no_space">Zu wenig freier Speicherplatz.</string>
+		<string name="no_space">Nicht genug freier Speicherplatz.</string>
 		<string name="backup_started">[SICHERUNG GESTARTET]</string>
 		<string name="backup_folder"> * Ordner für Sicherung: {1}</string>
 		<string name="fail_backup_folder">Ordner für Sicherung konnte nicht erstellt werden.</string>
