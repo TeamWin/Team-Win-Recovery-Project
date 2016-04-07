@@ -104,7 +104,11 @@ static void set_displayed_framebuffer(unsigned n)
     if (ioctl(fb_fd, FBIOPUT_VSCREENINFO, &vi) < 0) {
         perror("active fb swap failed");
     }
-    displayed_buffer = n;
+/* This is needed for newer Huawei HiSilicon based SoC or otherwise screen is black. Thanks to @jniklast and @XePeleato */
+    if (ioctl(fb_fd, FBIOPAN_DISPLAY, &vi) < 0) {
+      perror("pan failed");
+    }    
+        displayed_buffer = n;
 }
 
 static GRSurface* fbdev_init(minui_backend* backend) {
