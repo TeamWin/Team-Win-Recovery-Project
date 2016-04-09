@@ -327,6 +327,7 @@
 		<string name="utcp3">(UTC +3) Moscow, Baghdad</string>
 		<string name="utcp4">(UTC +4) Abu Dhabi, Tbilisi, Muscat</string>
 		<string name="utcp5">(UTC +5) Yekaterinburg, Islamabad</string>
+		<string name="utcp5.5">(UTC +5.5) Kolkata, New Delhi, Mumbai</string>
 		<string name="utcp6">(UTC +6) Almaty, Dhaka, Colombo</string>
 		<string name="utcp7">(UTC +7) Bangkok, Hanoi, Jakarta</string>
 		<string name="utcp8">(UTC +8) Beijing, Singapore, Hong Kong</string>
