@@ -42,7 +42,7 @@
         <string name="tab_language">LANGUE</string>
         <string name="install_btn">Installer</string>
         <string name="wipe_btn">Formater</string>
-        <string name="backup_btn">Sauvergarder</string>
+        <string name="backup_btn">Sauvegarder</string>
         <string name="restore_btn">Restaurer</string>
         <string name="mount_btn">Montage partitions</string>
         <string name="settings_btn">Paramètres</string>
