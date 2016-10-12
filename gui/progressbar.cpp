@@ -35,6 +35,7 @@ GUIProgressBar::GUIProgressBar(xml_node<>* node) : GUIObject(node)
 	mLastPos = 0;
 	mSlide = 0.0;
 	mSlideInc = 0.0;
+	mSlideFrames = 0;
 
 	if (!node)
 	{
