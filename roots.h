@@ -23,6 +23,8 @@
 extern "C" {
 #endif
 
+typedef struct fstab_rec Volume;
+
 // Load and parse volume data from /etc/recovery.fstab.
 void load_volume_table();
 
@@ -41,6 +43,10 @@ int ensure_path_unmounted(const char* path);
 // "/cache"), no paths permitted.  Attempts to unmount the volume if
 // it is mounted.
 int format_volume(const char* volume);
+
+// Ensure that all and only the volumes that packages expect to find
+// mounted (/tmp and /cache) are mounted.  Returns 0 on success.
+int setup_install_mounts();
 
 #ifdef __cplusplus
 }

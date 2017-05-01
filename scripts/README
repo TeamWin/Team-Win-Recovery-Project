@@ -1,0 +1,41 @@
+relink-binaries.sh
+
+Intended to "relink" or change the linker path for a linked binary. Normally
+linked binaries are looking for the linker in /system/bin/linker (or
+/system/bin/linker64 for 64 bit devices). In recovery, we want to avoid
+mounting or using anything /system to allow us to install different
+ROMs or firmware. This script will run various sed commands to update the
+path to the linker to /sbin/linker64 or /sbin/linker which is sometimes
+needed especially for qseecomd (decrypt) or in some cases with user space
+touch screen binaries. Usage:
+
+./relink-binaries.sh filename
+
+The script will leave the existing file untouched and make a new file
+named filename-1-mod
+
+
+
+compare_xml.py
+
+Intended to compare two different language xml files to determine if any
+strings do not match up between the two files. Sometimes we add or rename
+or misspell string names. This script will help identify the discrepancies.
+Usage:
+
+python compare_xml.py -o target.xml
+
+
+
+language_helper.py
+
+This script reads the English and supplied other language files and
+compares the 2 and reorders and rewrites the other language to a new
+XML file such that all the strings are placed in the same order as
+the English file. It will place commented out string lines for items
+that are not present in the new file and will not include any strings
+in the new file that are no longer present in the English source.
+There is also a version tag that may be compared if present between
+the English and other language in case a translation string changes.
+
+python language_helper.py -o ../gui/theme/common/languages/es.xml

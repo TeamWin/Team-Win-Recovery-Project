@@ -18,12 +18,8 @@
 extern "C" {
 #endif
 
-#ifdef HAVE_SELINUX
 #include <selinux/selinux.h>
 #include <selinux/label.h>
-#else
-struct selabel_handle;
-#endif
 
 /*
  * One entry in the Zip archive.  Treat this as opaque -- use accessors below.
@@ -36,7 +32,7 @@ struct selabel_handle;
 typedef struct ZipEntry {
     unsigned int fileNameLen;
     const char*  fileName;       // not null-terminated
-    long         offset;
+    loff_t       offset;
     long         compLen;
     long         uncompLen;
     int          compression;
@@ -50,11 +46,11 @@ typedef struct ZipEntry {
  * One Zip archive.  Treat as opaque.
  */
 typedef struct ZipArchive {
-    int         fd;
-    unsigned int numEntries;
-    ZipEntry*   pEntries;
-    HashTable*  pHash;          // maps file name to ZipEntry
-    MemMapping  map;
+    unsigned int   numEntries;
+    ZipEntry*      pEntries;
+    HashTable*     pHash;          // maps file name to ZipEntry
+    unsigned char* addr;
+    size_t         length;
 } ZipArchive;
 
 /*
@@ -72,7 +68,7 @@ typedef struct {
  * On success, returns 0 and populates "pArchive".  Returns nonzero errno
  * value on failure.
  */
-int mzOpenZipArchive(const char* fileName, ZipArchive* pArchive);
+int mzOpenZipArchive(unsigned char* addr, size_t length, ZipArchive* pArchive);
 
 /*
  * Close archive, releasing resources associated with it.
@@ -89,56 +85,12 @@ void mzCloseZipArchive(ZipArchive* pArchive);
 const ZipEntry* mzFindZipEntry(const ZipArchive* pArchive,
         const char* entryName);
 
-/*
- * Get the number of entries in the Zip archive.
- */
-INLINE unsigned int mzZipEntryCount(const ZipArchive* pArchive) {
-    return pArchive->numEntries;
-}
-
-/*
- * Get an entry by index.  Returns NULL if the index is out-of-bounds.
- */
-INLINE const ZipEntry*
-mzGetZipEntryAt(const ZipArchive* pArchive, unsigned int index)
-{
-    if (index < pArchive->numEntries) {
-        return pArchive->pEntries + index;
-    }
-    return NULL;
-}
-
-/*
- * Get the index number of an entry in the archive.
- */
-INLINE unsigned int
-mzGetZipEntryIndex(const ZipArchive *pArchive, const ZipEntry *pEntry) {
-    return pEntry - pArchive->pEntries;
-}
-
-/*
- * Simple accessors.
- */
-INLINE UnterminatedString mzGetZipEntryFileName(const ZipEntry* pEntry) {
-    UnterminatedString ret;
-    ret.str = pEntry->fileName;
-    ret.len = pEntry->fileNameLen;
-    return ret;
-}
-INLINE long mzGetZipEntryOffset(const ZipEntry* pEntry) {
+INLINE loff_t mzGetZipEntryOffset(const ZipEntry* pEntry) {
     return pEntry->offset;
 }
 INLINE long mzGetZipEntryUncompLen(const ZipEntry* pEntry) {
     return pEntry->uncompLen;
 }
-INLINE long mzGetZipEntryModTime(const ZipEntry* pEntry) {
-    return pEntry->modTime;
-}
-INLINE long mzGetZipEntryCrc32(const ZipEntry* pEntry) {
-    return pEntry->crc32;
-}
-bool mzIsZipEntrySymlink(const ZipEntry* pEntry);
-
 
 /*
  * Type definition for the callback function used by
@@ -168,12 +120,6 @@ bool mzReadZipEntry(const ZipArchive* pArchive, const ZipEntry* pEntry,
         char* buf, int bufLen);
 
 /*
- * Check the CRC on this entry; return true if it is correct.
- * May do other internal checks as well.
- */
-bool mzIsZipEntryIntact(const ZipArchive *pArchive, const ZipEntry *pEntry);
-
-/*
  * Inflate and write an entry to a file.
  */
 bool mzExtractZipEntryToFile(const ZipArchive *pArchive,
@@ -187,8 +133,11 @@ bool mzExtractZipEntryToBuffer(const ZipArchive *pArchive,
     const ZipEntry *pEntry, unsigned char* buffer);
 
 /*
- * Inflate all entries under zipDir to the directory specified by
+ * Inflate all files under zipDir to the directory specified by
  * targetDir, which must exist and be a writable directory.
+ *
+ * Directory entries and symlinks are not extracted.
+ *
  *
  * The immediate children of zipDir will become the immediate
  * children of targetDir; e.g., if the archive contains the entries
@@ -204,21 +153,15 @@ bool mzExtractZipEntryToBuffer(const ZipArchive *pArchive,
  *     /tmp/two
  *     /tmp/d/three
  *
- * flags is zero or more of the following:
- *
- *     MZ_EXTRACT_FILES_ONLY - only unpack files, not directories or symlinks
- *     MZ_EXTRACT_DRY_RUN - don't do anything, but do invoke the callback
- *
  * If timestamp is non-NULL, file timestamps will be set accordingly.
  *
  * If callback is non-NULL, it will be invoked with each unpacked file.
  *
  * Returns true on success, false on failure.
  */
-enum { MZ_EXTRACT_FILES_ONLY = 1, MZ_EXTRACT_DRY_RUN = 2 };
 bool mzExtractRecursive(const ZipArchive *pArchive,
         const char *zipDir, const char *targetDir,
-        int flags, const struct utimbuf *timestamp,
+        const struct utimbuf *timestamp,
         void (*callback)(const char *fn, void*), void *cookie,
         struct selabel_handle *sehnd);
 

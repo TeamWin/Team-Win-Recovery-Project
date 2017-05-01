@@ -1,5 +1,5 @@
 /*
-        Copyright 2012 bigbiff/Dees_Troy TeamWin
+        Copyright 2012 to 2016 bigbiff/Dees_Troy TeamWin
         This file is part of TWRP/TeamWin Recovery Project.
 
         TWRP is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 */
 
 extern "C" {
-        #include "libtar/libtar.h"
+	#include "libtar/libtar.h"
 }
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -27,44 +27,78 @@ extern "C" {
 #include <fstream>
 #include <string>
 #include <vector>
+#include "twrpDU.hpp"
+#include "progresstracking.hpp"
 
 using namespace std;
 
+struct TarListStruct {
+	std::string fn;
+	unsigned thread_id;
+};
+
+struct thread_data_struct {
+	std::vector<TarListStruct> *TarList;
+	unsigned thread_id;
+};
+
 class twrpTar {
-	public:
-		int extract();
-		int compress(string fn);
-		int uncompress(string fn);
-                int addFilesToExistingTar(vector <string> files, string tarFile);
-		int createTar();
-		int addFile(string fn, bool include_root);
-		int entryExists(string entry);
-		int closeTar(bool gzip);
-		int createTarGZFork();
-		int createTarFork();
-		int extractTarFork();
-		int splitArchiveFork();
-                void setfn(string fn);
-                void setdir(string dir);
-	private:
-		int createTGZ();
-		int create();
-		int Split_Archive();
-		int removeEOT(string tarFile);
-		int extractTar();
-		int tarDirs(bool include_root);
-		int Generate_Multiple_Archives(string Path);
-		string Strip_Root_Dir(string Path);
-		int extractTGZ();
-		int openTar(bool gzip);
-		int has_data_media;
-		int Archive_File_Count;
-		unsigned long long Archive_Current_Size;
-		int getArchiveType(); // 1 for compressed - 0 for uncompressed
-		TAR *t;
-		FILE* p;
-		int fd;
-		string tardir;
-		string tarfn;
-		string basefn;
-}; 
+public:
+	twrpTar();
+	virtual ~twrpTar();
+	int createTarFork(ProgressTracking *progress, pid_t &fork_pid);
+	int extractTarFork(ProgressTracking *progress);
+	void setfn(string fn);
+	void setdir(string dir);
+	void setsize(unsigned long long backup_size);
+	void setpassword(string pass);
+	unsigned long long get_size();
+
+public:
+	int use_encryption;
+	int userdata_encryption;
+	int use_compression;
+	int split_archives;
+	int has_data_media;
+	string backup_name;
+	int progress_pipe_fd;
+	string partition_name;
+	string backup_folder;
+
+private:
+	int extract();
+	int addFilesToExistingTar(vector <string> files, string tarFile);
+	int createTar();
+	int addFile(string fn, bool include_root);
+	int entryExists(string entry);
+	int closeTar();
+	int removeEOT(string tarFile);
+	int extractTar();
+	string Strip_Root_Dir(string Path);
+	int openTar();
+	int Generate_TarList(string Path, std::vector<TarListStruct> *TarList, unsigned long long *Target_Size, unsigned *thread_id);
+	static void* createList(void *cookie);
+	static void* extractMulti(void *cookie);
+	int tarList(std::vector<TarListStruct> *TarList, unsigned thread_id);
+	unsigned long long uncompressedSize(string filename, int *archive_type);
+	static void Signal_Kill(int signum);
+
+	int Archive_Current_Type;
+	unsigned long long Archive_Current_Size;
+	unsigned long long Total_Backup_Size;
+	bool include_root_dir;
+	TAR *t;
+	tartype_t tar_type; // Only used in createTar() but variable must persist while the tar is open
+	int fd;
+	pid_t pigz_pid;
+	pid_t oaes_pid;
+	unsigned long long file_count;
+
+	string tardir;
+	string tarfn;
+	string basefn;
+	string password;
+
+	std::vector<TarListStruct> *ItemList;
+	unsigned thread_id;
+};

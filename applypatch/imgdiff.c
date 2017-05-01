@@ -111,6 +111,14 @@
  *
  * After the header there are 'chunk count' bsdiff patches; the offset
  * of each from the beginning of the file is specified in the header.
+ *
+ * This tool can take an optional file of "bonus data".  This is an
+ * extra file of data that is appended to chunk #1 after it is
+ * compressed (it must be a CHUNK_DEFLATE chunk).  The same file must
+ * be available (and passed to applypatch with -b) when applying the
+ * patch.  This is used to reduce the size of recovery-from-boot
+ * patches by combining the boot image with recovery ramdisk
+ * information that is stored on the system partition.
  */
 
 #include <errno.h>
@@ -400,6 +408,7 @@ unsigned char* ReadImage(const char* filename,
         p[2] == 0x08 &&    // deflate compression
         p[3] == 0x00) {    // no header flags
       // 'pos' is the offset of the start of a gzip chunk.
+      size_t chunk_offset = pos;
 
       *num_chunks += 3;
       *chunks = realloc(*chunks, *num_chunks * sizeof(ImageChunk));
@@ -445,6 +454,14 @@ unsigned char* ReadImage(const char* filename,
         strm.avail_out = allocated - curr->len;
         strm.next_out = curr->data + curr->len;
         ret = inflate(&strm, Z_NO_FLUSH);
+        if (ret < 0) {
+            printf("Error: inflate failed [%s] at file offset [%zu]\n"
+                    "imgdiff only supports gzip kernel compression,"
+                    " did you try CONFIG_KERNEL_LZO?\n",
+                    strm.msg, chunk_offset);
+            free(img);
+            return NULL;
+        }
         curr->len = allocated - strm.avail_out;
         if (strm.avail_out == 0) {
           allocated *= 2;
@@ -772,21 +789,45 @@ void DumpChunks(ImageChunk* chunks, int num_chunks) {
 }
 
 int main(int argc, char** argv) {
-  if (argc != 4 && argc != 5) {
-    usage:
-    printf("usage: %s [-z] <src-img> <tgt-img> <patch-file>\n",
-            argv[0]);
-    return 2;
-  }
-
   int zip_mode = 0;
 
-  if (strcmp(argv[1], "-z") == 0) {
+  if (argc >= 2 && strcmp(argv[1], "-z") == 0) {
     zip_mode = 1;
     --argc;
     ++argv;
   }
 
+  size_t bonus_size = 0;
+  unsigned char* bonus_data = NULL;
+  if (argc >= 3 && strcmp(argv[1], "-b") == 0) {
+    struct stat st;
+    if (stat(argv[2], &st) != 0) {
+      printf("failed to stat bonus file %s: %s\n", argv[2], strerror(errno));
+      return 1;
+    }
+    bonus_size = st.st_size;
+    bonus_data = malloc(bonus_size);
+    FILE* f = fopen(argv[2], "rb");
+    if (f == NULL) {
+      printf("failed to open bonus file %s: %s\n", argv[2], strerror(errno));
+      return 1;
+    }
+    if (fread(bonus_data, 1, bonus_size, f) != bonus_size) {
+      printf("failed to read bonus file %s: %s\n", argv[2], strerror(errno));
+      return 1;
+    }
+    fclose(f);
+
+    argc -= 2;
+    argv += 2;
+  }
+
+  if (argc != 4) {
+    usage:
+    printf("usage: %s [-z] [-b <bonus-file>] <src-img> <tgt-img> <patch-file>\n",
+            argv[0]);
+    return 2;
+  }
 
   int num_src_chunks;
   ImageChunk* src_chunks;
@@ -909,6 +950,8 @@ int main(int argc, char** argv) {
   // Compute bsdiff patches for each chunk's data (the uncompressed
   // data, in the case of deflate chunks).
 
+  DumpChunks(src_chunks, num_src_chunks);
+
   printf("Construct patches for %d chunks...\n", num_tgt_chunks);
   unsigned char** patch_data = malloc(num_tgt_chunks * sizeof(unsigned char*));
   size_t* patch_size = malloc(num_tgt_chunks * sizeof(size_t));
@@ -923,6 +966,13 @@ int main(int argc, char** argv) {
         patch_data[i] = MakePatch(src_chunks, tgt_chunks+i, patch_size+i);
       }
     } else {
+      if (i == 1 && bonus_data) {
+        printf("  using %d bytes of bonus data for chunk %d\n", bonus_size, i);
+        src_chunks[i].data = realloc(src_chunks[i].data, src_chunks[i].len + bonus_size);
+        memcpy(src_chunks[i].data+src_chunks[i].len, bonus_data, bonus_size);
+        src_chunks[i].len += bonus_size;
+     }
+
       patch_data[i] = MakePatch(src_chunks+i, tgt_chunks+i, patch_size+i);
     }
     printf("patch %3d is %d bytes (of %d)\n",

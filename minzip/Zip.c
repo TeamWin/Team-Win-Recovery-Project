@@ -184,7 +184,7 @@ static int validFilename(const char *fileName, unsigned int fileNameLen)
  *
  * Returns "true" on success.
  */
-static bool parseZipArchive(ZipArchive* pArchive, const MemMapping* pMap)
+static bool parseZipArchive(ZipArchive* pArchive)
 {
     bool result = false;
     const unsigned char* ptr;
@@ -196,7 +196,7 @@ static bool parseZipArchive(ZipArchive* pArchive, const MemMapping* pMap)
      * signature for the first file (LOCSIG) or, if the archive doesn't
      * have any files in it, the end-of-central-directory signature (ENDSIG).
      */
-    val = get4LE(pMap->addr);
+    val = get4LE(pArchive->addr);
     if (val == ENDSIG) {
         LOGI("Found Zip archive, but it looks empty\n");
         goto bail;
@@ -209,14 +209,14 @@ static bool parseZipArchive(ZipArchive* pArchive, const MemMapping* pMap)
      * Find the EOCD.  We'll find it immediately unless they have a file
      * comment.
      */
-    ptr = pMap->addr + pMap->length - ENDHDR;
+    ptr = pArchive->addr + pArchive->length - ENDHDR;
 
-    while (ptr >= (const unsigned char*) pMap->addr) {
+    while (ptr >= (const unsigned char*) pArchive->addr) {
         if (*ptr == (ENDSIG & 0xff) && get4LE(ptr) == ENDSIG)
             break;
         ptr--;
     }
-    if (ptr < (const unsigned char*) pMap->addr) {
+    if (ptr < (const unsigned char*) pArchive->addr) {
         LOGI("Could not find end-of-central-directory in Zip\n");
         goto bail;
     }
@@ -230,9 +230,9 @@ static bool parseZipArchive(ZipArchive* pArchive, const MemMapping* pMap)
     cdOffset = get4LE(ptr + ENDOFF);
 
     LOGVV("numEntries=%d cdOffset=%d\n", numEntries, cdOffset);
-    if (numEntries == 0 || cdOffset >= pMap->length) {
+    if (numEntries == 0 || cdOffset >= pArchive->length) {
         LOGW("Invalid entries=%d offset=%d (len=%zd)\n",
-            numEntries, cdOffset, pMap->length);
+            numEntries, cdOffset, pArchive->length);
         goto bail;
     }
 
@@ -245,14 +245,14 @@ static bool parseZipArchive(ZipArchive* pArchive, const MemMapping* pMap)
     if (pArchive->pEntries == NULL || pArchive->pHash == NULL)
         goto bail;
 
-    ptr = pMap->addr + cdOffset;
+    ptr = pArchive->addr + cdOffset;
     for (i = 0; i < numEntries; i++) {
         ZipEntry* pEntry;
         unsigned int fileNameLen, extraLen, commentLen, localHdrOffset;
         const unsigned char* localHdr;
         const char *fileName;
 
-        if (ptr + CENHDR > (const unsigned char*)pMap->addr + pMap->length) {
+        if (ptr + CENHDR > (const unsigned char*)pArchive->addr + pArchive->length) {
             LOGW("Ran off the end (at %d)\n", i);
             goto bail;
         }
@@ -266,7 +266,7 @@ static bool parseZipArchive(ZipArchive* pArchive, const MemMapping* pMap)
         extraLen = get2LE(ptr + CENEXT);
         commentLen = get2LE(ptr + CENCOM);
         fileName = (const char*)ptr + CENHDR;
-        if (fileName + fileNameLen > (const char*)pMap->addr + pMap->length) {
+        if (fileName + fileNameLen > (const char*)pArchive->addr + pArchive->length) {
             LOGW("Filename ran off the end (at %d)\n", i);
             goto bail;
         }
@@ -327,10 +327,6 @@ static bool parseZipArchive(ZipArchive* pArchive, const MemMapping* pMap)
 #else
         pEntry = &pArchive->pEntries[i];
 #endif
-
-        //LOGI("%d: localHdr=%d fnl=%d el=%d cl=%d\n",
-        //    i, localHdrOffset, fileNameLen, extraLen, commentLen);
-
         pEntry->fileNameLen = fileNameLen;
         pEntry->fileName = fileName;
 
@@ -352,15 +348,15 @@ static bool parseZipArchive(ZipArchive* pArchive, const MemMapping* pMap)
         }
         pEntry->externalFileAttributes = get4LE(ptr + CENATX);
 
-        // Perform pMap->addr + localHdrOffset, ensuring that it won't
+        // Perform pArchive->addr + localHdrOffset, ensuring that it won't
         // overflow. This is needed because localHdrOffset is untrusted.
-        if (!safe_add((uintptr_t *)&localHdr, (uintptr_t)pMap->addr,
+        if (!safe_add((uintptr_t *)&localHdr, (uintptr_t)pArchive->addr,
             (uintptr_t)localHdrOffset)) {
             LOGW("Integer overflow adding in parseZipArchive\n");
             goto bail;
         }
         if ((uintptr_t)localHdr + LOCHDR >
-            (uintptr_t)pMap->addr + pMap->length) {
+            (uintptr_t)pArchive->addr + pArchive->length) {
             LOGW("Bad offset to local header: %d (at %d)\n", localHdrOffset, i);
             goto bail;
         }
@@ -370,11 +366,11 @@ static bool parseZipArchive(ZipArchive* pArchive, const MemMapping* pMap)
         }
         pEntry->offset = localHdrOffset + LOCHDR
             + get2LE(localHdr + LOCNAM) + get2LE(localHdr + LOCEXT);
-        if (!safe_add(NULL, pEntry->offset, pEntry->compLen)) {
+        if (!safe_add(NULL, pEntry->offset, (typeof(pEntry->offset))pEntry->compLen)) {
             LOGW("Integer overflow adding in parseZipArchive\n");
             goto bail;
         }
-        if ((size_t)pEntry->offset + pEntry->compLen > pMap->length) {
+        if ((size_t)pEntry->offset + pEntry->compLen > pArchive->length) {
             LOGW("Data ran off the end (at %d)\n", i);
             goto bail;
         }
@@ -427,50 +423,32 @@ bail:
  *
  * On success, we fill out the contents of "pArchive".
  */
-int mzOpenZipArchive(const char* fileName, ZipArchive* pArchive)
+int mzOpenZipArchive(unsigned char* addr, size_t length, ZipArchive* pArchive)
 {
-    MemMapping map;
     int err;
 
-    LOGV("Opening archive '%s' %p\n", fileName, pArchive);
+    memset(pArchive, 0, sizeof(ZipArchive));
 
-    map.addr = NULL;
-    memset(pArchive, 0, sizeof(*pArchive));
-
-    pArchive->fd = open(fileName, O_RDONLY, 0);
-    if (pArchive->fd < 0) {
-        err = errno ? errno : -1;
-        LOGV("Unable to open '%s': %s\n", fileName, strerror(err));
-        goto bail;
-    }
-
-    if (sysMapFileInShmem(pArchive->fd, &map) != 0) {
-        err = -1;
-        LOGW("Map of '%s' failed\n", fileName);
-        goto bail;
-    }
-
-    if (map.length < ENDHDR) {
+    if (length < ENDHDR) {
         err = -1;
         LOGV("File '%s' too small to be zip (%zd)\n", fileName, map.length);
         goto bail;
     }
 
-    if (!parseZipArchive(pArchive, &map)) {
+    pArchive->addr = addr;
+    pArchive->length = length;
+
+    if (!parseZipArchive(pArchive)) {
         err = -1;
         LOGV("Parsing '%s' failed\n", fileName);
         goto bail;
     }
 
     err = 0;
-    sysCopyMap(&pArchive->map, &map);
-    map.addr = NULL;
 
 bail:
     if (err != 0)
         mzCloseZipArchive(pArchive);
-    if (map.addr != NULL)
-        sysReleaseShmem(&map);
     return err;
 }
 
@@ -483,16 +461,10 @@ void mzCloseZipArchive(ZipArchive* pArchive)
 {
     LOGV("Closing archive %p\n", pArchive);
 
-    if (pArchive->fd >= 0)
-        close(pArchive->fd);
-    if (pArchive->map.addr != NULL)
-        sysReleaseShmem(&pArchive->map);
-
     free(pArchive->pEntries);
 
     mzHashTableFree(pArchive->pHash);
 
-    pArchive->fd = -1;
     pArchive->pHash = NULL;
     pArchive->pEntries = NULL;
 }
@@ -514,7 +486,7 @@ const ZipEntry* mzFindZipEntry(const ZipArchive* pArchive,
 /*
  * Return true if the entry is a symbolic link.
  */
-bool mzIsZipEntrySymlink(const ZipEntry* pEntry)
+static bool mzIsZipEntrySymlink(const ZipEntry* pEntry)
 {
     if ((pEntry->versionMadeBy & 0xff00) == CENVEM_UNIX) {
         return S_ISLNK(pEntry->externalFileAttributes >> 16);
@@ -528,29 +500,7 @@ static bool processStoredEntry(const ZipArchive *pArchive,
     const ZipEntry *pEntry, ProcessZipEntryContentsFunction processFunction,
     void *cookie)
 {
-    size_t bytesLeft = pEntry->compLen;
-    while (bytesLeft > 0) {
-        unsigned char buf[32 * 1024];
-        ssize_t n;
-        size_t count;
-        bool ret;
-
-        count = bytesLeft;
-        if (count > sizeof(buf)) {
-            count = sizeof(buf);
-        }
-        n = read(pArchive->fd, buf, count);
-        if (n < 0 || (size_t)n != count) {
-            LOGE("Can't read %zu bytes from zip file: %ld\n", count, n);
-            return false;
-        }
-        ret = processFunction(buf, n, cookie);
-        if (!ret) {
-            return false;
-        }
-        bytesLeft -= count;
-    }
-    return true;
+    return processFunction(pArchive->addr + pEntry->offset, pEntry->uncompLen, cookie);
 }
 
 static bool processDeflatedEntry(const ZipArchive *pArchive,
@@ -573,8 +523,8 @@ static bool processDeflatedEntry(const ZipArchive *pArchive,
     zstream.zalloc = Z_NULL;
     zstream.zfree = Z_NULL;
     zstream.opaque = Z_NULL;
-    zstream.next_in = NULL;
-    zstream.avail_in = 0;
+    zstream.next_in = pArchive->addr + pEntry->offset;
+    zstream.avail_in = pEntry->compLen;
     zstream.next_out = (Bytef*) procBuf;
     zstream.avail_out = sizeof(procBuf);
     zstream.data_type = Z_UNKNOWN;
@@ -598,25 +548,6 @@ static bool processDeflatedEntry(const ZipArchive *pArchive,
      * Loop while we have data.
      */
     do {
-        /* read as much as we can */
-        if (zstream.avail_in == 0) {
-            long getSize = (compRemaining > (long)sizeof(readBuf)) ?
-                        (long)sizeof(readBuf) : compRemaining;
-            LOGVV("+++ reading %ld bytes (%ld left)\n",
-                getSize, compRemaining);
-
-            int cc = read(pArchive->fd, readBuf, getSize);
-            if (cc != (int) getSize) {
-                LOGW("inflate read failed (%d vs %ld)\n", cc, getSize);
-                goto z_bail;
-            }
-
-            compRemaining -= getSize;
-
-            zstream.next_in = readBuf;
-            zstream.avail_in = getSize;
-        }
-
         /* uncompress the data */
         zerr = inflate(&zstream, Z_NO_FLUSH);
         if (zerr != Z_OK && zerr != Z_STREAM_END) {
@@ -676,12 +607,6 @@ bool mzProcessZipEntryContents(const ZipArchive *pArchive,
     bool ret = false;
     off_t oldOff;
 
-    /* save current offset */
-    oldOff = lseek(pArchive->fd, 0, SEEK_CUR);
-
-    /* Seek to the beginning of the entry's compressed data. */
-    lseek(pArchive->fd, pEntry->offset, SEEK_SET);
-
     switch (pEntry->compression) {
     case STORED:
         ret = processStoredEntry(pArchive, pEntry, processFunction, cookie);
@@ -695,8 +620,6 @@ bool mzProcessZipEntryContents(const ZipArchive *pArchive,
         break;
     }
 
-    /* restore file offset */
-    lseek(pArchive->fd, oldOff, SEEK_SET);
     return ret;
 }
 
@@ -704,30 +627,6 @@ static bool crcProcessFunction(const unsigned char *data, int dataLen,
         void *crc)
 {
     *(unsigned long *)crc = crc32(*(unsigned long *)crc, data, dataLen);
-    return true;
-}
-
-/*
- * Check the CRC on this entry; return true if it is correct.
- * May do other internal checks as well.
- */
-bool mzIsZipEntryIntact(const ZipArchive *pArchive, const ZipEntry *pEntry)
-{
-    unsigned long crc;
-    bool ret;
-
-    crc = crc32(0L, Z_NULL, 0);
-    ret = mzProcessZipEntryContents(pArchive, pEntry, crcProcessFunction,
-            (void *)&crc);
-    if (!ret) {
-        LOGE("Can't calculate CRC for entry\n");
-        return false;
-    }
-    if (crc != (unsigned long)pEntry->crc32) {
-        LOGW("CRC for entry %.*s (0x%08lx) != expected (0x%08lx)\n",
-                pEntry->fileNameLen, pEntry->fileName, crc, pEntry->crc32);
-        return false;
-    }
     return true;
 }
 
@@ -772,22 +671,22 @@ bool mzReadZipEntry(const ZipArchive* pArchive, const ZipEntry* pEntry,
 static bool writeProcessFunction(const unsigned char *data, int dataLen,
                                  void *cookie)
 {
-    int fd = (int)cookie;
-
+    int fd = (int)(intptr_t)cookie;
+    if (dataLen == 0) {
+        return true;
+    }
     ssize_t soFar = 0;
     while (true) {
-        ssize_t n = write(fd, data+soFar, dataLen-soFar);
+        ssize_t n = TEMP_FAILURE_RETRY(write(fd, data+soFar, dataLen-soFar));
         if (n <= 0) {
-            LOGE("Error writing %ld bytes from zip file from %p: %s\n",
+            LOGE("Error writing %zd bytes from zip file from %p: %s\n",
                  dataLen-soFar, data+soFar, strerror(errno));
-            if (errno != EINTR) {
-              return false;
-            }
+            return false;
         } else if (n > 0) {
             soFar += n;
             if (soFar == dataLen) return true;
             if (soFar > dataLen) {
-                LOGE("write overrun?  (%ld bytes instead of %d)\n",
+                LOGE("write overrun?  (%zd bytes instead of %d)\n",
                      soFar, dataLen);
                 return false;
             }
@@ -802,7 +701,7 @@ bool mzExtractZipEntryToFile(const ZipArchive *pArchive,
     const ZipEntry *pEntry, int fd)
 {
     bool ret = mzProcessZipEntryContents(pArchive, pEntry, writeProcessFunction,
-                                         (void*)fd);
+                                         (void*)(intptr_t)fd);
     if (!ret) {
         LOGE("Can't extract entry to file.\n");
         return false;
@@ -929,7 +828,7 @@ static const char *targetEntryPath(MzPathHelper *helper, ZipEntry *pEntry)
  */
 bool mzExtractRecursive(const ZipArchive *pArchive,
                         const char *zipDir, const char *targetDir,
-                        int flags, const struct utimbuf *timestamp,
+                        const struct utimbuf *timestamp,
                         void (*callback)(const char *fn, void *), void *cookie,
                         struct selabel_handle *sehnd)
 {
@@ -979,19 +878,20 @@ bool mzExtractRecursive(const ZipArchive *pArchive,
 
     /* Walk through the entries and extract anything whose path begins
      * with zpath.
-//TODO: since the entries are sorted, binary search for the first match
-//      and stop after the first non-match.
+    //TODO: since the entries are sorted, binary search for the first match
+    //      and stop after the first non-match.
      */
     unsigned int i;
     bool seenMatch = false;
     int ok = true;
+    int extractCount = 0;
     for (i = 0; i < pArchive->numEntries; i++) {
         ZipEntry *pEntry = pArchive->pEntries + i;
         if (pEntry->fileNameLen < zipDirLen) {
-//TODO: look out for a single empty directory entry that matches zpath, but
-//      missing the trailing slash.  Most zip files seem to include
-//      the trailing slash, but I think it's legal to leave it off.
-//      e.g., zpath "a/b/", entry "a/b", with no children of the entry.
+       //TODO: look out for a single empty directory entry that matches zpath, but
+       //      missing the trailing slash.  Most zip files seem to include
+       //      the trailing slash, but I think it's legal to leave it off.
+       //      e.g., zpath "a/b/", entry "a/b", with no children of the entry.
             /* No chance of matching.
              */
 #if SORT_ENTRIES
@@ -1032,30 +932,19 @@ bool mzExtractRecursive(const ZipArchive *pArchive,
             break;
         }
 
-        /* With DRY_RUN set, invoke the callback but don't do anything else.
-         */
-        if (flags & MZ_EXTRACT_DRY_RUN) {
-            if (callback != NULL) callback(targetFile, cookie);
-            continue;
-        }
-
-        /* Create the file or directory.
-         */
 #define UNZIP_DIRMODE 0755
 #define UNZIP_FILEMODE 0644
-        if (pEntry->fileName[pEntry->fileNameLen-1] == '/') {
-            if (!(flags & MZ_EXTRACT_FILES_ONLY)) {
-                int ret = dirCreateHierarchy(
-                        targetFile, UNZIP_DIRMODE, timestamp, false, sehnd);
-                if (ret != 0) {
-                    LOGE("Can't create containing directory for \"%s\": %s\n",
-                            targetFile, strerror(errno));
-                    ok = false;
-                    break;
-                }
-                LOGD("Extracted dir \"%s\"\n", targetFile);
-            }
-        } else {
+        /*
+         * Create the file or directory. We ignore directory entries
+         * because we recursively create paths to each file entry we encounter
+         * in the zip archive anyway.
+         *
+         * NOTE: A "directory entry" in a zip archive is just a zero length
+         * entry that ends in a "/". They're not mandatory and many tools get
+         * rid of them. We need to process them only if we want to preserve
+         * empty directories from the archive.
+         */
+        if (pEntry->fileName[pEntry->fileNameLen-1] != '/') {
             /* This is not a directory.  First, make sure that
              * the containing directory exists.
              */
@@ -1068,98 +957,62 @@ bool mzExtractRecursive(const ZipArchive *pArchive,
                 break;
             }
 
-            /* With FILES_ONLY set, we need to ignore metadata entirely,
-             * so treat symlinks as regular files.
+            /*
+             * The entry is a regular file or a symlink. Open the target for writing.
+             *
+             * TODO: This behavior for symlinks seems rather bizarre. For a
+             * symlink foo/bar/baz -> foo/tar/taz, we will create a file called
+             * "foo/bar/baz" whose contents are the literal "foo/tar/taz". We
+             * warn about this for now and preserve older behavior.
              */
-            if (!(flags & MZ_EXTRACT_FILES_ONLY) && mzIsZipEntrySymlink(pEntry)) {
-                /* The entry is a symbolic link.
-                 * The relative target of the symlink is in the
-                 * data section of this entry.
-                 */
-                if (pEntry->uncompLen == 0) {
-                    LOGE("Symlink entry \"%s\" has no target\n",
-                            targetFile);
-                    ok = false;
-                    break;
-                }
-                char *linkTarget = malloc(pEntry->uncompLen + 1);
-                if (linkTarget == NULL) {
-                    ok = false;
-                    break;
-                }
-                ok = mzReadZipEntry(pArchive, pEntry, linkTarget,
-                        pEntry->uncompLen);
-                if (!ok) {
-                    LOGE("Can't read symlink target for \"%s\"\n",
-                            targetFile);
-                    free(linkTarget);
-                    break;
-                }
-                linkTarget[pEntry->uncompLen] = '\0';
-
-                /* Make the link.
-                 */
-                ret = symlink(linkTarget, targetFile);
-                if (ret != 0) {
-                    LOGE("Can't symlink \"%s\" to \"%s\": %s\n",
-                            targetFile, linkTarget, strerror(errno));
-                    free(linkTarget);
-                    ok = false;
-                    break;
-                }
-                LOGD("Extracted symlink \"%s\" -> \"%s\"\n",
-                        targetFile, linkTarget);
-                free(linkTarget);
-            } else {
-                /* The entry is a regular file.
-                 * Open the target for writing.
-                 */
-
-#ifdef HAVE_SELINUX
-                char *secontext = NULL;
-
-                if (sehnd) {
-                    selabel_lookup(sehnd, &secontext, targetFile, UNZIP_FILEMODE);
-                    setfscreatecon(secontext);
-                }
-#endif
-
-                int fd = creat(targetFile, UNZIP_FILEMODE);
-
-#ifdef HAVE_SELINUX
-                if (secontext) {
-                    freecon(secontext);
-                    setfscreatecon(NULL);
-                }
-#endif
-
-                if (fd < 0) {
-                    LOGE("Can't create target file \"%s\": %s\n",
-                            targetFile, strerror(errno));
-                    ok = false;
-                    break;
-                }
-
-                bool ok = mzExtractZipEntryToFile(pArchive, pEntry, fd);
-                close(fd);
-                if (!ok) {
-                    LOGE("Error extracting \"%s\"\n", targetFile);
-                    ok = false;
-                    break;
-                }
-
-                if (timestamp != NULL && utime(targetFile, timestamp)) {
-                    LOGE("Error touching \"%s\"\n", targetFile);
-                    ok = false;
-                    break;
-                }
-
-                LOGD("Extracted file \"%s\"\n", targetFile);
+            if (mzIsZipEntrySymlink(pEntry)) {
+                LOGE("Symlink entry \"%.*s\" will be output as a regular file.",
+                     pEntry->fileNameLen, pEntry->fileName);
             }
+
+            char *secontext = NULL;
+
+            if (sehnd) {
+                selabel_lookup(sehnd, &secontext, targetFile, UNZIP_FILEMODE);
+                setfscreatecon(secontext);
+            }
+
+            int fd = creat(targetFile, UNZIP_FILEMODE);
+
+            if (secontext) {
+                freecon(secontext);
+                setfscreatecon(NULL);
+            }
+
+            if (fd < 0) {
+                LOGE("Can't create target file \"%s\": %s\n",
+                        targetFile, strerror(errno));
+                ok = false;
+                break;
+            }
+
+            bool ok = mzExtractZipEntryToFile(pArchive, pEntry, fd);
+            close(fd);
+            if (!ok) {
+                LOGE("Error extracting \"%s\"\n", targetFile);
+                ok = false;
+                break;
+            }
+
+            if (timestamp != NULL && utime(targetFile, timestamp)) {
+                LOGE("Error touching \"%s\"\n", targetFile);
+                ok = false;
+                break;
+            }
+
+            LOGV("Extracted file \"%s\"\n", targetFile);
+            ++extractCount;
         }
 
         if (callback != NULL) callback(targetFile, cookie);
     }
+
+    LOGD("Extracted %d file(s)\n", extractCount);
 
     free(helper.buf);
     free(zpath);

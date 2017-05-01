@@ -2,11 +2,12 @@
 	exfatfs.h (29.08.09)
 	Definitions of structures and constants used in exFAT file system.
 
-	Copyright (C) 2010-2013  Andrew Nayenko
+	Free exFAT implementation.
+	Copyright (C) 2010-2015  Andrew Nayenko
 
-	This program is free software: you can redistribute it and/or modify
+	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
+	the Free Software Foundation, either version 2 of the License, or
 	(at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
@@ -14,14 +15,16 @@
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License along
+	with this program; if not, write to the Free Software Foundation, Inc.,
+	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
 #ifndef EXFATFS_H_INCLUDED
 #define EXFATFS_H_INCLUDED
 
 #include "byteorder.h"
+#include "compiler.h"
 
 typedef uint32_t cluster_t;		/* cluster number */
 
@@ -62,10 +65,12 @@ struct exfat_super_block
 	uint8_t __unused2[397];			/* 0x71 always 0 */
 	le16_t boot_signature;			/* the value of 0xAA55 */
 }
-__attribute__((__packed__));
+PACKED;
+STATIC_ASSERT(sizeof(struct exfat_super_block) == 512);
 
 #define EXFAT_ENTRY_VALID     0x80
 #define EXFAT_ENTRY_CONTINUED 0x40
+#define EXFAT_ENTRY_OPTIONAL  0x20
 
 #define EXFAT_ENTRY_BITMAP    (0x01 | EXFAT_ENTRY_VALID)
 #define EXFAT_ENTRY_UPCASE    (0x02 | EXFAT_ENTRY_VALID)
@@ -79,7 +84,8 @@ struct exfat_entry					/* common container for all entries */
 	uint8_t type;					/* any of EXFAT_ENTRY_xxx */
 	uint8_t data[31];
 }
-__attribute__((__packed__));
+PACKED;
+STATIC_ASSERT(sizeof(struct exfat_entry) == 32);
 
 #define EXFAT_ENAME_MAX 15
 
@@ -90,7 +96,8 @@ struct exfat_entry_bitmap			/* allocated clusters bitmap */
 	le32_t start_cluster;
 	le64_t size;					/* in bytes */
 }
-__attribute__((__packed__));
+PACKED;
+STATIC_ASSERT(sizeof(struct exfat_entry_bitmap) == 32);
 
 struct exfat_entry_upcase			/* upper case translation table */
 {
@@ -101,7 +108,8 @@ struct exfat_entry_upcase			/* upper case translation table */
 	le32_t start_cluster;
 	le64_t size;					/* in bytes */
 }
-__attribute__((__packed__));
+PACKED;
+STATIC_ASSERT(sizeof(struct exfat_entry_upcase) == 32);
 
 struct exfat_entry_label			/* volume label */
 {
@@ -109,7 +117,8 @@ struct exfat_entry_label			/* volume label */
 	uint8_t length;					/* number of characters */
 	le16_t name[EXFAT_ENAME_MAX];	/* in UTF-16LE */
 }
-__attribute__((__packed__));
+PACKED;
+STATIC_ASSERT(sizeof(struct exfat_entry_label) == 32);
 
 #define EXFAT_ATTRIB_RO     0x01
 #define EXFAT_ATTRIB_HIDDEN 0x02
@@ -132,7 +141,8 @@ struct exfat_entry_meta1			/* file or directory info (part 1) */
 	uint8_t mtime_cs;				/* latest modification time in cs */
 	uint8_t __unknown2[10];
 }
-__attribute__((__packed__));
+PACKED;
+STATIC_ASSERT(sizeof(struct exfat_entry_meta1) == 32);
 
 #define EXFAT_FLAG_ALWAYS1		(1u << 0)
 #define EXFAT_FLAG_CONTIGUOUS	(1u << 1)
@@ -145,12 +155,13 @@ struct exfat_entry_meta2			/* file or directory info (part 2) */
 	uint8_t name_length;
 	le16_t name_hash;
 	le16_t __unknown2;
-	le64_t real_size;				/* in bytes, equals to size */
+	le64_t valid_size;				/* in bytes, less or equal to size */
 	uint8_t __unknown3[4];
 	le32_t start_cluster;
-	le64_t size;					/* in bytes, equals to real_size */
+	le64_t size;					/* in bytes */
 }
-__attribute__((__packed__));
+PACKED;
+STATIC_ASSERT(sizeof(struct exfat_entry_meta2) == 32);
 
 struct exfat_entry_name				/* file or directory name */
 {
@@ -158,6 +169,7 @@ struct exfat_entry_name				/* file or directory name */
 	uint8_t __unknown;
 	le16_t name[EXFAT_ENAME_MAX];	/* in UTF-16LE */
 }
-__attribute__((__packed__));
+PACKED;
+STATIC_ASSERT(sizeof(struct exfat_entry_name) == 32);
 
 #endif /* ifndef EXFATFS_H_INCLUDED */

@@ -64,18 +64,49 @@ $ADB push $ANDROID_PRODUCT_OUT/system/bin/verifier_test \
 expect_succeed() {
   testname "$1 (should succeed)"
   $ADB push $DATA_DIR/$1 $WORK_DIR/package.zip
-  run_command $WORK_DIR/verifier_test $WORK_DIR/package.zip || fail
+  shift
+  run_command $WORK_DIR/verifier_test "$@" $WORK_DIR/package.zip || fail
 }
 
 expect_fail() {
   testname "$1 (should fail)"
   $ADB push $DATA_DIR/$1 $WORK_DIR/package.zip
-  run_command $WORK_DIR/verifier_test $WORK_DIR/package.zip && fail
+  shift
+  run_command $WORK_DIR/verifier_test "$@" $WORK_DIR/package.zip && fail
 }
 
+# not signed at all
 expect_fail unsigned.zip
+# signed in the pre-donut way
 expect_fail jarsigned.zip
-expect_succeed otasigned.zip
+
+# success cases
+expect_succeed otasigned.zip -e3
+expect_succeed otasigned_f4.zip -f4
+expect_succeed otasigned_sha256.zip -e3 -sha256
+expect_succeed otasigned_f4_sha256.zip -f4 -sha256
+expect_succeed otasigned_ecdsa_sha256.zip -ec -sha256
+
+# success with multiple keys
+expect_succeed otasigned.zip -f4 -e3
+expect_succeed otasigned_f4.zip -ec -f4
+expect_succeed otasigned_sha256.zip -ec -e3 -e3 -sha256
+expect_succeed otasigned_f4_sha256.zip -ec -sha256 -e3 -f4 -sha256
+expect_succeed otasigned_ecdsa_sha256.zip -f4 -sha256 -e3 -ec -sha256
+
+# verified against different key
+expect_fail otasigned.zip -f4
+expect_fail otasigned_f4.zip -e3
+expect_fail otasigned_ecdsa_sha256.zip -e3 -sha256
+
+# verified against right key but wrong hash algorithm
+expect_fail otasigned.zip -e3 -sha256
+expect_fail otasigned_f4.zip -f4 -sha256
+expect_fail otasigned_sha256.zip
+expect_fail otasigned_f4_sha256.zip -f4
+expect_fail otasigned_ecdsa_sha256.zip
+
+# various other cases
 expect_fail random.zip
 expect_fail fake-eocd.zip
 expect_fail alter-metadata.zip

@@ -24,12 +24,8 @@
 extern "C" {
 #endif
 
-#ifdef HAVE_SELINUX
 #include <selinux/selinux.h>
 #include <selinux/label.h>
-#else
-struct selabel_handle;
-#endif
 
 /* Like "mkdir -p", try to guarantee that all directories
  * specified in path are present, creating as many directories
@@ -51,14 +47,6 @@ int dirCreateHierarchy(const char *path, int mode,
 /* rm -rf <path>
  */
 int dirUnlinkHierarchy(const char *path);
-
-/* chown -R <uid>:<gid> <path>
- * chmod -R <mode> <path>
- *
- * Sets directories to <dirMode> and files to <fileMode>.  Skips symlinks.
- */
-int dirSetHierarchyPermissions(const char *path,
-         int uid, int gid, int dirMode, int fileMode);
 
 #ifdef __cplusplus
 }

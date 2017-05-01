@@ -28,8 +28,8 @@
 
 #include "mtdutils.h"
 
-#ifdef RK3066
-    #include "rk30hack.h"
+#ifdef RK3X
+    #include "rk3xhack.h"
 #endif
 
 struct MtdReadContext {
@@ -105,7 +105,7 @@ mtd_scan_partitions()
     if (fd < 0) {
         goto bail;
     }
-    nbytes = read(fd, buf, sizeof(buf) - 1);
+    nbytes = TEMP_FAILURE_RETRY(read(fd, buf, sizeof(buf) - 1));
     close(fd);
     if (nbytes < 0) {
         goto bail;
@@ -276,42 +276,41 @@ MtdReadContext *mtd_read_partition(const MtdPartition *partition)
     return ctx;
 }
 
-// Seeks to a location in the partition.  Don't mix with reads of
-// anything other than whole blocks; unpredictable things will result.
-void mtd_read_skip_to(const MtdReadContext* ctx, size_t offset) {
-    lseek64(ctx->fd, offset, SEEK_SET);
-}
-
 static int read_block(const MtdPartition *partition, int fd, char *data)
 {
     struct mtd_ecc_stats before, after;
     if (ioctl(fd, ECCGETSTATS, &before)) {
-        fprintf(stderr, "mtd: ECCGETSTATS error (%s)\n", strerror(errno));
+        printf("mtd: ECCGETSTATS error (%s)\n", strerror(errno));
         return -1;
     }
 
-    loff_t pos = lseek64(fd, 0, SEEK_CUR);
+    loff_t pos = TEMP_FAILURE_RETRY(lseek64(fd, 0, SEEK_CUR));
+    if (pos == -1) {
+        printf("mtd: read_block: couldn't SEEK_CUR: %s\n", strerror(errno));
+        return -1;
+    }
 
     ssize_t size = partition->erase_size;
     int mgbb;
 
     while (pos + size <= (int) partition->size) {
-        if (lseek64(fd, pos, SEEK_SET) != pos || read(fd, data, size) != size) {
-            fprintf(stderr, "mtd: read error at 0x%08llx (%s)\n",
+        if (TEMP_FAILURE_RETRY(lseek64(fd, pos, SEEK_SET)) != pos ||
+                    TEMP_FAILURE_RETRY(read(fd, data, size)) != size) {
+            printf("mtd: read error at 0x%08llx (%s)\n",
                     pos, strerror(errno));
         } else if (ioctl(fd, ECCGETSTATS, &after)) {
-            fprintf(stderr, "mtd: ECCGETSTATS error (%s)\n", strerror(errno));
+            printf("mtd: ECCGETSTATS error (%s)\n", strerror(errno));
             return -1;
         } else if (after.failed != before.failed) {
-            fprintf(stderr, "mtd: ECC errors (%d soft, %d hard) at 0x%08llx\n",
+            printf("mtd: ECC errors (%d soft, %d hard) at 0x%08llx\n",
                     after.corrected - before.corrected,
                     after.failed - before.failed, pos);
             // copy the comparison baseline for the next read.
             memcpy(&before, &after, sizeof(struct mtd_ecc_stats));
         } else if ((mgbb = ioctl(fd, MEMGETBADBLOCK, &pos))) {
             fprintf(stderr,
-                    "mtd: MEMGETBADBLOCK returned %d at 0x%08llx (errno=%d)\n",
-                    mgbb, pos, errno);
+                    "mtd: MEMGETBADBLOCK returned %d at 0x%08llx: %s\n",
+                    mgbb, pos, strerror(errno));
         } else {
             return 0;  // Success!
         }
@@ -406,8 +405,11 @@ static int write_block(MtdWriteContext *ctx, const char *data)
     const MtdPartition *partition = ctx->partition;
     int fd = ctx->fd;
 
-    off_t pos = lseek(fd, 0, SEEK_CUR);
-    if (pos == (off_t) -1) return 1;
+    off_t pos = TEMP_FAILURE_RETRY(lseek(fd, 0, SEEK_CUR));
+    if (pos == (off_t) -1) {
+        printf("mtd: write_block: couldn't SEEK_CUR: %s\n", strerror(errno));
+        return -1;
+    }
 
     ssize_t size = partition->erase_size;
     while (pos + size <= (int) partition->size) {
@@ -416,8 +418,8 @@ static int write_block(MtdWriteContext *ctx, const char *data)
         if (ret != 0 && !(ret == -1 && errno == EOPNOTSUPP)) {
             add_bad_block_offset(ctx, pos);
             fprintf(stderr,
-                    "mtd: not writing bad block at 0x%08lx (ret %d errno %d)\n",
-                    pos, ret, errno);
+                    "mtd: not writing bad block at 0x%08lx (ret %d): %s\n",
+                    pos, ret, strerror(errno));
             pos += partition->erase_size;
             continue;  // Don't try to erase known factory-bad blocks.
         }
@@ -427,7 +429,7 @@ static int write_block(MtdWriteContext *ctx, const char *data)
         erase_info.length = size;
         int retry;
         for (retry = 0; retry < 2; ++retry) {
-#ifdef RK3066
+#ifdef RK3X
             if (rk30_zero_out(fd, pos, size) < 0) {
                 fprintf(stderr, "mtd: erase failure at 0x%08lx (%s)\n",
                         pos, strerror(errno));
@@ -435,43 +437,44 @@ static int write_block(MtdWriteContext *ctx, const char *data)
             }
 #else
             if (ioctl(fd, MEMERASE, &erase_info) < 0) {
-                fprintf(stderr, "mtd: erase failure at 0x%08lx (%s)\n",
+                printf("mtd: erase failure at 0x%08lx (%s)\n",
                         pos, strerror(errno));
                 continue;
             }
 #endif
-            if (lseek(fd, pos, SEEK_SET) != pos ||
-                write(fd, data, size) != size) {
-                fprintf(stderr, "mtd: write error at 0x%08lx (%s)\n",
+            if (TEMP_FAILURE_RETRY(lseek(fd, pos, SEEK_SET)) != pos ||
+                TEMP_FAILURE_RETRY(write(fd, data, size)) != size) {
+                printf("mtd: write error at 0x%08lx (%s)\n",
                         pos, strerror(errno));
             }
 
             char verify[size];
-            if (lseek(fd, pos, SEEK_SET) != pos ||
-                read(fd, verify, size) != size) {
-                fprintf(stderr, "mtd: re-read error at 0x%08lx (%s)\n",
+            if (TEMP_FAILURE_RETRY(lseek(fd, pos, SEEK_SET)) != pos ||
+                TEMP_FAILURE_RETRY(read(fd, verify, size)) != size) {
+                printf("mtd: re-read error at 0x%08lx (%s)\n",
                         pos, strerror(errno));
                 continue;
             }
             if (memcmp(data, verify, size) != 0) {
-                fprintf(stderr, "mtd: verification error at 0x%08lx (%s)\n",
+                printf("mtd: verification error at 0x%08lx (%s)\n",
                         pos, strerror(errno));
                 continue;
             }
 
             if (retry > 0) {
-                fprintf(stderr, "mtd: wrote block after %d retries\n", retry);
+                printf("mtd: wrote block after %d retries\n", retry);
             }
-            fprintf(stderr, "mtd: successfully wrote block at %llx\n", pos);
+            printf("mtd: successfully wrote block at %lx\n", pos);
             return 0;  // Success!
         }
 
         // Try to erase it once more as we give up on this block
         add_bad_block_offset(ctx, pos);
-        fprintf(stderr, "mtd: skipping write block at 0x%08lx\n", pos);
-#ifdef RK3066
+        printf("mtd: skipping write block at 0x%08lx\n", pos);
+#ifdef RK3X
         rk30_zero_out(fd, pos, size);
 #else
+
         ioctl(fd, MEMERASE, &erase_info);
 #endif
         pos += partition->erase_size;
@@ -521,8 +524,11 @@ off_t mtd_erase_blocks(MtdWriteContext *ctx, int blocks)
         ctx->stored = 0;
     }
 
-    off_t pos = lseek(ctx->fd, 0, SEEK_CUR);
-    if ((off_t) pos == (off_t) -1) return pos;
+    off_t pos = TEMP_FAILURE_RETRY(lseek(ctx->fd, 0, SEEK_CUR));
+    if ((off_t) pos == (off_t) -1) {
+        printf("mtd_erase_blocks: couldn't SEEK_CUR: %s\n", strerror(errno));
+        return -1;
+    }
 
     const int total = (ctx->partition->size - pos) / ctx->partition->erase_size;
     if (blocks < 0) blocks = total;
@@ -535,7 +541,7 @@ off_t mtd_erase_blocks(MtdWriteContext *ctx, int blocks)
     while (blocks-- > 0) {
         loff_t bpos = pos;
         if (ioctl(ctx->fd, MEMGETBADBLOCK, &bpos) > 0) {
-            fprintf(stderr, "mtd: not erasing bad block at 0x%08lx\n", pos);
+            printf("mtd: not erasing bad block at 0x%08lx\n", pos);
             pos += ctx->partition->erase_size;
             continue;  // Don't try to erase known factory-bad blocks.
         }
@@ -543,13 +549,13 @@ off_t mtd_erase_blocks(MtdWriteContext *ctx, int blocks)
         struct erase_info_user erase_info;
         erase_info.start = pos;
         erase_info.length = ctx->partition->erase_size;
-#ifdef RK3066
+#ifdef RK3X
         if (rk30_zero_out(ctx->fd, pos, ctx->partition->erase_size) < 0) {
             fprintf(stderr, "mtd: erase failure at 0x%08lx\n", pos);
         }
 #else
         if (ioctl(ctx->fd, MEMERASE, &erase_info) < 0) {
-            fprintf(stderr, "mtd: erase failure at 0x%08lx\n", pos);
+            printf("mtd: erase failure at 0x%08lx\n", pos);
         }
 #endif
         pos += ctx->partition->erase_size;

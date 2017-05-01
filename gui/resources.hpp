@@ -3,85 +3,116 @@
 #ifndef _RESOURCE_HEADER
 #define _RESOURCE_HEADER
 
+#include <string>
+#include <vector>
+#include <map>
+#include "rapidxml.hpp"
+
+struct ZipArchive;
+
+extern "C" {
+#include "../minuitwrp/minui.h"
+}
+
 // Base Objects
 class Resource
 {
 public:
-    Resource(xml_node<>* node, ZipArchive* pZip);
-    virtual ~Resource()         {}
+	Resource(xml_node<>* node, ZipArchive* pZip);
+	virtual ~Resource() {}
 
 public:
-    virtual void* GetResource(void) = 0;
-    std::string GetName(void) { return mName; }
+	std::string GetName() { return mName; }
 
 private:
-    std::string mName;
+	std::string mName;
 
 protected:
-    static int ExtractResource(ZipArchive* pZip, std::string folderName, std::string fileName, std::string fileExtn, std::string destFile);
+	static int ExtractResource(ZipArchive* pZip, std::string folderName, std::string fileName, std::string fileExtn, std::string destFile);
+	static void LoadImage(ZipArchive* pZip, std::string file, gr_surface* surface);
+	static void CheckAndScaleImage(gr_surface source, gr_surface* destination, int retain_aspect);
 };
-
-typedef enum {
-    TOUCH_START = 0, 
-    TOUCH_DRAG = 1,
-    TOUCH_RELEASE = 2,
-	TOUCH_HOLD = 3,
-	TOUCH_REPEAT = 4
-} TOUCH_STATE;
 
 class FontResource : public Resource
 {
 public:
-    FontResource(xml_node<>* node, ZipArchive* pZip);
-    virtual ~FontResource();
+	FontResource(xml_node<>* node, ZipArchive* pZip);
+	virtual ~FontResource();
 
 public:
-    virtual void* GetResource(void) { return mFont; }
+	void* GetResource() { return this ? mFont : NULL; }
+	int GetHeight() { return gr_ttf_getMaxFontHeight(this ? mFont : NULL); }
+	void Override(xml_node<>* node, ZipArchive* pZip);
 
 protected:
-    void* mFont;
+	void* mFont;
+
+private:
+	void LoadFont(xml_node<>* node, ZipArchive* pZip);
+	void DeleteFont();
+
+private:
+	int origFontSize;
+	void* origFont;
 };
 
 class ImageResource : public Resource
 {
 public:
-    ImageResource(xml_node<>* node, ZipArchive* pZip);
-    virtual ~ImageResource();
+	ImageResource(xml_node<>* node, ZipArchive* pZip);
+	virtual ~ImageResource();
 
 public:
-    virtual void* GetResource(void) { return mSurface; }
+	gr_surface GetResource() { return this ? mSurface : NULL; }
+	int GetWidth() { return gr_get_width(this ? mSurface : NULL); }
+	int GetHeight() { return gr_get_height(this ? mSurface : NULL); }
 
 protected:
-    gr_surface mSurface;
+	gr_surface mSurface;
 };
 
 class AnimationResource : public Resource
 {
 public:
-    AnimationResource(xml_node<>* node, ZipArchive* pZip);
-    virtual ~AnimationResource();
+	AnimationResource(xml_node<>* node, ZipArchive* pZip);
+	virtual ~AnimationResource();
 
 public:
-    virtual void* GetResource(void)         { return mSurfaces.at(0); }
-    virtual void* GetResource(int entry)    { return mSurfaces.at(entry); }
-    virtual int GetResourceCount(void)      { return mSurfaces.size(); }
+	gr_surface GetResource() { return (!this || mSurfaces.empty()) ? NULL : mSurfaces.at(0); }
+	gr_surface GetResource(int entry) { return (!this || mSurfaces.empty()) ? NULL : mSurfaces.at(entry); }
+	int GetWidth() { return gr_get_width(this ? GetResource() : NULL); }
+	int GetHeight() { return gr_get_height(this ? GetResource() : NULL); }
+	int GetResourceCount() { return mSurfaces.size(); }
 
 protected:
-    std::vector<gr_surface> mSurfaces;
+	std::vector<gr_surface> mSurfaces;
 };
 
 class ResourceManager
 {
 public:
-    ResourceManager(xml_node<>* resList, ZipArchive* pZip);
-    virtual ~ResourceManager();
+	ResourceManager();
+	virtual ~ResourceManager();
+	void AddStringResource(std::string resource_source, std::string resource_name, std::string value);
+	void LoadResources(xml_node<>* resList, ZipArchive* pZip, std::string resource_source);
 
 public:
-    Resource* FindResource(std::string name);
+	FontResource* FindFont(const std::string& name) const;
+	ImageResource* FindImage(const std::string& name) const;
+	AnimationResource* FindAnimation(const std::string& name) const;
+	std::string FindString(const std::string& name) const;
+	std::string FindString(const std::string& name, const std::string& default_string) const;
+	void DumpStrings() const;
 
 private:
-    std::vector<Resource*> mResources;
+	struct string_resource_struct {
+		std::string value;
+		std::string source;
+	};
+	std::vector<FontResource*> mFonts;
+	std::vector<ImageResource*> mImages;
+	std::vector<AnimationResource*> mAnimations;
+	std::map<std::string, string_resource_struct> mStrings;
 };
 
 #endif  // _RESOURCE_HEADER
-

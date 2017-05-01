@@ -14,18 +14,41 @@
  * limitations under the License.
  */
 
+/*
+#include <fs_mgr.h>
+*/
 #include "bootloader.h"
 #include "common.h"
 extern "C" {
 #include "mtdutils/mtdutils.h"
 }
+/*
 #include "roots.h"
-
+*/
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdlib.h>
+
+// fake Volume struct that allows us to use the AOSP code easily
+struct Volume
+{
+    char fs_type[8];
+    char blk_device[256];
+};
+
+static Volume misc;
+
+void set_misc_device(const char* type, const char* name) {
+    strlcpy(misc.fs_type, type, sizeof(misc.fs_type));
+    if (strlen(name) >= sizeof(misc.blk_device)) {
+        LOGE("New device name of '%s' is too large for bootloader.cpp\n", name);
+    } else {
+        strcpy(misc.blk_device, name);
+    }
+}
 
 static int get_bootloader_message_mtd(struct bootloader_message *out, const Volume* v);
 static int set_bootloader_message_mtd(const struct bootloader_message *in, const Volume* v);
@@ -33,11 +56,19 @@ static int get_bootloader_message_block(struct bootloader_message *out, const Vo
 static int set_bootloader_message_block(const struct bootloader_message *in, const Volume* v);
 
 int get_bootloader_message(struct bootloader_message *out) {
+#if 0
     Volume* v = volume_for_path("/misc");
     if (v == NULL) {
       LOGE("Cannot load volume /misc!\n");
       return -1;
     }
+#else
+    Volume* v = &misc;
+    if (v->fs_type[0] == 0) {
+        LOGI("Not using /misc, not defined in fstab.\n");
+        return -1;
+    }
+#endif
     if (strcmp(v->fs_type, "mtd") == 0) {
         return get_bootloader_message_mtd(out, v);
     } else if (strcmp(v->fs_type, "emmc") == 0) {
@@ -48,11 +79,19 @@ int get_bootloader_message(struct bootloader_message *out) {
 }
 
 int set_bootloader_message(const struct bootloader_message *in) {
+#if 0
     Volume* v = volume_for_path("/misc");
     if (v == NULL) {
       LOGE("Cannot load volume /misc!\n");
       return -1;
     }
+#else
+    Volume* v = &misc;
+    if (v->fs_type[0] == 0) {
+        LOGI("Not using /misc, not defined in fstab.\n");
+        return -1;
+    }
+#endif
     if (strcmp(v->fs_type, "mtd") == 0) {
         return set_bootloader_message_mtd(in, v);
     } else if (strcmp(v->fs_type, "emmc") == 0) {
@@ -73,22 +112,22 @@ static int get_bootloader_message_mtd(struct bootloader_message *out,
                                       const Volume* v) {
     size_t write_size;
     mtd_scan_partitions();
-    const MtdPartition *part = mtd_find_partition_by_name(v->device);
+    const MtdPartition *part = mtd_find_partition_by_name(v->blk_device);
     if (part == NULL || mtd_partition_info(part, NULL, NULL, &write_size)) {
-        LOGE("Can't find %s\n", v->device);
+        LOGE("Can't find %s\n", v->blk_device);
         return -1;
     }
 
     MtdReadContext *read = mtd_read_partition(part);
     if (read == NULL) {
-        LOGE("Can't open %s\n(%s)\n", v->device, strerror(errno));
+        LOGE("Can't open %s\n(%s)\n", v->blk_device, strerror(errno));
         return -1;
     }
 
     const ssize_t size = write_size * MISC_PAGES;
     char data[size];
     ssize_t r = mtd_read_data(read, data, size);
-    if (r != size) LOGE("Can't read %s\n(%s)\n", v->device, strerror(errno));
+    if (r != size) LOGE("Can't read %s\n(%s)\n", v->blk_device, strerror(errno));
     mtd_read_close(read);
     if (r != size) return -1;
 
@@ -99,22 +138,22 @@ static int set_bootloader_message_mtd(const struct bootloader_message *in,
                                       const Volume* v) {
     size_t write_size;
     mtd_scan_partitions();
-    const MtdPartition *part = mtd_find_partition_by_name(v->device);
+    const MtdPartition *part = mtd_find_partition_by_name(v->blk_device);
     if (part == NULL || mtd_partition_info(part, NULL, NULL, &write_size)) {
-        LOGE("Can't find %s\n", v->device);
+        LOGE("Can't find %s\n", v->blk_device);
         return -1;
     }
 
     MtdReadContext *read = mtd_read_partition(part);
     if (read == NULL) {
-        LOGE("Can't open %s\n(%s)\n", v->device, strerror(errno));
+        LOGE("Can't open %s\n(%s)\n", v->blk_device, strerror(errno));
         return -1;
     }
 
     ssize_t size = write_size * MISC_PAGES;
     char data[size];
     ssize_t r = mtd_read_data(read, data, size);
-    if (r != size) LOGE("Can't read %s\n(%s)\n", v->device, strerror(errno));
+    if (r != size) LOGE("Can't read %s\n(%s)\n", v->blk_device, strerror(errno));
     mtd_read_close(read);
     if (r != size) return -1;
 
@@ -122,16 +161,16 @@ static int set_bootloader_message_mtd(const struct bootloader_message *in,
 
     MtdWriteContext *write = mtd_write_partition(part);
     if (write == NULL) {
-        LOGE("Can't open %s\n(%s)\n", v->device, strerror(errno));
+        LOGE("Can't open %s\n(%s)\n", v->blk_device, strerror(errno));
         return -1;
     }
     if (mtd_write_data(write, data, size) != size) {
-        LOGE("Can't write %s\n(%s)\n", v->device, strerror(errno));
+        LOGE("Can't write %s\n(%s)\n", v->blk_device, strerror(errno));
         mtd_write_close(write);
         return -1;
     }
     if (mtd_write_close(write)) {
-        LOGE("Can't finish %s\n(%s)\n", v->device, strerror(errno));
+        LOGE("Can't finish %s\n(%s)\n", v->blk_device, strerror(errno));
         return -1;
     }
 
@@ -163,20 +202,23 @@ static void wait_for_device(const char* fn) {
 
 static int get_bootloader_message_block(struct bootloader_message *out,
                                         const Volume* v) {
-    wait_for_device(v->device);
-    FILE* f = fopen(v->device, "rb");
+    wait_for_device(v->blk_device);
+    FILE* f = fopen(v->blk_device, "rb");
     if (f == NULL) {
-        LOGE("Can't open %s\n(%s)\n", v->device, strerror(errno));
+        LOGE("Can't open %s\n(%s)\n", v->blk_device, strerror(errno));
         return -1;
     }
+#ifdef BOARD_RECOVERY_BLDRMSG_OFFSET
+    fseek(f, BOARD_RECOVERY_BLDRMSG_OFFSET, SEEK_SET);
+#endif
     struct bootloader_message temp;
     int count = fread(&temp, sizeof(temp), 1, f);
     if (count != 1) {
-        LOGE("Failed reading %s\n(%s)\n", v->device, strerror(errno));
+        LOGE("Failed reading %s\n(%s)\n", v->blk_device, strerror(errno));
         return -1;
     }
     if (fclose(f) != 0) {
-        LOGE("Failed closing %s\n(%s)\n", v->device, strerror(errno));
+        LOGE("Failed closing %s\n(%s)\n", v->blk_device, strerror(errno));
         return -1;
     }
     memcpy(out, &temp, sizeof(temp));
@@ -185,20 +227,102 @@ static int get_bootloader_message_block(struct bootloader_message *out,
 
 static int set_bootloader_message_block(const struct bootloader_message *in,
                                         const Volume* v) {
-    wait_for_device(v->device);
-    FILE* f = fopen(v->device, "wb");
+    wait_for_device(v->blk_device);
+    FILE* f = fopen(v->blk_device, "rb+");
     if (f == NULL) {
-        LOGE("Can't open %s\n(%s)\n", v->device, strerror(errno));
+        LOGE("Can't open %s\n(%s)\n", v->blk_device, strerror(errno));
         return -1;
     }
+#ifdef BOARD_RECOVERY_BLDRMSG_OFFSET
+    fseek(f, BOARD_RECOVERY_BLDRMSG_OFFSET, SEEK_SET);
+#endif
     int count = fwrite(in, sizeof(*in), 1, f);
     if (count != 1) {
-        LOGE("Failed writing %s\n(%s)\n", v->device, strerror(errno));
+        LOGE("Failed writing %s\n(%s)\n", v->blk_device, strerror(errno));
         return -1;
     }
     if (fclose(f) != 0) {
-        LOGE("Failed closing %s\n(%s)\n", v->device, strerror(errno));
+        LOGE("Failed closing %s\n(%s)\n", v->blk_device, strerror(errno));
         return -1;
     }
     return 0;
+}
+
+
+static const char *COMMAND_FILE = "/cache/recovery/command";
+static const int MAX_ARG_LENGTH = 4096;
+static const int MAX_ARGS = 100;
+
+// command line args come from, in decreasing precedence:
+//   - the actual command line
+//   - the bootloader control block (one per line, after "recovery")
+//   - the contents of COMMAND_FILE (one per line)
+void
+get_args(int *argc, char ***argv) {
+    struct bootloader_message boot;
+    memset(&boot, 0, sizeof(boot));
+    get_bootloader_message(&boot);  // this may fail, leaving a zeroed structure
+
+    if (boot.command[0] != 0 && boot.command[0] != 255) {
+        LOGI("Boot command: %.*s\n", (int)sizeof(boot.command), boot.command);
+    }
+
+    if (boot.status[0] != 0 && boot.status[0] != 255) {
+        LOGI("Boot status: %.*s\n", (int)sizeof(boot.status), boot.status);
+    }
+
+    // --- if arguments weren't supplied, look in the bootloader control block
+    if (*argc <= 1) {
+        boot.recovery[sizeof(boot.recovery) - 1] = '\0';  // Ensure termination
+        const char *arg = strtok(boot.recovery, "\n");
+        if (arg != NULL && !strcmp(arg, "recovery")) {
+            *argv = (char **) malloc(sizeof(char *) * MAX_ARGS);
+            (*argv)[0] = strdup(arg);
+            for (*argc = 1; *argc < MAX_ARGS; ++*argc) {
+                if ((arg = strtok(NULL, "\n")) == NULL) break;
+                (*argv)[*argc] = strdup(arg);
+            }
+            LOGI("Got arguments from boot message\n");
+        } else if (boot.recovery[0] != 0 && boot.recovery[0] != 255) {
+            LOGE("Bad boot message\n\"%.20s\"\n", boot.recovery);
+        }
+    }
+
+    // --- if that doesn't work, try the command file
+    if (*argc <= 1) {
+        FILE *fp = fopen(COMMAND_FILE, "r");
+        if (fp != NULL) {
+            char *token;
+            char *argv0 = (*argv)[0];
+            *argv = (char **) malloc(sizeof(char *) * MAX_ARGS);
+            (*argv)[0] = argv0;  // use the same program name
+
+            char buf[MAX_ARG_LENGTH];
+            for (*argc = 1; *argc < MAX_ARGS; ++*argc) {
+                if (!fgets(buf, sizeof(buf), fp)) break;
+                token = strtok(buf, "\r\n");
+                if (token != NULL) {
+                    (*argv)[*argc] = strdup(token);  // Strip newline.
+                } else {
+                    --*argc;
+                }
+            }
+
+            fflush(fp);
+            if (ferror(fp)) LOGE("Error in %s\n(%s)\n", COMMAND_FILE, strerror(errno));
+            fclose(fp);
+            LOGI("Got arguments from %s\n", COMMAND_FILE);
+        }
+    }
+
+    // --> write the arguments we have back into the bootloader control block
+    // always boot into recovery after this (until finish_recovery() is called)
+    strlcpy(boot.command, "boot-recovery", sizeof(boot.command));
+    strlcpy(boot.recovery, "recovery\n", sizeof(boot.recovery));
+    int i;
+    for (i = 1; i < *argc; ++i) {
+        strlcat(boot.recovery, (*argv)[i], sizeof(boot.recovery));
+        strlcat(boot.recovery, "\n", sizeof(boot.recovery));
+    }
+    set_bootloader_message(&boot);
 }

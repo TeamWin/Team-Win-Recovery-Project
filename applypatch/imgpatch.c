@@ -18,8 +18,10 @@
 // format.
 
 #include <stdio.h>
+#include <sys/cdefs.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <malloc.h>
 #include <unistd.h>
 #include <string.h>
 
@@ -35,9 +37,10 @@
  * file, and update the SHA context with the output data as well.
  * Return 0 on success.
  */
-int ApplyImagePatch(const unsigned char* old_data, ssize_t old_size,
+int ApplyImagePatch(const unsigned char* old_data, ssize_t old_size __unused,
                     const Value* patch,
-                    SinkFn sink, void* token, SHA_CTX* ctx) {
+                    SinkFn sink, void* token, SHA_CTX* ctx,
+                    const Value* bonus_data) {
     ssize_t pos = 12;
     char* header = patch->data;
     if (patch->size < 12) {
@@ -93,7 +96,7 @@ int ApplyImagePatch(const unsigned char* old_data, ssize_t old_size,
                 printf("failed to read chunk %d raw data\n", i);
                 return -1;
             }
-            SHA_update(ctx, patch->data + pos, data_len);
+            if (ctx) SHA_update(ctx, patch->data + pos, data_len);
             if (sink((unsigned char*)patch->data + pos,
                      data_len, token) != data_len) {
                 printf("failed to write chunk %d raw data\n", i);
@@ -123,9 +126,15 @@ int ApplyImagePatch(const unsigned char* old_data, ssize_t old_size,
             // Decompress the source data; the chunk header tells us exactly
             // how big we expect it to be when decompressed.
 
+            // Note: expanded_len will include the bonus data size if
+            // the patch was constructed with bonus data.  The
+            // deflation will come up 'bonus_size' bytes short; these
+            // must be appended from the bonus_data value.
+            size_t bonus_size = (i == 1 && bonus_data != NULL) ? bonus_data->size : 0;
+
             unsigned char* expanded_source = malloc(expanded_len);
             if (expanded_source == NULL) {
-                printf("failed to allocate %d bytes for expanded_source\n",
+                printf("failed to allocate %zu bytes for expanded_source\n",
                        expanded_len);
                 return -1;
             }
@@ -153,12 +162,18 @@ int ApplyImagePatch(const unsigned char* old_data, ssize_t old_size,
                 printf("source inflation returned %d\n", ret);
                 return -1;
             }
-            // We should have filled the output buffer exactly.
-            if (strm.avail_out != 0) {
-                printf("source inflation short by %d bytes\n", strm.avail_out);
+            // We should have filled the output buffer exactly, except
+            // for the bonus_size.
+            if (strm.avail_out != bonus_size) {
+                printf("source inflation short by %zu bytes\n", strm.avail_out-bonus_size);
                 return -1;
             }
             inflateEnd(&strm);
+
+            if (bonus_size) {
+                memcpy(expanded_source + (expanded_len - bonus_size),
+                       bonus_data->data, bonus_size);
+            }
 
             // Next, apply the bsdiff patch (in memory) to the uncompressed
             // data.
@@ -203,7 +218,7 @@ int ApplyImagePatch(const unsigned char* old_data, ssize_t old_size,
                            (long)have);
                     return -1;
                 }
-                SHA_update(ctx, temp_data, have);
+                if (ctx) SHA_update(ctx, temp_data, have);
             } while (ret != Z_STREAM_END);
             deflateEnd(&strm);
 

@@ -1,51 +1,57 @@
 /*
-        Copyright 2013 bigbiff/Dees_Troy TeamWin
-        This file is part of TWRP/TeamWin Recovery Project.
+	Copyright 2012 bigbiff/Dees_Troy TeamWin
+	This file is part of TWRP/TeamWin Recovery Project.
 
-        TWRP is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+	TWRP is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-        TWRP is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+	TWRP is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-        You should have received a copy of the GNU General Public License
-        along with TWRP.  If not, see <http://www.gnu.org/licenses/>.
-		
-		This is a write buffer for use with libtar. Libtar normally writes
-		512 bytes at a time but this results in poor file performance
-		especially on exFAT fuse file systems. This write buffer fixes that
-		problem.
+	You should have received a copy of the GNU General Public License
+	along with TWRP.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <fcntl.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include "libtar/libtar.h"
-#include "common.h"
+#include "twcommon.h"
 
 int flush = 0, eot_count = -1;
 unsigned char *write_buffer;
 unsigned buffer_size = 4096;
 unsigned buffer_loc = 0;
+int buffer_status = 0;
+int prog_pipe = -1;
+const unsigned long long progress_size = (unsigned long long)(T_BLOCKSIZE);
 
 void reinit_libtar_buffer(void) {
 	flush = 0;
 	eot_count = -1;
 	buffer_loc = 0;
+	buffer_status = 1;
 }
 
-void init_libtar_buffer(unsigned new_buff_size) {
+void init_libtar_buffer(unsigned new_buff_size, int pipe_fd) {
 	if (new_buff_size != 0)
 		buffer_size = new_buff_size;
 
 	reinit_libtar_buffer();
 	write_buffer = (unsigned char*) malloc(sizeof(char *) * buffer_size);
+	prog_pipe = pipe_fd;
 }
 
 void free_libtar_buffer(void) {
-	free(write_buffer);
+	if (buffer_status > 0)
+		free(write_buffer);
+	buffer_status = 0;
+	prog_pipe = -1;
 }
 
 ssize_t write_libtar_buffer(int fd, const void *buffer, size_t size) {
@@ -72,11 +78,13 @@ ssize_t write_libtar_buffer(int fd, const void *buffer, size_t size) {
 			// nothing to write
 			return 0;
 		}
-		if (write(fd, write_buffer, buffer_loc) != buffer_loc) {
-			LOGE("Error writing tar file!\n");
+		if (write(fd, write_buffer, buffer_loc) != (int)buffer_loc) {
+			LOGERR("Error writing tar file!\n");
 			buffer_loc = 0;
 			return -1;
 		} else {
+			unsigned long long fs = (unsigned long long)(buffer_loc);
+			write(prog_pipe, &fs, sizeof(fs));
 			buffer_loc = 0;
 			return size;
 		}
@@ -89,4 +97,17 @@ ssize_t write_libtar_buffer(int fd, const void *buffer, size_t size) {
 
 void flush_libtar_buffer(int fd) {
 	eot_count = 0;
+	if (buffer_status)
+		buffer_status = 2;
+}
+
+void init_libtar_no_buffer(int pipe_fd) {
+	buffer_size = T_BLOCKSIZE;
+	prog_pipe = pipe_fd;
+	buffer_status = 0;
+}
+
+ssize_t write_libtar_no_buffer(int fd, const void *buffer, size_t size) {
+	write(prog_pipe, &progress_size, sizeof(progress_size));
+	return write(fd, buffer, size);
 }

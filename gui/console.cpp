@@ -1,3 +1,21 @@
+/*
+	Copyright 2015 bigbiff/Dees_Troy TeamWin
+	This file is part of TWRP/TeamWin Recovery Project.
+
+	TWRP is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	TWRP is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with TWRP.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 // console.cpp - GUIConsole object
 
 #include <stdarg.h>
@@ -18,385 +36,356 @@
 #include <string>
 
 extern "C" {
-#include "../common.h"
-#include "../minuitwrp/minui.h"
-#include "../recovery_ui.h"
+#include "../twcommon.h"
 }
+#include "../minuitwrp/minui.h"
 
 #include "rapidxml.hpp"
 #include "objects.hpp"
+#include "gui.hpp"
+#include "twmsg.h"
 
+#define GUI_CONSOLE_BUFFER_SIZE 512
 
-static std::vector<std::string> gConsole;
+size_t last_message_count = 0;
+std::vector<Message> gMessages;
 
-extern "C" void gui_print(const char *fmt, ...)
+std::vector<std::string> gConsole;
+std::vector<std::string> gConsoleColor;
+static FILE* ors_file;
+
+extern "C" void __gui_print(const char *color, char *buf)
 {
-    char buf[512];          // We're going to limit a single request to 512 bytes
-
-    va_list ap;
-    va_start(ap, fmt);
-    vsnprintf(buf, 512, fmt, ap);
-    va_end(ap);
-
-	fputs(buf, stdout);
-
-    char *start, *next;
+	char *start, *next;
 
 	if (buf[0] == '\n' && strlen(buf) < 2) {
 		// This prevents the double lines bug seen in the console during zip installs
 		return;
 	}
 
-    for (start = next = buf; *next != '\0'; next++)
-    {
-        if (*next == '\n')
-        {
-            *next = '\0';
-            next++;
+	for (start = next = buf; *next != '\0';)
+	{
+		if (*next == '\n')
+		{
+			*next = '\0';
+			gConsole.push_back(start);
+			gConsoleColor.push_back(color);
 
-            std::string line = start;
-            gConsole.push_back(line);
-            start = next;
+			start = ++next;
+		}
+		else
+			++next;
+	}
 
-			// Handle the normal \n\0 case
-            if (*next == '\0')
-				return;
-        }
-    }
-    std::string line = start;
-    gConsole.push_back(line);
-    return;
+	// The text after last \n (or whole string if there is no \n)
+	if(*start) {
+		gConsole.push_back(start);
+		gConsoleColor.push_back(color);
+	}
 }
 
-extern "C" void gui_print_overwrite(const char *fmt, ...)
+extern "C" void gui_print(const char *fmt, ...)
 {
-    char buf[512];          // We're going to limit a single request to 512 bytes
+	char buf[GUI_CONSOLE_BUFFER_SIZE];		// We're going to limit a single request to 512 bytes
 
-    va_list ap;
-    va_start(ap, fmt);
-    vsnprintf(buf, 512, fmt, ap);
-    va_end(ap);
+	va_list ap;
+	va_start(ap, fmt);
+	vsnprintf(buf, GUI_CONSOLE_BUFFER_SIZE, fmt, ap);
+	va_end(ap);
 
 	fputs(buf, stdout);
+	if (ors_file) {
+		fprintf(ors_file, "%s", buf);
+		fflush(ors_file);
+	}
 
-    // Pop the last line, and we can continue
-    if (!gConsole.empty())   gConsole.pop_back();
-
-    char *start, *next;
-    for (start = next = buf; *next != '\0'; next++)
-    {
-        if (*next == '\n')
-        {
-            *next = '\0';
-            next++;
-            
-            std::string line = start;
-            gConsole.push_back(line);
-            start = next;
-
-            // Handle the normal \n\0 case
-            if (*next == '\0')
-				return;
-        }
-    }
-    std::string line = start;
-    gConsole.push_back(line);
-    return;
+	__gui_print("normal", buf);
+	return;
 }
 
-GUIConsole::GUIConsole(xml_node<>* node)
+extern "C" void gui_print_color(const char *color, const char *fmt, ...)
 {
-    xml_attribute<>* attr;
-    xml_node<>* child;
+	char buf[GUI_CONSOLE_BUFFER_SIZE];		// We're going to limit a single request to 512 bytes
 
-    mFont = NULL;
-    mCurrentLine = -1;
-    memset(&mForegroundColor, 255, sizeof(COLOR));
-    memset(&mBackgroundColor, 0, sizeof(COLOR));
-    mBackgroundColor.alpha = 255;
-    memset(&mScrollColor, 0x08, sizeof(COLOR));
-    mScrollColor.alpha = 255;
-    mLastCount = 0;
-    mSlideout = 0;
-    mSlideoutState = hidden;
+	va_list ap;
+	va_start(ap, fmt);
+	vsnprintf(buf, GUI_CONSOLE_BUFFER_SIZE, fmt, ap);
+	va_end(ap);
 
-    mRenderX = 0; mRenderY = 0; mRenderW = gr_fb_width(); mRenderH = gr_fb_height();
+	fputs(buf, stdout);
+	if (ors_file) {
+		fprintf(ors_file, "%s", buf);
+		fflush(ors_file);
+	}
 
-    if (!node)
-    {
-        mSlideoutX = 0; mSlideoutY = 0; mSlideoutW = 0; mSlideoutH = 0;
-        mConsoleX = 0;  mConsoleY = 0;  mConsoleW = gr_fb_width();  mConsoleH = gr_fb_height();
-    }
-    else
-    {
-        child = node->first_node("font");
-        if (child)
-        {
-            attr = child->first_attribute("resource");
-            if (attr)
-                mFont = PageManager::FindResource(attr->value());
-        }
+	__gui_print(color, buf);
+	return;
+}
 
-        child = node->first_node("color");
-        if (child)
-        {
-            attr = child->first_attribute("foreground");
-            if (attr)
-            {
-                std::string color = attr->value();
-                ConvertStrToColor(color, &mForegroundColor);
-            }
-            attr = child->first_attribute("background");
-            if (attr)
-            {
-                std::string color = attr->value();
-                ConvertStrToColor(color, &mBackgroundColor);
-            }
-            attr = child->first_attribute("scroll");
-            if (attr)
-            {
-                std::string color = attr->value();
-                ConvertStrToColor(color, &mScrollColor);
-            }
-        }
+extern "C" void gui_set_FILE(FILE* f)
+{
+	ors_file = f;
+}
 
-        // Load the placement
-        LoadPlacement(node->first_node("placement"), &mConsoleX, &mConsoleY, &mConsoleW, &mConsoleH);
+void gui_msg(const char* text)
+{
+	if (text) {
+		Message msg = Msg(text);
+		gui_msg(msg);
+	}
+}
 
-        child = node->first_node("slideout");
-        if (child)
-        {
-            mSlideout = 1;
-            LoadPlacement(child, &mSlideoutX, &mSlideoutY);
+void gui_warn(const char* text)
+{
+	if (text) {
+		Message msg = Msg(msg::kWarning, text);
+		gui_msg(msg);
+	}
+}
 
-            attr = child->first_attribute("resource");
-            if (attr)   mSlideoutImage = PageManager::FindResource(attr->value());
+void gui_err(const char* text)
+{
+	if (text) {
+		Message msg = Msg(msg::kError, text);
+		gui_msg(msg);
+	}
+}
 
-            if (mSlideoutImage && mSlideoutImage->GetResource())
-            {
-                mSlideoutW = gr_get_width(mSlideoutImage->GetResource());
-                mSlideoutH = gr_get_height(mSlideoutImage->GetResource());
-            }
-        }
-    }
+void gui_highlight(const char* text)
+{
+	if (text) {
+		Message msg = Msg(msg::kHighlight, text);
+		gui_msg(msg);
+	}
+}
 
-    gr_getFontDetails(mFont, &mFontHeight, NULL);
-    SetActionPos(mRenderX, mRenderY, mRenderW, mRenderH);
-    SetRenderPos(mConsoleX, mConsoleY);
-    return;
+void gui_msg(Message msg)
+{
+	std::string output = msg;
+	output += "\n";
+	fputs(output.c_str(), stdout);
+	if (ors_file) {
+		fprintf(ors_file, "%s", output.c_str());
+		fflush(ors_file);
+	}
+	gMessages.push_back(msg);
+}
+
+void GUIConsole::Translate_Now() {
+	size_t message_count = gMessages.size();
+	if (message_count <= last_message_count)
+		return;
+
+	for (size_t m = last_message_count; m < message_count; m++) {
+		std::string message = gMessages[m];
+		std::string color = "normal";
+		if (gMessages[m].GetKind() == msg::kError)
+			color = "error";
+		else if (gMessages[m].GetKind() == msg::kHighlight)
+			color = "highlight";
+		else if (gMessages[m].GetKind() == msg::kWarning)
+			color = "warning";
+		gConsole.push_back(message);
+		gConsoleColor.push_back(color);
+	}
+	last_message_count = message_count;
+}
+
+GUIConsole::GUIConsole(xml_node<>* node) : GUIScrollList(node)
+{
+	xml_node<>* child;
+
+	mLastCount = 0;
+	scrollToEnd = true;
+	mSlideoutX = mSlideoutY = mSlideoutW = mSlideoutH = 0;
+	mSlideout = 0;
+	mSlideoutState = visible;
+
+	allowSelection = false;	// console doesn't support list item selections
+
+	if (!node)
+	{
+		mRenderX = 0; mRenderY = 0; mRenderW = gr_fb_width(); mRenderH = gr_fb_height();
+	}
+	else
+	{
+		child = FindNode(node, "color");
+		if (child)
+		{
+			mFontColor = LoadAttrColor(child, "foreground", mFontColor);
+			mBackgroundColor = LoadAttrColor(child, "background", mBackgroundColor);
+			//mScrollColor = LoadAttrColor(child, "scroll", mScrollColor);
+		}
+
+		child = FindNode(node, "slideout");
+		if (child)
+		{
+			mSlideout = 1;
+			mSlideoutState = hidden;
+			LoadPlacement(child, &mSlideoutX, &mSlideoutY, &mSlideoutW, &mSlideoutH, &mPlacement);
+
+			mSlideoutImage = LoadAttrImage(child, "resource");
+
+			if (mSlideoutImage && mSlideoutImage->GetResource())
+			{
+				mSlideoutW = mSlideoutImage->GetWidth();
+				mSlideoutH = mSlideoutImage->GetHeight();
+				if (mPlacement == CENTER || mPlacement == CENTER_X_ONLY) {
+					mSlideoutX = mSlideoutX - (mSlideoutW / 2);
+					if (mPlacement == CENTER) {
+						mSlideoutY = mSlideoutY - (mSlideoutH / 2);
+					}
+				}
+			}
+		}
+	}
 }
 
 int GUIConsole::RenderSlideout(void)
 {
-    if (!mSlideoutImage || !mSlideoutImage->GetResource())      return -1;
+	if (!mSlideoutImage || !mSlideoutImage->GetResource())
+		return -1;
 
-    gr_blit(mSlideoutImage->GetResource(), 0, 0, mSlideoutW, mSlideoutH, mSlideoutX, mSlideoutY);
-    return 0;
+	gr_blit(mSlideoutImage->GetResource(), 0, 0, mSlideoutW, mSlideoutH, mSlideoutX, mSlideoutY);
+	return 0;
 }
 
 int GUIConsole::RenderConsole(void)
 {
-    void* fontResource = NULL;
-    if (mFont)  fontResource = mFont->GetResource();
+	Translate_Now();
+	AddLines(&gConsole, &gConsoleColor, &mLastCount, &rConsole, &rConsoleColor);
+	GUIScrollList::Render();
 
-    // We fill the background
-    gr_color(mBackgroundColor.red, mBackgroundColor.green, mBackgroundColor.blue, 255);
-    gr_fill(mConsoleX, mConsoleY, mConsoleW, mConsoleH);
-
-    gr_color(mScrollColor.red, mScrollColor.green, mScrollColor.blue, mScrollColor.alpha);
-    gr_fill(mConsoleX + (mConsoleW * 9 / 10), mConsoleY, (mConsoleW / 10), mConsoleH);
-
-    // Render the lines
-    gr_color(mForegroundColor.red, mForegroundColor.green, mForegroundColor.blue, mForegroundColor.alpha);
-
-    // Don't try to continue to render without data
-    mLastCount = gConsole.size();
-    if (mLastCount == 0)        return (mSlideout ? RenderSlideout() : 0);
-
-    // Find the start point
-    int start;
-    int curLine = mCurrentLine;    // Thread-safing (Another thread updates this value)
-    if (curLine == -1)
-    {
-        start = mLastCount - mMaxRows;
-    }
-    else
-    {
-        if (curLine > (int) mLastCount)   curLine = (int) mLastCount;
-        if ((int) mMaxRows > curLine)     curLine = (int) mMaxRows;
-        start = curLine - mMaxRows;
-    }
-
-    unsigned int line;
-    for (line = 0; line < mMaxRows; line++)
-    {
-        if ((start + (int) line) >= 0 && (start + (int) line) < (int) mLastCount)
-        {
-            gr_textExW(mConsoleX, mStartY + (line * mFontHeight), gConsole[start + line].c_str(), fontResource, mConsoleW + mConsoleX);
-        }
-    }
-    return (mSlideout ? RenderSlideout() : 0);
+	// if last line is fully visible, keep tracking the last line when new lines are added
+	int bottom_offset = GetDisplayRemainder() - actualItemHeight;
+	bool isAtBottom = firstDisplayedItem == (int)GetItemCount() - GetDisplayItemCount() - (bottom_offset != 0) && y_offset == bottom_offset;
+	if (isAtBottom)
+		scrollToEnd = true;
+#if 0
+	// debug - show if we are tracking the last line
+	if (scrollToEnd) {
+		gr_color(0,255,0,255);
+		gr_fill(mRenderX+mRenderW-5, mRenderY+mRenderH-5, 5, 5);
+	} else {
+		gr_color(255,0,0,255);
+		gr_fill(mRenderX+mRenderW-5, mRenderY+mRenderH-5, 5, 5);
+	}
+#endif
+	return (mSlideout ? RenderSlideout() : 0);
 }
 
 int GUIConsole::Render(void)
 {
-    if (mSlideout && mSlideoutState == hidden)
-    {
-        return RenderSlideout();
-    }
-    return RenderConsole();
+	if(!isConditionTrue())
+		return 0;
+
+	if (mSlideout && mSlideoutState == hidden)
+		return RenderSlideout();
+
+	return RenderConsole();
 }
 
 int GUIConsole::Update(void)
 {
-    if (mSlideout && mSlideoutState != visible)
-    {
-        if (mSlideoutState == hidden)
-            return 0;
+	if (mSlideout && mSlideoutState != visible)
+	{
+		if (mSlideoutState == hidden)
+			return 0;
 
-        if (mSlideoutState == request_hide)
-            mSlideoutState = hidden;
+		if (mSlideoutState == request_hide)
+			mSlideoutState = hidden;
 
-        if (mSlideoutState == request_show)
-            mSlideoutState = visible;
+		if (mSlideoutState == request_show)
+			mSlideoutState = visible;
 
-        // Any time we activate the slider, we reset the position
-        mCurrentLine = -1;
-        return 2;
-    }
+		// Any time we activate the console, we reset the position
+		SetVisibleListLocation(rConsole.size() - 1);
+		mUpdate = 1;
+		scrollToEnd = true;
+	}
 
-    if (mCurrentLine == -1 && mLastCount != gConsole.size())
-    {
-        // We can use Render, and return for just a flip
-        Render();
-        return 2;
-    }
-    else if (mLastTouchY >= 0)
-    {
-        // They're still touching, so re-render
-        Render();
-        return 2;
-    }
-    return 0;
-}
+	if (AddLines(&gConsole, &gConsoleColor, &mLastCount, &rConsole, &rConsoleColor)) {
+		// someone added new text
+		// at least the scrollbar must be updated, even if the new lines are currently not visible
+		mUpdate = 1;
+	}
 
-int GUIConsole::SetRenderPos(int x, int y, int w, int h)
-{
-    // Adjust the stub position accordingly
-    mSlideoutX += (x - mConsoleX);
-    mSlideoutY += (y - mConsoleY);
+	if (scrollToEnd) {
+		// keep the last line in view
+		SetVisibleListLocation(rConsole.size() - 1);
+	}
 
-    mConsoleX = x;
-    mConsoleY = y;
-    if (w || h)
-    {
-        mConsoleW = w;
-        mConsoleH = h;
-    }
+	GUIScrollList::Update();
 
-    // Calculate the max rows
-    mMaxRows = mConsoleH / mFontHeight;
-
-    // Adjust so we always fit to bottom
-    mStartY = mConsoleY + (mConsoleH % mFontHeight);
-    return 0;
+	if (mUpdate) {
+		mUpdate = 0;
+		if (Render() == 0)
+			return 2;
+	}
+	return 0;
 }
 
 // IsInRegion - Checks if the request is handled by this object
-//  Return 0 if this object handles the request, 1 if not
+//  Return 1 if this object handles the request, 0 if not
 int GUIConsole::IsInRegion(int x, int y)
 {
-    if (mSlideout)
-    {
-        // Check if they tapped the slideout button
-        if (x >= mSlideoutX && x <= mSlideoutX + mSlideoutW && y >= mSlideoutY && y < mSlideoutY + mSlideoutH)
-            return 1;
+	if (mSlideout) {
+		// Check if they tapped the slideout button
+		if (x >= mSlideoutX && x < mSlideoutX + mSlideoutW && y >= mSlideoutY && y < mSlideoutY + mSlideoutH)
+			return 1;
 
-        // If we're only rendering the slideout, bail now
-        if (mSlideoutState == hidden)
-            return 0;
-    }
+		// If we're only rendering the slideout, bail now
+		if (mSlideoutState == hidden)
+			return 0;
+	}
 
-    return (x < mConsoleX || x > mConsoleX + mConsoleW || y < mConsoleY || y > mConsoleY + mConsoleH) ? 0 : 1;
+	return GUIScrollList::IsInRegion(x, y);
 }
 
 // NotifyTouch - Notify of a touch event
 //  Return 0 on success, >0 to ignore remainder of touch, and <0 on error
 int GUIConsole::NotifyTouch(TOUCH_STATE state, int x, int y)
 {
-    if (mSlideout && mSlideoutState == hidden)
-    {
-        if (state == TOUCH_START)
-        {
-            mSlideoutState = request_show;
-            return 1;
-        }
-    }
-    else if (mSlideout && mSlideoutState == visible)
-    {
-        // Are we sliding it back in?
-        if (state == TOUCH_START && x > mSlideoutX && x < (mSlideoutX + mSlideoutW) && y > mSlideoutY && y < (mSlideoutY + mSlideoutH))
-        {
-            mSlideoutState = request_hide;
-            return 1;
-        }
-    }
+	if(!isConditionTrue())
+		return -1;
 
-    // If we don't have enough lines to scroll, throw this away.
-    if (mLastCount < mMaxRows)   return 1;
-
-    // We are scrolling!!!
-    switch (state)
-    {
-    case TOUCH_START:
-        mLastTouchX = x;
-        mLastTouchY = y;
-        if ((x - mConsoleX) > ((9 * mConsoleW) / 10))
-            mSlideMultiplier = 10;
-        else
-            mSlideMultiplier = 1;
-        break;
-
-    case TOUCH_DRAG:
-        // This handles tapping
-        if (x == mLastTouchX && y == mLastTouchY)   break;
-        mLastTouchX = -1;
-
-        if (y > mLastTouchY + 5)
-        {
-            mLastTouchY = y;
-            if (mCurrentLine == -1)
-                mCurrentLine = mLastCount - 1;
-            else if (mCurrentLine > mSlideMultiplier)
-                mCurrentLine -= mSlideMultiplier;
-            else
-                mCurrentLine = mMaxRows;
-
-            if (mCurrentLine < (int) mMaxRows)
-                mCurrentLine = mMaxRows;
-        }
-        else if (y < mLastTouchY - 5)
-        {
-            mLastTouchY = y;
-            if (mCurrentLine >= 0)
-            {
-                mCurrentLine += mSlideMultiplier;
-                if (mCurrentLine >= (int) mLastCount)
-                    mCurrentLine = -1;
-            }
-        }
-        break;
-
-    case TOUCH_RELEASE:
-        // On a tap, we jump to the tail
-        if (mLastTouchX >= 0)
-            mCurrentLine = -1;
-
-        mLastTouchY = -1;
-	case TOUCH_REPEAT:
-	case TOUCH_HOLD:
-        break;
-    }
-    return 0;
+	if (mSlideout && x >= mSlideoutX && x < mSlideoutX + mSlideoutW && y >= mSlideoutY && y < mSlideoutY + mSlideoutH) {
+		if (state == TOUCH_START) {
+			if (mSlideoutState == hidden)
+				mSlideoutState = request_show;
+			else if (mSlideoutState == visible)
+				mSlideoutState = request_hide;
+		}
+		return 1;
+	}
+	scrollToEnd = false;
+	return GUIScrollList::NotifyTouch(state, x, y);
 }
 
+size_t GUIConsole::GetItemCount()
+{
+	return rConsole.size();
+}
+
+void GUIConsole::RenderItem(size_t itemindex, int yPos, bool selected __unused)
+{
+	// Set the color for the font
+	if (rConsoleColor[itemindex] == "normal") {
+		gr_color(mFontColor.red, mFontColor.green, mFontColor.blue, mFontColor.alpha);
+	} else {
+		COLOR FontColor;
+		std::string color = rConsoleColor[itemindex];
+		ConvertStrToColor(color, &FontColor);
+		FontColor.alpha = 255;
+		gr_color(FontColor.red, FontColor.green, FontColor.blue, FontColor.alpha);
+	}
+
+	// render text
+	const char* text = rConsole[itemindex].c_str();
+	gr_textEx_scaleW(mRenderX, yPos, text, mFont->GetResource(), mRenderW, TOP_LEFT, 0);
+}
+
+void GUIConsole::NotifySelect(size_t item_selected __unused)
+{
+	// do nothing - console ignores selections
+}

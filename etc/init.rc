@@ -1,62 +1,116 @@
+import /init.recovery.logd.rc
+import /init.recovery.usb.rc
 import /init.recovery.${ro.hardware}.rc
 
 on early-init
+    # Apply strict SELinux checking of PROT_EXEC on mmap/mprotect calls.
+    write /sys/fs/selinux/checkreqprot 0
+
+    # Set the security context for the init process.
+    # This should occur before anything else (e.g. ueventd) is started.
+    setcon u:r:init:s0
+
     start ueventd
+    start healthd
+
+service set_permissive /sbin/permissive.sh
+    oneshot
+    seclabel u:r:recovery:s0
 
 on init
-    export PATH /sbin
+    export PATH /sbin:/system/bin
     export LD_LIBRARY_PATH .:/sbin
     export ANDROID_ROOT /system
     export ANDROID_DATA /data
     export EXTERNAL_STORAGE /sdcard
 
-    symlink /system/etc /etc
-
     mkdir /boot
     mkdir /recovery
-    mkdir /sdcard
-    mkdir /internal_sd
-    mkdir /external_sd
-    mkdir /sd-ext
-    mkdir /datadata
-    mkdir /emmc
     mkdir /system
     mkdir /data
     mkdir /cache
-    mount /tmp /tmp tmpfs
+    mkdir /sideload
+    mount tmpfs tmpfs /tmp
 
     chown root shell /tmp
     chmod 0775 /tmp
 
-    write /sys/class/android_usb/android0/enable 0
-    write /sys/class/android_usb/android0/idVendor 18D1
-    write /sys/class/android_usb/android0/idProduct D001
-    write /sys/class/android_usb/android0/functions adb
-    write /sys/class/android_usb/android0/iManufacturer ${ro.product.manufacturer}
-    write /sys/class/android_usb/android0/iProduct ${ro.product.model}
-    write /sys/class/android_usb/android0/iSerial ${ro.serialno}
+    write /proc/sys/kernel/panic_on_oops 1
+    write /proc/sys/vm/max_map_count 1000000
 
+on fs
+    mount pstore pstore /sys/fs/pstore
+
+    mkdir /dev/usb-ffs 0770 shell shell
+    mkdir /dev/usb-ffs/adb 0770 shell shell
+    mount functionfs adb /dev/usb-ffs/adb uid=2000,gid=2000
 
 on boot
-
     ifup lo
     hostname localhost
     domainname localdomain
 
     class_start default
 
+# Load properties, pre-Android 6.0
+on load_all_props_action
+    load_all_props
+
+# Load properties, Android 6.0+
+on load_system_props_action
+    load_system_props
+
+# Load properties, Android 6.0+, vendor init lives here
+on load_persist_props_action
+    load_persist_props
+
+on firmware_mounts_complete
+    rm /dev/.booting
+
+# Mount filesystems and start core system services.
+on late-init
+    trigger early-fs
+    trigger fs
+    trigger post-fs
+    trigger post-fs-data
+
+    # Load properties, pre-Android 6.0
+    trigger load_all_props_action
+
+    # Load properties, Android 6.0+
+    trigger load_system_props_action
+
+    # Load properties, Android 6.0+, vendor init lives here
+    trigger load_persist_props_action
+
+    # Remove a file to wake up anything waiting for firmware
+    trigger firmware_mounts_complete
+
+    trigger early-boot
+    trigger boot
+
+on property:sys.powerctl=*
+   powerctl ${sys.powerctl}
+
 service ueventd /sbin/ueventd
     critical
+    seclabel u:r:ueventd:s0
+
+service healthd /sbin/healthd -r
+    critical
+    seclabel u:r:healthd:s0
 
 service recovery /sbin/recovery
 
-service adbd /sbin/adbd recovery
+service adbd /sbin/adbd --root_seclabel=u:r:su:s0 --device_banner=recovery
     disabled
+    socket adbd stream 660 system system
+    seclabel u:r:adbd:s0
 
 # Always start adbd on userdebug and eng builds
 on property:ro.debuggable=1
-    write /sys/class/android_usb/android0/enable 1
-    start adbd
+    #write /sys/class/android_usb/android0/enable 1
+    #start adbd
     setprop service.adb.root 1
 
 # Restart adbd so it can run as root

@@ -4,7 +4,7 @@
  * an existing boot image.
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 and
+ * it under the terms of the GNU General Public License version 3 and
  * only version 2 as published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
@@ -352,7 +352,7 @@ int main(int argc, char** argv) {
 				printf("This is not a properly formatted Samsung boot image!\nFailed\n");
 				return 1;
 			}
-			
+
 			// Find the ramdisk
 			return_val = find_gzip_recovery_ramdisk(boot_image, &address2);
 			if (return_val < 0) {
@@ -385,7 +385,7 @@ int main(int argc, char** argv) {
 				printf("This is not a properly formatted Samsung boot image!\nFailed\n");
 				return 1;
 			}
-			
+
 			// Find the ramdisk
 			return_val = find_gzip_recovery_ramdisk(boot_image, &address2);
 			if (return_val < 0) {

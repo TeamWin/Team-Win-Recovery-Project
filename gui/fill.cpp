@@ -18,39 +18,35 @@
 #include <string>
 
 extern "C" {
-#include "../common.h"
-#include "../minuitwrp/minui.h"
-#include "../recovery_ui.h"
+#include "../twcommon.h"
 }
+#include "../minuitwrp/minui.h"
 
 #include "rapidxml.hpp"
 #include "objects.hpp"
 
-GUIFill::GUIFill(xml_node<>* node)
+GUIFill::GUIFill(xml_node<>* node) : GUIObject(node)
 {
-    xml_attribute<>* attr;
-    xml_node<>* child;
+	bool has_color = false;
+	mColor = LoadAttrColor(node, "color", &has_color);
+	if (!has_color) {
+		LOGERR("No color specified for fill\n");
+		return;
+	}
 
-    if (!node)
-        return;
+	// Load the placement
+	LoadPlacement(FindNode(node, "placement"), &mRenderX, &mRenderY, &mRenderW, &mRenderH);
 
-    attr = node->first_attribute("color");
-    if (!attr)
-        return;
-
-    std::string color = attr->value();
-    ConvertStrToColor(color, &mColor);
-
-    // Load the placement
-    LoadPlacement(node->first_node("placement"), &mRenderX, &mRenderY, &mRenderW, &mRenderH);
-
-    return;
+	return;
 }
 
 int GUIFill::Render(void)
 {
-    gr_color(mColor.red, mColor.green, mColor.blue, mColor.alpha);
-    gr_fill(mRenderX, mRenderY, mRenderW, mRenderH);
-    return 0;
+	if(!isConditionTrue())
+		return 0;
+
+	gr_color(mColor.red, mColor.green, mColor.blue, mColor.alpha);
+	gr_fill(mRenderX, mRenderY, mRenderW, mRenderH);
+	return 0;
 }
 

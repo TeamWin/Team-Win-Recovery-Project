@@ -2,11 +2,12 @@
 	mkexfat.c (22.04.12)
 	FS creation engine.
 
-	Copyright (C) 2011-2013  Andrew Nayenko
+	Free exFAT implementation.
+	Copyright (C) 2011-2015  Andrew Nayenko
 
-	This program is free software: you can redistribute it and/or modify
+	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
+	the Free Software Foundation, either version 2 of the License, or
 	(at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
@@ -14,21 +15,22 @@
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License along
+	with this program; if not, write to the Free Software Foundation, Inc.,
+	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "mkexfat.h"
 #include <sys/types.h>
 #include <unistd.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
-#include "mkexfat.h"
 
-static int check_size(off64_t volume_size)
+static int check_size(loff_t volume_size)
 {
 	const struct fs_object** pp;
-	off64_t position = 0;
+	loff_t position = 0;
 
 	for (pp = objects; *pp; pp++)
 	{
@@ -50,12 +52,12 @@ static int check_size(off64_t volume_size)
 }
 
 static int erase_object(struct exfat_dev* dev, const void* block,
-		size_t block_size, off64_t start, off64_t size)
+		size_t block_size, loff_t start, loff_t size)
 {
-	const off64_t block_count = DIV_ROUND_UP(size, block_size);
-	off64_t i;
+	const loff_t block_count = DIV_ROUND_UP(size, block_size);
+	loff_t i;
 
-	if (exfat_seek(dev, start, SEEK_SET) == (off64_t) -1)
+	if (exfat_seek(dev, start, SEEK_SET) == (loff_t) -1)
 	{
 		exfat_error("seek to 0x%"PRIx64" failed", start);
 		return 1;
@@ -75,7 +77,7 @@ static int erase_object(struct exfat_dev* dev, const void* block,
 static int erase(struct exfat_dev* dev)
 {
 	const struct fs_object** pp;
-	off64_t position = 0;
+	loff_t position = 0;
 	const size_t block_size = 1024 * 1024;
 	void* block = malloc(block_size);
 
@@ -105,12 +107,12 @@ static int erase(struct exfat_dev* dev)
 static int create(struct exfat_dev* dev)
 {
 	const struct fs_object** pp;
-	off64_t position = 0;
+	loff_t position = 0;
 
 	for (pp = objects; *pp; pp++)
 	{
 		position = ROUND_UP(position, (*pp)->get_alignment());
-		if (exfat_seek(dev, position, SEEK_SET) == (off64_t) -1)
+		if (exfat_seek(dev, position, SEEK_SET) == (loff_t) -1)
 		{
 			exfat_error("seek to 0x%"PRIx64" failed", position);
 			return 1;
@@ -122,7 +124,7 @@ static int create(struct exfat_dev* dev)
 	return 0;
 }
 
-int mkfs(struct exfat_dev* dev, off64_t volume_size)
+int mkfs(struct exfat_dev* dev, loff_t volume_size)
 {
 	if (check_size(volume_size) != 0)
 		return 1;
@@ -144,10 +146,10 @@ int mkfs(struct exfat_dev* dev, off64_t volume_size)
 	return 0;
 }
 
-off64_t get_position(const struct fs_object* object)
+loff_t get_position(const struct fs_object* object)
 {
 	const struct fs_object** pp;
-	off64_t position = 0;
+	loff_t position = 0;
 
 	for (pp = objects; *pp; pp++)
 	{

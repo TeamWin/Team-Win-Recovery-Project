@@ -2,11 +2,12 @@
 	main.c (15.08.10)
 	Creates exFAT file system.
 
-	Copyright (C) 2011-2013  Andrew Nayenko
+	Free exFAT implementation.
+	Copyright (C) 2011-2015  Andrew Nayenko
 
-	This program is free software: you can redistribute it and/or modify
+	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
+	the Free Software Foundation, either version 2 of the License, or
 	(at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
@@ -14,10 +15,18 @@
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License along
+	with this program; if not, write to the Free Software Foundation, Inc.,
+	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "mkexfat.h"
+#include "vbr.h"
+#include "fat.h"
+#include "cbm.h"
+#include "uct.h"
+#include "rootdir.h"
+#include <exfat.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -25,13 +34,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
-#include <exfat.h>
-#include "mkexfat.h"
-#include "vbr.h"
-#include "fat.h"
-#include "cbm.h"
-#include "uct.h"
-#include "rootdir.h"
 
 const struct fs_object* objects[] =
 {
@@ -49,7 +51,7 @@ static struct
 {
 	int sector_bits;
 	int spc_bits;
-	off64_t volume_size;
+	loff_t volume_size;
 	le16_t volume_label[EXFAT_ENAME_MAX + 1];
 	uint32_t volume_serial;
 	uint64_t first_sector;
@@ -66,7 +68,7 @@ int get_spc_bits(void)
 	return param.spc_bits;
 }
 
-off64_t get_volume_size(void)
+loff_t get_volume_size(void)
 {
 	return param.volume_size;
 }
@@ -96,13 +98,13 @@ int get_cluster_size(void)
 	return get_sector_size() << get_spc_bits();
 }
 
-static int setup_spc_bits(int sector_bits, int user_defined, off64_t volume_size)
+static int setup_spc_bits(int sector_bits, int user_defined, loff_t volume_size)
 {
 	int i;
 
 	if (user_defined != -1)
 	{
-		off64_t cluster_size = 1 << sector_bits << user_defined;
+		loff_t cluster_size = 1 << sector_bits << user_defined;
 		if (volume_size / cluster_size > EXFAT_LAST_DATA_CLUSTER)
 		{
 			struct exfat_human_bytes chb, vhb;
@@ -188,70 +190,54 @@ static void usage(const char* prog)
 {
 	fprintf(stderr, "Usage: %s [-i volume-id] [-n label] "
 			"[-p partition-first-sector] "
-			"[-s sectors-per-cluster] [-v] <device>\n", prog);
+			"[-s sectors-per-cluster] [-V] <device>\n", prog);
 	exit(1);
 }
 
 int main(int argc, char* argv[])
 {
 	const char* spec = NULL;
-	char** pp;
+	int opt;
 	int spc_bits = -1;
 	const char* volume_label = NULL;
 	uint32_t volume_serial = 0;
 	uint64_t first_sector = 0;
 	struct exfat_dev* dev;
 
-	printf("mkexfatfs %u.%u.%u\n",
-			EXFAT_VERSION_MAJOR, EXFAT_VERSION_MINOR, EXFAT_VERSION_PATCH);
+	printf("mkexfatfs %s\n", VERSION);
 
-	for (pp = argv + 1; *pp; pp++)
+	while ((opt = getopt(argc, argv, "i:n:p:s:V")) != -1)
 	{
-		if (strcmp(*pp, "-s") == 0)
+		switch (opt)
 		{
-			pp++;
-			if (*pp == NULL)
-				usage(argv[0]);
-			spc_bits = logarithm2(atoi(*pp));
+		case 'i':
+			volume_serial = strtol(optarg, NULL, 16);
+			break;
+		case 'n':
+			volume_label = optarg;
+			break;
+		case 'p':
+			first_sector = strtoll(optarg, NULL, 10);
+			break;
+		case 's':
+			spc_bits = logarithm2(atoi(optarg));
 			if (spc_bits < 0)
 			{
-				exfat_error("invalid option value: `%s'", *pp);
+				exfat_error("invalid option value: '%s'", optarg);
 				return 1;
 			}
-		}
-		else if (strcmp(*pp, "-n") == 0)
-		{
-			pp++;
-			if (*pp == NULL)
-				usage(argv[0]);
-			volume_label = *pp;
-		}
-		else if (strcmp(*pp, "-i") == 0)
-		{
-			pp++;
-			if (*pp == NULL)
-				usage(argv[0]);
-			volume_serial = strtol(*pp, NULL, 16);
-		}
-		else if (strcmp(*pp, "-p") == 0)
-		{
-			pp++;
-			if (*pp == NULL)
-				usage(argv[0]);
-			first_sector = strtoll(*pp, NULL, 10);
-		}
-		else if (strcmp(*pp, "-v") == 0)
-		{
-			puts("Copyright (C) 2011-2013  Andrew Nayenko");
+			break;
+		case 'V':
+			puts("Copyright (C) 2011-2015  Andrew Nayenko");
 			return 0;
-		}
-		else if (spec == NULL)
-			spec = *pp;
-		else
+		default:
 			usage(argv[0]);
+			break;
+		}
 	}
-	if (spec == NULL)
+	if (argc - optind != 1)
 		usage(argv[0]);
+	spec = argv[optind];
 
 	dev = exfat_open(spec, EXFAT_MODE_RW);
 	if (dev == NULL)

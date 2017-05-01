@@ -24,14 +24,16 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include "mincrypt/sha.h"
 #include "applypatch.h"
+#include "bmlutils/bmlutils.h"
 #include "mtdutils/mtdutils.h"
 #include "edify/expr.h"
 
 static int LoadPartitionContents(const char* filename, FileContents* file);
-static ssize_t FileSink(unsigned char* data, ssize_t len, void* token);
+static ssize_t FileSink(const unsigned char* data, ssize_t len, void* token);
 static int GenerateTarget(FileContents* source_file,
                           const Value* source_patch_value,
                           FileContents* copy_file,
@@ -39,24 +41,23 @@ static int GenerateTarget(FileContents* source_file,
                           const char* source_filename,
                           const char* target_filename,
                           const uint8_t target_sha1[SHA_DIGEST_SIZE],
-                          size_t target_size);
+                          size_t target_size,
+                          const Value* bonus_data);
 
 static int mtd_partitions_scanned = 0;
 
-// Read a file into memory; optionally (retouch_flag == RETOUCH_DO_MASK) mask
-// the retouched entries back to their original value (such that SHA-1 checks
-// don't fail due to randomization); store the file contents and associated
+// Read a file into memory; store the file contents and associated
 // metadata in *file.
 //
 // Return 0 on success.
-int LoadFileContents(const char* filename, FileContents* file,
-                     int retouch_flag) {
+int LoadFileContents(const char* filename, FileContents* file) {
     file->data = NULL;
 
     // A special 'filename' beginning with "MTD:" or "EMMC:" means to
     // load the contents of a partition.
     if (strncmp(filename, "MTD:", 4) == 0 ||
-        strncmp(filename, "EMMC:", 5) == 0) {
+        strncmp(filename, "EMMC:", 5) == 0 ||
+        strncmp(filename, "BML:", 4) == 0) {
         return LoadPartitionContents(filename, file);
     }
 
@@ -86,21 +87,7 @@ int LoadFileContents(const char* filename, FileContents* file,
     }
     fclose(f);
 
-    // apply_patch[_check] functions are blind to randomization. Randomization
-    // is taken care of in [Undo]RetouchBinariesFn. If there is a mismatch
-    // within a file, this means the file is assumed "corrupt" for simplicity.
-    if (retouch_flag) {
-        int32_t desired_offset = 0;
-        if (retouch_mask_data(file->data, file->size,
-                              &desired_offset, NULL) != RETOUCH_DATA_MATCHED) {
-            printf("error trying to mask retouch entries\n");
-            free(file->data);
-            file->data = NULL;
-            return -1;
-        }
-    }
-
-    SHA(file->data, file->size, file->sha1);
+    SHA_hash(file->data, file->size, file->sha1);
     return 0;
 }
 
@@ -146,12 +133,22 @@ static int LoadPartitionContents(const char* filename, FileContents* file) {
         type = MTD;
     } else if (strcmp(magic, "EMMC") == 0) {
         type = EMMC;
+    } else if (strcmp(magic, "BML") == 0) {
+        type = EMMC;
     } else {
         printf("LoadPartitionContents called with bad filename (%s)\n",
                filename);
         return -1;
     }
     const char* partition = strtok(NULL, ":");
+
+    if (strcmp(magic, "BML") == 0) {
+        if (strcmp(partition, "boot") == 0) {
+            partition = BOARD_BML_BOOT;
+        } else if (strcmp(partition, "recovery") == 0) {
+            partition = BOARD_BML_RECOVERY;
+        }
+    }
 
     int i;
     int colons = 0;
@@ -246,7 +243,7 @@ static int LoadPartitionContents(const char* filename, FileContents* file) {
                     break;
             }
             if (next != read) {
-                printf("short read (%d bytes of %d) for partition \"%s\"\n",
+                printf("short read (%zu bytes of %zu) for partition \"%s\"\n",
                        read, next, partition);
                 free(file->data);
                 file->data = NULL;
@@ -273,7 +270,7 @@ static int LoadPartitionContents(const char* filename, FileContents* file) {
         if (memcmp(sha_so_far, parsed_sha, SHA_DIGEST_SIZE) == 0) {
             // we have a match.  stop reading the partition; we'll return
             // the data we've read so far.
-            printf("partition read matched size %d sha %s\n",
+            printf("partition read matched size %zu sha %s\n",
                    size[index[i]], sha1sum[index[i]]);
             break;
         }
@@ -324,7 +321,7 @@ static int LoadPartitionContents(const char* filename, FileContents* file) {
 // Save the contents of the given FileContents object under the given
 // filename.  Return 0 on success.
 int SaveFileContents(const char* filename, const FileContents* file) {
-    int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC | O_SYNC, S_IRUSR | S_IWUSR);
     if (fd < 0) {
         printf("failed to open \"%s\" for write: %s\n",
                filename, strerror(errno));
@@ -339,8 +336,14 @@ int SaveFileContents(const char* filename, const FileContents* file) {
         close(fd);
         return -1;
     }
-    fsync(fd);
-    close(fd);
+    if (fsync(fd) != 0) {
+        printf("fsync of \"%s\" failed: %s\n", filename, strerror(errno));
+        return -1;
+    }
+    if (close(fd) != 0) {
+        printf("close of \"%s\" failed: %s\n", filename, strerror(errno));
+        return -1;
+    }
 
     if (chmod(filename, file->st.st_mode) != 0) {
         printf("chmod of \"%s\" failed: %s\n", filename, strerror(errno));
@@ -367,11 +370,30 @@ int WriteToPartition(unsigned char* data, size_t len,
         type = MTD;
     } else if (strcmp(magic, "EMMC") == 0) {
         type = EMMC;
+    } else if (strcmp(magic, "BML") == 0) {
+        type = EMMC;
     } else {
         printf("WriteToPartition called with bad target (%s)\n", target);
         return -1;
     }
     const char* partition = strtok(NULL, ":");
+
+    if (strcmp(magic, "BML") == 0) {
+        if (strcmp(partition, "boot") == 0) {
+            partition = BOARD_BML_BOOT;
+        } else if (strcmp(partition, "recovery") == 0) {
+            partition = BOARD_BML_RECOVERY;
+        }
+
+        int bmlpartition = open(partition, O_RDWR | O_LARGEFILE);
+        if (bmlpartition < 0)
+            return -1;
+        if (ioctl(bmlpartition, BML_UNLOCK_ALL, 0)) {
+            printf("failed to unlock BML partition: (%s)\n", partition);
+            return -1;
+        }
+        close(bmlpartition);
+    }
 
     if (partition == NULL) {
         printf("bad partition target name \"%s\"\n", target);
@@ -401,7 +423,7 @@ int WriteToPartition(unsigned char* data, size_t len,
 
             size_t written = mtd_write_data(ctx, (char*)data, len);
             if (written != len) {
-                printf("only wrote %d of %d bytes to MTD %s\n",
+                printf("only wrote %zu of %zu bytes to MTD %s\n",
                        written, len, partition);
                 mtd_write_close(ctx);
                 return -1;
@@ -420,18 +442,117 @@ int WriteToPartition(unsigned char* data, size_t len,
             break;
 
         case EMMC:
-            ;
-            FILE* f = fopen(partition, "wb");
-            if (fwrite(data, 1, len, f) != len) {
-                printf("short write writing to %s (%s)\n",
-                       partition, strerror(errno));
+        {
+            size_t start = 0;
+            int success = 0;
+            int fd = open(partition, O_RDWR | O_SYNC);
+            if (fd < 0) {
+                printf("failed to open %s: %s\n", partition, strerror(errno));
                 return -1;
             }
-            if (fclose(f) != 0) {
+            int attempt;
+
+            for (attempt = 0; attempt < 2; ++attempt) {
+                if (TEMP_FAILURE_RETRY(lseek(fd, start, SEEK_SET)) == -1) {
+                    printf("failed seek on %s: %s\n",
+                           partition, strerror(errno));
+                    return -1;
+                }
+                while (start < len) {
+                    size_t to_write = len - start;
+                    if (to_write > 1<<20) to_write = 1<<20;
+
+                    ssize_t written = TEMP_FAILURE_RETRY(write(fd, data+start, to_write));
+                    if (written == -1) {
+                        printf("failed write writing to %s: %s\n", partition, strerror(errno));
+                        return -1;
+                    }
+                    start += written;
+                }
+                if (fsync(fd) != 0) {
+                   printf("failed to sync to %s (%s)\n",
+                          partition, strerror(errno));
+                   return -1;
+                }
+                if (close(fd) != 0) {
+                   printf("failed to close %s (%s)\n",
+                          partition, strerror(errno));
+                   return -1;
+                }
+                fd = open(partition, O_RDONLY);
+                if (fd < 0) {
+                   printf("failed to reopen %s for verify (%s)\n",
+                          partition, strerror(errno));
+                   return -1;
+                }
+
+                // drop caches so our subsequent verification read
+                // won't just be reading the cache.
+                sync();
+                int dc = open("/proc/sys/vm/drop_caches", O_WRONLY);
+                if (TEMP_FAILURE_RETRY(write(dc, "3\n", 2)) == -1) {
+                    printf("write to /proc/sys/vm/drop_caches failed: %s\n", strerror(errno));
+                } else {
+                    printf("  caches dropped\n");
+                }
+                close(dc);
+                sleep(1);
+
+                // verify
+                if (TEMP_FAILURE_RETRY(lseek(fd, 0, SEEK_SET)) == -1) {
+                    printf("failed to seek back to beginning of %s: %s\n",
+                           partition, strerror(errno));
+                    return -1;
+                }
+                unsigned char buffer[4096];
+                start = len;
+                size_t p;
+                for (p = 0; p < len; p += sizeof(buffer)) {
+                    size_t to_read = len - p;
+                    if (to_read > sizeof(buffer)) to_read = sizeof(buffer);
+
+                    size_t so_far = 0;
+                    while (so_far < to_read) {
+                        ssize_t read_count =
+                                TEMP_FAILURE_RETRY(read(fd, buffer+so_far, to_read-so_far));
+                        if (read_count == -1) {
+                            printf("verify read error %s at %zu: %s\n",
+                                   partition, p, strerror(errno));
+                            return -1;
+                        }
+                        if ((size_t)read_count < to_read) {
+                            printf("short verify read %s at %zu: %zd %zu %s\n",
+                                   partition, p, read_count, to_read, strerror(errno));
+                        }
+                        so_far += read_count;
+                    }
+
+                    if (memcmp(buffer, data+p, to_read)) {
+                        printf("verification failed starting at %zu\n", p);
+                        start = p;
+                        break;
+                    }
+                }
+
+                if (start == len) {
+                    printf("verification read succeeded (attempt %d)\n", attempt+1);
+                    success = true;
+                    break;
+                }
+            }
+
+            if (!success) {
+                printf("failed to verify after all attempts\n");
+                return -1;
+            }
+
+            if (close(fd) != 0) {
                 printf("error closing %s (%s)\n", partition, strerror(errno));
                 return -1;
             }
+            sync();
             break;
+        }
     }
 
     free(copy);
@@ -472,7 +593,7 @@ int ParseSha1(const char* str, uint8_t* digest) {
 // Search an array of sha1 strings for one matching the given sha1.
 // Return the index of the match on success, or -1 if no match is
 // found.
-int FindMatchingPatch(uint8_t* sha1, const char** patch_sha1_str,
+int FindMatchingPatch(uint8_t* sha1, char* const * const patch_sha1_str,
                       int num_patches) {
     int i;
     uint8_t patch_sha1[SHA_DIGEST_SIZE];
@@ -497,7 +618,7 @@ int applypatch_check(const char* filename,
     // LoadFileContents is successful.  (Useful for reading
     // partitions, where the filename encodes the sha1s; no need to
     // check them twice.)
-    if (LoadFileContents(filename, &file, RETOUCH_DO_MASK) != 0 ||
+    if (LoadFileContents(filename, &file) != 0 ||
         (num_patches > 0 &&
          FindMatchingPatch(file.sha1, patch_sha1_str, num_patches) < 0)) {
         printf("file \"%s\" doesn't have any of expected "
@@ -512,7 +633,7 @@ int applypatch_check(const char* filename,
         // exists and matches the sha1 we're looking for, the check still
         // passes.
 
-        if (LoadFileContents(CACHE_TEMP_SOURCE, &file, RETOUCH_DO_MASK) != 0) {
+        if (LoadFileContents(CACHE_TEMP_SOURCE, &file) != 0) {
             printf("failed to load cache file\n");
             return 1;
         }
@@ -533,13 +654,13 @@ int ShowLicenses() {
     return 0;
 }
 
-ssize_t FileSink(unsigned char* data, ssize_t len, void* token) {
+ssize_t FileSink(const unsigned char* data, ssize_t len, void* token) {
     int fd = *(int *)token;
     ssize_t done = 0;
     ssize_t wrote;
     while (done < (ssize_t) len) {
-        wrote = write(fd, data+done, len-done);
-        if (wrote <= 0) {
+        wrote = TEMP_FAILURE_RETRY(write(fd, data+done, len-done));
+        if (wrote == -1) {
             printf("error writing %d bytes: %s\n", (int)(len-done), strerror(errno));
             return done;
         }
@@ -554,7 +675,7 @@ typedef struct {
     ssize_t pos;
 } MemorySinkInfo;
 
-ssize_t MemorySink(unsigned char* data, ssize_t len, void* token) {
+ssize_t MemorySink(const unsigned char* data, ssize_t len, void* token) {
     MemorySinkInfo* msi = (MemorySinkInfo*)token;
     if (msi->size - msi->pos < len) {
         return -1;
@@ -572,7 +693,7 @@ size_t FreeSpaceForFile(const char* filename) {
         printf("failed to statfs %s: %s\n", filename, strerror(errno));
         return -1;
     }
-    return sf.f_bsize * sf.f_bfree;
+    return sf.f_bsize * sf.f_bavail;
 }
 
 int CacheSizeCheck(size_t bytes) {
@@ -584,6 +705,14 @@ int CacheSizeCheck(size_t bytes) {
     }
 }
 
+static void print_short_sha1(const uint8_t sha1[SHA_DIGEST_SIZE]) {
+    int i;
+    const char* hex = "0123456789abcdef";
+    for (i = 0; i < 4; ++i) {
+        putchar(hex[(sha1[i]>>4) & 0xf]);
+        putchar(hex[sha1[i] & 0xf]);
+    }
+}
 
 // This function applies binary patches to files in a way that is safe
 // (the original file is not touched until we have the desired
@@ -617,8 +746,9 @@ int applypatch(const char* source_filename,
                size_t target_size,
                int num_patches,
                char** const patch_sha1_str,
-               Value** patch_data) {
-    printf("\napplying patch to %s\n", source_filename);
+               Value** patch_data,
+               Value* bonus_data) {
+    printf("patch %s: ", source_filename);
 
     if (target_filename[0] == '-' &&
         target_filename[1] == '\0') {
@@ -639,13 +769,13 @@ int applypatch(const char* source_filename,
     const Value* copy_patch_value = NULL;
 
     // We try to load the target file into the source_file object.
-    if (LoadFileContents(target_filename, &source_file,
-                         RETOUCH_DO_MASK) == 0) {
+    if (LoadFileContents(target_filename, &source_file) == 0) {
         if (memcmp(source_file.sha1, target_sha1, SHA_DIGEST_SIZE) == 0) {
             // The early-exit case:  the patch was already applied, this file
             // has the desired hash, nothing for us to do.
-            printf("\"%s\" is already target; no patch needed\n",
-                   target_filename);
+            printf("already ");
+            print_short_sha1(target_sha1);
+            putchar('\n');
             free(source_file.data);
             return 0;
         }
@@ -658,8 +788,7 @@ int applypatch(const char* source_filename,
         // target file, or we did but it's different from the source file.
         free(source_file.data);
         source_file.data = NULL;
-        LoadFileContents(source_filename, &source_file,
-                         RETOUCH_DO_MASK);
+        LoadFileContents(source_filename, &source_file);
     }
 
     if (source_file.data != NULL) {
@@ -675,8 +804,7 @@ int applypatch(const char* source_filename,
         source_file.data = NULL;
         printf("source file is bad; trying copy\n");
 
-        if (LoadFileContents(CACHE_TEMP_SOURCE, &copy_file,
-                             RETOUCH_DO_MASK) < 0) {
+        if (LoadFileContents(CACHE_TEMP_SOURCE, &copy_file) < 0) {
             // fail.
             printf("failed to read copy file\n");
             return 1;
@@ -699,7 +827,7 @@ int applypatch(const char* source_filename,
     int result = GenerateTarget(&source_file, source_patch_value,
                                 &copy_file, copy_patch_value,
                                 source_filename, target_filename,
-                                target_sha1, target_size);
+                                target_sha1, target_size, bonus_data);
     free(source_file.data);
     free(copy_file.data);
 
@@ -713,7 +841,8 @@ static int GenerateTarget(FileContents* source_file,
                           const char* source_filename,
                           const char* target_filename,
                           const uint8_t target_sha1[SHA_DIGEST_SIZE],
-                          size_t target_size) {
+                          size_t target_size,
+                          const Value* bonus_data) {
     int retry = 1;
     SHA_CTX ctx;
     int output;
@@ -740,7 +869,8 @@ static int GenerateTarget(FileContents* source_file,
         // file?
 
         if (strncmp(target_filename, "MTD:", 4) == 0 ||
-            strncmp(target_filename, "EMMC:", 5) == 0) {
+            strncmp(target_filename, "EMMC:", 5) == 0 ||
+            strncmp(target_filename, "BML:", 4) == 0) {
             // If the target is a partition, we're actually going to
             // write the output to /tmp and then copy it to the
             // partition.  statfs() always returns 0 blocks free for
@@ -766,8 +896,10 @@ static int GenerateTarget(FileContents* source_file,
                 enough_space =
                     (free_space > (256 << 10)) &&          // 256k (two-block) minimum
                     (free_space > (target_size * 3 / 2));  // 50% margin of error
-                printf("target %ld bytes; free space %ld bytes; retry %d; enough %d\n",
-                       (long)target_size, (long)free_space, retry, enough_space);
+                if (!enough_space) {
+                    printf("target %ld bytes; free space %ld bytes; retry %d; enough %d\n",
+                           (long)target_size, (long)free_space, retry, enough_space);
+                }
             }
 
             if (!enough_space) {
@@ -780,7 +912,8 @@ static int GenerateTarget(FileContents* source_file,
                 // location.
 
                 if (strncmp(source_filename, "MTD:", 4) == 0 ||
-                    strncmp(source_filename, "EMMC:", 5) == 0) {
+                    strncmp(source_filename, "EMMC:", 5) == 0 ||
+                    strncmp(source_filename, "BML:", 4) == 0) {
                     // It's impossible to free space on the target filesystem by
                     // deleting the source if the source is a partition.  If
                     // we're ever in a state where we need to do this, fail.
@@ -802,7 +935,7 @@ static int GenerateTarget(FileContents* source_file,
                 unlink(source_filename);
 
                 size_t free_space = FreeSpaceForFile(target_fs);
-                printf("(now %ld bytes free for target)\n", (long)free_space);
+                printf("(now %ld bytes free for target) ", (long)free_space);
             }
         }
 
@@ -825,7 +958,8 @@ static int GenerateTarget(FileContents* source_file,
         output = -1;
         outname = NULL;
         if (strncmp(target_filename, "MTD:", 4) == 0 ||
-            strncmp(target_filename, "EMMC:", 5) == 0) {
+            strncmp(target_filename, "EMMC:", 5) == 0 ||
+            strncmp(target_filename, "BML:", 4) == 0) {
             // We store the decoded output in memory.
             msi.buffer = malloc(target_size);
             if (msi.buffer == NULL) {
@@ -843,7 +977,8 @@ static int GenerateTarget(FileContents* source_file,
             strcpy(outname, target_filename);
             strcat(outname, ".patch");
 
-            output = open(outname, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+            output = open(outname, O_WRONLY | O_CREAT | O_TRUNC | O_SYNC,
+                S_IRUSR | S_IWUSR);
             if (output < 0) {
                 printf("failed to open output file %s: %s\n",
                        outname, strerror(errno));
@@ -867,15 +1002,21 @@ static int GenerateTarget(FileContents* source_file,
         } else if (header_bytes_read >= 8 &&
                    memcmp(header, "IMGDIFF2", 8) == 0) {
             result = ApplyImagePatch(source_to_use->data, source_to_use->size,
-                                     patch, sink, token, &ctx);
+                                     patch, sink, token, &ctx, bonus_data);
         } else {
             printf("Unknown patch file format\n");
             return 1;
         }
 
         if (output >= 0) {
-            fsync(output);
-            close(output);
+            if (fsync(output) != 0) {
+                printf("failed to fsync file \"%s\" (%s)\n", outname, strerror(errno));
+                result = 1;
+            }
+            if (close(output) != 0) {
+                printf("failed to close file \"%s\" (%s)\n", outname, strerror(errno));
+                result = 1;
+            }
         }
 
         if (result != 0) {
@@ -898,6 +1039,10 @@ static int GenerateTarget(FileContents* source_file,
     if (memcmp(current_target_sha1, target_sha1, SHA_DIGEST_SIZE) != 0) {
         printf("patch did not produce expected sha1\n");
         return 1;
+    } else {
+        printf("now ");
+        print_short_sha1(target_sha1);
+        putchar('\n');
     }
 
     if (output < 0) {

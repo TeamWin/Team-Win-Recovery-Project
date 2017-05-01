@@ -2,11 +2,12 @@
 	main.c (08.11.10)
 	Prints detailed information about exFAT volume.
 
-	Copyright (C) 2011-2013  Andrew Nayenko
+	Free exFAT implementation.
+	Copyright (C) 2011-2015  Andrew Nayenko
 
-	This program is free software: you can redistribute it and/or modify
+	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
+	the Free Software Foundation, either version 2 of the License, or
 	(at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
@@ -14,16 +15,17 @@
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License along
+	with this program; if not, write to the Free Software Foundation, Inc.,
+	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include <exfat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
-#include <exfat.h>
 
 static void print_generic_info(const struct exfat_super_block* sb)
 {
@@ -83,13 +85,13 @@ static int dump_sb(const char* spec)
 	if (exfat_read(dev, &sb, sizeof(struct exfat_super_block)) < 0)
 	{
 		exfat_close(dev);
-		exfat_error("failed to read from `%s'", spec);
+		exfat_error("failed to read from '%s'", spec);
 		return 1;
 	}
 	if (memcmp(sb.oem_name, "EXFAT   ", sizeof(sb.oem_name)) != 0)
 	{
 		exfat_close(dev);
-		exfat_error("exFAT file system is not found on `%s'", spec);
+		exfat_error("exFAT file system is not found on '%s'", spec);
 		return 1;
 	}
 
@@ -104,7 +106,7 @@ static int dump_sb(const char* spec)
 
 static void dump_sectors(struct exfat* ef)
 {
-	off_t a = 0, b = 0;
+	loff_t a = 0, b = 0;
 
 	printf("Used sectors ");
 	while (exfat_find_used_sectors(ef, &a, &b) == 0)
@@ -140,38 +142,39 @@ static int dump_full(const char* spec, bool used_sectors)
 
 static void usage(const char* prog)
 {
-	fprintf(stderr, "Usage: %s [-s] [-u] [-v] <device>\n", prog);
+	fprintf(stderr, "Usage: %s [-s] [-u] [-V] <device>\n", prog);
 	exit(1);
 }
 
 int main(int argc, char* argv[])
 {
-	char** pp;
+	int opt;
 	const char* spec = NULL;
 	bool sb_only = false;
 	bool used_sectors = false;
 
-	printf("dumpexfat %u.%u.%u\n",
-			EXFAT_VERSION_MAJOR, EXFAT_VERSION_MINOR, EXFAT_VERSION_PATCH);
+	printf("dumpexfat %s\n", VERSION);
 
-	for (pp = argv + 1; *pp; pp++)
+	while ((opt = getopt(argc, argv, "suV")) != -1)
 	{
-		if (strcmp(*pp, "-s") == 0)
-			sb_only = true;
-		else if (strcmp(*pp, "-u") == 0)
-			used_sectors = true;
-		else if (strcmp(*pp, "-v") == 0)
+		switch (opt)
 		{
-			puts("Copyright (C) 2011-2013  Andrew Nayenko");
+		case 's':
+			sb_only = true;
+			break;
+		case 'u':
+			used_sectors = true;
+			break;
+		case 'V':
+			puts("Copyright (C) 2011-2015  Andrew Nayenko");
 			return 0;
-		}
-		else if (spec == NULL)
-			spec = *pp;
-		else
+		default:
 			usage(argv[0]);
+		}
 	}
-	if (spec == NULL)
+	if (argc - optind != 1)
 		usage(argv[0]);
+	spec = argv[optind];
 
 	if (sb_only)
 		return dump_sb(spec);

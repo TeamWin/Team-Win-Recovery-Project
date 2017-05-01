@@ -17,130 +17,102 @@
 */
 
 using namespace std;
-#include "rapidxml.hpp"
-using namespace rapidxml;
-extern "C" {
-#include "../minzip/Zip.h"
-#include "../minuitwrp/minui.h"
-}
 #include <string>
-#include <vector>
-#include <map>
-#include "resources.hpp"
 #include <pthread.h>
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
-#include <pixelflinger/pixelflinger.h>
-#include <linux/kd.h>
-#include <linux/fb.h>
-#include <sstream>
 #include "pages.hpp"
 #include "blanktimer.hpp"
 #include "../data.hpp"
 extern "C" {
-#include "../common.h"
-#include "../recovery_ui.h"
+#include "../twcommon.h"
 }
+#include "../minuitwrp/minui.h"
 #include "../twrp-functions.hpp"
 #include "../variables.h"
 
 blanktimer::blanktimer(void) {
-	setTime(0);
-	setConBlank(0);
+	pthread_mutex_init(&mutex, NULL);
+	setTime(0); // no timeout
+	state = kOn;
 	orig_brightness = getBrightness();
 }
 
+bool blanktimer::isScreenOff() {
+	return state >= kOff;
+}
+
 void blanktimer::setTime(int newtime) {
+	pthread_mutex_lock(&mutex);
 	sleepTimer = newtime;
-}
-
-int blanktimer::setTimerThread(void) {
-	pthread_t thread;
-	ThreadPtr blankptr = &blanktimer::setClockTimer;
-	PThreadPtr p = *(PThreadPtr*)&blankptr;
-	pthread_create(&thread, NULL, p, this);
-	return 0;
-}
-
-void blanktimer::setConBlank(int blank) {
-	pthread_mutex_lock(&conblankmutex);
-	conblank = blank;
-	pthread_mutex_unlock(&conblankmutex);
+	pthread_mutex_unlock(&mutex);
 }
 
 void blanktimer::setTimer(void) {
-	pthread_mutex_lock(&timermutex);
 	clock_gettime(CLOCK_MONOTONIC, &btimer);
-	pthread_mutex_unlock(&timermutex);
 }
 
-timespec blanktimer::getTimer(void) {
-	return btimer;
-}
-
-int  blanktimer::setClockTimer(void) {
+void blanktimer::checkForTimeout() {
+#ifndef TW_NO_SCREEN_TIMEOUT
+	pthread_mutex_lock(&mutex);
 	timespec curTime, diff;
-	for(;;) {
-		usleep(1000000);
-		clock_gettime(CLOCK_MONOTONIC, &curTime);
-		diff = TWFunc::timespec_diff(btimer, curTime);
-		if (sleepTimer > 2 && diff.tv_sec > (sleepTimer - 2) && conblank == 0) {
-			orig_brightness = getBrightness();
-			setConBlank(1);
-			setBrightness(5);
-		}
-		if (sleepTimer && diff.tv_sec > sleepTimer && conblank < 2) {
-			setConBlank(2);
-			setBrightness(0);
-			PageManager::ChangeOverlay("lock");
-		}
-#ifndef TW_NO_SCREEN_BLANK
-		if (conblank == 2 && gr_fb_blank(1) >= 0) {
-			setConBlank(3);
-		}
-#endif
+	clock_gettime(CLOCK_MONOTONIC, &curTime);
+	diff = TWFunc::timespec_diff(btimer, curTime);
+	if (sleepTimer > 2 && diff.tv_sec > (sleepTimer - 2) && state == kOn) {
+		orig_brightness = getBrightness();
+		state = kDim;
+		TWFunc::Set_Brightness("5");
 	}
-	return -1; //shouldn't get here
+	if (sleepTimer && diff.tv_sec > sleepTimer && state < kOff) {
+		state = kOff;
+		TWFunc::Set_Brightness("0");
+		TWFunc::check_and_run_script("/sbin/postscreenblank.sh", "blank");
+		PageManager::ChangeOverlay("lock");
+	}
+#ifndef TW_NO_SCREEN_BLANK
+	if (state == kOff) {
+		gr_fb_blank(true);
+		state = kBlanked;
+	}
+#endif
+	pthread_mutex_unlock(&mutex);
+#endif
 }
 
-int blanktimer::getBrightness(void) {
-	string results;
-	string brightness_path = EXPAND(TW_BRIGHTNESS_PATH);
-	if ((TWFunc::read_file(brightness_path, results)) != 0)
-		return -1;
-	return atoi(results.c_str());
+string blanktimer::getBrightness(void) {
+	string result;
 
-}
-
-int blanktimer::setBrightness(int brightness) {
-	string brightness_path = EXPAND(TW_BRIGHTNESS_PATH);
-	string bstring;
-	char buff[100];
-	sprintf(buff, "%d", brightness);
-	bstring = buff;
-	if ((TWFunc::write_file(brightness_path, bstring)) != 0)
-		return -1;
-	return 0;
+	if (DataManager::GetIntValue("tw_has_brightnesss_file")) {
+		DataManager::GetValue("tw_brightness", result);
+		if (result.empty())
+			result = "255";
+	}
+	return result;
 }
 
 void blanktimer::resetTimerAndUnblank(void) {
+#ifndef TW_NO_SCREEN_TIMEOUT
+	pthread_mutex_lock(&mutex);
 	setTimer();
-	switch (conblank) {
-		case 3:
+	switch (state) {
+		case kBlanked:
 #ifndef TW_NO_SCREEN_BLANK
-			if (gr_fb_blank(0) < 0) {
-				LOGI("blanktimer::resetTimerAndUnblank failed to gr_fb_blank(0)\n");
-				break;
-			}
+			gr_fb_blank(false);
 #endif
+			// TODO: this is asymmetric with postscreenblank.sh - shouldn't it be under the next case label?
+			TWFunc::check_and_run_script("/sbin/postscreenunblank.sh", "unblank");
 			// No break here, we want to keep going
-		case 2:
+		case kOff:
 			gui_forceRender();
 			// No break here, we want to keep going
-		case 1:
-			setBrightness(orig_brightness);
-			setConBlank(0);
+		case kDim:
+			if (!orig_brightness.empty())
+				TWFunc::Set_Brightness(orig_brightness);
+			state = kOn;
+		case kOn:
 			break;
 	}
+	pthread_mutex_unlock(&mutex);
+#endif
 }

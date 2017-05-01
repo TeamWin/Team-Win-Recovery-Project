@@ -19,34 +19,36 @@
 #ifndef __BLANKTIMER_HEADER_HPP
 #define __BLANKTIMER_HEADER_HPP
 
-#include <pthread.h>
 #include <sys/time.h>
 
 using namespace std;
 
-class blanktimer {
-	public:
-		blanktimer(void);
-		int setTimerThread(void);
-		void resetTimerAndUnblank(void);
-		void setTime(int newtime);
+class blanktimer
+{
+public:
+	blanktimer();
 
-	private:
-		void setConBlank(int blank);
-		void setTimer(void);
-		timespec getTimer(void);
-		int getBrightness(void);
-		int setBrightness(int brightness);
-		int setBlankTimer(void);
-		int setClockTimer(void);
-		typedef int (blanktimer::*ThreadPtr)(void);
-		typedef void* (*PThreadPtr)(void*);
-		pthread_mutex_t conblankmutex;
-		pthread_mutex_t timermutex;
-		int conblank;
-		timespec btimer;
-		unsigned long long sleepTimer;
-		int orig_brightness;
+	// set timeout in seconds
+	void setTime(int newtime);
+
+	// call this in regular intervals
+	void checkForTimeout();
+
+	// call this when an input event is received or when an operation is finished
+	void resetTimerAndUnblank();
+
+	bool isScreenOff();
+
+private:
+	void setTimer(void);
+	string getBrightness(void);
+
+	pthread_mutex_t mutex;
+	enum State { kOn = 0, kDim = 1, kOff = 2, kBlanked = 3 };
+	State state;
+	timespec btimer;
+	long sleepTimer;
+	string orig_brightness;
 };
 
 extern blanktimer blankTimer;

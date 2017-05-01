@@ -2,11 +2,12 @@
 	main.c (02.09.09)
 	exFAT file system checker.
 
-	Copyright (C) 2011-2013  Andrew Nayenko
+	Free exFAT implementation.
+	Copyright (C) 2011-2015  Andrew Nayenko
 
-	This program is free software: you can redistribute it and/or modify
+	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
+	the Free Software Foundation, either version 2 of the License, or
 	(at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
@@ -14,15 +15,16 @@
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License along
+	with this program; if not, write to the Free Software Foundation, Inc.,
+	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include <exfat.h>
 #include <stdio.h>
 #include <string.h>
-#include <exfat.h>
-#include <exfatfs.h>
 #include <inttypes.h>
+#include <unistd.h>
 
 #define exfat_debug(format, ...)
 
@@ -39,19 +41,19 @@ static int nodeck(struct exfat* ef, struct exfat_node* node)
 	{
 		if (CLUSTER_INVALID(c))
 		{
-			char name[EXFAT_NAME_MAX + 1];
+			char name[UTF8_BYTES(EXFAT_NAME_MAX) + 1];
 
-			exfat_get_name(node, name, EXFAT_NAME_MAX);
-			exfat_error("file `%s' has invalid cluster 0x%x", name, c);
+			exfat_get_name(node, name, sizeof(name) - 1);
+			exfat_error("file '%s' has invalid cluster 0x%x", name, c);
 			rc = 1;
 			break;
 		}
 		if (BMAP_GET(ef->cmap.chunk, c - EXFAT_FIRST_DATA_CLUSTER) == 0)
 		{
-			char name[EXFAT_NAME_MAX + 1];
+			char name[UTF8_BYTES(EXFAT_NAME_MAX) + 1];
 
-			exfat_get_name(node, name, EXFAT_NAME_MAX);
-			exfat_error("cluster 0x%x of file `%s' is not allocated", c, name);
+			exfat_get_name(node, name, sizeof(name) - 1);
+			exfat_error("cluster 0x%x of file '%s' is not allocated", c, name);
 			rc = 1;
 		}
 		c = exfat_next_cluster(ef, node, c);
@@ -69,16 +71,20 @@ static void dirck(struct exfat* ef, const char* path)
 	char* entry_path;
 
 	if (exfat_lookup(ef, &parent, path) != 0)
-		exfat_bug("directory `%s' is not found", path);
+		exfat_bug("directory '%s' is not found", path);
 	if (!(parent->flags & EXFAT_ATTRIB_DIR))
-		exfat_bug("`%s' is not a directory (0x%x)", path, parent->flags);
+		exfat_bug("'%s' is not a directory (0x%x)", path, parent->flags);
 	if (nodeck(ef, parent) != 0)
+	{
+		exfat_put_node(ef, parent);
 		return;
+	}
 
 	path_length = strlen(path);
-	entry_path = malloc(path_length + 1 + EXFAT_NAME_MAX);
+	entry_path = malloc(path_length + 1 + UTF8_BYTES(EXFAT_NAME_MAX) + 1);
 	if (entry_path == NULL)
 	{
+		exfat_put_node(ef, parent);
 		exfat_error("out of memory");
 		return;
 	}
@@ -90,12 +96,12 @@ static void dirck(struct exfat* ef, const char* path)
 	{
 		free(entry_path);
 		exfat_put_node(ef, parent);
-		exfat_error("failed to open directory `%s'", path);
 		return;
 	}
 	while ((node = exfat_readdir(ef, &it)))
 	{
-		exfat_get_name(node, entry_path + path_length + 1, EXFAT_NAME_MAX);
+		exfat_get_name(node, entry_path + path_length + 1,
+				UTF8_BYTES(EXFAT_NAME_MAX));
 		exfat_debug("%s: %s, %"PRIu64" bytes, cluster %u", entry_path,
 				IS_CONTIGUOUS(*node) ? "contiguous" : "fragmented",
 				node->size, node->start_cluster);
@@ -124,33 +130,33 @@ static void fsck(struct exfat* ef)
 
 static void usage(const char* prog)
 {
-	fprintf(stderr, "Usage: %s [-v] <device>\n", prog);
+	fprintf(stderr, "Usage: %s [-V] <device>\n", prog);
 	exit(1);
 }
 
 int main(int argc, char* argv[])
 {
-	char** pp;
+	int opt;
 	const char* spec = NULL;
 	struct exfat ef;
 
-	printf("exfatfsck %u.%u.%u\n",
-			EXFAT_VERSION_MAJOR, EXFAT_VERSION_MINOR, EXFAT_VERSION_PATCH);
+	printf("exfatfsck %s\n", VERSION);
 
-	for (pp = argv + 1; *pp; pp++)
+	while ((opt = getopt(argc, argv, "V")) != -1)
 	{
-		if (strcmp(*pp, "-v") == 0)
+		switch (opt)
 		{
-			puts("Copyright (C) 2011-2013  Andrew Nayenko");
+		case 'V':
+			puts("Copyright (C) 2011-2015  Andrew Nayenko");
 			return 0;
-		}
-		else if (spec == NULL)
-			spec = *pp;
-		else
+		default:
 			usage(argv[0]);
+			break;
+		}
 	}
-	if (spec == NULL)
+	if (argc - optind != 1)
 		usage(argv[0]);
+	spec = argv[optind];
 
 	if (exfat_mount(&ef, spec, "ro") != 0)
 		return 1;

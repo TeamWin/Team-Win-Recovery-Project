@@ -18,6 +18,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -47,7 +48,7 @@ static const float DEFAULT_IMAGE_PROGRESS_FRACTION = 0.1;
 
 // If the package contains an update binary, extract it and run it.
 static int
-try_update_binary(const char *path, ZipArchive *zip, int* wipe_cache) {
+try_update_binary(const char* path, ZipArchive* zip, bool* wipe_cache) {
     const ZipEntry* binary_entry =
             mzFindZipEntry(zip, ASSUMED_UPDATE_BINARY_NAME);
     if (binary_entry == NULL) {
@@ -87,7 +88,7 @@ try_update_binary(const char *path, ZipArchive *zip, int* wipe_cache) {
     //            fill up the next <frac> part of of the progress bar
     //            over <secs> seconds.  If <secs> is zero, use
     //            set_progress commands to manually control the
-    //            progress of this segment of the bar
+    //            progress of this segment of the bar.
     //
     //        set_progress <frac>
     //            <frac> should be between 0.0 and 1.0; sets the
@@ -106,6 +107,18 @@ try_update_binary(const char *path, ZipArchive *zip, int* wipe_cache) {
     //        ui_print <string>
     //            display <string> on the screen.
     //
+    //        wipe_cache
+    //            a wipe of cache will be performed following a successful
+    //            installation.
+    //
+    //        clear_display
+    //            turn off the text display.
+    //
+    //        enable_reboot
+    //            packages can explicitly request that they want the user
+    //            to be able to reboot during installation (useful for
+    //            debugging packages that don't exit).
+    //
     //   - the name of the package zip file.
     //
 
@@ -120,6 +133,7 @@ try_update_binary(const char *path, ZipArchive *zip, int* wipe_cache) {
 
     pid_t pid = fork();
     if (pid == 0) {
+        umask(022);
         close(pipefd[0]);
         execv(binary, (char* const*)args);
         fprintf(stdout, "E:Can't run %s (%s)\n", binary, strerror(errno));
@@ -127,7 +141,7 @@ try_update_binary(const char *path, ZipArchive *zip, int* wipe_cache) {
     }
     close(pipefd[1]);
 
-    *wipe_cache = 0;
+    *wipe_cache = false;
 
     char buffer[1024];
     FILE* from_child = fdopen(pipefd[0], "r");
@@ -154,10 +168,16 @@ try_update_binary(const char *path, ZipArchive *zip, int* wipe_cache) {
             } else {
                 ui->Print("\n");
             }
+            fflush(stdout);
         } else if (strcmp(command, "wipe_cache") == 0) {
-            *wipe_cache = 1;
+            *wipe_cache = true;
         } else if (strcmp(command, "clear_display") == 0) {
             ui->SetBackground(RecoveryUI::NONE);
+        } else if (strcmp(command, "enable_reboot") == 0) {
+            // packages can explicitly request that they want the user
+            // to be able to reboot during installation (useful for
+            // debugging packages that don't exit).
+            ui->SetEnableReboot(true);
         } else {
             LOGE("unknown command [%s]\n", command);
         }
@@ -174,137 +194,82 @@ try_update_binary(const char *path, ZipArchive *zip, int* wipe_cache) {
     return INSTALL_SUCCESS;
 }
 
-// Reads a file containing one or more public keys as produced by
-// DumpPublicKey:  this is an RSAPublicKey struct as it would appear
-// as a C source literal, eg:
-//
-//  "{64,0xc926ad21,{1795090719,...,-695002876},{-857949815,...,1175080310}}"
-//
-// (Note that the braces and commas in this example are actual
-// characters the parser expects to find in the file; the ellipses
-// indicate more numbers omitted from this example.)
-//
-// The file may contain multiple keys in this format, separated by
-// commas.  The last key must not be followed by a comma.
-//
-// Returns NULL if the file failed to parse, or if it contain zero keys.
-static RSAPublicKey*
-load_keys(const char* filename, int* numKeys) {
-    RSAPublicKey* out = NULL;
-    *numKeys = 0;
+static int
+really_install_package(const char *path, bool* wipe_cache, bool needs_mount)
+{
+    ui->SetBackground(RecoveryUI::INSTALLING_UPDATE);
+    ui->Print("Finding update package...\n");
+    // Give verification half the progress bar...
+    ui->SetProgressType(RecoveryUI::DETERMINATE);
+    ui->ShowProgress(VERIFICATION_PROGRESS_FRACTION, VERIFICATION_PROGRESS_TIME);
+    LOGI("Update location: %s\n", path);
 
-    FILE* f = fopen(filename, "r");
-    if (f == NULL) {
-        LOGE("opening %s: %s\n", filename, strerror(errno));
-        goto exit;
-    }
+    // Map the update package into memory.
+    ui->Print("Opening update package...\n");
 
-    {
-        int i;
-        bool done = false;
-        while (!done) {
-            ++*numKeys;
-            out = (RSAPublicKey*)realloc(out, *numKeys * sizeof(RSAPublicKey));
-            RSAPublicKey* key = out + (*numKeys - 1);
-            if (fscanf(f, " { %i , 0x%x , { %u",
-                       &(key->len), &(key->n0inv), &(key->n[0])) != 3) {
-                goto exit;
-            }
-            if (key->len != RSANUMWORDS) {
-                LOGE("key length (%d) does not match expected size\n", key->len);
-                goto exit;
-            }
-            for (i = 1; i < key->len; ++i) {
-                if (fscanf(f, " , %u", &(key->n[i])) != 1) goto exit;
-            }
-            if (fscanf(f, " } , { %u", &(key->rr[0])) != 1) goto exit;
-            for (i = 1; i < key->len; ++i) {
-                if (fscanf(f, " , %u", &(key->rr[i])) != 1) goto exit;
-            }
-            fscanf(f, " } } ");
-
-            // if the line ends in a comma, this file has more keys.
-            switch (fgetc(f)) {
-            case ',':
-                // more keys to come.
-                break;
-
-            case EOF:
-                done = true;
-                break;
-
-            default:
-                LOGE("unexpected character between keys\n");
-                goto exit;
-            }
+    if (path && needs_mount) {
+        if (path[0] == '@') {
+            ensure_path_mounted(path+1);
+        } else {
+            ensure_path_mounted(path);
         }
     }
 
-    fclose(f);
-    return out;
-
-exit:
-    if (f) fclose(f);
-    free(out);
-    *numKeys = 0;
-    return NULL;
-}
-
-static int
-really_install_package(const char *path, int* wipe_cache)
-{
-    ui->SetBackground(RecoveryUI::INSTALLING);
-    ui->Print("Finding update package...\n");
-    ui->SetProgressType(RecoveryUI::INDETERMINATE);
-    LOGI("Update location: %s\n", path);
-
-    if (ensure_path_mounted(path) != 0) {
-        LOGE("Can't mount %s\n", path);
+    MemMapping map;
+    if (sysMapFile(path, &map) != 0) {
+        LOGE("failed to map file\n");
         return INSTALL_CORRUPT;
     }
 
-    ui->Print("Opening update package...\n");
-
     int numKeys;
-    RSAPublicKey* loadedKeys = load_keys(PUBLIC_KEYS_FILE, &numKeys);
+    Certificate* loadedKeys = load_keys(PUBLIC_KEYS_FILE, &numKeys);
     if (loadedKeys == NULL) {
         LOGE("Failed to load keys\n");
         return INSTALL_CORRUPT;
     }
     LOGI("%d key(s) loaded from %s\n", numKeys, PUBLIC_KEYS_FILE);
 
-    // Give verification half the progress bar...
     ui->Print("Verifying update package...\n");
-    ui->SetProgressType(RecoveryUI::DETERMINATE);
-    ui->ShowProgress(VERIFICATION_PROGRESS_FRACTION, VERIFICATION_PROGRESS_TIME);
 
     int err;
-    err = verify_file(path, loadedKeys, numKeys);
+    err = verify_file(map.addr, map.length);
     free(loadedKeys);
     LOGI("verify_file returned %d\n", err);
     if (err != VERIFY_SUCCESS) {
         LOGE("signature verification failed\n");
+        sysReleaseMap(&map);
         return INSTALL_CORRUPT;
     }
 
     /* Try to open the package.
      */
     ZipArchive zip;
-    err = mzOpenZipArchive(path, &zip);
+    err = mzOpenZipArchive(map.addr, map.length, &zip);
     if (err != 0) {
         LOGE("Can't open %s\n(%s)\n", path, err != -1 ? strerror(err) : "bad");
+        sysReleaseMap(&map);
         return INSTALL_CORRUPT;
     }
 
     /* Verify and install the contents of the package.
      */
     ui->Print("Installing update...\n");
-    return try_update_binary(path, &zip, wipe_cache);
+    ui->SetEnableReboot(false);
+    int result = try_update_binary(path, &zip, wipe_cache);
+    ui->SetEnableReboot(true);
+    ui->Print("\n");
+
+    sysReleaseMap(&map);
+
+    return result;
 }
 
 int
-install_package(const char* path, int* wipe_cache, const char* install_file)
+install_package(const char* path, bool* wipe_cache, const char* install_file,
+                bool needs_mount)
 {
+    modified_flash = true;
+
     FILE* install_log = fopen_path(install_file, "w");
     if (install_log) {
         fputs(path, install_log);
@@ -312,7 +277,13 @@ install_package(const char* path, int* wipe_cache, const char* install_file)
     } else {
         LOGE("failed to open last_install: %s\n", strerror(errno));
     }
-    int result = really_install_package(path, wipe_cache);
+    int result;
+    if (setup_install_mounts() != 0) {
+        LOGE("failed to set up expected mounts for install; aborting\n");
+        result = INSTALL_ERROR;
+    } else {
+        result = really_install_package(path, wipe_cache, needs_mount);
+    }
     if (install_log) {
         fputc(result == INSTALL_SUCCESS ? '1' : '0', install_log);
         fputc('\n', install_log);

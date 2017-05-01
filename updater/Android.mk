@@ -4,6 +4,7 @@ LOCAL_PATH := $(call my-dir)
 
 updater_src_files := \
 	install.c \
+	blockimg.c \
 	updater.c
 
 #
@@ -20,6 +21,7 @@ LOCAL_SRC_FILES := $(updater_src_files)
 
 ifeq ($(TARGET_USERIMAGES_USE_EXT4), true)
 LOCAL_CFLAGS += -DUSE_EXT4
+LOCAL_CFLAGS += -Wno-unused-parameter
 LOCAL_C_INCLUDES += system/extras/ext4_utils
 LOCAL_STATIC_LIBRARIES += \
     libext4_utils \
@@ -30,19 +32,36 @@ LOCAL_STATIC_LIBRARIES = \
     libsparse_static \
     libz
 endif
+ifneq ($(wildcard system/core/include/mincrypt/sha256.h),)
+LOCAL_STATIC_LIBRARIES = \
+    libext4_utils_static \
+    libsparse_static \
+    libz
 endif
-
-ifeq ($(HAVE_SELINUX), true)
-LOCAL_C_INCLUDES += external/libselinux/include
-LOCAL_STATIC_LIBRARIES += libselinux
-LOCAL_CFLAGS += -DHAVE_SELINUX
-endif # HAVE_SELINUX
+ifneq ($(wildcard external/lz4/Android.mk),)
+    LOCAL_STATIC_LIBRARIES += liblz4-static
+endif
+endif
 
 LOCAL_STATIC_LIBRARIES += $(TARGET_RECOVERY_UPDATER_LIBS) $(TARGET_RECOVERY_UPDATER_EXTRA_LIBS)
 LOCAL_STATIC_LIBRARIES += libapplypatch libedify libmtdutils libminzip libz
-LOCAL_STATIC_LIBRARIES += libmincrypt libbz
-LOCAL_STATIC_LIBRARIES += libminelf
-LOCAL_STATIC_LIBRARIES += libcutils libstdc++ libc
+LOCAL_STATIC_LIBRARIES += libflashutils libmmcutils libbmlutils
+LOCAL_STATIC_LIBRARIES += libmincrypttwrp libbz
+LOCAL_STATIC_LIBRARIES += libcutils liblog libstdc++ libc
+LOCAL_STATIC_LIBRARIES += libselinux
+tune2fs_static_libraries := \
+ libext2_com_err \
+ libext2_blkid \
+ libext2_quota \
+ libext2_uuid_static \
+ libext2_e2p \
+ libext2fs
+ifneq ($(wildcard external/e2fsprogs/misc/tune2fs.h),)
+    LOCAL_STATIC_LIBRARIES += libtune2fs $(tune2fs_static_libraries)
+    LOCAL_CFLAGS += -DHAVE_LIBTUNE2FS
+endif
+
+LOCAL_C_INCLUDES += external/e2fsprogs/misc
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/..
 
 # Each library in TARGET_RECOVERY_UPDATER_LIBS should have a function
@@ -78,7 +97,7 @@ $(inc) : $(inc_dep_file)
 	$(hide) $(foreach lib,$(libs),echo "  Register_$(lib)();" >> $@;)
 	$(hide) echo "}" >> $@
 
-$(call intermediates-dir-for,EXECUTABLES,updater)/updater.o : $(inc)
+$(call intermediates-dir-for,EXECUTABLES,updater,,,$(TARGET_PREFER_32_BIT))/updater.o : $(inc)
 LOCAL_C_INCLUDES += $(dir $(inc))
 
 inc :=

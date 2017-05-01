@@ -85,7 +85,7 @@ dirCreateHierarchy(const char *path, int mode,
             c--;
         }
         if (c == cpath) {
-//xxx test this path
+            //xxx test this path
             /* No directory component.  Act like the path was empty.
              */
             errno = ENOENT;
@@ -145,24 +145,19 @@ dirCreateHierarchy(const char *path, int mode,
         } else if (ds == DMISSING) {
             int err;
 
-#ifdef HAVE_SELINUX
             char *secontext = NULL;
 
             if (sehnd) {
                 selabel_lookup(sehnd, &secontext, cpath, mode);
                 setfscreatecon(secontext);
             }
-#endif
 
             err = mkdir(cpath, mode);
-
-#ifdef HAVE_SELINUX
 
             if (secontext) {
                 freecon(secontext);
                 setfscreatecon(NULL);
             }
-#endif
 
             if (err != 0) {
                 free(cpath);
@@ -211,7 +206,7 @@ dirUnlinkHierarchy(const char *path)
     /* recurse over components */
     errno = 0;
     while ((de = readdir(dir)) != NULL) {
-//TODO: don't blow the stack
+        //TODO: don't blow the stack
         char dn[PATH_MAX];
         if (!strcmp(de->d_name, "..") || !strcmp(de->d_name, ".")) {
             continue;
@@ -238,62 +233,4 @@ dirUnlinkHierarchy(const char *path)
 
     /* delete target directory */
     return rmdir(path);
-}
-
-int
-dirSetHierarchyPermissions(const char *path,
-        int uid, int gid, int dirMode, int fileMode)
-{
-    struct stat st;
-    if (lstat(path, &st)) {
-        return -1;
-    }
-
-    /* ignore symlinks */
-    if (S_ISLNK(st.st_mode)) {
-        return 0;
-    }
-
-    /* directories and files get different permissions */
-    if (chown(path, uid, gid) ||
-        chmod(path, S_ISDIR(st.st_mode) ? dirMode : fileMode)) {
-        return -1;
-    }
-
-    /* recurse over directory components */
-    if (S_ISDIR(st.st_mode)) {
-        DIR *dir = opendir(path);
-        if (dir == NULL) {
-            return -1;
-        }
-
-        errno = 0;
-        const struct dirent *de;
-        while (errno == 0 && (de = readdir(dir)) != NULL) {
-            if (!strcmp(de->d_name, "..") || !strcmp(de->d_name, ".")) {
-                continue;
-            }
-
-            char dn[PATH_MAX];
-            snprintf(dn, sizeof(dn), "%s/%s", path, de->d_name);
-            if (!dirSetHierarchyPermissions(dn, uid, gid, dirMode, fileMode)) {
-                errno = 0;
-            } else if (errno == 0) {
-                errno = -1;
-            }
-        }
-
-        if (errno != 0) {
-            int save = errno;
-            closedir(dir);
-            errno = save;
-            return -1;
-        }
-
-        if (closedir(dir)) {
-            return -1;
-        }
-    }
-
-    return 0;
 }

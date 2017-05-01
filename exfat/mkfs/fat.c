@@ -2,11 +2,12 @@
 	fat.c (09.11.10)
 	File Allocation Table creation code.
 
-	Copyright (C) 2011-2013  Andrew Nayenko
+	Free exFAT implementation.
+	Copyright (C) 2011-2015  Andrew Nayenko
 
-	This program is free software: you can redistribute it and/or modify
+	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
+	the Free Software Foundation, either version 2 of the License, or
 	(at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
@@ -14,22 +15,23 @@
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License along
+	with this program; if not, write to the Free Software Foundation, Inc.,
+	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <unistd.h>
 #include "fat.h"
 #include "cbm.h"
 #include "uct.h"
 #include "rootdir.h"
+#include <unistd.h>
 
-static off64_t fat_alignment(void)
+static loff_t fat_alignment(void)
 {
-	return (off64_t) 128 * get_sector_size();
+	return (loff_t) 128 * get_sector_size();
 }
 
-static off64_t fat_size(void)
+static loff_t fat_size(void)
 {
 	return get_volume_size() / get_cluster_size() * sizeof(cluster_t);
 }
