@@ -16,25 +16,16 @@ LOCAL_PATH := $(call my-dir)
 
 TARGET_RECOVERY_GUI := true
 
-include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
-    recovery.cpp \
-    twbootloader.cpp \
-    install.cpp \
-    roots.cpp \
-    ui.cpp \
-    screen_ui.cpp \
-    verifier.cpp \
+    twrp.cpp \
     fixPermissions.cpp \
     twrpTar.cpp \
     twrpDigest.cpp \
-    adb_install.cpp
 
 LOCAL_SRC_FILES += \
     data.cpp \
     partition.cpp \
     partitionmanager.cpp \
-    mtdutils/mtdutils.c \
     twinstall.cpp \
     twrp-functions.cpp \
     openrecoveryscript.cpp \
@@ -64,10 +55,8 @@ LOCAL_C_INCLUDES += bionic external/stlport/stlport
 LOCAL_STATIC_LIBRARIES :=
 LOCAL_SHARED_LIBRARIES :=
 
-LOCAL_STATIC_LIBRARIES += libmtdutils libcrecovery
-LOCAL_STATIC_LIBRARIES += libminadbd libminzip libunz
-LOCAL_STATIC_LIBRARIES += libminuitwrp libpixelflinger_static libpng libjpegtwrp libgui
-LOCAL_SHARED_LIBRARIES += libz libc libstlport libcutils libstdc++ libmincrypt libext4_utils libtar libblkid
+LOCAL_STATIC_LIBRARIES += libcrecovery libguitwrp
+LOCAL_SHARED_LIBRARIES += libz libc libstlport libcutils libstdc++ libtar libblkid libminuitwrp libminadbd libmtdutils libminzip libaosprecovery
 
 ifneq ($(wildcard system/core/libsparse/Android.mk),)
 LOCAL_SHARED_LIBRARIES += libsparse
@@ -76,14 +65,24 @@ endif
 ifeq ($(TARGET_USERIMAGES_USE_EXT4), true)
     LOCAL_CFLAGS += -DUSE_EXT4
     LOCAL_C_INCLUDES += system/extras/ext4_utils
-    #LOCAL_STATIC_LIBRARIES += libext4_utils
+    LOCAL_SHARED_LIBRARIES += libext4_utils
 endif
-
+LOCAL_C_INCLUDES += external/libselinux/include
 ifeq ($(HAVE_SELINUX), true)
-  LOCAL_C_INCLUDES += external/libselinux/include
-  LOCAL_STATIC_LIBRARIES += libselinux
-  LOCAL_CFLAGS += -DHAVE_SELINUX -g
+  #LOCAL_C_INCLUDES += external/libselinux/include
+  #LOCAL_STATIC_LIBRARIES += libselinux
+  #LOCAL_CFLAGS += -DHAVE_SELINUX -g
 endif # HAVE_SELINUX
+ifeq ($(HAVE_SELINUX), true)
+    LOCAL_C_INCLUDES += external/libselinux/include
+    LOCAL_SHARED_LIBRARIES += libselinux
+    LOCAL_CFLAGS += -DHAVE_SELINUX -g
+    ifneq ($(TARGET_USERIMAGES_USE_EXT4), true)
+        LOCAL_CFLAGS += -DUSE_EXT4
+        LOCAL_C_INCLUDES += system/extras/ext4_utils
+        LOCAL_SHARED_LIBRARIES += libext4_utils
+    endif
+endif
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
 # It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses
@@ -100,6 +99,9 @@ endif
 LOCAL_C_INCLUDES += system/extras/ext4_utils
 
 #TWRP Build Flags
+ifneq ($(TW_NO_SCREEN_TIMEOUT),)
+    LOCAL_CFLAGS += -DTW_NO_SCREEN_TIMEOUT
+endif
 ifeq ($(BOARD_HAS_NO_REAL_SDCARD), true)
     LOCAL_CFLAGS += -DBOARD_HAS_NO_REAL_SDCARD
 endif
@@ -217,17 +219,16 @@ ifeq ($(TW_INCLUDE_CRYPTO_SAMSUNG), true)
     LOCAL_LDFLAGS += -ldl
     LOCAL_STATIC_LIBRARIES += libcrypt_samsung
 endif
-    LOCAL_SHARED_LIBRARIES += libcrypto
-    LOCAL_SRC_FILES += crypto/ics/cryptfs.c
-    LOCAL_C_INCLUDES += system/extras/ext4_utils external/openssl/include
+    LOCAL_SHARED_LIBRARIES += libcryptfsics
+    #LOCAL_SRC_FILES += crypto/ics/cryptfs.c
+    #LOCAL_C_INCLUDES += system/extras/ext4_utils external/openssl/include
 endif
 ifeq ($(TW_INCLUDE_JB_CRYPTO), true)
     LOCAL_CFLAGS += -DTW_INCLUDE_CRYPTO
     LOCAL_CFLAGS += -DTW_INCLUDE_JB_CRYPTO
-    LOCAL_SHARED_LIBRARIES += libcrypto
-    LOCAL_STATIC_LIBRARIES += libfs_mgrtwrp
-    LOCAL_SRC_FILES += crypto/jb/cryptfs.c
-    LOCAL_C_INCLUDES += system/extras/ext4_utils external/openssl/include
+    LOCAL_SHARED_LIBRARIES += libcryptfsjb
+    #LOCAL_SRC_FILES += crypto/jb/cryptfs.c
+    #LOCAL_C_INCLUDES += system/extras/ext4_utils external/openssl/include
 endif
 ifeq ($(TW_USE_MODEL_HARDWARE_ID_FOR_DEVICE_ID), true)
     LOCAL_CFLAGS += -DTW_USE_MODEL_HARDWARE_ID_FOR_DEVICE_ID
@@ -243,6 +244,11 @@ ifneq ($(TW_CUSTOM_BATTERY_PATH),)
 endif
 ifeq ($(TARGET_BOARD_PLATFORM),rk30xx)
     LOCAL_CFLAGS += -DRK3066
+endif
+ifneq ($(TW_EXCLUDE_ENCRYPTED_BACKUPS), true)
+    LOCAL_SHARED_LIBRARIES += libopenaes
+else
+    LOCAL_CFLAGS += -DTW_EXCLUDE_ENCRYPTED_BACKUPS
 endif
 
 include $(BUILD_EXECUTABLE)
@@ -277,6 +283,18 @@ LOCAL_STATIC_LIBRARIES := \
     libc
 include $(BUILD_EXECUTABLE)
 
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := libaosprecovery
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULES_TAGS = optional
+LOCAL_CFLAGS = 
+LOCAL_SRC_FILES = adb_install.cpp bootloader.cpp verifier.cpp mtdutils/mtdutils.c
+LOCAL_SHARED_LIBRARIES += libc liblog libcutils libmtdutils
+LOCAL_STATIC_LIBRARIES += libmincrypt
+
+include $(BUILD_SHARED_LIBRARY)
+
 commands_recovery_local_path := $(LOCAL_PATH)
 include $(LOCAL_PATH)/minui/Android.mk \
     $(LOCAL_PATH)/minelf/Android.mk \
@@ -288,10 +306,8 @@ include $(LOCAL_PATH)/minui/Android.mk \
     $(LOCAL_PATH)/applypatch/Android.mk
 
 #includes for TWRP
-include $(commands_recovery_local_path)/libjpegtwrp/Android.mk \
-    $(commands_recovery_local_path)/injecttwrp/Android.mk \
+include $(commands_recovery_local_path)/injecttwrp/Android.mk \
     $(commands_recovery_local_path)/htcdumlock/Android.mk \
-    $(commands_recovery_local_path)/minuitwrp/Android.mk \
     $(commands_recovery_local_path)/gui/Android.mk \
     $(commands_recovery_local_path)/mmcutils/Android.mk \
     $(commands_recovery_local_path)/bmlutils/Android.mk \
@@ -304,14 +320,16 @@ include $(commands_recovery_local_path)/libjpegtwrp/Android.mk \
     $(commands_recovery_local_path)/crypto/cryptsettings/Android.mk \
     $(commands_recovery_local_path)/crypto/cryptfs/Android.mk \
     $(commands_recovery_local_path)/libcrecovery/Android.mk \
-    $(commands_recovery_local_path)/twmincrypt/Android.mk \
-    $(commands_recovery_local_path)/libblkid/Android.mk
+    $(commands_recovery_local_path)/libblkid/Android.mk \
+    $(commands_recovery_local_path)/minuitwrp/Android.mk \
+    $(commands_recovery_local_path)/openaes/Android.mk
 
 ifeq ($(TW_INCLUDE_CRYPTO_SAMSUNG), true)
     include $(commands_recovery_local_path)/crypto/libcrypt_samsung/Android.mk
 endif
 
 ifeq ($(TW_INCLUDE_JB_CRYPTO), true)
+    include $(commands_recovery_local_path)/crypto/jb/Android.mk
     include $(commands_recovery_local_path)/crypto/fs_mgr/Android.mk
 endif
 ifeq ($(BUILD_ID), GINGERBREAD)
@@ -322,6 +340,14 @@ ifneq ($(TW_NO_EXFAT), true)
             $(commands_recovery_local_path)/exfat/mkfs/Android.mk \
             $(commands_recovery_local_path)/fuse/Android.mk \
             $(commands_recovery_local_path)/exfat/libexfat/Android.mk
+endif
+ifeq ($(TW_INCLUDE_CRYPTO), true)
+    include $(commands_recovery_local_path)/crypto/ics/Android.mk
+endif
+
+# FB2PNG
+ifeq ($(TW_INCLUDE_FB2PNG), true)
+    include $(commands_recovery_local_path)/fb2png/Android.mk
 endif
 
 commands_recovery_local_path :=

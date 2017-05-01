@@ -2,11 +2,12 @@
 	main.c (01.09.09)
 	FUSE-based exFAT implementation. Requires FUSE 2.6 or later.
 
+	Free exFAT implementation.
 	Copyright (C) 2010-2013  Andrew Nayenko
 
-	This program is free software: you can redistribute it and/or modify
+	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
+	the Free Software Foundation, either version 2 of the License, or
 	(at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
@@ -14,8 +15,9 @@
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License along
+	with this program; if not, write to the Free Software Foundation, Inc.,
+	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
 #define FUSE_USE_VERSION 26
@@ -92,7 +94,7 @@ static int fuse_exfat_readdir(const char* path, void* buffer,
 	struct exfat_node* node;
 	struct exfat_iterator it;
 	int rc;
-	char name[EXFAT_NAME_MAX + 1];
+	char name[UTF8_BYTES(EXFAT_NAME_MAX) + 1];
 
 	exfat_debug("[%s] %s", __func__, path);
 
@@ -118,7 +120,7 @@ static int fuse_exfat_readdir(const char* path, void* buffer,
 	}
 	while ((node = exfat_readdir(&ef, &it)))
 	{
-		exfat_get_name(node, name, EXFAT_NAME_MAX);
+		exfat_get_name(node, name, sizeof(name) - 1);
 		exfat_debug("[%s] %s: %s, %"PRId64" bytes, cluster 0x%x", __func__,
 				name, IS_CONTIGUOUS(*node) ? "contiguous" : "fragmented",
 				node->size, node->start_cluster);
@@ -150,6 +152,21 @@ static int fuse_exfat_release(const char* path, struct fuse_file_info* fi)
 	exfat_debug("[%s] %s", __func__, path);
 	exfat_put_node(&ef, get_node(fi));
 	return 0;
+}
+
+static int fuse_exfat_fsync(const char* path, int datasync,
+		struct fuse_file_info *fi)
+{
+	int rc;
+
+	exfat_debug("[%s] %s", __func__, path);
+	rc = exfat_flush_node(&ef, get_node(fi));
+	if (rc != 0)
+		return rc;
+	rc = exfat_flush(&ef);
+	if (rc != 0)
+		return rc;
+	return exfat_fsync(ef.dev);
 }
 
 static int fuse_exfat_read(const char* path, char* buffer, size_t size,
@@ -242,14 +259,24 @@ static int fuse_exfat_utimens(const char* path, const struct timespec tv[2])
 	return 0;
 }
 
-#ifdef __APPLE__
 static int fuse_exfat_chmod(const char* path, mode_t mode)
 {
+	const mode_t VALID_MODE_MASK = S_IFREG | S_IFDIR |
+			S_IRWXU | S_IRWXG | S_IRWXO;
+
 	exfat_debug("[%s] %s 0%ho", __func__, path, mode);
-	/* make OS X utilities happy */
+	if (mode & ~VALID_MODE_MASK)
+		return -EPERM;
 	return 0;
 }
-#endif
+
+static int fuse_exfat_chown(const char* path, uid_t uid, gid_t gid)
+{
+	exfat_debug("[%s] %s %u:%u", __func__, path, uid, gid);
+	if (uid != ef.uid || gid != ef.gid)
+		return -EPERM;
+	return 0;
+}
 
 static int fuse_exfat_statfs(const char* path, struct statvfs* sfs)
 {
@@ -292,7 +319,7 @@ static void fuse_exfat_destroy(void* unused)
 
 static void usage(const char* prog)
 {
-	fprintf(stderr, "Usage: %s [-d] [-o options] [-v] <device> <dir>\n", prog);
+	fprintf(stderr, "Usage: %s [-d] [-o options] [-V] <device> <dir>\n", prog);
 	exit(1);
 }
 
@@ -303,6 +330,8 @@ static struct fuse_operations fuse_exfat_ops =
 	.readdir	= fuse_exfat_readdir,
 	.open		= fuse_exfat_open,
 	.release	= fuse_exfat_release,
+	.fsync		= fuse_exfat_fsync,
+	.fsyncdir	= fuse_exfat_fsync,
 	.read		= fuse_exfat_read,
 	.write		= fuse_exfat_write,
 	.unlink		= fuse_exfat_unlink,
@@ -311,9 +340,8 @@ static struct fuse_operations fuse_exfat_ops =
 	.mkdir		= fuse_exfat_mkdir,
 	.rename		= fuse_exfat_rename,
 	.utimens	= fuse_exfat_utimens,
-#ifdef __APPLE__
 	.chmod		= fuse_exfat_chmod,
-#endif
+	.chown		= fuse_exfat_chown,
 	.statfs		= fuse_exfat_statfs,
 	.init		= fuse_exfat_init,
 	.destroy	= fuse_exfat_destroy,
@@ -398,7 +426,7 @@ int main(int argc, char* argv[])
 	int debug = 0;
 	struct fuse_chan* fc = NULL;
 	struct fuse* fh = NULL;
-	char** pp;
+	int opt;
 
 	printf("FUSE exfat %u.%u.%u\n",
 			EXFAT_VERSION_MAJOR, EXFAT_VERSION_MINOR, EXFAT_VERSION_PATCH);
@@ -410,40 +438,39 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	for (pp = argv + 1; *pp; pp++)
+	while ((opt = getopt(argc, argv, "dno:Vv")) != -1)
 	{
-		if (strcmp(*pp, "-o") == 0)
+		switch (opt)
 		{
-			pp++;
-			if (*pp == NULL)
-				usage(argv[0]);
-			mount_options = add_option(mount_options, *pp, NULL);
+		case 'd':
+			debug = 1;
+			break;
+		case 'n':
+			break;
+		case 'o':
+			mount_options = add_option(mount_options, optarg, NULL);
 			if (mount_options == NULL)
 				return 1;
-		}
-		else if (strcmp(*pp, "-d") == 0)
-			debug = 1;
-		else if (strcmp(*pp, "-v") == 0)
-		{
+			break;
+		case 'V':
 			free(mount_options);
 			puts("Copyright (C) 2010-2013  Andrew Nayenko");
 			return 0;
-		}
-		else if (spec == NULL)
-			spec = *pp;
-		else if (mount_point == NULL)
-			mount_point = *pp;
-		else
-		{
+		case 'v':
+			break;
+		default:
 			free(mount_options);
 			usage(argv[0]);
+			break;
 		}
 	}
-	if (spec == NULL || mount_point == NULL)
+	if (argc - optind != 2)
 	{
 		free(mount_options);
 		usage(argv[0]);
 	}
+	spec = argv[optind];
+	mount_point = argv[optind + 1];
 
 	if (exfat_mount(&ef, spec, mount_options) != 0)
 	{

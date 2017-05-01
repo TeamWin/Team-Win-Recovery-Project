@@ -37,7 +37,7 @@
 
 #include "libblkid/blkid.h"
 #include "variables.h"
-#include "common.h"
+#include "twcommon.h"
 #include "partitions.hpp"
 #include "data.hpp"
 #include "twrp-functions.hpp"
@@ -49,13 +49,20 @@ extern "C" {
 #ifdef TW_INCLUDE_CRYPTO_SAMSUNG
 	#include "crypto/libcrypt_samsung/include/libcrypt_samsung.h"
 #endif
+#ifdef USE_EXT4
+	#include "make_ext4fs.h"
+#endif
 }
 
 using namespace std;
 
+extern struct selabel_handle *selinux_handle;
+
 TWPartition::TWPartition(void) {
 	Can_Be_Mounted = false;
 	Can_Be_Wiped = false;
+	Can_Be_Backed_Up = false;
+	Use_Rm_Rf = false;
 	Wipe_During_Factory_Reset = false;
 	Wipe_Available_in_GUI = false;
 	Is_SubPartition = false;
@@ -80,13 +87,18 @@ TWPartition::TWPartition(void) {
 	Is_Decrypted = false;
 	Decrypted_Block_Device = "";
 	Display_Name = "";
+	Backup_Display_Name = "";
+	Storage_Name = "";
 	Backup_Name = "";
 	Backup_FileName = "";
 	MTD_Name = "";
 	Backup_Method = NONE;
+	Can_Encrypt_Backup = false;
+	Use_Userdata_Encryption = false;
 	Has_Data_Media = false;
 	Has_Android_Secure = false;
 	Is_Storage = false;
+	Is_Settings_Storage = false;
 	Storage_Path = "";
 	Current_File_System = "";
 	Fstab_File_System = "";
@@ -108,14 +120,21 @@ bool TWPartition::Process_Fstab_Line(string Line, bool Display_Error) {
 	char* ptr;
 	string Flags;
 	strncpy(full_line, Line.c_str(), line_len);
+	bool skip = false;
 
 	for (index = 0; index < line_len; index++) {
-		if (full_line[index] <= 32)
+		if (full_line[index] == 34)
+			skip = !skip;
+		if (!skip && full_line[index] <= 32)
 			full_line[index] = '\0';
 	}
 	Mount_Point = full_line;
-	LOGI("Processing '%s'\n", Mount_Point.c_str());
+	LOGINFO("Processing '%s'\n", Mount_Point.c_str());
 	Backup_Path = Mount_Point;
+	Storage_Path = Mount_Point;
+	Display_Name = full_line + 1;
+	Backup_Display_Name = Display_Name;
+	Storage_Name = Display_Name;
 	index = Mount_Point.size();
 	while (index < line_len) {
 		while (index < line_len && full_line[index] == '\0')
@@ -140,12 +159,12 @@ bool TWPartition::Process_Fstab_Line(string Line, bool Display_Error) {
 					MTD_Name = "recovery";
 				Primary_Block_Device = ptr;
 				if (*ptr != '/')
-					LOGE("Until we get better BML support, you will have to find and provide the full block device path to the BML devices e.g. /dev/block/bml9 instead of the partition name\n");
+					LOGERR("Until we get better BML support, you will have to find and provide the full block device path to the BML devices e.g. /dev/block/bml9 instead of the partition name\n");
 			} else if (*ptr != '/') {
 				if (Display_Error)
-					LOGE("Invalid block device on '%s', '%s', %i\n", Line.c_str(), ptr, index);
+					LOGERR("Invalid block device on '%s', '%s', %i\n", Line.c_str(), ptr, index);
 				else
-					LOGI("Invalid block device on '%s', '%s', %i\n", Line.c_str(), ptr, index);
+					LOGINFO("Invalid block device on '%s', '%s', %i\n", Line.c_str(), ptr, index);
 				return 0;
 			} else {
 				Primary_Block_Device = ptr;
@@ -170,7 +189,7 @@ bool TWPartition::Process_Fstab_Line(string Line, bool Display_Error) {
 				// Do nothing
 			} else {
 				// Unhandled data
-				LOGI("Unhandled fstab information: '%s', %i, line: '%s'\n", ptr, index, Line.c_str());
+				LOGINFO("Unhandled fstab information: '%s', %i, line: '%s'\n", ptr, index, Line.c_str());
 			}
 		}
 		while (index < line_len && full_line[index] != '\0')
@@ -179,23 +198,33 @@ bool TWPartition::Process_Fstab_Line(string Line, bool Display_Error) {
 
 	if (!Is_File_System(Fstab_File_System) && !Is_Image(Fstab_File_System)) {
 		if (Display_Error)
-			LOGE("Unknown File System: '%s'\n", Fstab_File_System.c_str());
+			LOGERR("Unknown File System: '%s'\n", Fstab_File_System.c_str());
 		else
-			LOGI("Unknown File System: '%s'\n", Fstab_File_System.c_str());
+			LOGINFO("Unknown File System: '%s'\n", Fstab_File_System.c_str());
 		return 0;
 	} else if (Is_File_System(Fstab_File_System)) {
 		Find_Actual_Block_Device();
 		Setup_File_System(Display_Error);
 		if (Mount_Point == "/system") {
 			Display_Name = "System";
+			Backup_Display_Name = Display_Name;
+			Storage_Name = Display_Name;
 			Wipe_Available_in_GUI = true;
+			Can_Be_Backed_Up = true;
 		} else if (Mount_Point == "/data") {
 			Display_Name = "Data";
+			Backup_Display_Name = Display_Name;
+			Storage_Name = Display_Name;
 			Wipe_Available_in_GUI = true;
 			Wipe_During_Factory_Reset = true;
+			Can_Be_Backed_Up = true;
+			Can_Encrypt_Backup = true;
+			Use_Userdata_Encryption = true;
 #ifdef RECOVERY_SDCARD_ON_DATA
+			Storage_Name = "Internal Storage";
 			Has_Data_Media = true;
 			Is_Storage = true;
+			Is_Settings_Storage = true;
 			Storage_Path = "/data/media";
 			Symlink_Path = Storage_Path;
 			if (strcmp(EXPAND(TW_EXTERNAL_STORAGE_PATH), "/sdcard") == 0) {
@@ -222,7 +251,7 @@ bool TWPartition::Process_Fstab_Line(string Line, bool Display_Error) {
 				Is_Encrypted = true;
 				Is_Decrypted = true;
 				Decrypted_Block_Device = crypto_blkdev;
-				LOGI("Data already decrypted, new block device: '%s'\n", crypto_blkdev);
+				LOGINFO("Data already decrypted, new block device: '%s'\n", crypto_blkdev);
 			} else if (!Mount(false)) {
 				Is_Encrypted = true;
 				Is_Decrypted = false;
@@ -249,38 +278,54 @@ bool TWPartition::Process_Fstab_Line(string Line, bool Display_Error) {
 #endif
 		} else if (Mount_Point == "/cache") {
 			Display_Name = "Cache";
+			Backup_Display_Name = Display_Name;
+			Storage_Name = Display_Name;
 			Wipe_Available_in_GUI = true;
 			Wipe_During_Factory_Reset = true;
+			Can_Be_Backed_Up = true;
 			if (Mount(false) && !TWFunc::Path_Exists("/cache/recovery/.")) {
-				LOGI("Recreating /cache/recovery folder.\n");
+				LOGINFO("Recreating /cache/recovery folder.\n");
 				if (mkdir("/cache/recovery", S_IRWXU | S_IRWXG | S_IWGRP | S_IXGRP) != 0) 
 					return -1;
 			}
 		} else if (Mount_Point == "/datadata") {
 			Wipe_During_Factory_Reset = true;
 			Display_Name = "DataData";
+			Backup_Display_Name = Display_Name;
+			Storage_Name = Display_Name;
 			Is_SubPartition = true;
 			SubPartition_Of = "/data";
 			DataManager::SetValue(TW_HAS_DATADATA, 1);
+			Can_Be_Backed_Up = true;
+			Can_Encrypt_Backup = true;
+			Use_Userdata_Encryption = false; // This whole partition should be encrypted
 		} else if (Mount_Point == "/sd-ext") {
 			Wipe_During_Factory_Reset = true;
 			Display_Name = "SD-Ext";
+			Backup_Display_Name = Display_Name;
+			Storage_Name = Display_Name;
 			Wipe_Available_in_GUI = true;
 			Removable = true;
+			Can_Be_Backed_Up = true;
+			Can_Encrypt_Backup = true;
+			Use_Userdata_Encryption = true;
 		} else if (Mount_Point == "/boot") {
 			Display_Name = "Boot";
+			Backup_Display_Name = Display_Name;
 			DataManager::SetValue("tw_boot_is_mountable", 1);
+			Can_Be_Backed_Up = true;
 		}
 #ifdef TW_EXTERNAL_STORAGE_PATH
 		if (Mount_Point == EXPAND(TW_EXTERNAL_STORAGE_PATH)) {
 			Is_Storage = true;
 			Storage_Path = EXPAND(TW_EXTERNAL_STORAGE_PATH);
 			Removable = true;
+			Wipe_Available_in_GUI = true;
 #else
-		if (Mount_Point == "/sdcard") {
+		if (Mount_Point == "/sdcard" || Mount_Point == "/external_sd" || Mount_Point == "/external_sdcard") {
 			Is_Storage = true;
-			Storage_Path = "/sdcard";
 			Removable = true;
+			Wipe_Available_in_GUI = true;
 #ifndef RECOVERY_SDCARD_ON_DATA
 			Setup_AndSec();
 			Mount_Storage_Retry();
@@ -290,16 +335,19 @@ bool TWPartition::Process_Fstab_Line(string Line, bool Display_Error) {
 #ifdef TW_INTERNAL_STORAGE_PATH
 		if (Mount_Point == EXPAND(TW_INTERNAL_STORAGE_PATH)) {
 			Is_Storage = true;
+			Is_Settings_Storage = true;
 			Storage_Path = EXPAND(TW_INTERNAL_STORAGE_PATH);
+			Wipe_Available_in_GUI = true;
 #ifndef RECOVERY_SDCARD_ON_DATA
 			Setup_AndSec();
 			Mount_Storage_Retry();
 #endif
 		}
 #else
-		if (Mount_Point == "/emmc") {
+		if (Mount_Point == "/emmc" || Mount_Point == "/internal_sd" || Mount_Point == "/internal_sdcard") {
 			Is_Storage = true;
-			Storage_Path = "/emmc";
+			Is_Settings_Storage = true;
+			Wipe_Available_in_GUI = true;
 #ifndef RECOVERY_SDCARD_ON_DATA
 			Setup_AndSec();
 			Mount_Storage_Retry();
@@ -309,6 +357,15 @@ bool TWPartition::Process_Fstab_Line(string Line, bool Display_Error) {
 	} else if (Is_Image(Fstab_File_System)) {
 		Find_Actual_Block_Device();
 		Setup_Image(Display_Error);
+		if (Mount_Point == "/boot") {
+			Display_Name = "Boot";
+			Backup_Display_Name = Display_Name;
+			Can_Be_Backed_Up = true;
+		} else if (Mount_Point == "/recovery") {
+			Display_Name = "Recovery";
+			Backup_Display_Name = Display_Name;
+			Can_Be_Backed_Up = true;
+		}
 	}
 
 	// Process any custom flags
@@ -319,13 +376,16 @@ bool TWPartition::Process_Fstab_Line(string Line, bool Display_Error) {
 
 bool TWPartition::Process_Flags(string Flags, bool Display_Error) {
 	char flags[MAX_FSTAB_LINE_LENGTH];
-	int flags_len, index = 0;
+	int flags_len, index = 0, ptr_len;
 	char* ptr;
+	bool skip = false, has_display_name = false, has_storage_name = false, has_backup_name = false;
 
 	strcpy(flags, Flags.c_str());
 	flags_len = Flags.size();
 	for (index = 0; index < flags_len; index++) {
-		if (flags[index] == ';')
+		if (flags[index] == 34)
+			skip = !skip;
+		if (!skip && flags[index] == ';')
 			flags[index] = '\0';
 	}
 
@@ -336,12 +396,23 @@ bool TWPartition::Process_Flags(string Flags, bool Display_Error) {
 		if (index >= flags_len)
 			continue;
 		ptr = flags + index;
+		ptr_len = strlen(ptr);
 		if (strcmp(ptr, "removable") == 0) {
 			Removable = true;
 		} else if (strcmp(ptr, "storage") == 0) {
 			Is_Storage = true;
+		} else if (strcmp(ptr, "settingsstorage") == 0) {
+			Is_Storage = true;
 		} else if (strcmp(ptr, "canbewiped") == 0) {
 			Can_Be_Wiped = true;
+		} else if (strcmp(ptr, "usermrf") == 0) {
+			Use_Rm_Rf = true;
+		} else if (ptr_len > 7 && strncmp(ptr, "backup=", 7) == 0) {
+			ptr += 7;
+			if (*ptr == '1' || *ptr == 'y' || *ptr == 'Y')
+				Can_Be_Backed_Up = true;
+			else
+				Can_Be_Backed_Up = false;
 		} else if (strcmp(ptr, "wipeingui") == 0) {
 			Can_Be_Wiped = true;
 			Wipe_Available_in_GUI = true;
@@ -349,7 +420,7 @@ bool TWPartition::Process_Flags(string Flags, bool Display_Error) {
 			Can_Be_Wiped = true;
 			Wipe_Available_in_GUI = true;
 			Wipe_During_Factory_Reset = true;
-		} else if (strlen(ptr) > 15 && strncmp(ptr, "subpartitionof=", 15) == 0) {
+		} else if (ptr_len > 15 && strncmp(ptr, "subpartitionof=", 15) == 0) {
 			ptr += 15;
 			Is_SubPartition = true;
 			SubPartition_Of = ptr;
@@ -357,27 +428,70 @@ bool TWPartition::Process_Flags(string Flags, bool Display_Error) {
 			Ignore_Blkid = true;
 		} else if (strcmp(ptr, "retainlayoutversion") == 0) {
 			Retain_Layout_Version = true;
-		} else if (strlen(ptr) > 8 && strncmp(ptr, "symlink=", 8) == 0) {
+		} else if (ptr_len > 8 && strncmp(ptr, "symlink=", 8) == 0) {
 			ptr += 8;
 			Symlink_Path = ptr;
-		} else if (strlen(ptr) > 8 && strncmp(ptr, "display=", 8) == 0) {
+		} else if (ptr_len > 8 && strncmp(ptr, "display=", 8) == 0) {
+			has_display_name = true;
 			ptr += 8;
+			if (*ptr == '\"') ptr++;
 			Display_Name = ptr;
-		} else if (strlen(ptr) > 10 && strncmp(ptr, "blocksize=", 10) == 0) {
+			if (Display_Name.substr(Display_Name.size() - 1, 1) == "\"") {
+				Display_Name.resize(Display_Name.size() - 1);
+			}
+		} else if (ptr_len > 11 && strncmp(ptr, "storagename=", 11) == 0) {
+			has_storage_name = true;
+			ptr += 11;
+			if (*ptr == '\"') ptr++;
+			Storage_Name = ptr;
+			if (Storage_Name.substr(Storage_Name.size() - 1, 1) == "\"") {
+				Storage_Name.resize(Storage_Name.size() - 1);
+			}
+		} else if (ptr_len > 11 && strncmp(ptr, "backupname=", 10) == 0) {
+			has_backup_name = true;
+			ptr += 10;
+			if (*ptr == '\"') ptr++;
+			Backup_Display_Name = ptr;
+			if (Backup_Display_Name.substr(Backup_Display_Name.size() - 1, 1) == "\"") {
+				Backup_Display_Name.resize(Backup_Display_Name.size() - 1);
+			}
+		} else if (ptr_len > 10 && strncmp(ptr, "blocksize=", 10) == 0) {
 			ptr += 10;
 			Format_Block_Size = atoi(ptr);
-		} else if (strlen(ptr) > 7 && strncmp(ptr, "length=", 7) == 0) {
+		} else if (ptr_len > 7 && strncmp(ptr, "length=", 7) == 0) {
 			ptr += 7;
 			Length = atoi(ptr);
+		} else if (ptr_len > 17 && strncmp(ptr, "canencryptbackup=", 17) == 0) {
+			ptr += 17;
+			if (*ptr == '1' || *ptr == 'y' || *ptr == 'Y')
+				Can_Encrypt_Backup = true;
+			else
+				Can_Encrypt_Backup = false;
+		} else if (ptr_len > 21 && strncmp(ptr, "userdataencryptbackup=", 21) == 0) {
+			ptr += 21;
+			if (*ptr == '1' || *ptr == 'y' || *ptr == 'Y') {
+				Can_Encrypt_Backup = true;
+				Use_Userdata_Encryption = true;
+			} else {
+				Use_Userdata_Encryption = false;
+			}
 		} else {
 			if (Display_Error)
-				LOGE("Unhandled flag: '%s'\n", ptr);
+				LOGERR("Unhandled flag: '%s'\n", ptr);
 			else
-				LOGI("Unhandled flag: '%s'\n", ptr);
+				LOGINFO("Unhandled flag: '%s'\n", ptr);
 		}
 		while (index < flags_len && flags[index] != '\0')
 			index++;
 	}
+	if (has_display_name && !has_storage_name)
+		Storage_Name = Display_Name;
+	if (!has_display_name && has_storage_name)
+		Display_Name = Storage_Name;
+	if (has_display_name && !has_backup_name && Backup_Display_Name != "Android Secure")
+		Backup_Display_Name = Display_Name;
+	if (!has_display_name && has_backup_name)
+		Display_Name = Backup_Display_Name;
 	return true;
 }
 
@@ -389,6 +503,7 @@ bool TWPartition::Is_File_System(string File_System) {
 		File_System == "ntfs" ||
 		File_System == "yaffs2" ||
 		File_System == "exfat" ||
+		File_System == "f2fs" ||
 		File_System == "auto")
 		return true;
 	else
@@ -406,12 +521,12 @@ bool TWPartition::Make_Dir(string Path, bool Display_Error) {
 	if (!TWFunc::Path_Exists(Path)) {
 		if (mkdir(Path.c_str(), 0777) == -1) {
 			if (Display_Error)
-				LOGE("Can not create '%s' folder.\n", Path.c_str());
+				LOGERR("Can not create '%s' folder.\n", Path.c_str());
 			else
-				LOGI("Can not create '%s' folder.\n", Path.c_str());
+				LOGINFO("Can not create '%s' folder.\n", Path.c_str());
 			return false;
 		} else {
-			LOGI("Created '%s' folder.\n", Path.c_str());
+			LOGINFO("Created '%s' folder.\n", Path.c_str());
 			return true;
 		}
 	}
@@ -439,20 +554,22 @@ void TWPartition::Setup_Image(bool Display_Error) {
 	else if (Current_File_System == "mtd" || Current_File_System == "bml")
 		Backup_Method = FLASH_UTILS;
 	else
-		LOGI("Unhandled file system '%s' on image '%s'\n", Current_File_System.c_str(), Display_Name.c_str());
+		LOGINFO("Unhandled file system '%s' on image '%s'\n", Current_File_System.c_str(), Display_Name.c_str());
 	if (Find_Partition_Size()) {
 		Used = Size;
 		Backup_Size = Size;
 	} else {
 		if (Display_Error)
-			LOGE("Unable to find parition size for '%s'\n", Mount_Point.c_str());
+			LOGERR("Unable to find parition size for '%s'\n", Mount_Point.c_str());
 		else
-			LOGI("Unable to find parition size for '%s'\n", Mount_Point.c_str());
+			LOGINFO("Unable to find parition size for '%s'\n", Mount_Point.c_str());
 	}
 }
 
 void TWPartition::Setup_AndSec(void) {
+	Backup_Display_Name = "Android Secure";
 	Backup_Name = "and-sec";
+	Can_Be_Backed_Up = true;
 	Has_Android_Secure = true;
 	Symlink_Path = Mount_Point + "/.android_secure";
 	Symlink_Mount_Point = "/and-sec";
@@ -474,9 +591,9 @@ void TWPartition::Find_Real_Block_Device(string& Block, bool Display_Error) {
 
 	if (device[0] != '/') {
 		if (Display_Error)
-			LOGE("Invalid symlink path '%s' found on block device '%s'\n", device, Block.c_str());
+			LOGERR("Invalid symlink path '%s' found on block device '%s'\n", device, Block.c_str());
 		else
-			LOGI("Invalid symlink path '%s' found on block device '%s'\n", device, Block.c_str());
+			LOGINFO("Invalid symlink path '%s' found on block device '%s'\n", device, Block.c_str());
 		return;
 	} else {
 		Block = device;
@@ -502,7 +619,7 @@ bool TWPartition::Find_MTD_Block_Device(string MTD_Name) {
 
 	fp = fopen("/proc/mtd", "rt");
 	if (fp == NULL) {
-		LOGE("Device does not support /proc/mtd\n");
+		LOGERR("Device does not support /proc/mtd\n");
 		return false;
 	}
 
@@ -529,6 +646,8 @@ bool TWPartition::Find_MTD_Block_Device(string MTD_Name) {
 			if (sscanf(device,"mtd%d", &deviceId) == 1) {
 				sprintf(device, "/dev/block/mtdblock%d", deviceId);
 				Primary_Block_Device = device;
+				fclose(fp);
+				return true;
 			}
 		}
 	}
@@ -547,9 +666,9 @@ bool TWPartition::Get_Size_Via_statfs(bool Display_Error) {
 	if (statfs(Local_Path.c_str(), &st) != 0) {
 		if (!Removable) {
 			if (Display_Error)
-				LOGE("Unable to statfs '%s'\n", Local_Path.c_str());
+				LOGERR("Unable to statfs '%s'\n", Local_Path.c_str());
 			else
-				LOGI("Unable to statfs '%s'\n", Local_Path.c_str());
+				LOGINFO("Unable to statfs '%s'\n", Local_Path.c_str());
 		}
 		return false;
 	}
@@ -575,7 +694,7 @@ bool TWPartition::Get_Size_Via_df(bool Display_Error) {
 	TWFunc::Exec_Cmd(command, result);
 	fp = fopen("/tmp/dfoutput.txt", "rt");
 	if (fp == NULL) {
-		LOGI("Unable to open /tmp/dfoutput.txt.\n");
+		LOGINFO("Unable to open /tmp/dfoutput.txt.\n");
 		return false;
 	}
 
@@ -703,10 +822,10 @@ bool TWPartition::Mount(bool Display_Error) {
 	Check_FS_Type();
 	if (Current_File_System == "exfat" && TWFunc::Path_Exists("/sbin/exfat-fuse")) {
 		string cmd = "/sbin/exfat-fuse -o big_writes,max_read=131072,max_write=131072 " + Actual_Block_Device + " " + Mount_Point;
-		LOGI("cmd: %s\n", cmd.c_str());
+		LOGINFO("cmd: %s\n", cmd.c_str());
 		string result;
 		if (TWFunc::Exec_Cmd(cmd, result) != 0) {
-			LOGI("exfat-fuse failed to mount with result '%s', trying vfat\n", result.c_str());
+			LOGINFO("exfat-fuse failed to mount with result '%s', trying vfat\n", result.c_str());
 			Current_File_System = "vfat";
 		} else {
 #ifdef TW_NO_EXFAT_FUSE
@@ -720,41 +839,60 @@ bool TWPartition::Mount(bool Display_Error) {
 	}
 	if (Fstab_File_System == "yaffs2") {
 		// mount an MTD partition as a YAFFS2 filesystem.
-		mtd_scan_partitions();
-		const MtdPartition* partition;
-		partition = mtd_find_partition_by_name(MTD_Name.c_str());
-		if (partition == NULL) {
-			LOGE("Failed to find '%s' partition to mount at '%s'\n",
-			MTD_Name.c_str(), Mount_Point.c_str());
-			return false;
-		}
-		if (mtd_mount_partition(partition, Mount_Point.c_str(), Fstab_File_System.c_str(), 0)) {
-			if (Display_Error)
-				LOGE("Failed to mount '%s' (MTD)\n", Mount_Point.c_str());
-			else
-				LOGI("Failed to mount '%s' (MTD)\n", Mount_Point.c_str());
-			return false;
-		} else
+		const unsigned long flags = MS_NOATIME | MS_NODEV | MS_NODIRATIME;
+		if (mount(Actual_Block_Device.c_str(), Mount_Point.c_str(), Fstab_File_System.c_str(), flags, NULL) < 0) {
+			if (mount(Actual_Block_Device.c_str(), Mount_Point.c_str(), Fstab_File_System.c_str(), flags | MS_RDONLY, NULL) < 0) {
+				if (Display_Error)
+					LOGERR("Failed to mount '%s' (MTD)\n", Mount_Point.c_str());
+				else
+					LOGINFO("Failed to mount '%s' (MTD)\n", Mount_Point.c_str());
+				return false;
+			} else {
+				LOGINFO("Mounted '%s' (MTD) as RO\n", Mount_Point.c_str());
+				return true;
+			}
+		} else {
+			struct stat st;
+			string test_path = Mount_Point;
+			if (stat(test_path.c_str(), &st) < 0) {
+				if (Display_Error)
+					LOGERR("Failed to mount '%s' (MTD)\n", Mount_Point.c_str());
+				else
+					LOGINFO("Failed to mount '%s' (MTD)\n", Mount_Point.c_str());
+				return false;
+			}
+			mode_t new_mode = st.st_mode | S_IXUSR | S_IXGRP | S_IXOTH;
+			if (new_mode != st.st_mode) {
+				LOGINFO("Fixing execute permissions for %s\n", Mount_Point.c_str());
+				if (chmod(Mount_Point.c_str(), new_mode) < 0) {
+					if (Display_Error)
+						LOGERR("Couldn't fix permissions for %s: %s\n", Mount_Point.c_str(), strerror(errno));
+					else
+						LOGINFO("Couldn't fix permissions for %s: %s\n", Mount_Point.c_str(), strerror(errno));
+					return false;
+				}
+			}
 			return true;
+		}
 	} else if (!exfat_mounted && mount(Actual_Block_Device.c_str(), Mount_Point.c_str(), Current_File_System.c_str(), 0, NULL) != 0) {
 #ifdef TW_NO_EXFAT_FUSE
 		if (Current_File_System == "exfat") {
-			LOGI("Mounting exfat failed, trying vfat...\n");
+			LOGINFO("Mounting exfat failed, trying vfat...\n");
 			if (mount(Actual_Block_Device.c_str(), Mount_Point.c_str(), "vfat", 0, NULL) != 0) {
 				if (Display_Error)
-					LOGE("Unable to mount '%s'\n", Mount_Point.c_str());
+					LOGERR("Unable to mount '%s'\n", Mount_Point.c_str());
 				else
-					LOGI("Unable to mount '%s'\n", Mount_Point.c_str());
-				LOGI("Actual block device: '%s', current file system: '%s'\n", Actual_Block_Device.c_str(), Current_File_System.c_str());
+					LOGINFO("Unable to mount '%s'\n", Mount_Point.c_str());
+				LOGINFO("Actual block device: '%s', current file system: '%s'\n", Actual_Block_Device.c_str(), Current_File_System.c_str());
 				return false;
 			}
 		} else {
 #endif
 			if (Display_Error)
-				LOGE("Unable to mount '%s'\n", Mount_Point.c_str());
+				LOGERR("Unable to mount '%s'\n", Mount_Point.c_str());
 			else
-				LOGI("Unable to mount '%s'\n", Mount_Point.c_str());
-			LOGI("Actual block device: '%s', current file system: '%s'\n", Actual_Block_Device.c_str(), Current_File_System.c_str());
+				LOGINFO("Unable to mount '%s'\n", Mount_Point.c_str());
+			LOGINFO("Actual block device: '%s', current file system: '%s'\n", Actual_Block_Device.c_str(), Current_File_System.c_str());
 			return false;
 #ifdef TW_NO_EXFAT_FUSE
 		}
@@ -766,14 +904,16 @@ bool TWPartition::Mount(bool Display_Error) {
 	if (EcryptFS_Password.size() > 0 && PartitionManager.Mount_By_Path("/data", false) && TWFunc::Path_Exists(MetaEcfsFile)) {
 		if (mount_ecryptfs_drive(EcryptFS_Password.c_str(), Mount_Point.c_str(), Mount_Point.c_str(), 0) != 0) {
 			if (Display_Error)
-				LOGE("Unable to mount ecryptfs for '%s'\n", Mount_Point.c_str());
+				LOGERR("Unable to mount ecryptfs for '%s'\n", Mount_Point.c_str());
 			else
-				LOGI("Unable to mount ecryptfs for '%s'\n", Mount_Point.c_str());
+				LOGINFO("Unable to mount ecryptfs for '%s'\n", Mount_Point.c_str());
 		} else {
-			LOGI("Successfully mounted ecryptfs for '%s'\n", Mount_Point.c_str());
+			LOGINFO("Successfully mounted ecryptfs for '%s'\n", Mount_Point.c_str());
 			Is_Decrypted = true;
 		}
-	} else {
+	} else if (Mount_Point == EXPAND(TW_EXTERNAL_STORAGE_PATH)) {
+		if (Is_Decrypted)
+			LOGINFO("Mounting external storage, '%s' is not encrypted\n", Mount_Point.c_str());
 		Is_Decrypted = false;
 	}
 #endif
@@ -800,11 +940,11 @@ bool TWPartition::UnMount(bool Display_Error) {
 		if (EcryptFS_Password.size() > 0) {
 			if (unmount_ecryptfs_drive(Mount_Point.c_str()) != 0) {
 				if (Display_Error)
-					LOGE("Unable to unmount ecryptfs for '%s'\n", Mount_Point.c_str());
+					LOGERR("Unable to unmount ecryptfs for '%s'\n", Mount_Point.c_str());
 				else
-					LOGI("Unable to unmount ecryptfs for '%s'\n", Mount_Point.c_str());
+					LOGINFO("Unable to unmount ecryptfs for '%s'\n", Mount_Point.c_str());
 			} else {
-				LOGI("Successfully unmounted ecryptfs for '%s'\n", Mount_Point.c_str());
+				LOGINFO("Successfully unmounted ecryptfs for '%s'\n", Mount_Point.c_str());
 			}
 		}
 #endif
@@ -815,9 +955,9 @@ bool TWPartition::UnMount(bool Display_Error) {
 		umount(Mount_Point.c_str());
 		if (Is_Mounted()) {
 			if (Display_Error)
-				LOGE("Unable to unmount '%s'\n", Mount_Point.c_str());
+				LOGERR("Unable to unmount '%s'\n", Mount_Point.c_str());
 			else
-				LOGI("Unable to unmount '%s'\n", Mount_Point.c_str());
+				LOGINFO("Unable to unmount '%s'\n", Mount_Point.c_str());
 			return false;
 		} else
 			return true;
@@ -832,12 +972,12 @@ bool TWPartition::Wipe(string New_File_System) {
 	string Layout_Filename = Mount_Point + "/.layout_version";
 
 	if (!Can_Be_Wiped) {
-		LOGE("Partition '%s' cannot be wiped.\n", Mount_Point.c_str());
+		LOGERR("Partition '%s' cannot be wiped.\n", Mount_Point.c_str());
 		return false;
 	}
 
 	if (Mount_Point == "/cache")
-		tmplog_offset = 0;
+		Log_Offset = 0;
 
 #ifdef TW_INCLUDE_CRYPTO_SAMSUNG
 	if (Mount_Point == "/data" && Mount(false)) {
@@ -857,7 +997,7 @@ bool TWPartition::Wipe(string New_File_System) {
 
 		DataManager::GetValue(TW_RM_RF_VAR, check);
 
-		if (check)
+		if (check || Use_Rm_Rf)
 			wiped = Wipe_RMRF();
 		else if (New_File_System == "ext4")
 			wiped = Wipe_EXT4();
@@ -869,8 +1009,10 @@ bool TWPartition::Wipe(string New_File_System) {
 			wiped = Wipe_EXFAT();
 		else if (New_File_System == "yaffs2")
 			wiped = Wipe_MTD();
+		else if (New_File_System == "f2fs")
+			wiped = Wipe_F2FS();
 		else {
-			LOGE("Unable to wipe '%s' -- unknown file system '%s'\n", Mount_Point.c_str(), New_File_System.c_str());
+			LOGERR("Unable to wipe '%s' -- unknown file system '%s'\n", Mount_Point.c_str(), New_File_System.c_str());
 			unlink("/.layout_version");
 			return false;
 		}
@@ -924,9 +1066,9 @@ bool TWPartition::Wipe_AndSec(void) {
 	if (!Mount(true))
 		return false;
 
-	ui_print("Wiping .android_secure\n");
+	gui_print("Wiping %s\n", Backup_Display_Name.c_str());
 	TWFunc::removeDir(Mount_Point + "/.android_secure/", true);
-    return true;
+	return true;
 }
 
 bool TWPartition::Backup(string backup_folder) {
@@ -936,7 +1078,7 @@ bool TWPartition::Backup(string backup_folder) {
 		return Backup_DD(backup_folder);
 	else if (Backup_Method == FLASH_UTILS)
 		return Backup_Dump_Image(backup_folder);
-	LOGE("Unknown backup method for '%s'\n", Mount_Point.c_str());
+	LOGERR("Unknown backup method for '%s'\n", Mount_Point.c_str());
 	return false;
 }
 
@@ -951,18 +1093,18 @@ bool TWPartition::Check_MD5(string restore_folder) {
 	if (!TWFunc::Path_Exists(Full_Filename)) {
 		// This is a split archive, we presume
 		sprintf(split_filename, "%s%03i", Full_Filename.c_str(), index);
-		LOGI("split_filename: %s\n", split_filename);
+		LOGINFO("split_filename: %s\n", split_filename);
 		md5file = split_filename;
 		md5file += ".md5";
 		if (!TWFunc::Path_Exists(md5file)) {
-			LOGE("No md5 file found for '%s'.\n", split_filename);
-			LOGE("Please unselect Enable MD5 verification to restore.\n");
+			LOGERR("No md5 file found for '%s'.\n", split_filename);
+			LOGERR("Please unselect Enable MD5 verification to restore.\n");
 			return false;
 		}
 		md5sum.setfn(split_filename);
-		while (index < 1000 && TWFunc::Path_Exists(split_filename)) {
-			if (md5sum.verify_md5digest() != 0) {
-				LOGE("MD5 failed to match on '%s'.\n", split_filename);
+		while (index < 1000) {
+			if (TWFunc::Path_Exists(split_filename) && md5sum.verify_md5digest() != 0) {
+				LOGERR("MD5 failed to match on '%s'.\n", split_filename);
 				return false;
 			}
 			index++;
@@ -974,13 +1116,13 @@ bool TWPartition::Check_MD5(string restore_folder) {
 		// Single file archive
 		md5file = Full_Filename + ".md5";
 		if (!TWFunc::Path_Exists(md5file)) {
-			LOGE("No md5 file found for '%s'.\n", Full_Filename.c_str());
-			LOGE("Please unselect Enable MD5 verification to restore.\n");
+			LOGERR("No md5 file found for '%s'.\n", Full_Filename.c_str());
+			LOGERR("Please unselect Enable MD5 verification to restore.\n");
 			return false;
 		}
 		md5sum.setfn(Full_Filename);
 		if (md5sum.verify_md5digest() != 0) {
-			LOGE("MD5 failed to match on '%s'.\n", Full_Filename.c_str());
+			LOGERR("MD5 failed to match on '%s'.\n", Full_Filename.c_str());
 			return false;
 		} else
 			return true;
@@ -993,22 +1135,22 @@ bool TWPartition::Restore(string restore_folder) {
 	string Restore_File_System;
 
 	TWFunc::GUI_Operation_Text(TW_RESTORE_TEXT, Display_Name, "Restoring");
-	LOGI("Restore filename is: %s\n", Backup_FileName.c_str());
+	LOGINFO("Restore filename is: %s\n", Backup_FileName.c_str());
 
 	// Parse backup filename to extract the file system before wiping
 	first_period = Backup_FileName.find(".");
 	if (first_period == string::npos) {
-		LOGE("Unable to find file system (first period).\n");
+		LOGERR("Unable to find file system (first period).\n");
 		return false;
 	}
 	Restore_File_System = Backup_FileName.substr(first_period + 1, Backup_FileName.size() - first_period - 1);
 	second_period = Restore_File_System.find(".");
 	if (second_period == string::npos) {
-		LOGE("Unable to find file system (second period).\n");
+		LOGERR("Unable to find file system (second period).\n");
 		return false;
 	}
 	Restore_File_System.resize(second_period);
-	LOGI("Restore file system is: '%s'.\n", Restore_File_System.c_str());
+	LOGINFO("Restore file system is: '%s'.\n", Restore_File_System.c_str());
 
 	if (Is_File_System(Restore_File_System))
 		return Restore_Tar(restore_folder, Restore_File_System);
@@ -1019,7 +1161,7 @@ bool TWPartition::Restore(string restore_folder) {
 			return Restore_Flash_Image(restore_folder);
 	}
 
-	LOGE("Unknown restore method for '%s'\n", Mount_Point.c_str());
+	LOGERR("Unknown restore method for '%s'\n", Mount_Point.c_str());
 	return false;
 }
 
@@ -1038,7 +1180,7 @@ string TWPartition::Backup_Method_By_Name() {
 }
 
 bool TWPartition::Decrypt(string Password) {
-	LOGI("STUB TWPartition::Decrypt, password: '%s'\n", Password.c_str());
+	LOGINFO("STUB TWPartition::Decrypt, password: '%s'\n", Password.c_str());
 	// Is this needed?
 	return 1;
 }
@@ -1050,16 +1192,19 @@ bool TWPartition::Wipe_Encryption() {
 		return false;
 
 	Has_Data_Media = false;
+	Decrypted_Block_Device = "";
+	Is_Decrypted = false;
+	Is_Encrypted = false;
 	if (Wipe(Fstab_File_System)) {
 		Has_Data_Media = Save_Data_Media;
 		if (Has_Data_Media && !Symlink_Mount_Point.empty()) {
 			Recreate_Media_Folder();
 		}
-		ui_print("You may need to reboot recovery to be able to use /data again.\n");
+		gui_print("You may need to reboot recovery to be able to use /data again.\n");
 		return true;
 	} else {
 		Has_Data_Media = Save_Data_Media;
-		LOGE("Unable to format to remove encryption.\n");
+		LOGERR("Unable to format to remove encryption.\n");
 		return false;
 	}
 	return false;
@@ -1079,16 +1224,18 @@ void TWPartition::Check_FS_Type() {
 	pr = blkid_new_probe_from_filename(Actual_Block_Device.c_str());
 	if (blkid_do_fullprobe(pr)) {
 		blkid_free_probe(pr);
-		LOGI("Can't probe device %s\n", Actual_Block_Device.c_str());
+		LOGINFO("Can't probe device %s\n", Actual_Block_Device.c_str());
 		return;
 	}
+
 	if (blkid_probe_lookup_value(pr, "TYPE", &type, NULL) < 0) { 
 		blkid_free_probe(pr);
-		LOGI("can't find filesystem on device %s\n", Actual_Block_Device.c_str());
+		LOGINFO("can't find filesystem on device %s\n", Actual_Block_Device.c_str());
 		return;
 	}
+
 	Current_File_System = type;
-	return;
+	blkid_free_probe(pr);
 }
 
 bool TWPartition::Wipe_EXT23(string File_System) {
@@ -1098,17 +1245,17 @@ bool TWPartition::Wipe_EXT23(string File_System) {
 	if (TWFunc::Path_Exists("/sbin/mke2fs")) {
 		string command, result;
 
-		ui_print("Formatting %s using mke2fs...\n", Display_Name.c_str());
+		gui_print("Formatting %s using mke2fs...\n", Display_Name.c_str());
 		Find_Actual_Block_Device();
 		command = "mke2fs -t " + File_System + " -m 0 " + Actual_Block_Device;
-		LOGI("mke2fs command: %s\n", command.c_str());
+		LOGINFO("mke2fs command: %s\n", command.c_str());
 		if (TWFunc::Exec_Cmd(command, result) == 0) {
 			Current_File_System = File_System;
 			Recreate_AndSec_Folder();
-			ui_print("Done.\n");
+			gui_print("Done.\n");
 			return true;
 		} else {
-			LOGE("Unable to wipe '%s'.\n", Mount_Point.c_str());
+			LOGERR("Unable to wipe '%s'.\n", Mount_Point.c_str());
 			return false;
 		}
 	} else
@@ -1121,10 +1268,19 @@ bool TWPartition::Wipe_EXT4() {
 	if (!UnMount(true))
 		return false;
 
+#if defined(HAVE_SELINUX) && defined(USE_EXT4)
+	gui_print("Formatting %s using make_ext4fs function.\n", Display_Name.c_str());
+	if (make_ext4fs(Actual_Block_Device.c_str(), Length, Mount_Point.c_str(), selinux_handle) != 0) {
+		LOGERR("Unable to wipe '%s' using function call.\n", Mount_Point.c_str());
+		return false;
+	} else {
+		return true;
+	}
+#else
 	if (TWFunc::Path_Exists("/sbin/make_ext4fs")) {
 		string Command, result;
 
-		ui_print("Formatting %s using make_ext4fs...\n", Display_Name.c_str());
+		gui_print("Formatting %s using make_ext4fs...\n", Display_Name.c_str());
 		Find_Actual_Block_Device();
 		Command = "make_ext4fs";
 		if (!Is_Decrypted && Length != 0) {
@@ -1135,19 +1291,19 @@ bool TWPartition::Wipe_EXT4() {
 			Command += len;
 		}
 		Command += " " + Actual_Block_Device;
-		LOGI("make_ext4fs command: %s\n", Command.c_str());
+		LOGINFO("make_ext4fs command: %s\n", Command.c_str());
 		if (TWFunc::Exec_Cmd(Command, result) == 0) {
 			Current_File_System = "ext4";
 			Recreate_AndSec_Folder();
-			ui_print("Done.\n");
+			gui_print("Done.\n");
 			return true;
 		} else {
-			LOGE("Unable to wipe '%s'.\n", Mount_Point.c_str());
+			LOGERR("Unable to wipe '%s'.\n", Mount_Point.c_str());
 			return false;
 		}
 	} else
 		return Wipe_EXT23("ext4");
-
+#endif
 	return false;
 }
 
@@ -1158,16 +1314,16 @@ bool TWPartition::Wipe_FAT() {
 		if (!UnMount(true))
 			return false;
 
-		ui_print("Formatting %s using mkdosfs...\n", Display_Name.c_str());
+		gui_print("Formatting %s using mkdosfs...\n", Display_Name.c_str());
 		Find_Actual_Block_Device();
 		command = "mkdosfs " + Actual_Block_Device;
 		if (TWFunc::Exec_Cmd(command, result) == 0) {
 			Current_File_System = "vfat";
 			Recreate_AndSec_Folder();
-			ui_print("Done.\n");
+			gui_print("Done.\n");
 			return true;
 		} else {
-			LOGE("Unable to wipe '%s'.\n", Mount_Point.c_str());
+			LOGERR("Unable to wipe '%s'.\n", Mount_Point.c_str());
 			return false;
 		}
 		return true;
@@ -1185,15 +1341,15 @@ bool TWPartition::Wipe_EXFAT() {
 		if (!UnMount(true))
 			return false;
 
-		ui_print("Formatting %s using mkexfatfs...\n", Display_Name.c_str());
+		gui_print("Formatting %s using mkexfatfs...\n", Display_Name.c_str());
 		Find_Actual_Block_Device();
 		command = "mkexfatfs " + Actual_Block_Device;
 		if (TWFunc::Exec_Cmd(command, result) == 0) {
 			Recreate_AndSec_Folder();
-			ui_print("Done.\n");
+			gui_print("Done.\n");
 			return true;
 		} else {
-			LOGE("Unable to wipe '%s'.\n", Mount_Point.c_str());
+			LOGERR("Unable to wipe '%s'.\n", Mount_Point.c_str());
 			return false;
 		}
 		return true;
@@ -1205,43 +1361,69 @@ bool TWPartition::Wipe_MTD() {
 	if (!UnMount(true))
 		return false;
 
-	ui_print("MTD Formatting \"%s\"\n", MTD_Name.c_str());
+	gui_print("MTD Formatting \"%s\"\n", MTD_Name.c_str());
 
-    mtd_scan_partitions();
-    const MtdPartition* mtd = mtd_find_partition_by_name(MTD_Name.c_str());
-    if (mtd == NULL) {
-        LOGE("No mtd partition named '%s'", MTD_Name.c_str());
-        return false;
-    }
+	mtd_scan_partitions();
+	const MtdPartition* mtd = mtd_find_partition_by_name(MTD_Name.c_str());
+	if (mtd == NULL) {
+		LOGERR("No mtd partition named '%s'", MTD_Name.c_str());
+		return false;
+	}
 
-    MtdWriteContext* ctx = mtd_write_partition(mtd);
-    if (ctx == NULL) {
-        LOGE("Can't write '%s', failed to format.", MTD_Name.c_str());
-        return false;
-    }
-    if (mtd_erase_blocks(ctx, -1) == -1) {
-        mtd_write_close(ctx);
-        LOGE("Failed to format '%s'", MTD_Name.c_str());
-        return false;
-    }
-    if (mtd_write_close(ctx) != 0) {
-        LOGE("Failed to close '%s'", MTD_Name.c_str());
-        return false;
-    }
+	MtdWriteContext* ctx = mtd_write_partition(mtd);
+	if (ctx == NULL) {
+		LOGERR("Can't write '%s', failed to format.", MTD_Name.c_str());
+		return false;
+	}
+	if (mtd_erase_blocks(ctx, -1) == -1) {
+		mtd_write_close(ctx);
+		LOGERR("Failed to format '%s'", MTD_Name.c_str());
+		return false;
+	}
+	if (mtd_write_close(ctx) != 0) {
+		LOGERR("Failed to close '%s'", MTD_Name.c_str());
+		return false;
+	}
 	Current_File_System = "yaffs2";
 	Recreate_AndSec_Folder();
-	ui_print("Done.\n");
-    return true;
+	gui_print("Done.\n");
+	return true;
 }
 
 bool TWPartition::Wipe_RMRF() {
 	if (!Mount(true))
 		return false;
 
-	ui_print("Removing all files under '%s'\n", Mount_Point.c_str());
+	gui_print("Removing all files under '%s'\n", Mount_Point.c_str());
 	TWFunc::removeDir(Mount_Point, true);
 	Recreate_AndSec_Folder();
 	return true;
+}
+
+bool TWPartition::Wipe_F2FS() {
+	string command, result;
+
+	if (TWFunc::Path_Exists("/sbin/mkfs.f2fs")) {
+		if (!UnMount(true))
+			return false;
+
+		gui_print("Formatting %s using mkfs.f2fs...\n", Display_Name.c_str());
+		Find_Actual_Block_Device();
+		command = "mkfs.f2fs " + Actual_Block_Device;
+		if (TWFunc::Exec_Cmd(command, result) == 0) {
+			Recreate_AndSec_Folder();
+			gui_print("Done.\n");
+			return true;
+		} else {
+			LOGERR("Unable to wipe '%s'.\n", Mount_Point.c_str());
+			return false;
+		}
+		return true;
+	} else {
+		gui_print("mkfs.f2fs binary not found, using rm -rf to wipe.\n");
+		return Wipe_RMRF();
+	}
+	return false;
 }
 
 bool TWPartition::Wipe_Data_Without_Wiping_Media() {
@@ -1251,7 +1433,7 @@ bool TWPartition::Wipe_Data_Without_Wiping_Media() {
 	if (!Mount(true))
 		return false;
 
-	ui_print("Wiping data without wiping /data/media ...\n");
+	gui_print("Wiping data without wiping /data/media ...\n");
 
 	DIR* d;
 	d = opendir("/data");
@@ -1261,7 +1443,7 @@ bool TWPartition::Wipe_Data_Without_Wiping_Media() {
 			if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0)   continue;
 			// The media folder is the "internal sdcard"
 			// The .layout_version file is responsible for determining whether 4.2 decides up upgrade
-			//    the media folder for multi-user.
+			// the media folder for multi-user.
 			if (strcmp(de->d_name, "media") == 0 || strcmp(de->d_name, ".layout_version") == 0)   continue;
 			
 			dir = "/data/";
@@ -1270,21 +1452,21 @@ bool TWPartition::Wipe_Data_Without_Wiping_Media() {
 				TWFunc::removeDir(dir, false);
 			} else if (de->d_type == DT_REG || de->d_type == DT_LNK || de->d_type == DT_FIFO || de->d_type == DT_SOCK) {
 				if (!unlink(dir.c_str()))
-					LOGI("Unable to unlink '%s'\n", dir.c_str());
+					LOGINFO("Unable to unlink '%s'\n", dir.c_str());
 			}
 		}
 		closedir(d);
-		ui_print("Done.\n");
+		gui_print("Done.\n");
 		return true;
 	}
-	ui_print("Dirent failed to open /data, error!\n");
+	gui_print("Dirent failed to open /data, error!\n");
 	return false;
 }
 
 bool TWPartition::Backup_Tar(string backup_folder) {
 	char back_name[255], split_index[5];
 	string Full_FileName, Split_FileName, Tar_Args, Command;
-	int use_compression, index, backup_count;
+	int use_compression, use_encryption = 0, index, backup_count;
 	struct stat st;
 	unsigned long long total_bsize = 0, file_size;
 	twrpTar tar;
@@ -1293,49 +1475,54 @@ bool TWPartition::Backup_Tar(string backup_folder) {
 	if (!Mount(true))
 		return false;
 
-	if (Backup_Path == "/and-sec") {
-		TWFunc::GUI_Operation_Text(TW_BACKUP_TEXT, "Android Secure", "Backing Up");
-		ui_print("Backing up %s...\n", "Android Secure");
-	} else {
-		TWFunc::GUI_Operation_Text(TW_BACKUP_TEXT, Display_Name, "Backing Up");
-		ui_print("Backing up %s...\n", Display_Name.c_str());
-	}
+	TWFunc::GUI_Operation_Text(TW_BACKUP_TEXT, Backup_Display_Name, "Backing Up");
+	gui_print("Backing up %s...\n", Backup_Display_Name.c_str());
 
 	DataManager::GetValue(TW_USE_COMPRESSION_VAR, use_compression);
+	tar.use_compression = use_compression;
+	//exclude Google Music Cache
+	tar.setexcl("/data/data/com.google.android.music/files");
+#ifndef TW_EXCLUDE_ENCRYPTED_BACKUPS
+	DataManager::GetValue("tw_encrypt_backup", use_encryption);
+	if (use_encryption && Can_Encrypt_Backup) {
+		tar.use_encryption = use_encryption;
+		if (Use_Userdata_Encryption)
+			tar.userdata_encryption = use_encryption;
+	} else {
+		use_encryption = false;
+	}
+#endif
 
 	sprintf(back_name, "%s.%s.win", Backup_Name.c_str(), Current_File_System.c_str());
 	Backup_FileName = back_name;
 	Full_FileName = backup_folder + "/" + Backup_FileName;
-	 if (Backup_Size > MAX_ARCHIVE_SIZE) {
+	tar.has_data_media = Has_Data_Media;
+	if (!use_encryption && Backup_Size > MAX_ARCHIVE_SIZE) {
 		// This backup needs to be split into multiple archives
-		ui_print("Breaking backup file into multiple archives...\n");
+		gui_print("Breaking backup file into multiple archives...\n");
 		sprintf(back_name, "%s", Backup_Path.c_str());
 		tar.setdir(back_name);
 		tar.setfn(Full_FileName);
 		backup_count = tar.splitArchiveFork();
 		if (backup_count == -1) {
-			LOGE("Error tarring split files!\n");
+			LOGERR("Error tarring split files!\n");
 			return false;
 		}
 		return true;
 	} else {
 		Full_FileName = backup_folder + "/" + Backup_FileName;
-		if (use_compression) {
-			tar.setdir(Backup_Path);
-			tar.setfn(Full_FileName);
-			if (tar.createTarGZFork() != 0)
-				return -1;
+		tar.setdir(Backup_Path);
+		tar.setfn(Full_FileName);
+		if (tar.createTarFork() != 0)
+			return false;
+		if (use_compression && !use_encryption) {
 			string gzname = Full_FileName + ".gz";
 			rename(gzname.c_str(), Full_FileName.c_str());
 		}
-		else {
-			tar.setdir(Backup_Path);
-			tar.setfn(Full_FileName);
-			if (tar.createTarFork() != 0)
-				return -1;
-		}
+		if (use_encryption)
+			Full_FileName += "000";
 		if (TWFunc::Get_File_Size(Full_FileName) == 0) {
-			LOGE("Backup file size for '%s' is 0 bytes.\n", Full_FileName.c_str());
+			LOGERR("Backup file size for '%s' is 0 bytes.\n", Full_FileName.c_str());
 			return false;
 		}
 	}
@@ -1351,7 +1538,7 @@ bool TWPartition::Backup_DD(string backup_folder) {
 	DD_BS = backup_size;
 
 	TWFunc::GUI_Operation_Text(TW_BACKUP_TEXT, Display_Name, "Backing Up");
-	ui_print("Backing up %s...\n", Display_Name.c_str());
+	gui_print("Backing up %s...\n", Display_Name.c_str());
 
 	sprintf(back_name, "%s.%s.win", Backup_Name.c_str(), Current_File_System.c_str());
 	Backup_FileName = back_name;
@@ -1359,10 +1546,10 @@ bool TWPartition::Backup_DD(string backup_folder) {
 	Full_FileName = backup_folder + "/" + Backup_FileName;
 
 	Command = "dd if=" + Actual_Block_Device + " of='" + Full_FileName + "'" + " bs=" + DD_BS + "c count=1";
-	LOGI("Backup command: '%s'\n", Command.c_str());
+	LOGINFO("Backup command: '%s'\n", Command.c_str());
 	TWFunc::Exec_Cmd(Command, result);
 	if (TWFunc::Get_File_Size(Full_FileName) == 0) {
-		LOGE("Backup file size for '%s' is 0 bytes.\n", Full_FileName.c_str());
+		LOGERR("Backup file size for '%s' is 0 bytes.\n", Full_FileName.c_str());
 		return false;
 	}
 	return true;
@@ -1374,7 +1561,7 @@ bool TWPartition::Backup_Dump_Image(string backup_folder) {
 	int use_compression;
 
 	TWFunc::GUI_Operation_Text(TW_BACKUP_TEXT, Display_Name, "Backing Up");
-	ui_print("Backing up %s...\n", Display_Name.c_str());
+	gui_print("Backing up %s...\n", Display_Name.c_str());
 
 	sprintf(back_name, "%s.%s.win", Backup_Name.c_str(), Current_File_System.c_str());
 	Backup_FileName = back_name;
@@ -1382,11 +1569,11 @@ bool TWPartition::Backup_Dump_Image(string backup_folder) {
 	Full_FileName = backup_folder + "/" + Backup_FileName;
 
 	Command = "dump_image " + MTD_Name + " '" + Full_FileName + "'";
-	LOGI("Backup command: '%s'\n", Command.c_str());
+	LOGINFO("Backup command: '%s'\n", Command.c_str());
 	TWFunc::Exec_Cmd(Command, result);
 	if (TWFunc::Get_File_Size(Full_FileName) == 0) {
 		// Actual size may not match backup size due to bad blocks on MTD devices so just check for 0 bytes
-		LOGE("Backup file size for '%s' is 0 bytes.\n", Full_FileName.c_str());
+		LOGERR("Backup file size for '%s' is 0 bytes.\n", Full_FileName.c_str());
 		return false;
 	}
 	return true;
@@ -1398,31 +1585,30 @@ bool TWPartition::Restore_Tar(string restore_folder, string Restore_File_System)
 	char split_index[5];
 
 	if (Has_Android_Secure) {
-		ui_print("Wiping android secure...\n");
 		if (!Wipe_AndSec())
 			return false;
 	} else {
-		ui_print("Wiping %s...\n", Display_Name.c_str());
+		gui_print("Wiping %s...\n", Display_Name.c_str());
 		if (!Wipe(Restore_File_System))
-		    return false;
+			return false;
 	}
+	TWFunc::GUI_Operation_Text(TW_RESTORE_TEXT, Backup_Display_Name, "Restoring");
+	gui_print("Restoring %s...\n", Backup_Display_Name.c_str());
 
 	if (!Mount(true))
 		return false;
 
-	TWFunc::GUI_Operation_Text(TW_RESTORE_TEXT, Display_Name, "Restoring");
-	ui_print("Restoring %s...\n", Display_Name.c_str());
 	Full_FileName = restore_folder + "/" + Backup_FileName;
-	if (!TWFunc::Path_Exists(Full_FileName)) {
+	/*if (!TWFunc::Path_Exists(Full_FileName)) {
 		if (!TWFunc::Path_Exists(Full_FileName)) {
 			// Backup is multiple archives
-			LOGI("Backup is multiple archives.\n");
+			LOGINFO("Backup is multiple archives.\n");
 			sprintf(split_index, "%03i", index);
 			Full_FileName = restore_folder + "/" + Backup_FileName + split_index;
 			while (TWFunc::Path_Exists(Full_FileName)) {
 				index++;
-				ui_print("Restoring archive %i...\n", index);
-				LOGI("Restoring '%s'...\n", Full_FileName.c_str());
+				gui_print("Restoring archive %i...\n", index);
+				LOGINFO("Restoring '%s'...\n", Full_FileName.c_str());
 				twrpTar tar;
 				tar.setdir("/");
 				tar.setfn(Full_FileName);
@@ -1432,17 +1618,18 @@ bool TWPartition::Restore_Tar(string restore_folder, string Restore_File_System)
 				Full_FileName = restore_folder + "/" + Backup_FileName + split_index;
 			}
 			if (index == 0) {
-				LOGE("Error locating restore file: '%s'\n", Full_FileName.c_str());
+				LOGERR("Error locating restore file: '%s'\n", Full_FileName.c_str());
 				return false;
 			}
 		}
-	} else {
+	} else {*/
 		twrpTar tar;
 		tar.setdir(Backup_Path);
 		tar.setfn(Full_FileName);
+		tar.backup_name = Backup_Name;
 		if (tar.extractTarFork() != 0)
 			return false;
-	}
+	//}
 	return true;
 }
 
@@ -1453,20 +1640,20 @@ bool TWPartition::Restore_DD(string restore_folder) {
 	Full_FileName = restore_folder + "/" + Backup_FileName;
 
 	if (!Find_Partition_Size()) {
-		LOGE("Unable to find partition size for '%s'\n", Mount_Point.c_str());
+		LOGERR("Unable to find partition size for '%s'\n", Mount_Point.c_str());
 		return false;
 	}
 	unsigned long long backup_size = TWFunc::Get_File_Size(Full_FileName);
 	if (backup_size > Size) {
-		LOGE("Size (%iMB) of backup '%s' is larger than target device '%s' (%iMB)\n",
+		LOGERR("Size (%iMB) of backup '%s' is larger than target device '%s' (%iMB)\n",
 			(int)(backup_size / 1048576LLU), Full_FileName.c_str(),
 			Actual_Block_Device.c_str(), (int)(Size / 1048576LLU));
 		return false;
 	}
 
-	ui_print("Restoring %s...\n", Display_Name.c_str());
+	gui_print("Restoring %s...\n", Display_Name.c_str());
 	Command = "dd bs=4096 if='" + Full_FileName + "' of=" + Actual_Block_Device;
-	LOGI("Restore command: '%s'\n", Command.c_str());
+	LOGINFO("Restore command: '%s'\n", Command.c_str());
 	TWFunc::Exec_Cmd(Command, result);
 	return true;
 }
@@ -1474,14 +1661,14 @@ bool TWPartition::Restore_DD(string restore_folder) {
 bool TWPartition::Restore_Flash_Image(string restore_folder) {
 	string Full_FileName, Command, result;
 
-	ui_print("Restoring %s...\n", Display_Name.c_str());
+	gui_print("Restoring %s...\n", Display_Name.c_str());
 	Full_FileName = restore_folder + "/" + Backup_FileName;
 	// Sometimes flash image doesn't like to flash due to the first 2KB matching, so we erase first to ensure that it flashes
 	Command = "erase_image " + MTD_Name;
-	LOGI("Erase command: '%s'\n", Command.c_str());
+	LOGINFO("Erase command: '%s'\n", Command.c_str());
 	TWFunc::Exec_Cmd(Command, result);
 	Command = "flash_image " + MTD_Name + " '" + Full_FileName + "'";
-	LOGI("Restore command: '%s'\n", Command.c_str());
+	LOGINFO("Restore command: '%s'\n", Command.c_str());
 	TWFunc::Exec_Cmd(Command, result);
 	return true;
 }
@@ -1520,7 +1707,7 @@ bool TWPartition::Update_Size(bool Display_Error) {
 			int us = (int)(Used / 1048576LLU);
 			int fre = (int)(Free / 1048576LLU);
 			int datmed = (int)(data_media_used / 1048576LLU);
-			LOGI("Data backup size is %iMB, size: %iMB, used: %iMB, free: %iMB, in data/media: %iMB.\n", bak, total, us, fre, datmed);
+			LOGINFO("Data backup size is %iMB, size: %iMB, used: %iMB, free: %iMB, in data/media: %iMB.\n", bak, total, us, fre, datmed);
 		} else {
 			if (!Was_Already_Mounted)
 				UnMount(false);
@@ -1563,10 +1750,10 @@ void TWPartition::Recreate_Media_Folder(void) {
 	string Command;
 
 	if (!Mount(true)) {
-		LOGE("Unable to recreate /data/media folder.\n");
+		LOGERR("Unable to recreate /data/media folder.\n");
 	} else if (!TWFunc::Path_Exists("/data/media")) {
 		PartitionManager.Mount_By_Path(Symlink_Mount_Point, true);
-		LOGI("Recreating /data/media folder.\n");
+		LOGINFO("Recreating /data/media folder.\n");
 		mkdir("/data/media", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH); 
 		PartitionManager.UnMount_By_Path(Symlink_Mount_Point, true);
 	}
@@ -1575,11 +1762,11 @@ void TWPartition::Recreate_Media_Folder(void) {
 void TWPartition::Recreate_AndSec_Folder(void) {
 	if (!Has_Android_Secure)
 		return;
-	LOGI("Creating .android_secure: %s\n", Symlink_Path.c_str());
+	LOGINFO("Creating %s: %s\n", Backup_Display_Name.c_str(), Symlink_Path.c_str());
 	if (!Mount(true)) {
-		LOGE("Unable to recreate android secure folder.\n");
+		LOGERR("Unable to recreate %s folder.\n", Backup_Name.c_str());
 	} else if (!TWFunc::Path_Exists(Symlink_Path)) {
-		LOGI("Recreating android secure folder.\n");
+		LOGINFO("Recreating %s folder.\n", Backup_Name.c_str());
 		PartitionManager.Mount_By_Path(Symlink_Mount_Point, true);
 		mkdir(Symlink_Path.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH); 
 		PartitionManager.UnMount_By_Path(Symlink_Mount_Point, true);

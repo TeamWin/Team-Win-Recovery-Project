@@ -79,14 +79,14 @@ static struct fb_fix_screeninfo fi;
 #ifdef PRINT_SCREENINFO
 static void print_fb_var_screeninfo()
 {
-	LOGI("vi.xres: %d\n", vi.xres);
-	LOGI("vi.yres: %d\n", vi.yres);
-	LOGI("vi.xres_virtual: %d\n", vi.xres_virtual);
-	LOGI("vi.yres_virtual: %d\n", vi.yres_virtual);
-	LOGI("vi.xoffset: %d\n", vi.xoffset);
-	LOGI("vi.yoffset: %d\n", vi.yoffset);
-	LOGI("vi.bits_per_pixel: %d\n", vi.bits_per_pixel);
-	LOGI("vi.grayscale: %d\n", vi.grayscale);
+	printf("vi.xres: %d\n", vi.xres);
+	printf("vi.yres: %d\n", vi.yres);
+	printf("vi.xres_virtual: %d\n", vi.xres_virtual);
+	printf("vi.yres_virtual: %d\n", vi.yres_virtual);
+	printf("vi.xoffset: %d\n", vi.xoffset);
+	printf("vi.yoffset: %d\n", vi.yoffset);
+	printf("vi.bits_per_pixel: %d\n", vi.bits_per_pixel);
+	printf("vi.grayscale: %d\n", vi.grayscale);
 }
 #endif
 
@@ -191,7 +191,7 @@ static int get_framebuffer(GGLSurface *fb)
     fb->width = vi.xres;
     fb->height = vi.yres;
 #ifdef BOARD_HAS_JANKY_BACKBUFFER
-    LOGI("setting JANKY BACKBUFFER\n");
+    printf("setting JANKY BACKBUFFER\n");
     fb->stride = fi.line_length/2;
 #else
     fb->stride = vi.xres_virtual;
@@ -259,10 +259,14 @@ void gr_flip(void)
 #ifdef BOARD_HAS_FLIPPED_SCREEN
     /* flip buffer 180 degrees for devices with physicaly inverted screens */
     unsigned int i;
-    for (i = 1; i < (vi.xres * vi.yres); i++) {
-        unsigned short tmp = gr_mem_surface.data[i];
-        gr_mem_surface.data[i] = gr_mem_surface.data[(vi.xres * vi.yres * 2) - i];
-        gr_mem_surface.data[(vi.xres * vi.yres * 2) - i] = tmp;
+    unsigned int j;
+    uint8_t tmp;
+    for (i = 0; i < ((vi.xres_virtual * vi.yres)/2); i++) {
+	for (j = 0; j < PIXEL_SIZE; j++) {
+		tmp = gr_mem_surface.data[i * PIXEL_SIZE + j];
+		gr_mem_surface.data[i * PIXEL_SIZE + j] = gr_mem_surface.data[(vi.xres_virtual * vi.yres * PIXEL_SIZE) - ((i+1) * PIXEL_SIZE) + j];
+		gr_mem_surface.data[(vi.xres_virtual * vi.yres * PIXEL_SIZE) - ((i+1) * PIXEL_SIZE) + j] = tmp;
+	}
     }
 #endif
 

@@ -1,4 +1,20 @@
-// FileSelector.cpp - GUIFileSelector object
+/*
+	Copyright 2013 bigbiff/Dees_Troy TeamWin
+	This file is part of TWRP/TeamWin Recovery Project.
+
+	TWRP is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	TWRP is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with TWRP.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include <linux/input.h>
 #include <pthread.h>
@@ -22,10 +38,8 @@
 #include <algorithm>
 
 extern "C" {
-#include "../common.h"
-#include "../roots.h"
+#include "../twcommon.h"
 #include "../minuitwrp/minui.h"
-#include "../recovery_ui.h"
 }
 
 #include "rapidxml.hpp"
@@ -177,12 +191,12 @@ GUIListBox::GUIListBox(xml_node<>* node)
 
 		attr = child->first_attribute("highlightcolor");
 		memset(&mFontHighlightColor, 0, sizeof(COLOR));
-        if (attr)
-        {
-            std::string color = attr->value();
+		if (attr)
+		{
+			std::string color = attr->value();
 			ConvertStrToColor(color, &mFontHighlightColor);
 			hasFontHighlightColor = true;
-        }
+		}
 	}
 
 	// Load the separator if it exists
@@ -309,15 +323,15 @@ GUIListBox::GUIListBox(xml_node<>* node)
 
 	// Get the data for the list
 	child = node->first_node("listitem");
-    if (!child) return;
+	if (!child) return;
 	
 	while (child)
-    {
-        ListData data;
+	{
+		ListData data;
 
 		attr = child->first_attribute("name");
-        if (!attr) return;
-        data.displayName = attr->value();
+		if (!attr) return;
+		data.displayName = attr->value();
 
 		data.variableValue = child->value();
 		if (child->value() == currentValue) {
@@ -326,10 +340,10 @@ GUIListBox::GUIListBox(xml_node<>* node)
 			data.selected = 0;
 		}
 
-        mList.push_back(data);
+		mList.push_back(data);
 
-        child = child->next_sibling("listitem");
-    }
+		child = child->next_sibling("listitem");
+	}
 }
 
 GUIListBox::~GUIListBox()
@@ -416,21 +430,21 @@ int GUIListBox::Render(void)
 		}
 
 		if (mList.at(line + mStart).selected != 0)
-        {
-            icon = mIconSelected;
+		{
+			icon = mIconSelected;
 			currentIconHeight = mSelectedIconHeight;
 			currentIconWidth = mSelectedIconWidth;
 			currentIconOffsetY = SelectedIconOffsetY;
 			currentIconOffsetX = SelectedIconOffsetX;
-        }
-        else
-        {
-            icon = mIconUnselected;
+		}
+		else
+		{
+			icon = mIconUnselected;
 			currentIconHeight = mSelectedIconHeight;
 			currentIconWidth = mSelectedIconWidth;
 			currentIconOffsetY = SelectedIconOffsetY;
 			currentIconOffsetX = SelectedIconOffsetX;
-        }
+		}
 
 		if (icon && icon->GetResource())
 		{
@@ -744,8 +758,8 @@ int GUIListBox::NotifyVarChange(std::string varName, std::string value)
 		}
 	}
 	if (varName == mVariable)
-    {
-        int i, listSize = mList.size(), selected_index = 0;
+	{
+		int i, listSize = mList.size(), selected_index = 0;
 
 		currentValue = value;
 
@@ -769,8 +783,8 @@ int GUIListBox::NotifyVarChange(std::string varName, std::string value)
 		}
 
 		mUpdate = 1;
-        return 0;
-    }
+		return 0;
+	}
 	return 0;
 }
 

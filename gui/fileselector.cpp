@@ -1,4 +1,20 @@
-// FileSelector.cpp - GUIFileSelector object
+/*
+	Copyright 2012 bigbiff/Dees_Troy TeamWin
+	This file is part of TWRP/TeamWin Recovery Project.
+
+	TWRP is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	TWRP is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with TWRP.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include <linux/input.h>
 #include <pthread.h>
@@ -22,10 +38,8 @@
 #include <algorithm>
 
 extern "C" {
-#include "../common.h"
-#include "../roots.h"
+#include "../twcommon.h"
 #include "../minuitwrp/minui.h"
-#include "../recovery_ui.h"
 }
 
 #include "rapidxml.hpp"
@@ -184,12 +198,12 @@ GUIFileSelector::GUIFileSelector(xml_node<>* node)
 
 		attr = child->first_attribute("highlightcolor");
 		memset(&mFontHighlightColor, 0, sizeof(COLOR));
-        if (attr)
-        {
-            std::string color = attr->value();
+		if (attr)
+		{
+			std::string color = attr->value();
 			ConvertStrToColor(color, &mFontHighlightColor);
 			hasFontHighlightColor = true;
-        }
+		}
 	}
 
 	// Load the separator if it exists
@@ -394,11 +408,10 @@ int GUIFileSelector::Render(void)
 	if (updateFileList) {
 		string value;
 		DataManager::GetValue(mPathVar, value);
-		if (GetFileList(value) == 0) {
+		if (GetFileList(value) == 0)
 			updateFileList = false;
-		} else {
+		else
 			return 0;
-		}
 	}
 
 	// This tells us how many lines we can actually render
@@ -638,7 +651,9 @@ int GUIFileSelector::Update(void)
 int GUIFileSelector::GetSelection(int x, int y)
 {
 	// We only care about y position
-	if (y < mRenderY || y - mRenderY <= mHeaderH || y - mRenderY > mRenderH) return -1;
+	if (y < mRenderY || y - mRenderY <= mHeaderH || y - mRenderY > mRenderH)
+		return -1;
+
 	return (y - mRenderY - mHeaderH);
 }
 
@@ -660,7 +675,6 @@ int GUIFileSelector::NotifyTouch(TOUCH_STATE state, int x, int y)
 		startY = lastY = last2Y = y;
 		scrollingSpeed = 0;
 		break;
-
 	case TOUCH_DRAG:
 		// Check if we dragged out of the selection window
 		if (GetSelection(x, y) == -1) {
@@ -929,7 +943,7 @@ int GUIFileSelector::GetFileList(const std::string folder)
 	d = opendir(folder.c_str());
 	if (d == NULL)
 	{
-		LOGI("Unable to open '%s'\n", folder.c_str());
+		LOGINFO("Unable to open '%s'\n", folder.c_str());
 		if (folder != "/" && (mShowNavFolders != 0 || mShowFiles != 0)) {
 			size_t found;
 			found = folder.find_last_of('/');

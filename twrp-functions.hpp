@@ -2,17 +2,18 @@
 #define _TWRPFUNCTIONS_HPP
 
 #include <string>
+#include <vector>
 
 using namespace std;
 
 typedef enum
 {
-    rb_current = 0,
-    rb_system,
-    rb_recovery,
-    rb_poweroff,
-    rb_bootloader,     // May also be fastboot
-    rb_download,
+	rb_current = 0,
+	rb_system,
+	rb_recovery,
+	rb_poweroff,
+	rb_bootloader,     // May also be fastboot
+	rb_download,
 } RebootCommand;
 
 // Partition class
@@ -32,7 +33,8 @@ public:
 	static void GUI_Operation_Text(string Read_Value, string Default_Text);     // Updates text for display in the GUI, e.g. Backing up %partition name%
 	static void GUI_Operation_Text(string Read_Value, string Partition_Name, string Default_Text); // Same as above but includes partition name
 	static unsigned long Get_File_Size(string Path);                            // Returns the size of a file
-	static void twfinish_recovery(const char *send_intent);                     // Writes the log to last_log
+	static void Update_Log_File(void);                                          // Writes the log to last_log
+	static void Update_Intent_File(string Intent);                              // Updates intent file
 	static int tw_reboot(RebootCommand command);                                // Prepares the device for rebooting
 	static void check_and_run_script(const char* script_file, const char* display_name); // checks for the existence of a script, chmods it to 755, then runs it
 	static int Exec_Cmd(string cmd, string &result); //execute a command and return the result as a string by reference
@@ -46,13 +48,19 @@ public:
 	static int drop_caches(void); //drop linux cache memory
 	static int Check_su_Perms(void); // check perms and owner of su binary in various locations
 	static bool Fix_su_Perms(void); // sets proper permissions for su binaries and superuser apk
-	static int tw_chmod(string fn, string mode); // chmod function that converts a 4 char string into st_mode automatically
+	static int tw_chmod(const string& fn, const string& mode); // chmod function that converts a 3 or 4 char string into st_mode automatically
 	static bool Install_SuperSU(void); // Installs su binary and apk and sets proper permissions
+	static vector<string> split_string(const string &in, char del, bool skip_empty);
+	static int Get_File_Type(string fn); // Determines file type, 0 for unknown, 1 for gzip, 2 for OAES encrypted
+	static int Try_Decrypting_File(string fn, string password); // -1 for some error, 0 for failed to decrypt, 1 for decrypted, 3 for decrypted and found gzip format
+	static bool Try_Decrypting_Backup(string Restore_Path, string Password); // true for success, false for failed to decrypt
+	static int Wait_For_Child(pid_t pid, int *status, string Child_Name); // Waits for pid to exit and checks exit status
 
 private:
-	static void check_and_fclose(FILE *fp, const char *name);
-	static void copy_log_file(const char* source, const char* destination, int append);
+	static void Copy_Log(string Source, string Destination);
 
 };
+
+extern int Log_Offset;
 
 #endif // _TWRPFUNCTIONS_HPP

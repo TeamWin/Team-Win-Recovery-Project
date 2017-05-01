@@ -39,8 +39,7 @@ extern "C" {
 #include "blanktimer.hpp"
 #include "../data.hpp"
 extern "C" {
-#include "../common.h"
-#include "../recovery_ui.h"
+#include "../twcommon.h"
 }
 #include "../twrp-functions.hpp"
 #include "../variables.h"
@@ -49,6 +48,11 @@ blanktimer::blanktimer(void) {
 	setTime(0);
 	setConBlank(0);
 	orig_brightness = getBrightness();
+	screenoff = false;
+}
+
+bool blanktimer::IsScreenOff() {
+	return screenoff;
 }
 
 void blanktimer::setTime(int newtime) {
@@ -93,6 +97,8 @@ int  blanktimer::setClockTimer(void) {
 		if (sleepTimer && diff.tv_sec > sleepTimer && conblank < 2) {
 			setConBlank(2);
 			setBrightness(0);
+			screenoff = true;
+			TWFunc::check_and_run_script("/sbin/postscreenblank.sh", "blank");
 			PageManager::ChangeOverlay("lock");
 		}
 #ifndef TW_NO_SCREEN_BLANK
@@ -109,7 +115,17 @@ int blanktimer::getBrightness(void) {
 	string brightness_path = EXPAND(TW_BRIGHTNESS_PATH);
 	if ((TWFunc::read_file(brightness_path, results)) != 0)
 		return -1;
-	return atoi(results.c_str());
+	int result = atoi(results.c_str());
+	if (result == 0) {
+		int tw_brightness;
+		DataManager::GetValue("tw_brightness", tw_brightness);
+		if (tw_brightness) {
+			result = tw_brightness;
+		} else {
+			result = 255;
+		}
+	}
+	return result;
 
 }
 
@@ -130,13 +146,15 @@ void blanktimer::resetTimerAndUnblank(void) {
 		case 3:
 #ifndef TW_NO_SCREEN_BLANK
 			if (gr_fb_blank(0) < 0) {
-				LOGI("blanktimer::resetTimerAndUnblank failed to gr_fb_blank(0)\n");
+				LOGINFO("blanktimer::resetTimerAndUnblank failed to gr_fb_blank(0)\n");
 				break;
 			}
 #endif
+			TWFunc::check_and_run_script("/sbin/postscreenunblank.sh", "unblank");
 			// No break here, we want to keep going
 		case 2:
 			gui_forceRender();
+			screenoff = false;
 			// No break here, we want to keep going
 		case 1:
 			setBrightness(orig_brightness);

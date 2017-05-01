@@ -23,17 +23,19 @@
 
 #include <fcntl.h>
 #include "libtar/libtar.h"
-#include "common.h"
+#include "twcommon.h"
 
 int flush = 0, eot_count = -1;
 unsigned char *write_buffer;
 unsigned buffer_size = 4096;
 unsigned buffer_loc = 0;
+int buffer_status = 0;
 
 void reinit_libtar_buffer(void) {
 	flush = 0;
 	eot_count = -1;
 	buffer_loc = 0;
+	buffer_status = 1;
 }
 
 void init_libtar_buffer(unsigned new_buff_size) {
@@ -45,7 +47,9 @@ void init_libtar_buffer(unsigned new_buff_size) {
 }
 
 void free_libtar_buffer(void) {
-	free(write_buffer);
+	if (buffer_status > 0)
+		free(write_buffer);
+	buffer_status = 0;
 }
 
 ssize_t write_libtar_buffer(int fd, const void *buffer, size_t size) {
@@ -73,7 +77,7 @@ ssize_t write_libtar_buffer(int fd, const void *buffer, size_t size) {
 			return 0;
 		}
 		if (write(fd, write_buffer, buffer_loc) != buffer_loc) {
-			LOGE("Error writing tar file!\n");
+			LOGERR("Error writing tar file!\n");
 			buffer_loc = 0;
 			return -1;
 		} else {
@@ -89,4 +93,5 @@ ssize_t write_libtar_buffer(int fd, const void *buffer, size_t size) {
 
 void flush_libtar_buffer(int fd) {
 	eot_count = 0;
+	buffer_status = 2;
 }
