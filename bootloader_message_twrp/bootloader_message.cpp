@@ -310,11 +310,11 @@ get_args(int *argc, char ***argv) {
     }
     //stage = strndup(boot.stage, sizeof(boot.stage));
 
-    if (boot.command[0] != 0 && boot.command[0] != 255) {
+    if (boot.command[0] != 0 && boot.command[0] != (char)255) {
         printf("Boot command: %.*s\n", (int)sizeof(boot.command), boot.command);
     }
 
-    if (boot.status[0] != 0 && boot.status[0] != 255) {
+    if (boot.status[0] != 0 && boot.status[0] != (char)255) {
         printf("Boot status: %.*s\n", (int)sizeof(boot.status), boot.status);
     }
 
@@ -332,7 +332,7 @@ get_args(int *argc, char ***argv) {
 // walking through the factory reset screen - without actually doing a factory reset
 #ifdef IGNORE_MISC_WIPE_DATA
                 if (!strcmp(arg, "--wipe_data")) {
-                    (*argv)[*argc] = "";
+                    (*argv)[*argc] = NULL;
                     *argc = *argc -1;
                     printf("Bootloader arg \"%s\" ignored because TWRP was compiled with TW_IGNORE_MISC_WIPE_DATA\n", arg);
                     continue;
