@@ -2212,8 +2212,6 @@ bool TWPartition::Wipe_F2FS() {
 			if (Length < 0)
 				mod_length *= -1;
 			sprintf(len, "%i", mod_length);
-			command += " -r ";
-			command += len;
 		}
 		command += " " + Actual_Block_Device;
 		if (TWFunc::Exec_Cmd(command) == 0) {
