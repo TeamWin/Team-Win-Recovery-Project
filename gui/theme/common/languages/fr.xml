@@ -42,7 +42,7 @@
         <string name="tab_language">LANGUE</string>
         <string name="install_btn">Installer</string>
         <string name="wipe_btn">Formater</string>
-        <string name="backup_btn">Sauvergarder</string>
+        <string name="backup_btn">Sauvegarder</string>
         <string name="restore_btn">Restaurer</string>
         <string name="mount_btn">Montage partitions</string>
         <string name="settings_btn">Paramètres</string>
@@ -50,11 +50,11 @@
         <string name="reboot_btn">Redémarrer</string>
         <string name="files_btn">Fichiers</string>
         <string name="copy_log_btn">Copier le journal</string>
-        <string name="select_type_hdr">Selctionner le type</string>
+        <string name="select_type_hdr">Sélectionner le type</string>
         <string name="install_zip_hdr">Installer le Zip</string>
         <string name="install_zip_btn">Installer le Zip</string>
-        <string name="install_image_hdr">Installer l'Image</string>
-        <string name="install_image_btn">Installer l'Image</string>
+        <string name="install_image_hdr">Installer l'image</string>
+        <string name="install_image_btn">Installer l'image</string>
         <string name="install_select_file_hdr">Sélectionnez un fichier</string>
         <string name="file_selector_folders_hdr">Dossier</string>
         <string name="select_file_from_storage">Sélectionnez un fichier dans %tw_storage_display_name% (%tw_storage_free_size% MB)</string>
